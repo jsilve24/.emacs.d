@@ -57,5 +57,43 @@
   :init (doom-modeline-mode 1)
   :custom ((doom-modeline-height 15)))
 
+
+;;; dashboard
+
+(straight-use-package 'dashboard)
+(use-package dashboard
+  :ensure t
+  :config
+  ;; In addition to the above, configure initial-buffer-choice to show Dashboard in frames created
+  ;; with emacsclient -c as follows:
+  ;; (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
+
+
+  (dashboard-setup-startup-hook)
+
+  ;; Set the title
+  (setq dashboard-banner-logo-title "Welcome to Emacs Dashboard")
+  ;; Set the banner
+  (setq dashboard-startup-banner 'official)
+  ;; Value can be
+  ;; 'official which displays the official emacs logo
+  ;; 'logo which displays an alternative emacs logo
+  ;; 1, 2 or 3 which displays one of the text banners
+  ;; "path/to/your/image.gif", "path/to/your/image.png" or "path/to/your/text.txt" which displays whatever gif/image/text you would prefer
+
+  ;; Content is not centered by default. To center, set
+  (setq dashboard-center-content t)
+
+  ;; To disable shortcut "jump" indicators for each section, set
+  (setq dashboard-show-shortcuts nil)
+
+  ;; To customize which widgets are displayed, you can use the following snippet
+  ;; (setq dashboard-items '((recents  . 5)
+  ;;                         (bookmarks . 5)
+  ;;                         (projects . 5)
+  ;;                         (agenda . 5)
+  ;;                         (registers . 5)))
+  )
+
 (provide 'themes)
 ;;; themes.el ends here
