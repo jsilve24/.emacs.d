@@ -1,4 +1,4 @@
-;;; projects.el --- projectile related config -*- lexical-binding: t; -*-
+;;; window.el --- window movement and setup -*- lexical-binding: t; -*-
 ;;
 ;; Copyright (C) 2021 Justin Silverman
 ;;
@@ -8,31 +8,18 @@
 ;; Modified: October 22, 2021
 ;; Version: 0.0.1
 ;; Keywords: abbrev bib c calendar comm convenience data docs emulations extensions faces files frames games hardware help hypermedia i18n internal languages lisp local maint mail matching mouse multimedia news outlines processes terminals tex tools unix vc wp
-;; Homepage: https://github.com/jsilve24/projects
+;; Homepage: https://github.com/jsilve24/window
 ;; Package-Requires: ((emacs "24.3"))
 ;;
 ;; This file is not part of GNU Emacs.
 ;;
 ;;; Commentary:
 ;;
-;;  projectile related config
+;;  window movement and setup
 ;;
 ;;; Code:
 
-;;; setup consult-projectile
-
-(straight-use-package 'projectile)
-(use-package projectile
-  :diminish projectile-mode
-  :config
-  (projectile-mode +1))
 
 
-(use-package consult-projectile
-  :straight (consult-projectile :type git :host gitlab :repo "OlMon/consult-projectile" :branch "master"))
-
-
-
-
-(provide 'projects)
-;;; projects.el ends here
+(provide 'window)
+;;; window.el ends here

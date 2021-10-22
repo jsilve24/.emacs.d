@@ -118,7 +118,27 @@
 ;;; Keybinding Utilities
 (straight-use-package 'general)
 (use-package general
-  :demand t)
+  :after evil
+  :config
+  ;; allow for shorter bindings -- e.g., just using things like nmap alone without genera-* prefix
+  (general-evil-setup t)
+
+  ;; To automatically prevent Key sequence starts with a non-prefix key errors without the need to
+  ;; explicitly unbind non-prefix keys, you can add (general-auto-unbind-keys) to your configuration
+  ;; file. This will advise define-key to unbind any bound subsequence of the KEY. Currently, this
+  ;; will only have an effect for general.el key definers. The advice can later be removed with
+  ;; (general-auto-unbind-keys t).
+  (general-auto-unbind-keys)
+
+  (general-create-definer jds/leader-def
+    :keymaps '(normal insert visual emacs)
+    :prefix "SPC"
+    :global-prefix "M-SPC")
+  (general-create-definer jds/localleader-def
+    :keymaps '(normal visual emacs)
+    :prefix "\\"))
+
+
 
 
 
@@ -188,6 +208,15 @@
 (fset #'yes-or-no-p #'y-or-n-p)
 
 ;;; Random
+
+;; winner mode
+(winner-mode 1)
+
+;; track recent files
+(recentf-mode 1)
+(setq recentf-max-menu-items 100
+      recentf-max-saved-items 100)
+(run-at-time nil (* 5 60) 'recentf-save-list)
 
 
 ;; Keep folders Clean

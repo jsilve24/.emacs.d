@@ -1,4 +1,4 @@
-;;; projects.el --- projectile related config -*- lexical-binding: t; -*-
+;;; git.el --- magit config -*- lexical-binding: t; -*-
 ;;
 ;; Copyright (C) 2021 Justin Silverman
 ;;
@@ -8,31 +8,30 @@
 ;; Modified: October 22, 2021
 ;; Version: 0.0.1
 ;; Keywords: abbrev bib c calendar comm convenience data docs emulations extensions faces files frames games hardware help hypermedia i18n internal languages lisp local maint mail matching mouse multimedia news outlines processes terminals tex tools unix vc wp
-;; Homepage: https://github.com/jsilve24/projects
+;; Homepage: https://github.com/jsilve24/git
 ;; Package-Requires: ((emacs "24.3"))
 ;;
 ;; This file is not part of GNU Emacs.
 ;;
 ;;; Commentary:
 ;;
-;;  projectile related config
+;;  magit config
+
 ;;
 ;;; Code:
 
-;;; setup consult-projectile
+(straight-use-package 'magit)
 
-(straight-use-package 'projectile)
-(use-package projectile
-  :diminish projectile-mode
-  :config
-  (projectile-mode +1))
+(use-package magit
+  :commands magit-status
+  :custom
+  (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 
+;; NOTE: Make sure to configure a GitHub token before using this package!
+;; - https://magit.vc/manual/forge/Token-Creation.html#Token-Creation
+;; - https://magit.vc/manual/ghub/Getting-Started.html#Getting-Started
+(use-package forge
+  :after magit)
 
-(use-package consult-projectile
-  :straight (consult-projectile :type git :host gitlab :repo "OlMon/consult-projectile" :branch "master"))
-
-
-
-
-(provide 'projects)
-;;; projects.el ends here
+(provide 'git)
+;;; git.el ends here

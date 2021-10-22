@@ -27,7 +27,6 @@
 
 
 ;;; setup bibtex-actions
-;;;
 
 (provide 'latex)
 ;;; latex.el ends here

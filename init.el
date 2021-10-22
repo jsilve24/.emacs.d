@@ -31,11 +31,18 @@
 ;;; Core
 (load-config "core.el")
 (load-config "evil.el")
-(load-config "bindings.el")
+(load-config "autoloads/textobjects.el")
 (load-config "themes.el")
 (load-config "completing-read.el")
 (load-config "org.el")
-
+(load-config "projects.el")
+(load-config "git.el")
+(load-config "term.el")
+(load-config "system-jump.el")
+(load-config "bindings.el")
+(load-config "autoloads/window.el")
+(load-config "window.el")
+(load-config "eval.el")
 
 
 

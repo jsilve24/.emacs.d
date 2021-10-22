@@ -25,10 +25,12 @@
 (straight-use-package 'org)
 (straight-use-package 'org-contrib)
 
-
 (use-package org
+  ;; :commands (org-agenda)
   :config
-  (setq org-directory "~/Documents/org")
+  (setq org-directory "~/Dropbox/org")
+  (setq org-agenda-files (directory-files-recursively "~/Dropbox/org/" "\\.org$"))
+
 
   ;;; high level config
   (setq org-default-notes-file "~/Dropbox/org/inbox.org")
