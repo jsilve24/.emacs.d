@@ -20,11 +20,6 @@
 ;;; Code:
 
 
-;; Where to start:
-;; https://github.com/daviwil/emacs-from-scratch/blob/master/Emacs.org
-
-
-
 ;;; Start-up Performance
 
 ;; The default is 800 kilobytes.  Measured in bytes.
@@ -87,7 +82,6 @@
 
 
 ;;; Package System Setup
-;;; Continue Here: https://github.com/daviwil/emacs-from-scratch/blob/master/Emacs.org
 
 ;; Install Straight -- per straight documentation
 (defvar bootstrap-version)
@@ -119,6 +113,12 @@
 ;; (Note that the variable use-package-always-ensure is
 ;; associated with package.el, and you should not use it with straight.el.)
 (setq straight-use-package-by-default t)
+
+
+;;; Keybinding Utilities
+(straight-use-package 'general)
+(use-package general
+  :demand t)
 
 
 
@@ -180,21 +180,12 @@
 
 ;;; Minibuffer
 
-;; Allow for minibuffer-ception. Sometimes we need another minibuffer command
-;; while we're in the minibuffer.
-(setq enable-recursive-minibuffers t)
-
 ;; Show current key-sequence in minibuffer ala 'set showcmd' in vim. Any
 ;; feedback after typing is better UX than no feedback at all.
 (setq echo-keystrokes 0.02)
 
 ;; Typing yes/no is obnoxious when y/n will do
 (fset #'yes-or-no-p #'y-or-n-p)
-
-;; Try to keep the cursor out of the read-only portions of the minibuffer.
-(setq minibuffer-prompt-properties '(read-only t intangible t cursor-intangible t face minibuffer-prompt))
-(add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
-
 
 ;;; Random
 
@@ -211,6 +202,15 @@
 ;; Emacs stores `authinfo' in $home and in plain-text - lets not do that.
 (setq auth-sources "~/.authinfo.gpg")
 
+
+;; Can't get by without which-key
+(straight-use-package 'which-key)
+(use-package which-key
+  :defer 0
+  :diminish which-key-mode
+  :config
+  (which-key-mode)
+  (setq which-key-idle-delay 1))
 
 
 (provide 'core)

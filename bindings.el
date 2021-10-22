@@ -1,4 +1,4 @@
-;;; bindings.el -*- lexical-binding: t; -*-
+;;; bindings.el -- only for general purpose high-level bindings -*- lexical-binding: t; -*-
 ;;
 ;; Copyright (C) 2021 Justin Silverman
 ;;

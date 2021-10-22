@@ -32,7 +32,21 @@
 
   ;; Use visual line motions even outside of visual-line-mode buffers
   (evil-global-set-key 'motion "j" 'evil-next-visual-line)
-  (evil-global-set-key 'motion "k" 'evil-previous-visual-line))
+  (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
+
+  ;; stop cursor creep when switching back to normal mode
+  (setq evil-move-cursor-back nil)
+  ;; allow cursor to move 1 character past end of line.
+  (setq evil-move-beyond-eol t)
+
+  ;; Don't put overwritten text in the kill ring
+  (setq evil-kill-on-visual-paste nil)
+
+  ;; Get better undo history in insert mode
+  (setq evil-want-fine-undo t)
+
+
+  )
 
 (straight-use-package 'evil-collection)
 (use-package evil-collection

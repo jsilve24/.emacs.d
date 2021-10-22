@@ -24,26 +24,19 @@
 ;;; Code:
 
 ;;; Simple macros
+
+(defun load-config (fn)
+  (load (expand-file-name fn user-emacs-directory)))
+
 ;;; Core
-(load "~/.myvanilla.d/core.el")
-(load "~/.myvanilla.d/evil.el")
-(load "~/.myvanilla.d/bindings.el")
+(load-config "core.el")
+(load-config "evil.el")
+(load-config "bindings.el")
+(load-config "themes.el")
+(load-config "completing-read.el")
+(load-config "org.el")
 
 
-
-(setq jds/default-font-size 100)
-(setq jds/default-variable-font-size 100)
-
-(set-face-attribute 'default nil :font "Fira Code Retina"
-                    :height jds/default-font-size)
-
-;; Set the fixed pitch face
-(set-face-attribute 'fixed-pitch nil :font "Fira Code Retina"
-                    :height jds/default-font-size)
-
-;; Set the variable pitch face
-(set-face-attribute 'variable-pitch nil :font "Cantarell"
-                    :height jds/default-variable-font-size :weight 'regular)
 
 
 
