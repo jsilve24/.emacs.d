@@ -52,6 +52,7 @@
 (jds/leader-def
  "w" '(:ignore t :which-key "window")
  "wt" #'tear-off-window
+ "wT" #'transpose-frame
  ;; "wT" #'jds/window-go-home
  "wu" #'winner-undo
  "wR" #'winner-redo
@@ -115,8 +116,8 @@
  "ss" #'consult-line
  "sS" #'(lambda () (interactive) (consult-line-multi 'all-buffers))
  "sm" #'consult-mark
- "si" #'consult-outline
- "sI" #'consult-imenu-multi
+ ;; "si" #'consult-outline
+ ;; "sI" #'consult-imenu-multi
  "sy" #'consult-yank-from-kill-ring
  "sb" #'consult-bookmark)
 
@@ -129,28 +130,65 @@
 
 ;;; evil bindings
 
+;; don't touch
+;; g-;  g-i   g-n
 (general-define-key
  :states '(normal visual)
  "gr" #'quickrun-region
  "gR" #'quickrun-shell
  "gc" #'evilnc-comment-operator
  "g;" #'goto-last-change
+ "g/" #'avy-goto-char-timer
+ "g," #'jds/evil-snipe-convert-avy-jump
+ "gm" #'evil-next-match                ;; select prior search
+ "gn" #'jds/evil-search-convert-avy-jump
  "gi" #'evil-insert-resume
  "gv" #'evil-visual-restore
  "gu"  #'evil-downcase
  "gU"  #'evil-upcate
  ;; avy and hinting
  "gl" #'link-hint-open-link
- "gL" #'link-hint-copy-link)
+ "gL" #'link-hint-copy-link
+ "gw" #'avy-goto-word-0
+ "ge" #'jds/avy-goto-word-0-end
+ "gd" #'jds/avy-goto-delim-start
+ "gD" #'jds/avy-goto-delim-end
+ "gs" #'consult-line
+ "g'" #'jds/avy-goto-quote
+ "g." #'jds/avy-goto-punctuation
+ "gj" #'evilem-motion-next-visual-line
+ "gk" #'evilem-motion-previous-visual-line
+ "gy" #'consult-yank-from-kill-ring
+ ;; "gY" #'XXX
+ ;; "go" #'XXX
+ ;; "gO" #'XXX
+ ;; "gq" #'XXX
+ ;; "gQ" #'XXX
+ "gw" #'ace-window
+ "gz" #'jds/avy-fix-spelling
+ ;; "gZ" #'XXX
+ ;; "ga" #'XXX
+ ;; "gA" #'XXX
+ ;; "gt" #'XXX
+ ;; "gT" #'XXX
+ "gf" #'avy-goto-char
+ "gi" #'consult-outline
+ "gI" #'consult-imenu-multi)
+
+;; make gh mode specific -- for headings or sections (can popup-imenu or something)
+(general-define-key
+ :states '(n v)
+ :keymaps 'org-mode-map
+ "gh" #'jds/org-goto-visible)
 
 (general-define-key
  :states '(normal visual)
  "z=" #'flyspell-correct-wrapper
  "zg" #'jds/save-word
  "[s" #'jds/spell-fix-previous-error
- "]s" #'jds/spell-fix-previous-error
- "[S" #'jds/evilem-backward-fix-spelling
- "]S" #'jds/evilem-forward-fix-spelling
+ "]s" #'jds/spell-fix-next-error
+ "[S" #'evil-prev-flyspell-error
+ "]S" #'evil-next-flyspell-error
  "M-z" #'flyspell-auto-correct-word)
 
 

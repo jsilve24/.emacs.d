@@ -20,6 +20,19 @@
 ;;; Code:
 
 
+(use-package ace-window
+  :straight t
+  :init
+  (setq aw-background nil)
+  (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
+  :config
+  (setq aw-scope 'global)
+  (custom-set-faces
+   '(aw-leading-char-face
+     ((t (:inherit ace-jump-face-foreground :height 2.5 :foreground "red"))))))
+
+
+(use-package transpose-frame)
 
 (provide 'window)
 ;;; window.el ends here

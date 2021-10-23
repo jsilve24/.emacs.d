@@ -93,6 +93,5 @@ If `evil-vsplit-window-right' is non-nil, the new window isn't focused."
     (call-interactively #'evil-window-vsplit)))
 
 
-
 (provide 'window)
 ;;; window.el ends here

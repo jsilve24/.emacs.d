@@ -47,9 +47,9 @@
   :when (executable-find "aspell")
   :hook (text-mode . flyspell-mode))
 
-;; (use-package flyspell-correct
-;;   :straight t
-;;   :after flyspell)
+(use-package flyspell-correct
+  :straight t
+  :after flyspell)
 
 ;;; some functions
 
@@ -81,9 +81,27 @@
     (evil-prev-flyspell-error)
     (flyspell-correct-wrapper)))
 
+;;;###autoload
+(defun jds/avy-fix-spelling ()
+  "Jump to any Error and open spell checker."
+  (save-excursion
+    (goto-char (window-start))
+    (evil-next-flyspell-error)
+    (flyspell-correct-wrapper)))
+
 (with-eval-after-load 'flyspell
   (evilem-make-motion evilem-motion-backward-spell-error #'evil-prev-flyspell-error)
   (evilem-make-motion evilem-motion-forward-spell-error #'evil-next-flyspell-error)
+
+
+  (defun jds/avy-fix-spelling ()
+    "Avy Hinting to Fix Spelling Forward."
+    (interactive)
+    (save-excursion
+      (goto-char (window-start))
+      (evilem-motion-forward-spell-error)
+      (flyspell-correct-wrapper)))
+
 
   (defun jds/evilem-forward-fix-spelling ()
     "Avy Hinting to Fix Spelling Forward."

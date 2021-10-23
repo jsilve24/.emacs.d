@@ -34,6 +34,7 @@
 (load-config "autoloads/textobjects.el")
 (load-config "themes.el")
 (load-config "completing-read.el")
+(load-config "company.el")
 (load-config "org.el")
 (load-config "autoloads/org.el")
 (load-config "projects.el")

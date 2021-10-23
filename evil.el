@@ -158,17 +158,29 @@
 
 
 
-;; (use-package! evil-snipe
-;;   :commands evil-snipe-local-mode evil-snipe-override-local-mode
-;;   :hook (doom-first-input . evil-snipe-override-mode)
-;;   :hook (doom-first-input . evil-snipe-mode)
-;;   :init
-;;   (setq evil-snipe-smart-case t
-;;         evil-snipe-scope 'line
-;;         evil-snipe-repeat-scope 'visible
-;;         evil-snipe-char-fold t)
-;;   :config
-;;   (pushnew! evil-snipe-disabled-modes 'Info-mode 'calc-mode 'treemacs-mode 'dired-mode))
+(use-package evil-snipe
+  ;; :commands evil-snipe-local-mode evil-snipe-override-local-mode
+  :ensure t
+  :init
+  (setq evil-snipe-smart-case t
+        evil-snipe-scope 'whole-visible
+        evil-snipe-repeat-scope 'while-visible
+        evil-snipe-char-fold t)
+  :config
+  (evil-snipe-mode +1)
+  (evil-snipe-override-mode +1)
+  (evil-define-key 'visual evil-snipe-local-mode-map "z" 'evil-snipe-s)
+  (evil-define-key 'visual evil-snipe-local-mode-map "Z" 'evil-snipe-S)
+  (evil-define-key 'visual evil-snipe-local-mode-map "x" 'evil-snipe-x)
+  (evil-define-key 'visual evil-snipe-local-mode-map "X" 'evil-snipe-X)
+
+  ;; To map [ to any opening parentheses or bracket in all modes:
+  (push '(?\[ "[[{(]") evil-snipe-aliases)
+
+  ;; It seems evil-snipe-override-mode causes problems in Magit buffers, to fix this:
+  (add-hook 'magit-mode-hook 'turn-off-evil-snipe-override-mode)
+
+  (setq evil-snipe-smart-case t))
 
 (use-package evil-nerd-commenter
   :straight t
