@@ -213,10 +213,14 @@
 (winner-mode 1)
 
 ;; track recent files
-(recentf-mode 1)
-(setq recentf-max-menu-items 100
-      recentf-max-saved-items 100)
-(run-at-time nil (* 5 60) 'recentf-save-list)
+(use-package recentf
+  :after evil
+  :config
+  (recentf-mode 1)
+  (setq recentf-max-menu-items 100
+        recentf-max-saved-items 400
+        recentf-auto-cleanup 'never)
+  (run-at-time nil (* 5 60) 'recentf-save-list))
 
 
 ;; Keep folders Clean

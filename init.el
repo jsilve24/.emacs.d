@@ -39,11 +39,17 @@
 (load-config "git.el")
 (load-config "term.el")
 (load-config "system-jump.el")
-(load-config "bindings.el")
+(load-config "avy.el")
+(load-config "autoloads/avy.el")
 (load-config "autoloads/window.el")
 (load-config "window.el")
 (load-config "eval.el")
+(load-config "dired.el")
+(load-config "autoloads/dired.el")
+(load-config "spelling.el")
 
+;; after everything else
+(load-config "bindings.el")
 
 
 

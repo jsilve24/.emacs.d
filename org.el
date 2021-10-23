@@ -161,6 +161,13 @@
   (setq org-ellipsis " ▾"))
 
 
+;;; local bindings
+
+(general-define-key
+ :states '(n v)
+ :keymaps 'org-agenda-mode-map
+ "f" #'avy-org-agenda
+ "F" #'jds/avy-org-agenda-and-jump)
 
 (provide 'org)
 ;;; org.el ends here

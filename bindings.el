@@ -32,6 +32,7 @@
  "ff" #'find-file
  "fr" #'consult-recent-file
  "fs" #'save-buffer
+ "fa" #'(lambda () (interactive) (affe-find "/home/jds6696/"))
  "fS" #'evil-write-all
  "fz" #'zoxide-find-file
  "fZ" #'zoxide-cd)
@@ -87,18 +88,25 @@
 
 ;;; org and apps
 
-(jds/leader-def
- "o" '(:ignore t :which-key "open/org")
- "oo" #'org-capture
- "oO" #'org-capture-goto-target
- "oq" #'org-tags-view
- "ol" #'org-store-link
- "ot" #'vterm
- "oa" #'org-agenda
- "od" #'jds/org-agenda-show-custom-day
- "os" #'consult-org-agenda
- "oS" #'org-search-view)
+(general-define-key
+ :states '(n v)
+ "q" '(:ignore t :which-key "open/org")
+ "qc" #'org-capture
+ "qO" #'org-capture-goto-target
+ "ql" #'org-store-link
+ "qt" #'vterm
+ "qa" #'org-agenda
+ "qd" #'jds/org-agenda-show-custom-day
+ "qs" #'consult-org-agenda
+ "qS" #'org-search-view
+ "qd" #'dired-jump
+ "qD" #'jds/deer-downloads
+ "qh" #'(lambda () (interactive) (deer "/home/jds6696/")))
 
+;; move macros
+(general-define-key
+ :states '(n v)
+ "Q" #'evil-record-macro)
 
 ;;; search
 (jds/leader-def
@@ -125,7 +133,16 @@
  :states '(normal visual)
  "gr" #'quickrun-region
  "gR" #'quickrun-shell
- "gc" #'evilnc-comment-operator)
+ "gc" #'evilnc-comment-operator
+ "g;" #'goto-last-change
+ "gi" #'evil-insert-resume
+ "gv" #'evil-visual-restore
+ "gu"  #'evil-downcase
+ "gU"  #'evil-upcate
+ ;; avy and hinting
+ "gl" #'link-hint-open-link
+ "gL" #'link-hint-copy-link
+ )
 
 
 (general-itomap
