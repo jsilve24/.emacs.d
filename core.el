@@ -131,7 +131,7 @@
   (general-auto-unbind-keys)
 
   (general-create-definer jds/leader-def
-    :keymaps '(normal insert visual emacs override)
+    :keymaps '(normal insert visual emacs)
     :prefix "SPC"
     :global-prefix "M-SPC")
   (general-create-definer jds/localleader-def
@@ -159,6 +159,8 @@
                 pdf-view-mode
                 shell-mode-hook
                 treemacs-mode-hook
+                mu4e-main-mode-hook
+                mu4e-main-index-update-hook
                 eshell-mode-hook))
   (add-hook mode (lambda () (display-line-numbers-mode 0))))
 

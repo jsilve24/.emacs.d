@@ -26,7 +26,9 @@
   :init
   (provide 'html2text) ;; disable obsolete package
   :config
-  (setq mu4e-compose-context-policy 'ask ;; help separate accounts
+  (setq mu4e-get-mail-command "mbsync -a"
+        mu4e-change-file-names-when-moving t
+        mu4e-compose-context-policy 'ask ;; help separate accounts
         mu4e-context-policy 'pick-first
         mu4e-compose-in-new-frame t
         mu4e-sent-messages-behavior 'delete ;; servers take care of this
@@ -139,7 +141,99 @@
 
     ;; turn off mu4e in doom modeline
     (setq doom-modeline-mu4e nil)
-  )
+
+    ;; setup calendar
+    (setq mu4e-view-use-gnus t)
+    (require 'mu4e-icalendar)
+    (mu4e-icalendar-setup)
+    (setq gnus-icalendar-org-capture-file "~/Dropbox/org/calendar.org")
+    (setq gnus-icalendar-org-capture-headline '("Calendar")) ;;make sure to create Calendar heading first
+    (gnus-icalendar-org-setup))
+
+
+
+;;; setup org-msg
+(use-package org-msg
+  :straight t
+  :after mu4e
+  :config
+  (setq
+  org-msg-options "html-postamble:nil num:nil ^:{} toc:nil author:nil email:nil \\n:t"
+  org-msg-startup "hidestars indent inlineimages"
+  org-msg-default-alternatives '((new . (text html))
+                                 (reply-to-html . (text html))
+                                 (reply-to-text . (text)))
+  org-msg-convert-citation t
+  ;; The default attachment matcher gives too many false positives,
+  ;; it's better to be more conservative. See https://regex101.com/r/EtaiSP/4.
+  org-msg-attached-file-reference
+  "see[ \t\n]\\(?:the[ \t\n]\\)?\\(?:\\w+[ \t\n]\\)\\{0,3\\}\\(?:attached\\|enclosed\\)\\|\
+(\\(?:attached\\|enclosed\\))\\|\
+\\(?:attached\\|enclosed\\)[ \t\n]\\(?:for\\|is\\)[ \t\n]")
+  (org-msg-mode))
+
+
+
+
+;;; bindings
+
+(jds/localleader-def
+ :keymaps '(mu4e-compose-mode-map)
+ "\\"     '(org-ctrl-c-ctrl-c :which-key "send-message")
+ "gs"     '(message-goto-subject :which-key "goto subject")
+ "gc"     '(message-goto-cc :which-key "goto cc")
+ "gt"     '(message-goto-to :which-key "goto to")
+ "k"      '(message-kill-buffer :which-key "kill message")
+ "gb"     '(message-goto-body :which-key "goto body"))
+
+(jds/localleader-def
+ :keymaps '(org-msg-edit-mode-map)
+ "\\"     '(org-ctrl-c-ctrl-c :which-key "send-message")
+ "gs"     '(message-goto-subject :which-key "goto subject")
+ "gc"     '(message-goto-cc :which-key "goto cc")
+ "gt"     '(message-goto-to :which-key "goto to")
+ "k"      '(message-kill-buffer :which-key "kill message")
+ "gp"     '(jds/org-msg-goto-properties :which-key "goto properties")
+ "gb"     '(jds/org-msg-goto-body :which-key "goto body")
+ "v"      '(org-msg-preview :which-key "org-msg-preview")
+ "t"      '(:ignore t :which-key "toggle")
+ "i"      '(jds/org-msg-add-inlineimages :which-key "inlineimages")
+ "m"      '(jds/org-msg-add-text2png :which-key "tex2png"))
+
+(jds/localleader-def
+ :keymaps '(mu4e-view-mode-map mu4e-headers-mode-map)
+ "U"      '(mu4e-update-mail-and-index :which-key "update mail and index")
+ "s"      '(mu4e-view-save-attachments))
+
+(eval-after-load 'evil-collection-mu4e
+  (general-define-key
+   :states       'n
+   "T"          #'mu4e-headers-mark-thread
+   "l"          #'+mu4e-capture-msg-to-agenda))
+
+
+;; ;;; setup thread-folding
+;; (use-package mu4e-thread-folding
+;;   :straight (mu4e-thread-folding :type git :host github :repo "rougier/mu4e-thread-folding" :branch "master")
+;;   :defer t
+;;   :config
+;;   (add-to-list 'mu4e-header-info-custom
+;;                '(:empty . (:name "Empty"
+;;                            :shortname ""
+;;                            :function (lambda (msg) "  "))))
+;;   (setq mu4e-headers-fields '((:empty         .    2)
+;;                               (:human-date    .   12)
+;;                               (:flags         .    6)
+;;                               (:mailing-list  .   10)
+;;                               (:from          .   22)
+;;                               (:subject       .   nil)))
+;; (define-key mu4e-headers-mode-map (kbd "<tab>")     'mu4e-headers-toggle-at-point)
+;; (define-key mu4e-headers-mode-map (kbd "<left>")    'mu4e-headers-fold-at-point)
+;; (define-key mu4e-headers-mode-map (kbd "<S-left>")  'mu4e-headers-fold-all)
+;; (define-key mu4e-headers-mode-map (kbd "<right>")   'mu4e-headers-unfold-at-point)
+;; (define-key mu4e-headers-mode-map (kbd "<S-right>") 'mu4e-headers-unfold-all)
+;; )
+
 
 
 (provide 'email)

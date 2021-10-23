@@ -21,10 +21,14 @@
 
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
+
 ;;; universal argument and other short stuff
 (jds/leader-def
  "u" #'universal-argument
- ";" #'pp-eval-expression)
+ ";" #'pp-eval-expression
+ "RET" #'projectile-find-file
+ "\`" #'evil-switch-to-windows-last-buffer
+ "SPC" #'execute-extended-command)
 
 ;;; filesystem bindings
 (jds/leader-def
@@ -35,7 +39,16 @@
  "fa" #'(lambda () (interactive) (affe-find "/home/jds6696/"))
  "fS" #'evil-write-all
  "fz" #'zoxide-find-file
- "fZ" #'zoxide-cd)
+ "fZ" #'zoxide-cd
+ "fc" #'jds/open-config
+ "fC" #'jds/find-file-config
+ "fp" #'projectile-switch-project
+ "fP" #'jds/find-file-other-project
+ "fo" #'projectile-find-other-file
+ "fc" #'projectile-)
+
+;;; project bindings
+
 
 ;;; help bindings
 (jds/leader-def
@@ -57,6 +70,7 @@
  "wu" #'winner-undo
  "wR" #'winner-redo
  "wd" #'evil-window-delete
+ "wD" #'kill-buffer-and-window
  "w=" #'balance-windows
  "wv" #'evil-window-vsplit
  "wV" #'+evil/window-vsplit-and-follow
@@ -92,17 +106,32 @@
 (general-define-key
  :states '(n v)
  "q" '(:ignore t :which-key "open/org")
- "qc" #'org-capture
- "qO" #'org-capture-goto-target
+ "qn" #'org-capture           ;; q "new"
+ "qN" #'org-capture-goto-target ;; new and follow
+ "qo" #'org-capture-goto-last-stored
+ "qc" #'jds/mu4e-compose-goto-to
+ "qm" #'jds/open-mu4e-new-frame
+ "qM" #'mu4e
  "ql" #'org-store-link
  "qt" #'vterm
  "qa" #'jds/org-agenda-show-custom-day
  "qA" #'org-agenda
  "qs" #'consult-org-agenda
  "qS" #'org-search-view
+ "qk" #'evil-lookup
  "qd" #'dired-jump
  "qD" #'jds/deer-downloads
  "qh" #'(lambda () (interactive) (deer "/home/jds6696/")))
+
+;;; faster editing in text buffers
+(general-define-key
+ :keymaps '(latex-mode-map org-mode-map)
+ :states '(n v m o)
+ "H" #'evil-backward-sentence-begin
+ "J" #'backward-paragraph
+ "K" #'forward-paragraph
+ "L" #'evil-forward-sentence-begin)
+;; (evil-define-key nil 'latex-mode-map "J" #'backward-paragraph)
 
 ;; move macros
 (general-define-key
@@ -160,8 +189,8 @@
  "gk" #'evilem-motion-previous-visual-line
  "gy" #'consult-yank-from-kill-ring
  ;; "gY" #'XXX
- ;; "go" #'XXX
- ;; "gO" #'XXX
+ "go" #' jds/evil-insert-line-below
+ "gO" #'jds/evil-insert-line-above
  ;; "gq" #'XXX
  ;; "gQ" #'XXX
  "gw" #'ace-window

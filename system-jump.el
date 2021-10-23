@@ -36,5 +36,56 @@
 ;;       :leader
 ;;       :desc "affe find" "fa" (lambda () (interactive) (affe-find "/home/jds6696/")))
 
+
+;;; some shortcuts and utilities taken from doom
+;;;###autoload
+(defun jds/project-browse (dir)
+  "Traverse a file structure starting linearly from DIR."
+  (unless (file-directory-p dir)
+    (error "Directory %S does not exist" dir))
+  (unless (file-readable-p dir)
+    (error "Directory %S isn't readable" dir))
+  (let ((default-directory (file-truename (expand-file-name dir))))
+    (call-interactively #'find-file)))
+
+
+;;;###autoload
+(defun jds/open-config ()
+  "Open config for current running emacs instance."
+  (interactive)
+  (jds/project-browse user-emacs-directory))
+
+
+
+;;;###autoload
+(defun jds/find-file-config ()
+  "Recursive search for file in personal config directory."
+  (interactive)
+  (let ((default-directory user-emacs-directory))
+    (projectile-find-file)))
+
+
+;;;###autoload
+(defun jds/find-file-other-project ()
+  "Recursive search for file in a different project."
+  (interactive)
+  (let ((default-directory (completing-read "Project to search:"
+                    (projectile-relevant-known-projects))))
+    (projectile-find-file)))
+
+
+
+;; a more advanced version of finding files in directories is
+;; provided by the find-files-in-project library
+;; its a bit much for what I need though and projectile-find-file seems
+;; to do just fine
+;; (use-package find-file-in-project
+;;   :straight t)
+
+
+
+
+
+
 (provide 'system-jump)
 ;;; system-jump.el ends here

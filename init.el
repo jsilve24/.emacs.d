@@ -31,7 +31,6 @@
 ;;; Core
 (load-config "core.el")
 (load-config "evil.el")
-(load-config "autoloads/custom-evil-pdf-tools.el") ;; I removed from evil-collection
 (load-config "autoloads/textobjects.el")
 (load-config "themes.el")
 (load-config "completing-read.el")
@@ -51,14 +50,36 @@
 (load-config "autoloads/dired.el")
 (load-config "spelling.el")
 (load-config "latex.el")
+(load-config "autoloads/custom-evil-pdf-tools.el") ;; I removed from evil-collection
 (load-config "pdf.el")
 (load-config "autoloads/email.el")
 (load-config "email.el")
+(load-config "frames.el")
 
-;; after everything else
+;; ;; after everything else
 (load-config "bindings.el")
 
 
+
+;;; miscellaneous
+
+(use-package comment-dwim-2
+  :straight (comment-dwim-2 :type git :host github :repo "remyferre/comment-dwim-2" :branch "master")
+  :commands (comment-dwim-2 org-comment-dwim-2)
+  :bind (("M-;" . comment-dwim-2)
+         :map org-mode-map
+         ("M-;" . org-comment-dwim-2)))
+
+
+;; easy way to try out packages
+;; M-x try RET package-name
+(use-package try
+  :straight t)
+
+(use-package beacon
+  :straight t
+  :config
+  (beacon-mode 1))
 
 (provide 'init)
 ;;; init.el ends here

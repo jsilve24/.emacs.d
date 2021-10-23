@@ -25,7 +25,13 @@
 (use-package magit
   :commands magit-status
   :custom
-  (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
+  (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
+  :config
+  (transient-append-suffix 'magit-pull "-A"
+    '("-A" "Allow unrelated histories" "--allow-unrelated-histories"))
+
+  ;; https://github.com/magit/ghub/issues/81
+  (setq ghub-use-workaround-for-emacs-bug 'force))
 
 ;; NOTE: Make sure to configure a GitHub token before using this package!
 ;; - https://magit.vc/manual/forge/Token-Creation.html#Token-Creation

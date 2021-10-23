@@ -30,5 +30,22 @@
      (save-excursion (goto-char beg) (point-marker))
      end)))
 
+
+;; from spacemacs
+(defun jds/evil-insert-line-above (count)
+  "Insert one or several lines above the current point's line without changing
+the current state and point position."
+  (interactive "p")
+  (dotimes (_ count) (save-excursion (evil-insert-newline-above))))
+
+(defun jds/evil-insert-line-below (count)
+  "Insert one or several lines below the current point's line without changing
+the current state and point position."
+  (interactive "p")
+  (dotimes (_ count) (save-excursion (evil-insert-newline-below))))
+
+
+
+
 (provide 'evil)
 ;;; evil.el ends here
