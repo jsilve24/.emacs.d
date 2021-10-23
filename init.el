@@ -49,6 +49,7 @@
 (load-config "dired.el")
 (load-config "autoloads/dired.el")
 (load-config "spelling.el")
+(load-config "latex.el")
 
 ;; after everything else
 (load-config "bindings.el")
