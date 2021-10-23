@@ -35,6 +35,7 @@
 (load-config "themes.el")
 (load-config "completing-read.el")
 (load-config "org.el")
+(load-config "autoloads/org.el")
 (load-config "projects.el")
 (load-config "git.el")
 (load-config "term.el")

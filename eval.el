@@ -19,7 +19,6 @@
 ;;
 ;;; Code:
 
-;; (straight-use-package 'quickrun)
 (use-package quickrun
   :straight t)
 

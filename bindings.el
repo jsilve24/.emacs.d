@@ -95,8 +95,8 @@
  "qO" #'org-capture-goto-target
  "ql" #'org-store-link
  "qt" #'vterm
- "qa" #'org-agenda
- "qd" #'jds/org-agenda-show-custom-day
+ "qa" #'jds/org-agenda-show-custom-day
+ "qA" #'org-agenda
  "qs" #'consult-org-agenda
  "qS" #'org-search-view
  "qd" #'dired-jump
@@ -141,8 +141,7 @@
  "gU"  #'evil-upcate
  ;; avy and hinting
  "gl" #'link-hint-open-link
- "gL" #'link-hint-copy-link
- )
+ "gL" #'link-hint-copy-link)
 
 
 (general-itomap
