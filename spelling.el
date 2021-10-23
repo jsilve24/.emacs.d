@@ -21,6 +21,9 @@
 
 
 
+;;; main config
+
+
 (use-package ispell
   ;; :straight t
   :init
@@ -40,11 +43,70 @@
 ;;   (setq ispell-personal-dictionary "~/.aspell.en.pws"))
 
 (use-package flyspell
+  :after evil-easymotion
   :when (executable-find "aspell")
-  :hook (text-mode . flyspell-mode)
-  :bind
-  (("M-z" . #'flyspell-auto-correct-previous-word)))
+  :hook (text-mode . flyspell-mode))
 
+;; (use-package flyspell-correct
+;;   :straight t
+;;   :after flyspell)
+
+;;; some functions
+
+;; ;;;###autoload
+;; (defun jds/flyspell-auto-correct-previous-word (arg)
+;;   "Autocorrect previous word but don't move beyond visible screen."
+;;   (interactive "p")
+;;   (let ((pmin (window-start)))
+;;     (save-excursion
+;;       (narrow-to-page
+;;       (forward-word 1)
+;;       (evil-prev-flyspell-error)
+;;       (if (>= (point) pmin)  (recomplete-ispell-word arg) ;;(flyspell-auto-correct-word)
+;;         (message "No Errors in Range"))))))
+
+;;;###autoload
+(defun jds/spell-fix-next-error ()
+  "Jump to Next Error and open ispell menu"
+  (interactive)
+  (save-excursion
+    (evil-next-flyspell-error)
+    (flyspell-correct-wrapper)))
+
+;;;###autoload
+(defun jds/spell-fix-previous-error ()
+  "Jump to previous Error and open ispell menu"
+  (interactive)
+  (save-excursion
+    (evil-prev-flyspell-error)
+    (flyspell-correct-wrapper)))
+
+(with-eval-after-load 'flyspell
+  (evilem-make-motion evilem-motion-backward-spell-error #'evil-prev-flyspell-error)
+  (evilem-make-motion evilem-motion-forward-spell-error #'evil-next-flyspell-error)
+
+  (defun jds/evilem-forward-fix-spelling ()
+    "Avy Hinting to Fix Spelling Forward."
+    (interactive)
+    (save-excursion
+      (evilem-motion-forward-spell-error)
+      (flyspell-correct-wrapper)))
+
+  (defun jds/evilem-backward-fix-spelling ()
+    "Avy Hinting to Fix Spelling Forward."
+    (interactive)
+    (save-excursion
+      (evilem-motion-backward-spell-error)
+      (flyspell-correct-wrapper))))
+
+;; from here: https://stackoverflow.com/questions/22107182/in-emacs-flyspell-mode-how-to-add-new-word-to-dictionary
+;;;###autoload
+(defun jds/save-word ()
+  (interactive)
+  (let ((current-location (point))
+         (word (flyspell-get-word)))
+    (when (consp word)
+      (flyspell-do-correct 'save nil (car word) current-location (cadr word) (caddr word) current-location))))
 
 ;;; recomplete
 

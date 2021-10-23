@@ -143,6 +143,19 @@
  "gl" #'link-hint-open-link
  "gL" #'link-hint-copy-link)
 
+(general-define-key
+ :states '(normal visual)
+ "z=" #'flyspell-correct-wrapper
+ "zg" #'jds/save-word
+ "[s" #'jds/spell-fix-previous-error
+ "]s" #'jds/spell-fix-previous-error
+ "[S" #'jds/evilem-backward-fix-spelling
+ "]S" #'jds/evilem-forward-fix-spelling
+ "M-z" #'flyspell-auto-correct-word)
+
+
+;;; text objects
+
 
 (general-itomap
  :state 'o
