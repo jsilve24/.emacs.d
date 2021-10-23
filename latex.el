@@ -187,9 +187,22 @@
 
 (jds/localleader-def
  :keymap 'LaTeX-mode-map
+ "\\" #'TeX-command-run-all
+ "TAB" #'reftex-toc
+ "e" #'LaTeX-environment
+ "s" #'LaTeX-section
+ "c" #'LaTeX-close-environment
+ "n" #'TeX-next-error
+ "N" #'TeX-previous-error
+ "i" #'LaTeX-insert-item
+
  "r" '(:ignore :which-key "reftex")
  "rb" #'bibtex-actions-insert-citation
- "rR" #'bibtex-actions-refresh)
+ "rR" #'bibtex-actions-refresh
+ "r" #'reftex-reference
+ "l" #'reftex-label
+ "t" #'reftex-toc
+ "c" #'reftex-citation)
 
 (provide 'latex)
 ;;; latex.el ends here

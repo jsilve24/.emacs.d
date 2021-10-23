@@ -118,7 +118,7 @@
 ;;; Keybinding Utilities
 (straight-use-package 'general)
 (use-package general
-  :after evil
+  :ensure t
   :config
   ;; allow for shorter bindings -- e.g., just using things like nmap alone without genera-* prefix
   (general-evil-setup t)
@@ -131,7 +131,7 @@
   (general-auto-unbind-keys)
 
   (general-create-definer jds/leader-def
-    :keymaps '(normal insert visual emacs)
+    :keymaps '(normal insert visual emacs override)
     :prefix "SPC"
     :global-prefix "M-SPC")
   (general-create-definer jds/localleader-def
@@ -156,6 +156,7 @@
 ;; Disable line numbers for some modes
 (dolist (mode '(org-mode-hook
                 term-mode-hook
+                pdf-view-mode
                 shell-mode-hook
                 treemacs-mode-hook
                 eshell-mode-hook))

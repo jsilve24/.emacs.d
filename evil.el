@@ -101,6 +101,8 @@
 (use-package evil-collection
   :after evil
   :config
+  (setq evil-collection-mode-list
+        (delq 'pdf evil-collection-mode-list))
   (evil-collection-init))
 
 

@@ -31,6 +31,7 @@
 ;;; Core
 (load-config "core.el")
 (load-config "evil.el")
+(load-config "autoloads/custom-evil-pdf-tools.el") ;; I removed from evil-collection
 (load-config "autoloads/textobjects.el")
 (load-config "themes.el")
 (load-config "completing-read.el")
@@ -50,6 +51,9 @@
 (load-config "autoloads/dired.el")
 (load-config "spelling.el")
 (load-config "latex.el")
+(load-config "pdf.el")
+(load-config "autoloads/email.el")
+(load-config "email.el")
 
 ;; after everything else
 (load-config "bindings.el")
