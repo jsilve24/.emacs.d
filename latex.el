@@ -49,20 +49,25 @@
                                    fill-nobreak-predicate (cons #'texmathp fill-nobreak-predicate))))
 
   ;; Enable word wrapping
-  (add-hook 'TeX-mode-hook #'visual-line-mode))
+  (add-hook 'TeX-mode-hook #'visual-line-mode)
+
+  ;; enable folding
+  ;; (add-hook 'LaTeX-mode-hook #'outline-minor-mode) ;; was in my doom config
+  (add-hook 'TeX-mode-hook #'outline-minor-mode))
 
 
 
 ;;; setup cdlatex
 
 (use-package cdlatex
-  :hook (LaTeX-mode . cdlatex-mode)
-  :hook (org-mode . org-cdlatex-mode)
-  :bind
+  :hook (LaTeX-mode . turn-on-cdlatex)
+  :hook (org-mode . turn-on-cdlatex)
+  :defer t
   ;; smartparens takes care of inserting closing delimiters, and if you
   ;; don't use smartparens you probably won't want these also.
   ;; also auctex takes care of inserting _ and ^
   ;; also auctex already provides `LaTeX-insert-item' so C-ret not needed
+  :bind
   (:map cdlatex-mode-map
    ("$" . nil)
    ("(" . nil)
@@ -72,12 +77,20 @@
    ("<" . nil)
    ("_" . nil)
    ("^" . nil)
-   ([(control return)] . nil)))
+   ("TAB" . cdlatex-tab)
+   ([(control return)] . nil))
+ :config
+ (setq cdlatex-math-symbol-alist
+        '((?< ("\\leftarrow" "\\Leftarrow" "\\longleftarrow" "\\Longleftarrow"))
+          (?> ("\\rightarrow" "\\Rightarrow" "\\longrightarrow" "\\Longrightarrow"))
+          (?\\ ("\\parallel"))
+          (?| ("\\perp")))))
 
 ;;; setup latexmk
 
 (use-package auctex-latexmk
   :straight t
+  :after cdlatex
   :init
   ;; Pass the -pdf flag when TeX-PDF-mode is active
   (setq auctex-latexmk-inherit-TeX-PDF-mode t)
@@ -90,14 +103,43 @@
 
 ;;; setup tecosaurs thing...
 
+
+;; (use-package laas
+;;   :straight t
+;;   :hook (LaTeX-mode . laas-mode)
+;;   :config ; do whatever here
+;;   (aas-set-snippets 'laas-mode
+;;                     ;; set condition!
+;;                     :cond #'texmathp ; expand only while in math
+;;                     "supp" "\\supp"
+;;                     "On" "O(n)"
+;;                     "O1" "O(1)"
+;;                     "Olog" "O(\\log n)"
+;;                     "Olon" "O(n \\log n)"
+;;                     ;; bind to functions!
+;;                     "Sum" (lambda () (interactive)
+;;                             (yas-expand-snippet "\\sum_{$1}^{$2} $0"))
+;;                     "Span" (lambda () (interactive)
+;;                              (yas-expand-snippet "\\Span($1)$0"))
+;;                     ;; add accent snippets
+;;                     :cond #'laas-object-on-left-condition
+;;                     "qq" (lambda () (interactive) (laas-wrap-previous-object "sqrt"))))
+
+
 ;;; setup evil-tex
 
-;;; setup bibtex-actions
+(use-package evil-tex
+  :straight t
+  :after latex
+  :hook (LaTeX-mode . evil-tex-mode))
 
 ;;; setup company-auctex and company-reftex (and perhaps company-math)
 
-;;; setup latex-preview plane (perhaps)
-
+(use-package company-auctex
+  :straight t
+  :after cdlatex
+  :config
+  (company-auctex-init))
 
 ;;; setup adaptive-wrap for nicer look
 
@@ -105,6 +147,49 @@
 (use-package adaptive-wrap
   :hook (LaTeX-mode . adaptive-wrap-prefix-mode)
   :init (setq-default adaptive-wrap-extra-indent 0))
+
+
+;;; setup bibtex-actions
+
+(use-package bibtex-completion
+  :straight t
+  :defer t)
+
+(use-package bibtex-actions
+  :straight t
+  :defer t
+  :config
+  ;; watch for changes in bib files
+  (bibtex-actions-filenotify-setup '(LaTeX-mode-hook org-mode-hook))
+
+  ;; nice file icons
+  (setq bibtex-actions-symbols
+  `((file . (,(all-the-icons-icon-for-file "foo.pdf" :face 'all-the-icons-dred) .
+            ,(all-the-icons-icon-for-file "foo.pdf" :face 'bibtex-actions-icon-dim)))
+    (note . (,(all-the-icons-icon-for-file "foo.txt") .
+            ,(all-the-icons-icon-for-file "foo.txt" :face 'bibtex-actions-icon-dim)))
+    (link .
+        (,(all-the-icons-faicon "external-link-square" :v-adjust 0.02 :face 'all-the-icons-dpurple) .
+        ,(all-the-icons-faicon "external-link-square" :v-adjust 0.02 :face 'bibtex-actions-icon-dim)))))
+;; Here we define a face to dim non 'active' icons, but preserve alignment
+(defface bibtex-actions-icon-dim
+    '((((background dark)) :foreground "#282c34")
+     (((background light)) :foreground "#fafafa"))
+     "Face for obscuring/dimming icons"
+     :group 'all-the-icons-faces)
+)
+
+
+;;; setup biblio
+
+
+;;; keybindings
+
+(jds/localleader-def
+ :keymap 'LaTeX-mode-map
+ "r" '(:ignore :which-key "reftex")
+ "rb" #'bibtex-actions-insert-citation
+ "rR" #'bibtex-actions-refresh)
 
 (provide 'latex)
 ;;; latex.el ends here

@@ -28,6 +28,7 @@
              company-grab-line)
   :hook (after-init . global-company-mode)
   :bind ("TAB" . company-indent-or-complete-common)
+  :bind ("C-SPC" . company-indent-or-complete-common)
   :init
   (setq company-minimum-prefix-length 2
         company-tooltip-limit 14
@@ -54,7 +55,7 @@
   :config
 
   ;; Buffer-local backends will be computed when loading a major mode, so
-  ;; only specify a global default here.
+  ;; only specify a global default here. `'
   (setq company-backend '(company-capf company-files company-yasnippet company-dabbrev)))
 
 
