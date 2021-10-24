@@ -201,11 +201,10 @@
  ;; "gY" #'XXX
  ;; "gq" #'XXX
  ;; "gQ" #'XXX
- "gw" #'ace-window
+ "ga" #'ace-window
+ ;; "gA" #'XXX
  "gz" #'jds/avy-fix-spelling
  ;; "gZ" #'XXX
- ;; "ga" #'XXX
- ;; "gA" #'XXX
  ;; "gt" #'XXX
  ;; "gT" #'XXX
  "gf" #'avy-goto-char

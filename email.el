@@ -205,11 +205,12 @@
  "U"      '(mu4e-update-mail-and-index :which-key "update mail and index")
  "s"      '(mu4e-view-save-attachments))
 
-(eval-after-load 'evil-collection-mu4e
-  (general-define-key
-   :states       'n
-   "T"          #'mu4e-headers-mark-thread
-   "l"          #'+mu4e-capture-msg-to-agenda))
+;; (eval-after-load 'evil-collection-mu4e
+;;   (general-define-key
+;;    :keymaps ' 
+;;    :states       'n
+;;    "T"          #'mu4e-headers-mark-thread
+;;    "l"          #'+mu4e-capture-msg-to-agenda))
 
 
 ;; ;;; setup thread-folding

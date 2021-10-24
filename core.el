@@ -257,5 +257,11 @@
   (setq which-key-idle-delay 1))
 
 
+;;; pkg info
+(use-package pkg-info
+  :straight t
+  :defer t)
+
+
 (provide 'core)
 ;;; core.el ends here

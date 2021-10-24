@@ -23,8 +23,8 @@
 
 ;;; Font stuff
 
-(setq jds/default-font-size 100)
-(setq jds/default-variable-font-size 100)
+(setq jds/default-font-size 90)
+(setq jds/default-variable-font-size 90)
 
 (set-face-attribute 'default nil :font "Fira Code Retina"
                     :height jds/default-font-size)
@@ -94,6 +94,7 @@
   ;;                         (agenda . 5)
   ;;                         (registers . 5)))
   )
+
 
 (provide 'themes)
 ;;; themes.el ends here
