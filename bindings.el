@@ -44,8 +44,7 @@
  "fC" #'jds/find-file-config
  "fp" #'projectile-switch-project
  "fP" #'jds/find-file-other-project
- "fo" #'projectile-find-other-file
- "fc" #'projectile-)
+ "fo" #'projectile-find-other-file)
 
 ;;; project bindings
 
@@ -118,20 +117,29 @@
  "qA" #'org-agenda
  "qs" #'consult-org-agenda
  "qS" #'org-search-view
- "qk" #'evil-lookup
+ "qk" #'helpful-at-point
  "qd" #'dired-jump
  "qD" #'jds/deer-downloads
  "qh" #'(lambda () (interactive) (deer "/home/jds6696/")))
 
 ;;; faster editing in text buffers
-(general-define-key
- :keymaps '(latex-mode-map org-mode-map)
- :states '(n v m o)
- "H" #'evil-backward-sentence-begin
- "J" #'backward-paragraph
- "K" #'forward-paragraph
- "L" #'evil-forward-sentence-begin)
+;; (general-define-key
+;;  :keymaps '(latex-mode-map org-mode-map)
+;;  :states '(n v m o)
+;;  "H" #'evil-backward-sentence-begin
+;;  "J" #'backward-paragraph
+;;  "K" #'forward-paragraph
+;;  "L" #'evil-forward-sentence-begin)
 ;; (evil-define-key nil 'latex-mode-map "J" #'backward-paragraph)
+
+(defun jds/text-mode-local-keys ()
+  (interactive)
+  (evil-local-set-key 'normal "H" #'evil-backward-sentence-begin)
+  (evil-local-set-key 'normal "J" #'jds/paragraph-forward)
+  (evil-local-set-key 'normal "K" #'jds/paragraph-backward)
+  (evil-local-set-key 'normal "L" #'evil-forward-sentence-begin))
+(add-hook 'text-mode-hook 'jds/text-mode-local-keys)
+
 
 ;; move macros
 (general-define-key
@@ -162,8 +170,8 @@
 ;; don't touch
 ;; g-;  g-i   g-n
 (general-define-key
- :states '(normal visual)
- "gr" #'quickrun-region
+ :states '(normal visual motion)
+ "gr" #'eval-region
  "gR" #'quickrun-shell
  "gc" #'evilnc-comment-operator
  "g;" #'goto-last-change
@@ -175,6 +183,8 @@
  "gv" #'evil-visual-restore
  "gu"  #'evil-downcase
  "gU"  #'evil-upcate
+ "go" #'jds/evil-insert-line-below
+ "gO" #'jds/evil-insert-line-above
  ;; avy and hinting
  "gl" #'link-hint-open-link
  "gL" #'link-hint-copy-link
@@ -189,8 +199,6 @@
  "gk" #'evilem-motion-previous-visual-line
  "gy" #'consult-yank-from-kill-ring
  ;; "gY" #'XXX
- "go" #' jds/evil-insert-line-below
- "gO" #'jds/evil-insert-line-above
  ;; "gq" #'XXX
  ;; "gQ" #'XXX
  "gw" #'ace-window
@@ -219,6 +227,13 @@
  "[S" #'evil-prev-flyspell-error
  "]S" #'evil-next-flyspell-error
  "M-z" #'flyspell-auto-correct-word)
+
+(general-define-key
+ :states '(normal visual)
+ "zf" #'find-file-at-point
+ "zF" #'find-file-other-frame
+ "zd" #'xref-find-definitions
+ "zD" #'xref-find-definitions-other-frame)
 
 
 ;;; text objects

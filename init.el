@@ -54,7 +54,8 @@
 (load-config "pdf.el")
 (load-config "autoloads/email.el")
 (load-config "email.el")
-(load-config "frames.el")
+(load-config "autoloads/movement.el")
+;; (load-config "frames.el")
 
 ;; ;; after everything else
 (load-config "bindings.el")

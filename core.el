@@ -210,7 +210,15 @@
 ;; Typing yes/no is obnoxious when y/n will do
 (fset #'yes-or-no-p #'y-or-n-p)
 
+
 ;;; Random
+
+;; sentence setup
+(setq sentence-end-double-space nil)
+
+
+;; turn on visual line mode
+(global-visual-line-mode 1)
 
 ;; winner mode
 (winner-mode 1)

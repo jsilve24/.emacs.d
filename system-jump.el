@@ -45,7 +45,9 @@
     (error "Directory %S does not exist" dir))
   (unless (file-readable-p dir)
     (error "Directory %S isn't readable" dir))
-  (let ((default-directory (file-truename (expand-file-name dir))))
+  ;; (let ((default-directory (file-truename (expand-file-name dir))))
+  ;;   (call-interactively #'find-file)))
+  (let ((default-directory dir))
     (call-interactively #'find-file)))
 
 
