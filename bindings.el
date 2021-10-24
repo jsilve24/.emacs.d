@@ -232,7 +232,10 @@
  "zf" #'find-file-at-point
  "zF" #'find-file-other-frame
  "zd" #'xref-find-definitions
- "zD" #'xref-find-definitions-other-frame)
+ "zD" #'xref-find-definitions-other-frame
+ ;;"zl" taken by evil lion
+ ;;"zL" "taken by evil lion"
+ )
 
 
 ;;; text objects

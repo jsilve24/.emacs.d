@@ -51,6 +51,16 @@
 ;; for how to add more custom pairs
 
 
+;;; setup evil alignment (evil-lion)
+(use-package evil-lion
+  :straight t
+  :defer t
+  :config
+  ;; these need to be called before evil-lion-mode is called
+  (setq evil-lion-left-align-key (kbd "z l"))
+  (setq evil-lion-right-align-key (kbd "z L"))
+  (evil-lion-mode))
+
 
 
 (provide 'editor)
