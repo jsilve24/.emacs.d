@@ -90,7 +90,7 @@
 
 (use-package auctex-latexmk
   :straight t
-  :after cdlatex
+  :after auctex
   :init
   ;; Pass the -pdf flag when TeX-PDF-mode is active
   (setq auctex-latexmk-inherit-TeX-PDF-mode t)
@@ -98,7 +98,7 @@
   ;; Add latexmk as a TeX target
   (auctex-latexmk-setup)
  ;; Set LatexMk as the default
-  (add-hook 'latex-mode
+  (add-hook 'LaTeX-mode
             (lambda () (setq TeX-command-default "LatexMk"))))
 
 ;;; setup tecosaurs thing...
@@ -186,7 +186,7 @@
 ;;; keybindings
 
 (jds/localleader-def
- :keymap 'LaTeX-mode-map
+ :keymaps 'LaTeX-mode-map
  "\\" #'TeX-command-run-all
  "TAB" #'reftex-toc
  "e" #'LaTeX-environment

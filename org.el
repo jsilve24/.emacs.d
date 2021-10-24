@@ -42,6 +42,8 @@
   (setq org-complete-tags-always-offer-all-agenda-tags t
         org-tags-column -100)
 
+  (setq org-hide-leading-stars t)
+
   (setq org-use-fast-todo-selection t)
   (setq org-treat-S-cursor-todo-selection-as-state-change nil)
 
@@ -158,7 +160,14 @@
            "* NOTE %? :NOTE:\n %U")))
 
   ;;; appearnace customizatoins
-  (setq org-ellipsis " ▾"))
+  (setq org-ellipsis " ▾")
+
+  ;; don't wrap lines in org-agenda
+  (add-hook 'org-agenda-mode-hook  (lambda ()
+                                     (visual-line-mode -1)))
+
+
+  (org-reload))
 
 
 ;;; local bindings

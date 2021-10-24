@@ -61,6 +61,12 @@
   :config
   (evil-mode 1)
 
+
+  ;; make normal state teh default always
+  (setq evil-emacs-state-modes nil)
+  (setq evil-insert-state-modes nil)
+  (setq evil-motion-state-modes nil)
+
   (evil-select-search-module 'evil-search-module 'evil-search)
 
   ;; stop copying each visual state move to the clipboard:

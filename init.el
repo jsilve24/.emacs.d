@@ -56,6 +56,7 @@
 (load-config "email.el")
 (load-config "autoloads/movement.el")
 ;; (load-config "frames.el")
+(load-config "editor.el")
 
 ;; ;; after everything else
 (load-config "bindings.el")

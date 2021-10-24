@@ -19,9 +19,12 @@
 ;;
 ;;; Code:
 
-(straight-use-package '(mu4e
-  :files (:defaults "/usr/local/share/emacs/site-lisp/mu4e/*.el")))
+;; (straight-use-package '(mu4e
+;;   ;; :files (:defaults "/usr/local/share/emacs/site-lisp/mu4e/*.el")))
+;;   :files (:defaults "mu4e/*.el")))
 (use-package mu4e
+  :straight (:local-repo "/usr/local/share/emacs/site-lisp/mu4e"
+             :pre-build ())
   :commands mu4e mu4e-compose-new
   :init
   (provide 'html2text) ;; disable obsolete package
@@ -66,15 +69,18 @@
                             ("browser view" . mu4e-action-view-in-browser)
                             ("pdf view" . mu4e-action-view-as-pdf)
                             ("thread view" . mu4e-action-show-thread)))
-    ;;
+
     ;; No line breaks in compose
-    (defun no-auto-fill ()
-      "Turn off auto-fill-mode."
-      (progn
-        (auto-fill-mode -1)
-        (setq truncate-lines nil)))
-    ;; Turn off 80-character auto-wrap
-    (add-hook 'mu4e-compose-mode-hook #'no-auto-fill)
+    ;; (defun no-auto-fill ()
+    ;;   "Turn off auto-fill-mode."
+    ;;     (auto-fill-mode -1))
+    ;; ;; Turn off 80-character auto-wrap
+    ;; (add-hook 'mu4e-compose-mode-hook #'no-auto-fill)
+
+    ;; hook found in
+    ;; /usr/local/share/emacs/site-lisp/mu4e/mu4e-headers.el
+    (add-hook 'mu4e-headers-found-hook  (lambda ()
+                                       (setq-local truncate-lines t)))
 
     (setq mu4e-bookmarks
           '(( :name  "Unread messages"
@@ -195,7 +201,7 @@
  "k"      '(message-kill-buffer :which-key "kill message")
  "gp"     '(jds/org-msg-goto-properties :which-key "goto properties")
  "gb"     '(jds/org-msg-goto-body :which-key "goto body")
- "v"      '(org-msg-preview :which-key "org-msg-preview")
+
  "t"      '(:ignore t :which-key "toggle")
  "i"      '(jds/org-msg-add-inlineimages :which-key "inlineimages")
  "m"      '(jds/org-msg-add-text2png :which-key "tex2png"))
@@ -203,14 +209,9 @@
 (jds/localleader-def
  :keymaps '(mu4e-view-mode-map mu4e-headers-mode-map)
  "U"      '(mu4e-update-mail-and-index :which-key "update mail and index")
- "s"      '(mu4e-view-save-attachments))
-
-;; (eval-after-load 'evil-collection-mu4e
-;;   (general-define-key
-;;    :keymaps ' 
-;;    :states       'n
-;;    "T"          #'mu4e-headers-mark-thread
-;;    "l"          #'+mu4e-capture-msg-to-agenda))
+ "s"      '(mu4e-view-save-attachments :which-key "save-attachments")
+ "T"          #'mu4e-headers-mark-thread
+ "l"          #'+mu4e-capture-msg-to-agenda)
 
 
 ;; ;;; setup thread-folding

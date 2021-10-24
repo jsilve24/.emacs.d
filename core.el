@@ -131,11 +131,11 @@
   (general-auto-unbind-keys)
 
   (general-create-definer jds/leader-def
-    :keymaps '(normal insert visual emacs)
+    :states '(normal insert visual emacs)
     :prefix "SPC"
     :global-prefix "M-SPC")
   (general-create-definer jds/localleader-def
-    :keymaps '(normal visual emacs)
+    :states '(normal visual emacs)
     :prefix "\\"))
 
 
@@ -161,6 +161,7 @@
                 treemacs-mode-hook
                 mu4e-main-mode-hook
                 mu4e-main-index-update-hook
+                org-agenda-mode-hook
                 eshell-mode-hook))
   (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
@@ -216,6 +217,8 @@
 ;; sentence setup
 (setq sentence-end-double-space nil)
 
+;;; TODO not honestly sure what this does want it in mu4e headers but not sure about elsewhere
+;; (setq-default truncate-lines t)
 
 ;; turn on visual line mode
 (global-visual-line-mode 1)
