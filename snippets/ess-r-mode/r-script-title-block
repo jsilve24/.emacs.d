@@ -1,0 +1,14 @@
+# -*- mode: snippet -*-
+# name: script-title-block
+# uuid: script-title-block
+# key: /title
+# condition: t
+# --
+################################################################################
+###
+### Author:      ${1:Justin Silverman}
+### Version:     ${2:0.1}
+### Filename:    `(file-name-nondirectory (buffer-file-name))`
+### Description: ${3:Description}
+###
+################################################################################

@@ -1,0 +1,13 @@
+# -*- mode: snippet -*-
+# name: rmd-twocol
+# key: rmd-twocol
+# --
+
+\begin{columns}
+\begin{column}{0.5\textwidth}
+$1
+\end{column}
+\begin{column}{0.5\textwidth}
+$2
+\end{column}
+\end{columns}

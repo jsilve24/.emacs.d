@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: render-tex-png
+# key: tex-png
+# --
+tex:imagemagick
