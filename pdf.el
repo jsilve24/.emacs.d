@@ -39,7 +39,12 @@
 
   ;; load my own version of evil-collection-pdf setup that doesn't have
   ;; the SPC binding.
-  (evil-collection-pdf-setup))
+  (evil-collection-pdf-setup)
+
+  ;; unbind SPC from pdf-view-mode-map
+  (general-define-key
+   :keymaps 'pdf-view-mode-map
+   "SPC" nil))
 
 (jds/localleader-def
  :keymaps '(pdf-view-mode-map)

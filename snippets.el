@@ -21,5 +21,15 @@
 
 ;;; setup consult-yassnippet
 
+(use-package yasnippet
+  :straight t
+  :defer t
+  :config
+  (setq yas-snippet-dirs
+	'("~/.myvanilla.d/snippets"))
+  (yas-global-mode 1))
+
+
+
 (provide 'snippets)
 ;;; snippets.el ends here

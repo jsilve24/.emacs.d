@@ -96,19 +96,25 @@
   ;; set leader in all states
   (evil-set-leader nil (kbd "M-SPC"))
   ;; set leader in normal state
+  (evil-set-leader 'motion (kbd "SPC"))
+  ;; set leader in normal state
+  (evil-set-leader 'operator (kbd "SPC"))
+  ;; set leader in normal state
   (evil-set-leader 'normal (kbd "SPC"))
   ;; set local leader
-  (evil-set-leader 'normal "\\" t))
+  (evil-set-leader 'normal "\\" t)
+  (evil-set-leader 'motion "\\" t)
+  (evil-set-leader 'operator "\\" t))
 
 
 ;;; evil-collection
 
-(straight-use-package 'evil-collection)
+(straight-use-package '(evil-collection :local-repo "~/.myvanilla.d/local-packages/evil-collection"))
 (use-package evil-collection
   :after evil
   :config
-  (setq evil-collection-mode-list
-        (delq 'pdf evil-collection-mode-list))
+  ;; (setq evil-collection-mode-list
+  ;;       (delq 'pdf evil-collection-mode-list))
   (evil-collection-init))
 
 

@@ -165,7 +165,7 @@ is tomorrow.  With two prefixes, select the deadline."
 (defun jds/mu4e-compose-goto-to ()
   "Open new compose window and goto to field."
   (interactive)
-  (progn (+mu4e/compose)
+  (progn (mu4e-compose-new)
          (message-goto-to)))
 
 ;;;###autoload

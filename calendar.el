@@ -21,6 +21,7 @@
 
 (use-package org-gcal
   :straight t
+  :commands (org-gcal-sync org-gcal-fetch org-gcal-post-at-point org-gcal-request-token org-gcal-delete-at-point)
   :config
   (load-file "~/.org-caldav-secrets.el.gpg"))
 

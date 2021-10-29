@@ -24,11 +24,14 @@
 
 ;;; universal argument and other short stuff
 (jds/leader-def
+ "/" #'consult-ripgrep
+ "?" #'affe-grep
  "u" #'universal-argument
  ";" #'pp-eval-expression
  "RET" #'projectile-find-file
  "\`" #'evil-switch-to-windows-last-buffer
- "SPC" #'execute-extended-command)
+ "SPC" #'execute-extended-command
+ "'"   #'org-capture)
 
 ;;; filesystem bindings
 (jds/leader-def
@@ -86,7 +89,9 @@
  "wH" #'+evil/window-move-left
  "wJ" #'+evil/window-move-down
  "wK" #'+evil/window-move-up
- "wL" #'+evil/window-move-right)
+ "wL" #'+evil/window-move-right
+ "wm" #'delete-other-windows
+ "wb" #'switch-to-minibuffer)
 
 ;;; buffers
 
@@ -102,25 +107,24 @@
 
 ;;; org and apps
 
-(general-define-key
- :states '(n v)
- "q" '(:ignore t :which-key "open/org")
- "qn" #'org-capture           ;; q "new"
- "qN" #'org-capture-goto-target ;; new and follow
- "qo" #'org-capture-goto-last-stored
- "qc" #'jds/mu4e-compose-goto-to
- "qm" #'jds/open-mu4e-new-frame
- "qM" #'mu4e
- "ql" #'org-store-link
- "qt" #'vterm
- "qa" #'jds/org-agenda-show-custom-day
- "qA" #'org-agenda
- "qs" #'consult-org-agenda
- "qS" #'org-search-view
- "qk" #'helpful-at-point
- "qd" #'dired-jump
- "qD" #'jds/deer-downloads
- "qh" #'(lambda () (interactive) (deer "/home/jds6696/")))
+(jds/leader-def
+ "o" '(:ignore t :which-key "open/org")
+ "on" #'org-capture           ;; q "new"
+ "oN" #'org-capture-goto-target ;; new and follow
+ "oo" #'org-capture-goto-last-stored
+ "oc" #'jds/mu4e-compose-goto-to
+ "om" #'jds/open-mu4e-new-frame
+ "oM" #'mu4e
+ "ol" #'org-store-link
+ "ot" #'vterm
+ "oa" #'jds/org-agenda-show-custom-day
+ "oA" #'org-agenda
+ "os" #'consult-org-agenda
+ "oS" #'org-search-view
+ "ok" #'helpful-at-point
+ "od" #'dired-jump
+ "oD" #'jds/deer-downloads
+ "oh" #'(lambda () (interactive) (deer "/home/jds6696/")))
 
 ;;; faster editing in text buffers
 ;; (general-define-key
@@ -148,7 +152,6 @@
 
 ;;; search
 (jds/leader-def
- "/" #'consult-ripgrep
  "s" '(:ignore t :which-key "search")
  "ss" #'consult-line
  "sS" #'(lambda () (interactive) (consult-line-multi 'all-buffers))
@@ -225,7 +228,7 @@
  "]s" #'jds/spell-fix-next-error
  "[S" #'evil-prev-flyspell-error
  "]S" #'evil-next-flyspell-error
- "M-z" #'flyspell-auto-correct-word)
+ "M-z" #'flyspell-auto-correct-previous-word)
 
 (general-define-key
  :states '(normal visual)

@@ -33,6 +33,10 @@
   ;; don't show line numbers
   (add-hook 'vterm-mode-hook  (lambda() (display-line-numbers-mode 0))))
 
+(general-define-key
+ :keymaps 'vterm-mode-map
+ "C-c C-c" #'vterm-send-C-c
+ "C-c C-d" #'vterm-send-C-d)
 
 (provide 'term)
 ;;; term.el ends here

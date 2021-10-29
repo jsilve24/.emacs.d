@@ -31,7 +31,9 @@
 
 (straight-use-package 'affe)
 (use-package affe
-  :commands (affe-find))
+  :commands (affe-find affe-grep)
+  :config
+  (setq affe-find-command "find -type f"))
 ;; (map! :after consult
 ;;       :leader
 ;;       :desc "affe find" "fa" (lambda () (interactive) (affe-find "/home/jds6696/")))

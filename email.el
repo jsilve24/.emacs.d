@@ -23,7 +23,7 @@
 ;;   ;; :files (:defaults "/usr/local/share/emacs/site-lisp/mu4e/*.el")))
 ;;   :files (:defaults "mu4e/*.el")))
 (use-package mu4e
-  :straight (:local-repo "/usr/local/share/emacs/site-lisp/mu4e"
+  :straight (:local-repo "/usr/share/emacs/site-lisp/mu4e"
              :pre-build ())
   :commands mu4e mu4e-compose-new
   :init
@@ -155,6 +155,13 @@
     (setq gnus-icalendar-org-capture-file "~/Dropbox/org/calendar.org")
     (setq gnus-icalendar-org-capture-headline '("Calendar")) ;;make sure to create Calendar heading first
     (gnus-icalendar-org-setup))
+
+
+(use-package epa
+  :after mu4e
+  :config
+  (epa-file-enable)
+  (setq epa-file-cache-passphrase-for-symmetric-encryption t))
 
 
 

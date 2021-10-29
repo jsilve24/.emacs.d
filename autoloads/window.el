@@ -22,6 +22,16 @@
 
 ;;; functions taken from doom
 
+;; stolen from here: https://www.emacswiki.org/emacs/MiniBuffer#minibuffer
+;;;###autoload
+(defun switch-to-minibuffer ()
+  "Switch to minibuffer window."
+  (interactive)
+  (if (active-minibuffer-window)
+      (select-window (active-minibuffer-window))
+    (error "Minibuffer is not active")))
+
+
 ;;;###autoload
 (defun +evil--window-swap (direction)
   "Move current window to the next window in DIRECTION.

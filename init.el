@@ -50,17 +50,24 @@
 (load-config "autoloads/dired.el")
 (load-config "spelling.el")
 (load-config "latex.el")
-(load-config "autoloads/custom-evil-pdf-tools.el") ;; I removed from evil-collection
 (load-config "pdf.el")
 (load-config "autoloads/email.el")
 (load-config "email.el")
+(load-config "calendar.el")
 (load-config "autoloads/movement.el")
 ;; (load-config "frames.el")
 (load-config "editor.el")
-
+(load-config "snippets.el")
 ;; ;; after everything else
 (load-config "bindings.el")
 
+
+;; Start Server if not already running
+(if (and (fboundp 'server-running-p)
+         (not (server-running-p)))
+    (server-start))
+
+(setq-default fill-column 100)
 
 
 ;;; miscellaneous
@@ -82,6 +89,9 @@
   :straight t
   :config
   (beacon-mode 1))
+
+
+(setq epg-pinentry-mode 'loopback)
 
 (provide 'init)
 ;;; init.el ends here

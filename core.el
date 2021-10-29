@@ -131,11 +131,13 @@
   (general-auto-unbind-keys)
 
   (general-create-definer jds/leader-def
-    :states '(normal insert visual emacs)
+    :states '(normal visual motion emacs)
+    :keymaps 'override
     :prefix "SPC"
     :global-prefix "M-SPC")
   (general-create-definer jds/localleader-def
-    :states '(normal visual emacs)
+    :states '(normal visual motion emacs)
+    :keymaps 'override
     :prefix "\\"))
 
 
@@ -156,11 +158,15 @@
 ;; Disable line numbers for some modes
 (dolist (mode '(org-mode-hook
                 term-mode-hook
+		
                 pdf-view-mode
                 shell-mode-hook
                 treemacs-mode-hook
                 mu4e-main-mode-hook
+		mu4e-view-mode-hook
                 mu4e-main-index-update-hook
+		org-capture-before-finalize-hook
+		mu4e-headers-mode-hook
                 org-agenda-mode-hook
                 eshell-mode-hook))
   (add-hook mode (lambda () (display-line-numbers-mode 0))))
@@ -213,6 +219,11 @@
 
 
 ;;; Random
+(setq visible-bell nil
+      ring-bell-function 'flash-mode-line)
+(defun flash-mode-line ()
+  (invert-face 'mode-line)
+  (run-with-timer 0.1 nil #'invert-face 'mode-line))
 
 ;; sentence setup
 (setq sentence-end-double-space nil)
@@ -247,7 +258,7 @@
 
 
 ;; Emacs stores `authinfo' in $home and in plain-text - lets not do that.
-(setq auth-sources "~/.authinfo.gpg")
+(setq auth-sources (list "~/.authinfo.gpg"))
 
 
 ;; Can't get by without which-key

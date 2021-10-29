@@ -27,6 +27,11 @@
 
 (use-package org
   ;; :commands (org-agenda)
+  :init
+  ;;; hack to avoid
+  ;;; org-element-cache-map: Symbol’s function definition is void: native-comp-available-p
+  (defun native-comp-available-p () nil)
+  
   :config
   (setq org-directory "~/Dropbox/org")
   (setq org-agenda-files (directory-files-recursively "~/Dropbox/org/" "\\.org$"))
@@ -170,6 +175,37 @@
   (org-reload))
 
 
+;;; lazyness -- use evil-org
+(use-package evil-org
+  :straight (evil-org :local-repo "~/.myvanilla.d/local-packages/evil-org-mode")
+  :hook (org-mode . evil-org-mode)
+  :hook (org-capture-mode . evil-insert-state)
+  :hook (org-agenda-mode . evil-org-agenda-set-keys)
+  :init
+
+  ;; hack-fix for https://github.com/Somelauw/evil-org-mode/issues/93
+  (fset 'evil-redirect-digit-argument 'ignore) 
+  (add-to-list 'evil-digit-bound-motions 'evil-org-beginning-of-line)
+  (evil-define-key 'motion 'evil-org-mode
+    (kbd "0") 'evil-org-beginning-of-line)
+  (evil-define-key 'normal 'evil-org-mode
+    (kbd "0") 'evil-org-beginning-of-line)
+
+  
+  (defvar evil-org-retain-visual-state-on-shift t)
+  (defvar evil-org-special-o/O '(table-row item))
+  (defvar evil-org-use-additional-insert t)
+  :config
+  (setq org-special-ctrl-a/e t
+	evil-org-retain-visual-state-on-shift t)
+  (add-hook 'evil-org-mode-hook #'evil-normalize-keymaps)
+  (evil-org-set-key-theme '(textobjects insert navigation additional shift todo heading))
+  (require 'evil-org-agenda)
+  (evil-org-agenda-set-keys))
+
+
+
+
 ;;; local bindings
 
 (general-define-key
@@ -177,6 +213,52 @@
  :keymaps 'org-agenda-mode-map
  "f" #'avy-org-agenda
  "F" #'jds/avy-org-agenda-and-jump)
+
+;; (jds/localleader-def
+;;   :keymaps 'org-capture-mode-map
+;;   "\\" #'org-capture-finalize
+;;   "k"  #'org-capture-kill
+;;   "r"  #'org-capture-refile
+;;   "a"  #'org-attach)
+
+
+;; (general-define-key
+;;  :states '(normal emacs override)
+;;  :keymaps 'org-agenda-mode-map
+;;  "]" nil
+;;  "[" nil
+;;  "]" #'org-agenda-later
+;;  "[" #'org-agenda-earlier)
+
+;; get q
+
+;; (jds/localleader-def
+;;   :keymaps '(org-agenda-mode-map org-capture-mode-map org-mode-map)
+;;   "a"  #'org-attach
+;;   "t"  #'org-set-tags-command
+;;   "r"  #'org-refile
+;;   "d"  '(:ignore t :wk "date")
+;;   "dd" #'org-deadline
+;;   "ds" #'org-schedule
+;;   "dt" #'org-time-stamp
+;;   "dT" #'org-time-stamp-inactive)
+
+  ;; (map! :after (org evil-org)
+  ;;       :map org-capture-mode-map
+  ;;       :localleader
+  ;;                "\\" #'org-capture-finalize
+  ;;                "k"  #'org-capture-kill
+  ;;                "r"  #'org-capture-refile
+  ;;       (:prefix ("d" . "date")
+  ;;                "d"  #'org-deadline
+  ;;                "s"  #'org-schedule)
+  ;;                "a"  #'org-capture-attach
+  ;;                "t"  #'org-set-tags-command
+  ;;       (:prefix ("i" . "insert")
+  ;;                "l"  #'org-insert-link
+  ;;                "L"  #'org-insert-all-links))
+
+
 
 (provide 'org)
 ;;; org.el ends here
