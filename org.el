@@ -120,7 +120,10 @@
 
   (add-hook 'org-capture-before-finalize-hook (lambda () (org-align-tags t)))
   (setq org-capture-templates
-        `(("t" "todo")
+        `(("e" "email" entry (file+headline "~/Dropbox/org/mail.org" "Email")
+	   "* TODO %:fromname: %a %?\nDEADLINE: %(org-insert-time-stamp (org-read-date nil t \"+2d\"))"
+	   :immediate-finish t)
+	  ("t" "todo")
           ("ta" "todo with attachment" entry (file "~/Dropbox/org/inbox.org")
            "* TODO %?\n %U\n %a")
           ("te" "todo tweaks" entry (file+headline "~/Dropbox/org/tasks.org" "Emacs")
@@ -214,34 +217,26 @@
  "f" #'avy-org-agenda
  "F" #'jds/avy-org-agenda-and-jump)
 
-;; (jds/localleader-def
-;;   :keymaps 'org-capture-mode-map
-;;   "\\" #'org-capture-finalize
-;;   "k"  #'org-capture-kill
-;;   "r"  #'org-capture-refile
-;;   "a"  #'org-attach)
+(jds/localleader-def
+  :keymaps 'org-capture-mode-map
+  "\\" #'org-capture-finalize
+  "k"  #'org-capture-kill
+  "r"  #'org-capture-refile
+  "a"  #'org-attach)
 
-
-;; (general-define-key
-;;  :states '(normal emacs override)
-;;  :keymaps 'org-agenda-mode-map
-;;  "]" nil
-;;  "[" nil
-;;  "]" #'org-agenda-later
-;;  "[" #'org-agenda-earlier)
 
 ;; get q
 
-;; (jds/localleader-def
-;;   :keymaps '(org-agenda-mode-map org-capture-mode-map org-mode-map)
-;;   "a"  #'org-attach
-;;   "t"  #'org-set-tags-command
-;;   "r"  #'org-refile
-;;   "d"  '(:ignore t :wk "date")
-;;   "dd" #'org-deadline
-;;   "ds" #'org-schedule
-;;   "dt" #'org-time-stamp
-;;   "dT" #'org-time-stamp-inactive)
+(jds/localleader-def
+  :keymaps '(org-agenda-mode-map org-capture-mode-map org-mode-map)
+  "a"  #'org-attach
+  "q"  #'org-set-tags-command
+  "r"  #'org-refile
+  "d"  '(:ignore t :wk "date")
+  "dd" #'org-deadline
+  "ds" #'org-schedule
+  "dt" #'org-time-stamp
+  "dT" #'org-time-stamp-inactive)
 
   ;; (map! :after (org evil-org)
   ;;       :map org-capture-mode-map

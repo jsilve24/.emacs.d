@@ -30,8 +30,7 @@
  ";" #'pp-eval-expression
  "RET" #'projectile-find-file
  "\`" #'evil-switch-to-windows-last-buffer
- "SPC" #'execute-extended-command
- "'"   #'org-capture)
+ "SPC" #'execute-extended-command)
 
 ;;; filesystem bindings
 (jds/leader-def
@@ -65,9 +64,10 @@
 
 ;;; window management
 (jds/leader-def
- "w" '(:ignore t :which-key "window")
+ "w" '(:ignore t :which-key "window/frame")
  "wt" #'tear-off-window
  "wT" #'transpose-frame
+ "wf" #'make-frame
  ;; "wT" #'jds/window-go-home
  "wu" #'winner-undo
  "wR" #'winner-redo
@@ -107,24 +107,24 @@
 
 ;;; org and apps
 
-(jds/leader-def
- "o" '(:ignore t :which-key "open/org")
- "on" #'org-capture           ;; q "new"
- "oN" #'org-capture-goto-target ;; new and follow
- "oo" #'org-capture-goto-last-stored
- "oc" #'jds/mu4e-compose-goto-to
- "om" #'jds/open-mu4e-new-frame
- "oM" #'mu4e
- "ol" #'org-store-link
- "ot" #'vterm
- "oa" #'jds/org-agenda-show-custom-day
- "oA" #'org-agenda
- "os" #'consult-org-agenda
- "oS" #'org-search-view
- "ok" #'helpful-at-point
- "od" #'dired-jump
- "oD" #'jds/deer-downloads
- "oh" #'(lambda () (interactive) (deer "/home/jds6696/")))
+(jds/sub-leader-def
+ "," #'org-capture           ;; q "new"
+ "<" #'org-capture-goto-target ;; new and follow
+ ">" #'org-capture-goto-last-stored
+ "c" #'jds/mu4e-compose-goto-to
+ "m" #'jds/open-mu4e-new-frame
+ "M" #'mu4e
+ "l" #'org-store-link
+ "i" #'org-insert-link
+ "t" #'vterm
+ "a" #'jds/org-agenda-show-custom-day
+ "A" #'org-agenda
+ "s" #'consult-org-agenda
+ "S" #'org-search-view
+ "k" #'helpful-at-point
+ "d" #'dired-jump
+ "D" #'jds/deer-downloads
+ "h" #'(lambda () (interactive) (deer "/home/jds6696/")))
 
 ;;; faster editing in text buffers
 ;; (general-define-key
@@ -144,11 +144,10 @@
   (evil-local-set-key 'normal "L" #'evil-forward-sentence-begin))
 (add-hook 'text-mode-hook 'jds/text-mode-local-keys)
 
-
-;; move macros
 (general-define-key
- :states '(n v)
- "Q" #'evil-record-macro)
+ "M-j" #'evil-join
+ "M-J" #'delete-indentation)
+
 
 ;;; search
 (jds/leader-def
@@ -232,6 +231,7 @@
 
 (general-define-key
  :states '(normal visual)
+ ;; note a bunch taken by evil fold
  "zf" #'find-file-at-point
  "zF" #'find-file-other-frame
  "zd" #'xref-find-definitions

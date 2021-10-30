@@ -62,6 +62,23 @@
   (evil-mode 1)
 
 
+
+  ;; leader key
+  ;; set leader in all states
+  (evil-set-leader nil (kbd "M-SPC"))
+  ;; set leader in normal state
+  (evil-set-leader 'motion (kbd "SPC"))
+  ;; set leader in normal state
+  (evil-set-leader 'operator (kbd "SPC"))
+  ;; set leader in normal state
+  (evil-set-leader 'normal (kbd "SPC"))
+  ;; set local leader
+  (evil-set-leader 'normal "\\" t)
+  (evil-set-leader 'motion "\\" t)
+  (evil-set-leader 'operator "\\" t)
+
+
+
   ;; make normal state teh default always
   (setq evil-emacs-state-modes nil)
   (setq evil-insert-state-modes nil)
@@ -88,23 +105,7 @@
   (setq evil-kill-on-visual-paste nil)
 
   ;; Get better undo history in insert mode
-  (setq evil-want-fine-undo t)
-
-
-
-  ;; leader key
-  ;; set leader in all states
-  (evil-set-leader nil (kbd "M-SPC"))
-  ;; set leader in normal state
-  (evil-set-leader 'motion (kbd "SPC"))
-  ;; set leader in normal state
-  (evil-set-leader 'operator (kbd "SPC"))
-  ;; set leader in normal state
-  (evil-set-leader 'normal (kbd "SPC"))
-  ;; set local leader
-  (evil-set-leader 'normal "\\" t)
-  (evil-set-leader 'motion "\\" t)
-  (evil-set-leader 'operator "\\" t))
+  (setq evil-want-fine-undo t))
 
 
 ;;; evil-collection

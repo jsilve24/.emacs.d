@@ -130,15 +130,33 @@
   ;; (general-auto-unbind-keys t).
   (general-auto-unbind-keys)
 
+
+
+
   (general-create-definer jds/leader-def
     :states '(normal visual motion emacs)
     :keymaps 'override
     :prefix "SPC"
     :global-prefix "M-SPC")
+  (general-create-definer jds/sub-leader-def
+    :states '(normal visual motion emacs)
+    :keymaps 'override
+    :prefix ",")
   (general-create-definer jds/localleader-def
     :states '(normal visual motion emacs)
     :keymaps 'override
-    :prefix "\\"))
+    :prefix "\\")
+  (general-create-definer jds/sub-localleader-def
+    :states '(normal visual motion emacs)
+    :keymaps 'override
+    :prefix "<backspace>")
+
+  ;; move macros
+  ;; (general-define-key
+  ;;  :states '(n v)
+  ;;  "Q" #'evil-record-macro)
+  )
+
 
 
 
@@ -219,11 +237,18 @@
 
 
 ;;; Random
-(setq visible-bell nil
-      ring-bell-function 'flash-mode-line)
 (defun flash-mode-line ()
   (invert-face 'mode-line)
   (run-with-timer 0.1 nil #'invert-face 'mode-line))
+(setq visible-bell nil
+      ring-bell-function
+         (lambda ()
+	   (unless (memq this-command
+			 '(isearch-abort
+			   abort-recursive-edit
+			   exit-minibuffer
+			   keyboard-quit))
+	     (flash-mode-line))))
 
 ;; sentence setup
 (setq sentence-end-double-space nil)
@@ -233,6 +258,9 @@
 
 ;; turn on visual line mode
 (global-visual-line-mode 1)
+
+;; turn on highlight matching brackets when cursor is on one
+(show-paren-mode 1)
 
 ;; winner mode
 (winner-mode 1)

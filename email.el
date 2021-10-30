@@ -218,7 +218,7 @@
  "U"      '(mu4e-update-mail-and-index :which-key "update mail and index")
  "s"      '(mu4e-view-save-attachments :which-key "save-attachments")
  "T"          #'mu4e-headers-mark-thread
- "l"          #'+mu4e-capture-msg-to-agenda)
+ "l"          #'jds/capture-mu4e-message)
 
 
 ;; ;;; setup thread-folding
