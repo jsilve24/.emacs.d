@@ -145,9 +145,9 @@
 (add-hook 'text-mode-hook 'jds/text-mode-local-keys)
 
 (general-define-key
+ :keymaps 'override
  "M-j" #'evil-join
  "M-J" #'delete-indentation)
-
 
 ;;; search
 (jds/leader-def
