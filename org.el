@@ -202,7 +202,7 @@
   (setq org-special-ctrl-a/e t
 	evil-org-retain-visual-state-on-shift t)
   (add-hook 'evil-org-mode-hook #'evil-normalize-keymaps)
-  (evil-org-set-key-theme '(textobjects insert navigation additional shift todo heading))
+  (evil-org-set-key-theme '(textobjects insert navigation additional shift todo)) ;removed heading
   (require 'evil-org-agenda)
   (evil-org-agenda-set-keys))
 
@@ -229,6 +229,7 @@
 
 (jds/localleader-def
   :keymaps '(org-agenda-mode-map org-capture-mode-map org-mode-map)
+  "t"  #'org-todo
   "a"  #'org-attach
   "q"  #'org-set-tags-command
   "r"  #'org-refile
@@ -237,6 +238,12 @@
   "ds" #'org-schedule
   "dt" #'org-time-stamp
   "dT" #'org-time-stamp-inactive)
+
+(jds/localleader-def
+  :keymaps 'org-mode-map
+  "n"  #'org-narrow-to-subtree
+  "N"  #'widen)
+
 
   ;; (map! :after (org evil-org)
   ;;       :map org-capture-mode-map
