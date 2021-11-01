@@ -32,7 +32,7 @@
 (defun jds/dragon (path)
   "Launch Dragon on PATH. PATH should be escaped already"
   (async-shell-command-no-window
-   (concat "~/.local/bin/dragon -a -x " path
+   (concat "~/bin/dragon -a -x " path
            " --and-exit")))
 
 ;;;###autoload

@@ -220,6 +220,21 @@
  "T"          #'mu4e-headers-mark-thread
  "l"          #'jds/capture-mu4e-message)
 
+(eval-after-load 'link-hint
+  (link-hint-define-type 'mu4e-message
+    :next #'mu4e-headers-next
+    :at-point-p #'(lambda () (interactive) (mu4e-message-at-point t))
+    :open #'mu4e-headers-view-message
+    :copy #'mu4e-copy-message-path
+    :goto #'mu4e-headers-goto-message-id
+    :vars '(mu4e-headers-mode))
+  (push 'link-hint-mu4e-message link-hint-types))
+(general-define-key
+ :states '(n v m)
+ :keymaps 'mu4e-headers-mode-map
+ "f" #'jds/link-hint-goto-link
+ "F" #'link-hint-open-link)
+
 
 ;; ;;; setup thread-folding
 ;; (use-package mu4e-thread-folding

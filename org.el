@@ -67,6 +67,21 @@
 
   ;;; setup refile
 
+  ;; Targets include this file and any file contributing to the agenda - up to 9 levels deep
+  (setq org-refile-targets (quote ((nil :maxlevel . 9)
+				   (org-agenda-files :maxlevel . 9))))
+
+  ;; make it work nicely with vertico
+  (setq org-refile-use-outline-path 'file
+      org-outline-path-complete-in-steps nil)
+  
+
+  ;; Allow refile to create parent tasks with confirmation
+  (setq org-refile-allow-creating-parent-nodes (quote confirm))
+
+  
+  
+
   (defun bh/verify-refile-target ()
     "Exclude todo keywords with a done state from refile targets"
     (not (member (nth 2 (org-heading-components)) org-done-keywords)))
@@ -228,7 +243,16 @@
 ;; get q
 
 (jds/localleader-def
-  :keymaps '(org-agenda-mode-map org-capture-mode-map org-mode-map)
+ :keymaps 'org-agenda-mode-map
+ "d" '(ignore t :wk "date")
+ "dd" #'org-agenda-deadline
+ "ds" #'org-agenda-schedule
+ "t"  #'org-agenda-todo
+ "q"  #'org-agenda-set-tags
+ "r"  #'org-agenda-refile)
+
+(jds/localleader-def
+  :keymaps '(org-capture-mode-map org-mode-map)
   "t"  #'org-todo
   "a"  #'org-attach
   "q"  #'org-set-tags-command
