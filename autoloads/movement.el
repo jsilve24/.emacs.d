@@ -51,7 +51,7 @@
 
 
 ;;;###autoload
-(evil-define-motion jds/paragraph-backwards ()
+(evil-define-motion jds/paragraph-backward ()
   "Move to first character on line before prior blank-line."
   :type line
   (progn

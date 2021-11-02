@@ -26,7 +26,8 @@
   :straight (zoxide :type git :host gitlab :repo "Vonfry/zoxide.el" :branch "master")
   :hook
   ((find-file-hook . zoxide-add)
-   (projectile-after-switch-project-hook . zoxide-add)))
+   (projectile-after-switch-project-hook . zoxide-add)
+   (dired-after-readin-hook . zoxide-add)))
 
 
 (straight-use-package 'affe)

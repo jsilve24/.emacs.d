@@ -179,7 +179,7 @@
   :init
   (setq evil-snipe-smart-case t
         evil-snipe-scope 'whole-visible
-        evil-snipe-repeat-scope 'while-visible
+        evil-snipe-repeat-scope 'whole-visible
         evil-snipe-char-fold t)
   :config
   (evil-snipe-mode +1)

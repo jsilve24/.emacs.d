@@ -220,7 +220,7 @@
  "T"          #'mu4e-headers-mark-thread
  "l"          #'jds/capture-mu4e-message)
 
-(eval-after-load 'link-hint
+(with-eval-after-load 'link-hint
   (link-hint-define-type 'mu4e-message
     :next #'mu4e-headers-next
     :at-point-p #'(lambda () (interactive) (mu4e-message-at-point t))

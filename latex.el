@@ -24,6 +24,10 @@
 (use-package auctex
   :straight t;;(auctex :type git :host github :repo "emacs-stright/auctex" :branch "master")
   :defer t
+  :init
+  ;; Use pdf-tools to open PDF files
+  (setq TeX-view-program-selection '((output-pdf "PDF Tools"))
+	TeX-source-correlate-start-server t)
   :config
   (setq TeX-parse-self t ;; parse on load
         TeX-auto-save t  ;; parse on save
@@ -41,6 +45,12 @@
   ;; document structure. You can do this by inserting
   ;; however doing this makes it promp for master every time (doom sets this to t)
   (setq-default TeX-master nil)
+
+
+
+  ;; Update PDF buffers after successful LaTeX runs
+  (add-hook 'TeX-after-compilation-finished-functions
+	    #'TeX-revert-document-buffer)
 
   ;; set-up chktex -- from doom
   (setcar (cdr (assoc "Check" TeX-command-list)) "chktex -v6 -H %s")

@@ -127,27 +127,19 @@
  "h" #'(lambda () (interactive) (deer "/home/jds6696/")))
 
 ;;; faster editing in text buffers
+
+;; (defun jds/text-mode-local-keys ()
+;;   (interactive)
+;;   (evil-local-set-key 'normal "H" #'evil-backward-sentence-begin)
+;;   (evil-local-set-key 'normal "J" #'jds/paragraph-forward)
+;;   (evil-local-set-key 'normal "K" #'jds/paragraph-backward)
+;;   (evil-local-set-key 'normal "L" #'evil-forward-sentence-begin))
+;; (add-hook 'text-mode-hook 'jds/text-mode-local-keys)
+
 ;; (general-define-key
-;;  :keymaps '(latex-mode-map org-mode-map)
-;;  :states '(n v m o)
-;;  "H" #'evil-backward-sentence-begin
-;;  "J" #'backward-paragraph
-;;  "K" #'forward-paragraph
-;;  "L" #'evil-forward-sentence-begin)
-;; (evil-define-key nil 'latex-mode-map "J" #'backward-paragraph)
-
-(defun jds/text-mode-local-keys ()
-  (interactive)
-  (evil-local-set-key 'normal "H" #'evil-backward-sentence-begin)
-  (evil-local-set-key 'normal "J" #'jds/paragraph-forward)
-  (evil-local-set-key 'normal "K" #'jds/paragraph-backward)
-  (evil-local-set-key 'normal "L" #'evil-forward-sentence-begin))
-(add-hook 'text-mode-hook 'jds/text-mode-local-keys)
-
-(general-define-key
- :keymaps 'override
- "M-j" #'evil-join
- "M-J" #'delete-indentation)
+;;  :keymaps 'override
+;;  "M-j" #'evil-join
+;;  "M-J" #'delete-indentation)
 
 ;;; search
 (jds/leader-def

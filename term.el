@@ -35,6 +35,7 @@
 
 (general-define-key
  :keymaps 'vterm-mode-map
+ :state '(n v i m e)
  "C-c C-c" #'vterm-send-C-c
  "C-c C-d" #'vterm-send-C-d)
 

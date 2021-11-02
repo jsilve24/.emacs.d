@@ -176,8 +176,7 @@
 ;; Disable line numbers for some modes
 (dolist (mode '(org-mode-hook
                 term-mode-hook
-		
-                pdf-view-mode
+                pdf-view-mode-hook
                 shell-mode-hook
                 treemacs-mode-hook
                 mu4e-main-mode-hook
