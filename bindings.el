@@ -105,6 +105,16 @@
  "br" #'revert-buffer
  "bx" #'(lambda () (interactive) (switch-to-buffer "*scratch*")))
 
+;;; text editing
+(jds/leader-def
+  "a"    '(:ignore t :wk "editing")
+  "af"   '(:ignore t :wk "fill/unfill")
+  "afp" #'fill-paragraph
+  "afr" #'fill-region
+  "afP" #'unfill-paragraph
+  "afR" #'unfill-region
+  "af SPC" #'unfill-toggle)
+
 ;;; org and apps
 
 (jds/sub-leader-def

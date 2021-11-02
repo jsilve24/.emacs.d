@@ -62,6 +62,10 @@
   (evil-lion-mode))
 
 
+;;; fill and unfill
+(use-package unfill
+  :commands (unfill-paragraph unfill-region unfill-toggle))
+
 
 (provide 'editor)
 ;;; editor.el ends here
