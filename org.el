@@ -135,10 +135,7 @@
 
   (add-hook 'org-capture-before-finalize-hook (lambda () (org-align-tags t)))
   (setq org-capture-templates
-        `(("e" "email" entry (file+headline "~/Dropbox/org/mail.org" "Email")
-	   "* TODO %:fromname: %a %?\nDEADLINE: %(org-insert-time-stamp (org-read-date nil t \"+2d\"))"
-	   :immediate-finish t)
-	  ("t" "todo")
+        `(("t" "todo")
           ("ta" "todo with attachment" entry (file "~/Dropbox/org/inbox.org")
            "* TODO %?\n %U\n %a")
           ("te" "todo tweaks" entry (file+headline "~/Dropbox/org/tasks.org" "Emacs")
@@ -180,7 +177,10 @@
           ("ca" "event with attachment" entry (file+headline "~/Dropbox/org/calendar.org" "Calendar")
            "* %? \n %^T\n %a")
           ("n" "note" entry (file+headline "~/Dropbox/org/notes.org" "Notes")
-           "* NOTE %? :NOTE:\n %U")))
+           "* NOTE %? :NOTE:\n %U")
+	  ("e" "email" entry (file+headline "~/Dropbox/org/mail.org" "Email")
+	   "* TODO %:fromname: %a %?\nDEADLINE: %(org-insert-time-stamp (org-read-date nil t \"+2d\"))"
+	   :immediate-finish t)))
 
   ;;; appearnace customizatoins
   (setq org-ellipsis " ▾")

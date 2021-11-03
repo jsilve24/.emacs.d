@@ -23,20 +23,12 @@
 
 (use-package auctex
   :straight t;;(auctex :type git :host github :repo "emacs-stright/auctex" :branch "master")
-  :defer t
-  :init
-  ;; Use pdf-tools to open PDF files
-  (setq TeX-view-program-selection '((output-pdf "PDF Tools"))
-	TeX-source-correlate-start-server t)
+  :mode ("\\.tex\\'" . LaTeX-mode)
   :config
   (setq TeX-parse-self t ;; parse on load
         TeX-auto-save t  ;; parse on save
         TeX-auto-local ".auctex-auto"
         TeX-style-local ".auctex-style"
-        TeX-source-correlate-mode t
-        TeX-source-correlate-method 'synctex
-        ;; don't start the emacs server when correlating sources
-        TeX-source-correlate-start-server nil
         ;; automatically insert braces after sub/superscript in math mode
         TeX-electric-sub-and-superscript t
         ;; just save, dont ask me before each compilation
@@ -47,10 +39,6 @@
   (setq-default TeX-master nil)
 
 
-
-  ;; Update PDF buffers after successful LaTeX runs
-  (add-hook 'TeX-after-compilation-finished-functions
-	    #'TeX-revert-document-buffer)
 
   ;; set-up chktex -- from doom
   (setcar (cdr (assoc "Check" TeX-command-list)) "chktex -v6 -H %s")
@@ -66,6 +54,16 @@
   (add-hook 'TeX-mode-hook #'outline-minor-mode))
 
 
+(with-eval-after-load 'tex
+  (setq TeX-source-correlate-mode t
+        ;; don't start the emacs server when correlating sources
+        TeX-source-correlate-start-server nil
+        TeX-source-correlate-method 'synctex)
+  ;; Use pdf-tools to open PDF files
+  (setq TeX-view-program-selection '((output-pdf "PDF Tools"))
+	TeX-source-correlate-start-server t)
+  ;; Update PDF buffers after successful LaTeX runs
+  (add-hook 'TeX-after-compilation-finished-functions #'TeX-revert-document-buffer))
 
 ;;; setup cdlatex
 
@@ -105,11 +103,12 @@
   ;; Pass the -pdf flag when TeX-PDF-mode is active
   (setq auctex-latexmk-inherit-TeX-PDF-mode t)
   :config
-  ;; Add latexmk as a TeX target
-  (auctex-latexmk-setup)
  ;; Set LatexMk as the default
   (add-hook 'LaTeX-mode
-            (lambda () (setq TeX-command-default "LatexMk"))))
+            (lambda () (setq TeX-command-default "LatexMk")))
+  ;; Add latexmk as a TeX target
+  (auctex-latexmk-setup)
+  )
 
 ;;; setup tecosaurs thing...
 
