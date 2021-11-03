@@ -120,7 +120,7 @@
 (use-package general
   :ensure t
   :config
-  ;; allow for shorter bindings -- e.g., just using things like nmap alone without genera-* prefix
+  ;; allow for shorter bindings -- e.g., just using things like nmap alone without general-* prefix
   (general-evil-setup t)
 
   ;; To automatically prevent Key sequence starts with a non-prefix key errors without the need to
@@ -129,8 +129,6 @@
   ;; will only have an effect for general.el key definers. The advice can later be removed with
   ;; (general-auto-unbind-keys t).
   (general-auto-unbind-keys)
-
-
 
 
   (general-create-definer jds/leader-def

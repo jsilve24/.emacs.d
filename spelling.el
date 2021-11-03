@@ -65,21 +65,21 @@
 ;;       (if (>= (point) pmin)  (recomplete-ispell-word arg) ;;(flyspell-auto-correct-word)
 ;;         (message "No Errors in Range"))))))
 
-;;;###autoload
-(defun jds/spell-fix-next-error ()
-  "Jump to Next Error and open ispell menu"
-  (interactive)
-  (save-excursion
-    (evil-next-flyspell-error)
-    (flyspell-correct-wrapper)))
+;; ;;;###autoload
+;; (defun jds/spell-fix-next-error ()
+;;   "Jump to Next Error and open ispell menu"
+;;   (interactive)
+;;   (save-excursion
+;;     (evil-next-flyspell-error)
+;;     (flyspell-correct-at-point)))
 
-;;;###autoload
-(defun jds/spell-fix-previous-error ()
-  "Jump to previous Error and open ispell menu"
-  (interactive)
-  (save-excursion
-    (evil-prev-flyspell-error)
-    (flyspell-correct-wrapper)))
+;; ;;;###autoload
+;; (defun jds/spell-fix-previous-error ()
+;;   "Jump to previous Error and open ispell menu"
+;;   (interactive)
+;;   (save-excursion
+;;     (evil-prev-flyspell-error)
+;;     (flyspell-correct-at-point)))
 
 ;;;###autoload
 (defun jds/avy-fix-spelling ()

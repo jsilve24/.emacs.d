@@ -26,7 +26,6 @@
 (jds/leader-def
  "/" #'consult-ripgrep
  "?" #'affe-grep
- "u" #'universal-argument
  ";" #'pp-eval-expression
  "RET" #'projectile-find-file
  "\`" #'evil-switch-to-windows-last-buffer
@@ -171,6 +170,16 @@
 
 ;;; evil bindings
 
+;; declare some motion commands to make jumping in visual mode go
+;; to the correct character
+(with-eval-after-load 'avy 
+  (evil-declare-motion 'jds/avy-goto-delim-end)
+  (evil-declare-motion 'jds/avy-goto-delim-start)
+  (evil-declare-motion 'jds/avy-goto-punctuation)
+  (evil-declare-motion 'jds/avy-goto-quote)
+  (evil-declare-motion 'jds/avy-goto-word-0-end))
+
+
 ;; don't touch
 ;; g-;  g-i   g-n
 (general-define-key
@@ -225,8 +234,10 @@
  :states '(normal visual)
  "z=" #'flyspell-correct-wrapper
  "zg" #'jds/save-word
- "[s" #'jds/spell-fix-previous-error
- "]s" #'jds/spell-fix-next-error
+ ;; "[s" #'jds/spell-fix-previous-error
+ ;; "]s" #'jds/spell-fix-next-error
+ "[s" #'flyspell-correct-previous
+ "]s" #'flyspell-correct-next
  "[S" #'evil-prev-flyspell-error
  "]S" #'evil-next-flyspell-error
  "M-z" #'flyspell-auto-correct-previous-word)
