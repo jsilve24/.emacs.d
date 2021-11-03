@@ -239,7 +239,9 @@
  "[s" #'flyspell-correct-previous
  "]s" #'flyspell-correct-next
  "[S" #'evil-prev-flyspell-error
- "]S" #'evil-next-flyspell-error
+ "]S" #'evil-next-flyspell-error)
+(general-define-key
+ :states '(insert normal visual)
  "M-z" #'flyspell-auto-correct-previous-word)
 
 (general-define-key

@@ -26,7 +26,7 @@
   :straight t)
 
 ;;; main evil config
-
+(setq evil-respect-visual-line-mode t) ; needs to be front and center
 (straight-use-package 'evil)
 (use-package evil
   :init

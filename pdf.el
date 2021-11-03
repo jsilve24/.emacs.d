@@ -21,6 +21,7 @@
 ;;;
 ;;; Remember you have to call pdf-tools-install to make this work
 
+
 (use-package pdf-tools
   ;; :straight t
   :mode ("\\.pdf\\'" . pdf-view-mode)
@@ -34,9 +35,15 @@
   (setq pdf-annot-activate-created-annotations t)
 
   ;; setup printing
-  (setq lpr-command "gtklp")
-  (setq ps-lpr-commant "gtklp")
-
+  ;; (setq lpr-command "gtklp")
+  ;; (setq ps-lpr-command "gtklp")
+  
+  ;; see cups help page for lots on how to print with lpr and lp
+  (setq pdf-misc-print-program "/usr/bin/lpr"
+	pdf-misc-print-program-args (list "-o sides=two-sided-long-edge"
+					  ;; "-o fit-to-page"
+					  ))
+  
   ;; load my own version of evil-collection-pdf setup that doesn't have
   ;; the SPC binding.
   (evil-collection-pdf-setup)
@@ -49,6 +56,11 @@
 (jds/localleader-def
  :keymaps '(pdf-view-mode-map)
  "p" #'pdf-misc-print-document)
+
+
+
+;;; setup printing
+
 
 (provide 'pdf)
 ;;; pdf.el ends here

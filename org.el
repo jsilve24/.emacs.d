@@ -52,7 +52,8 @@
   (setq org-use-fast-todo-selection t)
   (setq org-treat-S-cursor-todo-selection-as-state-change nil)
 
-  (setq org-startup-indented t)
+  (setq org-startup-indented t
+	org-startup-truncated nil)
 
   ;; hide blank lines in folded views
   (setq org-cycle-separator-lines 0)
