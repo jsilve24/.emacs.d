@@ -84,27 +84,53 @@
 
 ;;; key bindings
 
+(general-define-key
+ :keymaps 'inferior-ess-mode-map
+ "C-l" #'comint-clear-buffer)
+
+(general-define-key
+ :keymaps '(ess-mode-map inferior-ess-mode-map)
+ "C-<" #'r/insert-assign
+ "C->" #'r/insert-pipe)
+
+(jds/localleader-def
+  :keymaps '(ess-mode-map inferior-ess-mode-map)
+  "[tab]" '(ess-switch-to-inferior-or-script-buffer :wk "REPL-script switch")
+  "vs" #'r/df-sample-small
+  "vm" #'r/df-sample-medium
+  "vl" #'r/df-sample-large
+  ;; predefined keymaps
+  "h" 'ess-doc-map
+  "x" 'ess-extra-map
+  "p" 'ess-r-package-dev-map
+  "q" 'ess-dev-map)
+
+(general-define-key
+ :keymaps '(polymode-mode-map markdown-mode-map)
+ "C-S-i"  #'r/rmd-insert-chunk)
+
+(jds/localleader-def
+ :keymaps '(polymode-mode-map markdown-mode-map)
+  "rc" #'r/rmd-insert-chunk
+  "rr" #'r/rmd-render
+  "rd" #'r/draft-rmd)
+
+(general-define-key
+ :keymaps 'ess-mode-map
+ :states 'i
+ [C-return] #'ess-eval-line-and-step)
 
 
-  ;; (after! (ess)
-  ;;   (map! :map inferior-ess-mode-map
-  ;;         "C-l" #'comint-clear-buffer)
-  ;;   (map! :map (ess-mode-map inferior-ess-mode-map)
-  ;;         "C-<" #'r/insert-assign
-  ;;         "C->" #'r/insert-pipe
-  ;;         ;; R data viewers
-  ;;         :localleader
-  ;;         :desc "REPL-script switch" [tab] #'ess-switch-to-inferior-or-script-buffer
-  ;;         "vs" #'r/df-sample-small
-  ;;         "vm" #'r/df-sample-medium
-  ;;         "vl" #'r/df-sample-large)
-  ;;   ;; R Markdown
-  ;;   (map! :map (polymode-mode-map markdown-mode-map)
-  ;;         "C-S-i"                          #'r/rmd-insert-chunk
-  ;;         :localleader
-  ;;         "rc" #'r/rmd-insert-chunk
-  ;;         "rr" #'r/rmd-render
-  ;;         "rd" #'r/draft-rmd))
+(general-define-key
+ :keymaps 'ess-mode-map
+ :states '(n m)
+ [C-return] #'ess-eval-function-or-paragraph-and-step)
+
+(general-define-key
+ :keymaps 'ess-mode-map
+ :states 'v
+ [C-return] #'ess-eval-region)
+
 
   ;; (map! (:after ess-help
   ;;         (:map ess-help-mode-map
@@ -127,17 +153,9 @@
   ;;           :v    [C-return] #'ess-eval-region))
   ;;       (:after ess
   ;;        :map ess-mode-map
-  ;;        :i   [C-return] #'ess-eval-line-and-step
-  ;;        :nom [C-return] #'ess-eval-function-or-paragraph-and-step
-  ;;        :v    [C-return] #'ess-eval-region
   ;;        :localleader
   ;;        "'" #'R
   ;;        [backtab] #'ess-switch-process
-  ;;        ;; predefined keymaps
-  ;;        "h" 'ess-doc-map
-  ;;        "x" 'ess-extra-map
-  ;;        "p" 'ess-r-package-dev-map
-  ;;        "q" 'ess-dev-map
   ;;        ;; noweb
   ;;        :prefix "c"
   ;;        "C" #'ess-eval-chunk-and-go
