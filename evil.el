@@ -32,7 +32,7 @@
   :init
   (setq evil-want-integration t)
   (setq evil-want-keybinding nil)
-  (setq evil-want-C-u-scroll f)
+  (setq evil-want-C-u-scroll nil)
   (setq evil-want-C-i-jump t)
   ;; from doom
   (defun +evil-default-cursor-fn ()

@@ -64,7 +64,8 @@
 
 ;;; languages
 (load-config "python.el")
-
+(load-config "ess.el")
+(load-config "autoloads/ess-autoloads.el")
 
 ;; Start Server if not already running
 (if (and (fboundp 'server-running-p)
