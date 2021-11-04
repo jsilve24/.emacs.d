@@ -40,6 +40,10 @@
   ;;; high level config
   (setq org-default-notes-file "~/Dropbox/org/inbox.org")
 
+  ;;; make org-ret follow inks
+  (setq org-return-follows-link t)
+
+  
   ;; setup org-habit
   ;; (require 'org-habit)
   ;; (add-to-list 'org-modules 'org-habit)
@@ -257,7 +261,6 @@
   "t"  #'org-todo
   "a"  #'org-attach
   "q"  #'org-set-tags-command
-  "r"  #'org-refile
   "d"  '(:ignore t :wk "date")
   "dd" #'org-deadline
   "ds" #'org-schedule
@@ -265,7 +268,12 @@
   "dT" #'org-time-stamp-inactive)
 
 (jds/localleader-def
+  :keymaps 'org-capture-mode-map
+  "r" #'org-capture-refile)
+
+(jds/localleader-def
   :keymaps 'org-mode-map
+  "r"  #'org-refile
   "n"  #'org-narrow-to-subtree
   "N"  #'widen)
 

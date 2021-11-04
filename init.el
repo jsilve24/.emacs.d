@@ -62,6 +62,10 @@
 (load-config "bindings.el")
 
 
+;;; languages
+(load-config "python.el")
+
+
 ;; Start Server if not already running
 (if (and (fboundp 'server-running-p)
          (not (server-running-p)))

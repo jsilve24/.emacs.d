@@ -78,6 +78,10 @@
   (evil-set-leader 'operator "\\" t)
 
 
+  ;; remove ret binding as its pretty much useless but blocks some modes
+  (define-key evil-motion-state-map (kbd "RET") nil)
+
+
 
   ;; make normal state teh default always
   (setq evil-emacs-state-modes nil)
