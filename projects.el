@@ -25,7 +25,12 @@
 (use-package projectile
   :diminish projectile-mode
   :config
-  (projectile-mode +1))
+  (projectile-mode +1)
+
+  (setq projectile-other-file-alist
+	(append projectile-other-file-alist
+		'(("Rmd" "pdf" "html")
+		  ("tex" "pdf")))))
 
 
 (use-package consult-projectile

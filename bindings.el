@@ -102,6 +102,8 @@
  "bm" #'bookmark-set
  "bM" #'bookmark-delete
  "br" #'revert-buffer
+ "bi" #'buffer-menu
+ "bI" #'buffer-menu-other-window
  "bx" #'(lambda () (interactive) (switch-to-buffer "*scratch*")))
 
 ;;; text editing

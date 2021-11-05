@@ -95,7 +95,7 @@
 
 (jds/localleader-def
   :keymaps '(ess-mode-map inferior-ess-mode-map)
-  "[tab]" '(ess-switch-to-inferior-or-script-buffer :wk "REPL-script switch")
+  "<tab>" '(ess-switch-to-inferior-or-script-buffer :wk "REPL-script switch")
   "vs" #'r/df-sample-small
   "vm" #'r/df-sample-medium
   "vl" #'r/df-sample-large

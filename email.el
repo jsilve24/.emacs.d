@@ -215,7 +215,7 @@
 
 (jds/localleader-def
  :keymaps '(mu4e-view-mode-map mu4e-headers-mode-map)
- "U"      '(mu4e-update-mail-and-index :which-key "update mail and index")
+ "u"      '(mu4e-update-mail-and-index :which-key "update mail and index")
  "s"      '(mu4e-view-save-attachments :which-key "save-attachments")
  "T"          #'mu4e-headers-mark-thread
  "l"          #'jds/capture-mu4e-message)

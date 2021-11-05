@@ -85,8 +85,6 @@
   (setq org-refile-allow-creating-parent-nodes (quote confirm))
 
   
-  
-
   (defun bh/verify-refile-target ()
     "Exclude todo keywords with a done state from refile targets"
     (not (member (nth 2 (org-heading-components)) org-done-keywords)))
@@ -113,7 +111,7 @@
 
 
   (setq org-agenda-compact-blocks nil)
-  (setq org-agenda-block-separator " ")
+  (setq org-agenda-block-separator nil)
   (setq org-priority-default ?C) ;; needed for proper ordering of next block
 
   (setq org-agenda-custom-commands
@@ -160,7 +158,6 @@
                     "  %U\n"
                     "** TRAM :p_tram:\n"
                     "** Bacteremia :p_bacteremia:\n"
-                    "** Mouse Project with Laura\n"
                     "** Farhani\n"
                     "** ARL :p_arl:")
            :jump-to-captured t)
@@ -194,7 +191,10 @@
   (add-hook 'org-agenda-mode-hook  (lambda ()
                                      (visual-line-mode -1)))
 
+  ;; org-agenda window setup (don't always split frame)
+  (setq org-agenda-window-setup 'current-window)
 
+  ;; for some reason this was needed when I first put this config together
   (org-reload))
 
 
