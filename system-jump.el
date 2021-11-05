@@ -25,9 +25,9 @@
   :commands (zoxide-add zoxide-find-file zoxide-cd zoxide-query)
   :straight (zoxide :type git :host gitlab :repo "Vonfry/zoxide.el" :branch "master")
   :hook
-  ((find-file-hook . zoxide-add)
-   (projectile-after-switch-project-hook . zoxide-add)
-   (dired-after-readin-hook . zoxide-add)))
+  ((find-file . zoxide-add)
+   (projectile-after-switch-project . zoxide-add)
+   (dired-after-readin . zoxide-add)))
 
 
 (straight-use-package 'affe)

@@ -34,7 +34,12 @@
   
   :config
   (setq org-directory "~/Dropbox/org")
-  (setq org-agenda-files (directory-files-recursively "~/Dropbox/org/" "\\.org$"))
+
+  ;; don't include files in .attach
+  (setq org-agenda-files
+	(seq-filter
+	 (lambda (x) (not (string-match-p (rx "\.attach") x)))
+	 (directory-files-recursively "~/Dropbox/org/" "\\.org$")))
 
 
   ;;; high level config
