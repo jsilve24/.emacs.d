@@ -29,7 +29,9 @@
  ";" #'pp-eval-expression
  "RET" #'projectile-find-file
  "\`" #'evil-switch-to-windows-last-buffer
- "SPC" #'execute-extended-command)
+ "SPC" #'execute-extended-command
+ "TAB" #'popper-toggle-latest
+ "<S-tab>" #'popper-cycle)
 
 ;;; filesystem bindings
 (jds/leader-def
