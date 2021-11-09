@@ -26,7 +26,7 @@
   :straight t)
 
 ;;; main evil config
-(setq evil-respect-visual-line-mode t) ; needs to be front and center
+;; (setq evil-respect-visual-line-mode t) ; needs to be front and center
 (straight-use-package 'evil)
 (use-package evil
   :init
@@ -188,8 +188,8 @@
   :config
   (evil-snipe-mode +1)
   (evil-snipe-override-mode +1)
-  (evil-define-key 'visual evil-snipe-local-mode-map "z" 'evil-snipe-s)
-  (evil-define-key 'visual evil-snipe-local-mode-map "Z" 'evil-snipe-S)
+  (evil-define-key 'visual evil-snipe-local-mode-map "q" 'evil-snipe-s)
+  (evil-define-key 'visual evil-snipe-local-mode-map "Q" 'evil-snipe-S)
   (evil-define-key 'visual evil-snipe-local-mode-map "x" 'evil-snipe-x)
   (evil-define-key 'visual evil-snipe-local-mode-map "X" 'evil-snipe-X)
 

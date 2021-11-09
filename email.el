@@ -79,8 +79,8 @@
 
     ;; hook found in
     ;; /usr/local/share/emacs/site-lisp/mu4e/mu4e-headers.el
-    (add-hook 'mu4e-headers-found-hook  (lambda ()
-                                       (setq-local truncate-lines t)))
+    ;; (add-hook 'mu4e-headers-found-hook  (lambda ()
+    ;;                                    (setq-local truncate-lines t)))
 
     (setq mu4e-bookmarks
           '(( :name  "Unread messages"

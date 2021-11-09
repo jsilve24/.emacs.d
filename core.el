@@ -172,7 +172,7 @@
 (global-display-line-numbers-mode t)
 
 ;; Disable line numbers for some modes
-(dolist (mode '(org-mode-hook
+(dolist (mode '(;;org-mode-hook
                 term-mode-hook
                 pdf-view-mode-hook
                 shell-mode-hook
@@ -234,18 +234,18 @@
 
 
 ;;; Random
-(defun flash-mode-line ()
-  (invert-face 'mode-line)
-  (run-with-timer 0.1 nil #'invert-face 'mode-line))
-(setq visible-bell nil
-      ring-bell-function
-         (lambda ()
-	   (unless (memq this-command
-			 '(isearch-abort
-			   abort-recursive-edit
-			   exit-minibuffer
-			   keyboard-quit))
-	     (flash-mode-line))))
+;; (defun flash-mode-line ()
+;;   (invert-face 'mode-line)
+;;   (run-with-timer 0.1 nil #'invert-face 'mode-line))
+;; (setq visible-bell nil
+;;       ring-bell-function
+;;          (lambda ()
+;; 	   (unless (memq this-command
+;; 			 '(isearch-abort
+;; 			   abort-recursive-edit
+;; 			   exit-minibuffer
+;; 			   keyboard-quit))
+;; 	     (flash-mode-line))))
 
 ;; sentence setup
 (setq sentence-end-double-space nil)
@@ -283,7 +283,10 @@
 
 
 ;; Emacs stores `authinfo' in $home and in plain-text - lets not do that.
-(setq auth-sources (list "~/.authinfo.gpg"))
+(setq auth-sources '(default
+		    "secrets:default"
+		    "secrets:login"
+		    "~/.authinfo.gpg"))
 
 
 ;; Can't get by without which-key

@@ -30,6 +30,7 @@
 
 ;;; Core
 (load-config "core.el")
+;; (load-config "wm.el")
 (load-config "evil.el")
 (load-config "autoloads/textobjects.el")
 (load-config "themes.el")

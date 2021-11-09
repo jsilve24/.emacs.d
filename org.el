@@ -227,7 +227,7 @@
   (setq org-special-ctrl-a/e t
 	evil-org-retain-visual-state-on-shift t)
   (add-hook 'evil-org-mode-hook #'evil-normalize-keymaps)
-  (evil-org-set-key-theme '(textobjects insert additional shift todo)) ;removed heading and navigation
+  (evil-org-set-key-theme '(textobjects insert additional todo)) ;removed heading, navigation, and shift
   (require 'evil-org-agenda)
   (evil-org-agenda-set-keys))
 

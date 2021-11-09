@@ -29,9 +29,13 @@
  ";" #'pp-eval-expression
  "RET" #'projectile-find-file
  "\`" #'evil-switch-to-windows-last-buffer
- "SPC" #'execute-extended-command
- "TAB" #'popper-toggle-latest
- "<S-tab>" #'popper-cycle)
+ "SPC" #'execute-extended-command)
+
+(general-define-key
+ :keymaps 'override
+ "M-'" #'popper-toggle-latest
+ "C-M-'" #'popper-toggle-latest
+ "C-M-\"" #'popper-toggle-type)
 
 ;;; filesystem bindings
 (jds/leader-def
@@ -97,7 +101,7 @@
 ;;; buffers
 
 (jds/leader-def
- "b" '(:ignore t :which-key "buffer")
+ "b"  '(:ignore t :which-key "buffer")
  "bb" #'consult-buffer
  "bB" #'consult-buffer-other-frame
  "bd" #'kill-current-buffer
@@ -110,13 +114,15 @@
 
 ;;; text editing
 (jds/leader-def
-  "a"    '(:ignore t :wk "editing")
-  "af"   '(:ignore t :wk "fill/unfill")
-  "afp" #'fill-paragraph
-  "afr" #'fill-region
-  "afP" #'unfill-paragraph
-  "afR" #'unfill-region
-  "af SPC" #'unfill-toggle)
+  "a"      '(:ignore t :wk "editing")
+  "af"     '(:ignore t :wk "fill/unfill")
+  "afp"    #'fill-paragraph
+  "afr"    #'fill-region
+  "afP"    #'unfill-paragraph
+  "afR"    #'unfill-region
+  "af SPC" #'unfill-toggle
+  "al"     #'evil-lion-left
+  "aL"     #'evil-lion-right)
 
 ;;; org and apps
 
@@ -254,10 +260,13 @@
  "zf" #'find-file-at-point
  "zF" #'find-file-other-frame
  "zd" #'xref-find-definitions
- "zD" #'xref-find-definitions-other-frame
- ;;"zl" taken by evil lion
- ;;"zL" "taken by evil lion"
- )
+ "zD" #'xref-find-definitions-other-frame)
+
+(general-define-key
+ :keymaps 'org-mode-map
+ :states '(n v)
+ "zi" #'org-toggle-inline-images
+ "zI" #'org-toggle-latex-fragment)
 
 
 ;;; text objects
