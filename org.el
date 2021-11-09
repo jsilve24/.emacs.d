@@ -189,6 +189,11 @@
 	   "* TODO %:fromname: %a %?\nDEADLINE: %(org-insert-time-stamp (org-read-date nil t \"+2d\"))"
 	   :immediate-finish t)))
 
+  ;; make some templates only available in some modes
+  (setq org-capture-templates-contexts '(("e" ((in-mode . "message-mode")
+					       (in-mode . "mu4e-headers-mode")
+					       (in-mode . "mu4e-view-mode")))))
+  
   ;;; appearnace customizatoins
   (setq org-ellipsis " ▾")
 
