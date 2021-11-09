@@ -268,6 +268,10 @@
  "zi" #'org-toggle-inline-images
  "zI" #'org-toggle-latex-fragment)
 
+(jds/localleader-def
+  :keymaps '(org-mode-map org-capture-mode-map)
+  "*" #'org-toggle-heading
+  "-" #'org-toggle-item)
 
 ;;; text objects
 
