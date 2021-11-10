@@ -49,7 +49,7 @@
  "fZ" #'zoxide-cd
  "fc" #'jds/open-config
  "fC" #'jds/find-file-config
- "fp" #'projectile-switch-project
+ "fp" #'consult-projectile
  "fP" #'jds/find-file-other-project
  "fo" #'projectile-find-other-file)
 
@@ -96,7 +96,9 @@
  "wK" #'+evil/window-move-up
  "wL" #'+evil/window-move-right
  "wm" #'delete-other-windows
- "wb" #'switch-to-minibuffer)
+ "wb" #'switch-to-minibuffer
+ "wr" #'consult-register
+ "wR" #'window-configuration-to-register)
 
 ;;; buffers
 
@@ -205,7 +207,7 @@
  "gi" #'evil-insert-resume
  "gv" #'evil-visual-restore
  "gu"  #'evil-downcase
- "gU"  #'evil-upcate
+ "gU"  #'evil-upcase
  "go" #'jds/evil-insert-line-below
  "gO" #'jds/evil-insert-line-above
  ;; avy and hinting
@@ -242,7 +244,7 @@
 
 (general-define-key
  :states '(normal visual)
- "z=" #'flyspell-correct-wrapper
+ "zx" #'flyspell-correct-wrapper
  "zg" #'jds/save-word
  ;; "[s" #'jds/spell-fix-previous-error
  ;; "]s" #'jds/spell-fix-next-error
