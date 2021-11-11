@@ -112,7 +112,7 @@
  "br" #'revert-buffer
  "bi" #'ibuffer-jump
  "bI" #'ibuffer-other-window
- "bx" #'(lambda () (interactive) (switch-to-buffer "*scratch*")))
+ "bx" #'(lambda () (interactive) (switch-to-buffer (get-buffer-create "*scratch*"))))
 
 ;;; text editing
 (jds/leader-def
@@ -125,6 +125,14 @@
   "af SPC" #'unfill-toggle
   "al"     #'evil-lion-left
   "aL"     #'evil-lion-right)
+
+
+;;; repls and such
+(jds/leader-def
+  "r"    '(:ignore t :wk "REPL")
+  "rr"   #'run-ess-r
+  "rp"   #'run-python
+  "rl"   #'run-lisp)
 
 ;;; org and apps
 

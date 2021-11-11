@@ -2,6 +2,8 @@
 
 (use-package popper
   :ensure t
+  ;; :bind (:map popper-mode-map
+  ;; 	      ("q" . popper-kill-latest-popup))
   :init
   (setq popper-reference-buffers
         '("\\*Messages\\*"
