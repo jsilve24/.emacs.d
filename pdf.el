@@ -23,7 +23,6 @@
 
 
 (use-package pdf-tools
-  ;; :straight t
   :mode ("\\.pdf\\'" . pdf-view-mode)
   :magic ("%PDF" . pdf-view-mode)
   :after evil-collection
@@ -39,7 +38,7 @@
   ;; (setq ps-lpr-command "gtklp")
   
   ;; see cups help page for lots on how to print with lpr and lp
-  (setq pdf-misc-print-program "/usr/bin/lpr"
+  (setq pdf-misc-print-program-executable "/usr/bin/lpr"
 	pdf-misc-print-program-args (list "-o sides=two-sided-long-edge"
 					  ;; "-o fit-to-page"
 					  ))
@@ -53,9 +52,12 @@
    :keymaps 'pdf-view-mode-map
    "SPC" nil))
 
+
 (jds/localleader-def
  :keymaps '(pdf-view-mode-map)
- "p" #'pdf-misc-print-document)
+ "p" #'(lambda () (interactive) (pdf-misc-print-document
+				 (pdf-view-buffer-file-name)
+				 nil)))	; don't prompt for program to print with
 
 
 

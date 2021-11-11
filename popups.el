@@ -16,6 +16,6 @@
   :config
   (setq popper-display-control t) ; default is t
   (setq popper-display-function #'display-buffer-below-selected)
-  (setq popper-window-height 15))         
+  (setq popper-window-height 22))         
 
 (provide 'popups)
