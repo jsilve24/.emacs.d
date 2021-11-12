@@ -158,30 +158,30 @@
   :init (setq-default adaptive-wrap-extra-indent 0))
 
 
-;;; setup bibtex-actions
+;;; setup citar
 
 (use-package bibtex-completion
   :straight t
   :defer t)
 
-(use-package bibtex-actions
+(use-package citar
   :straight t
   :defer t
   :config
   ;; watch for changes in bib files
-  (bibtex-actions-filenotify-setup '(LaTeX-mode-hook org-mode-hook))
+  (citar-filenotify-setup '(LaTeX-mode-hook org-mode-hook))
 
   ;; nice file icons
-  (setq bibtex-actions-symbols
+  (setq citar-symbols
   `((file . (,(all-the-icons-icon-for-file "foo.pdf" :face 'all-the-icons-dred) .
-            ,(all-the-icons-icon-for-file "foo.pdf" :face 'bibtex-actions-icon-dim)))
+            ,(all-the-icons-icon-for-file "foo.pdf" :face 'citar-icon-dim)))
     (note . (,(all-the-icons-icon-for-file "foo.txt") .
-            ,(all-the-icons-icon-for-file "foo.txt" :face 'bibtex-actions-icon-dim)))
+            ,(all-the-icons-icon-for-file "foo.txt" :face 'citar-icon-dim)))
     (link .
         (,(all-the-icons-faicon "external-link-square" :v-adjust 0.02 :face 'all-the-icons-dpurple) .
-        ,(all-the-icons-faicon "external-link-square" :v-adjust 0.02 :face 'bibtex-actions-icon-dim)))))
+        ,(all-the-icons-faicon "external-link-square" :v-adjust 0.02 :face 'citar-icon-dim)))))
 ;; Here we define a face to dim non 'active' icons, but preserve alignment
-(defface bibtex-actions-icon-dim
+(defface citar-icon-dim
     '((((background dark)) :foreground "#282c34")
      (((background light)) :foreground "#fafafa"))
      "Face for obscuring/dimming icons"
@@ -206,8 +206,8 @@
  "i" #'LaTeX-insert-item
 
  "r" '(:ignore :which-key "reftex")
- "rb" #'bibtex-actions-insert-citation
- "rR" #'bibtex-actions-refresh
+ "rb" #'citar-insert-citation
+ "rR" #'citar-refresh
  "r" #'reftex-reference
  "l" #'reftex-label
  "t" #'reftex-toc
