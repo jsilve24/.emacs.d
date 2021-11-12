@@ -27,7 +27,7 @@
  "/" #'consult-ripgrep
  "?" #'affe-grep
  ";" #'pp-eval-expression
- "RET" #'projectile-find-file
+ "RET" #'consult-projectile
  "\`" #'evil-switch-to-windows-last-buffer
  "SPC" #'consult-buffer)
 
@@ -38,10 +38,22 @@
  "C-M-\"" #'popper-toggle-type)
 
 ;;; completion
+;;;###autoload
+(defun jds/tab-dwim ()
+  (interactive)
+  (cond
+   ((and (texmathp) (bound-and-true-p cdlatex-mode))  (cdlatex-tab))
+   ((message--in-tocc-p) (completion-at-point))
+   (t                   (company-indent-or-complete-common))))
 (defun jds/completion-keys ()
-  (evil-local-set-key 'insert (kbd "<tab>") #'company-indent-or-complete-common))
+  (evil-local-set-key 'insert (kbd "<tab>") #'jds/tab-dwim))
 (add-hook 'text-mode-hook 'jds/completion-keys)
 (add-hook 'prog-mode-hook 'jds/completion-keys)
+
+;; (general-define-key
+;;  :keymaps 'overide
+;;  :states '(n v i m o e)
+;;  "C-u" #'universal-argument)
 
 ;;; filesystem bindings
 (jds/leader-def
