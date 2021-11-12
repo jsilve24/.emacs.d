@@ -145,7 +145,8 @@
  "M" #'mu4e
  "l" #'org-store-link
  "i" #'org-insert-link
- "t" #'vterm
+ ;; "t" #'vterm
+ "t" #'multi-vterm-next
  "a" #'jds/org-agenda-show-custom-day
  "A" #'org-agenda
  "s" #'consult-org-agenda

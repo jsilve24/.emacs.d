@@ -23,7 +23,7 @@
        "Banner to display on startup.")
 
 (defun splash--setup () 
-  (switch-to-buffer (get-buffer-create "*splash*"))
+  ;; (switch-to-buffer (get-buffer-create "*splash*"))
   (let* ((splash-buffer (get-buffer-create "*splash*"))
 	 (height  (- (window-body-height nil) 1))
 	 (width (window-total-width nil))

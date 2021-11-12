@@ -78,7 +78,9 @@
       ;; pull in a ton of packages. `doom/open-scratch-buffer' provides a better
       ;; scratch buffer anyway.
       initial-major-mode 'fundamental-mode
-      initial-buffer-choice 'splash--setup
+      initial-buffer-choice (lambda () (progn
+					 (switch-to-buffer (get-buffer-create "*splash*"))
+					 (splash--setup)))
       initial-scratch-message nil)
 
 
@@ -176,6 +178,7 @@
 (dolist (mode '(;;org-mode-hook
                 term-mode-hook
                 pdf-view-mode-hook
+		vterm-mode-hook
                 shell-mode-hook
                 treemacs-mode-hook
                 mu4e-main-mode-hook
