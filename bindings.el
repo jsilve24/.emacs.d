@@ -23,19 +23,25 @@
 
 
 ;;; universal argument and other short stuff
-(jds/leader-def
+(jds/leader-def 
  "/" #'consult-ripgrep
  "?" #'affe-grep
  ";" #'pp-eval-expression
  "RET" #'projectile-find-file
  "\`" #'evil-switch-to-windows-last-buffer
- "SPC" #'execute-extended-command)
+ "SPC" #'consult-buffer)
 
 (general-define-key
  :keymaps 'override
  "M-'" #'popper-toggle-latest
  "C-M-'" #'popper-toggle-latest
  "C-M-\"" #'popper-toggle-type)
+
+;;; completion
+(defun jds/completion-keys ()
+  (evil-local-set-key 'insert (kbd "<tab>") #'company-indent-or-complete-common))
+(add-hook 'text-mode-hook 'jds/completion-keys)
+(add-hook 'prog-mode-hook 'jds/completion-keys)
 
 ;;; filesystem bindings
 (jds/leader-def
@@ -52,8 +58,6 @@
  "fp" #'consult-projectile
  "fP" #'jds/find-file-other-project
  "fo" #'projectile-find-other-file)
-
-;;; project bindings
 
 
 ;;; help bindings
@@ -130,7 +134,7 @@
 ;;; repls and such
 (jds/leader-def
   "r"    '(:ignore t :wk "REPL")
-  "rr"   #'run-ess-r
+  "rr"   #'R ;; or run-ess-r 
   "rp"   #'run-python
   "rl"   #'run-lisp)
 
@@ -158,13 +162,6 @@
 
 ;;; faster editing in text buffers
 
-;; (defun jds/text-mode-local-keys ()
-;;   (interactive)
-;;   (evil-local-set-key 'normal "H" #'evil-backward-sentence-begin)
-;;   (evil-local-set-key 'normal "J" #'jds/paragraph-forward)
-;;   (evil-local-set-key 'normal "K" #'jds/paragraph-backward)
-;;   (evil-local-set-key 'normal "L" #'evil-forward-sentence-begin))
-;; (add-hook 'text-mode-hook 'jds/text-mode-local-keys)
 
 (general-define-key
  :states 'n

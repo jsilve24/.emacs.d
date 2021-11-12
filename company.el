@@ -27,8 +27,8 @@
              company-manual-begin
              company-grab-line)
   :hook (after-init . global-company-mode)
-  :bind ("TAB" . company-indent-or-complete-common)
-  :bind ("C-SPC" . company-indent-or-complete-common)
+  ;; :bind ("TAB" . company-indent-or-complete-common)
+  ;; :bind ("C-SPC" . company-indent-or-complete-common)
   :init
   (setq company-minimum-prefix-length 2
         company-tooltip-limit 14
