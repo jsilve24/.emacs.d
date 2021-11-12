@@ -77,7 +77,8 @@
       ;; `fundamental-mode', rather than, say, `org-mode' or `text-mode', which
       ;; pull in a ton of packages. `doom/open-scratch-buffer' provides a better
       ;; scratch buffer anyway.
-      initial-major-mode 'splash-mode
+      initial-major-mode 'fundamental-mode
+      initial-buffer-choice 'splash--setup
       initial-scratch-message nil)
 
 
@@ -98,7 +99,7 @@
   (load bootstrap-file nil 'nomessage))
 
 
-;; Install use-package through straight
+;; Install use-package through straight 
 ;; Now use-package will use straight.el to automatically install
 ;; missing packages if you provide :straight t:
 (straight-use-package 'use-package)

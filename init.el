@@ -71,6 +71,7 @@
 (load-config "autoloads/ess-autoloads.el")
 
 ;; Start Server if not already running
+(require 'server)
 (if (and (fboundp 'server-running-p)
          (not (server-running-p)))
     (server-start))

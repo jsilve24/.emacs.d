@@ -3,7 +3,7 @@
 (define-derived-mode splash-mode
   fundamental-mode "Splash"
   "Major mode for showing custom splash screen."
-  (splash--setup)
+  ;;(splash--setup)
   ;; (run-with-timer 0.1 nil #'splash--setup)
   )
 
@@ -22,7 +22,8 @@
 "
        "Banner to display on startup.")
 
-(defun splash--setup ()
+(defun splash--setup () 
+  (switch-to-buffer (get-buffer-create "*splash*"))
   (let* ((splash-buffer (get-buffer-create "*splash*"))
 	 (height  (- (window-body-height nil) 1))
 	 (width (window-total-width nil))
@@ -41,8 +42,11 @@
     (deactivate-mark)
     (read-only-mode 1)
     (display-line-numbers-mode -1)
-    (setq-local line-number-mode nil))
-  (setq-local cursor-type nil))
+    (splash-mode)
+    (setq-local cursor-type nil)
+    (display-line-numbers-mode 0)
+    ;; (setq-local line-number-mode nil)
+    (get-buffer "*splash*")))
 
 ;; (add-hook 'window-setup-hook 'jds/splash-setup)
 ;; (setq initial-buffer-choice #'jds/splash-setup)
