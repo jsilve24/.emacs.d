@@ -242,7 +242,7 @@
 ;;; local bindings
 
 (general-define-key
- :states '(n v)
+ :states '(n v m)
  :keymaps 'org-agenda-mode-map
  "f" #'avy-org-agenda
  "F" #'jds/avy-org-agenda-and-jump)
