@@ -26,7 +26,7 @@
   :defer t
   :config
   (setq yas-snippet-dirs
-	'("~/.myvanilla.d/snippets"))
+	'("~/.emacs.d/snippets"))
   (yas-global-mode 1))
 
 

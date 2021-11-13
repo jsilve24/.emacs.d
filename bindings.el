@@ -44,7 +44,7 @@
   (cond
    ((and (texmathp) (bound-and-true-p cdlatex-mode))  (cdlatex-tab))
    ((message--in-tocc-p) (completion-at-point))
-   (t                   (company-indent-or-complete-common))))
+   (t (company-complete-common))))
 (defun jds/completion-keys ()
   (evil-local-set-key 'insert (kbd "<tab>") #'jds/tab-dwim))
 (add-hook 'text-mode-hook 'jds/completion-keys)
@@ -262,7 +262,7 @@
 
 (general-define-key
  :states '(normal visual)
- "zx" #'flyspell-correct-wrapper
+ "<M-tab>" #'flyspell-correct-wrapper
  "zg" #'jds/save-word
  ;; "[s" #'jds/spell-fix-previous-error
  ;; "]s" #'jds/spell-fix-next-error

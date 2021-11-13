@@ -269,6 +269,7 @@
 (jds/localleader-def
   :keymaps '(org-capture-mode-map org-mode-map)
   "t"  #'org-todo
+  "s"  #'org-screenshot-take
   "a"  #'org-attach
   "q"  #'org-set-tags-command
   "d"  '(:ignore t :wk "date")
