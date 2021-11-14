@@ -23,11 +23,12 @@
 
 (use-package yasnippet
   :straight t
-  :defer t
+  :ensure t
   :config
   (setq yas-snippet-dirs
 	'("~/.emacs.d/snippets"))
-  (yas-global-mode 1))
+  (yas-global-mode 1)
+  (add-to-list 'company-backends 'company-yasnippet))
 
 
 
