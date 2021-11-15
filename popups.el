@@ -10,6 +10,7 @@
           "Output\\*$"
 	  "\\*Apropos\\*"
           "\\*Async Shell Command\\*"
+	  "\\*mu4e-update\\*"
           help-mode
 	  helpful-mode
           compilation-mode))

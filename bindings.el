@@ -112,17 +112,19 @@
  "wK" #'+evil/window-move-up
  "wL" #'+evil/window-move-right
  "wm" #'delete-other-windows
- "wb" #'switch-to-minibuffer
- "wr" #'consult-register
- "wR" #'window-configuration-to-register)
+ "wb" #'switch-to-minibuffer)
 
 ;;; buffers
 
 (jds/leader-def
- "b"  '(:ignore t :which-key "buffer")
+ "b"  '(:ignore t :which-key "buffer/bookmark")
  "bb" #'consult-buffer
  "bB" #'consult-buffer-other-frame
+ "bo" #'consult-bookmark
+ "bO" #'burly-open-last-bookmark
  "bd" #'kill-current-buffer
+ "bw" #'burly-bookmark-windows
+ "bf" #'burly-bookmark-frames
  "bm" #'bookmark-set
  "bM" #'bookmark-delete
  "br" #'revert-buffer
@@ -188,8 +190,7 @@
  "sm" #'consult-mark
  ;; "si" #'consult-outline
  ;; "sI" #'consult-imenu-multi
- "sy" #'consult-yank-from-kill-ring
- "sb" #'consult-bookmark)
+ "sy" #'consult-yank-from-kill-ring)
 
 
 ;;; git
@@ -214,6 +215,7 @@
 ;; g-;  g-i   g-n
 (general-define-key
  :states '(normal visual motion)
+ :keymaps 'override
  "gr" #'eval-region
  "gR" #'quickrun-shell
  "gc" #'evilnc-comment-operator

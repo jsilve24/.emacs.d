@@ -34,5 +34,8 @@
 
 (use-package transpose-frame)
 
+;; save and restore window and frame configurations
+(use-package burly)
+
 (provide 'window)
 ;;; window.el ends here
