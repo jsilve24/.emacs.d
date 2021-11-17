@@ -77,7 +77,7 @@
   ;; also auctex already provides `LaTeX-insert-item' so C-ret not needed
   :bind
   (:map cdlatex-mode-map
-   ("$" . nil)
+   ;; ("$" . nil)
    ("(" . nil)
    ("{" . nil)
    ("[" . nil)
@@ -86,7 +86,8 @@
    ("_" . nil)
    ("^" . nil)
    ;; ("TAB" . cdlatex-tab)
-   ([(control return)] . nil))
+   ;; ([(control return)] . nil)
+   )
  :config
  (setq cdlatex-math-symbol-alist
         '((?< ("\\leftarrow" "\\Leftarrow" "\\longleftarrow" "\\Longleftarrow"))

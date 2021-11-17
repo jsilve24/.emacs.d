@@ -204,11 +204,6 @@
   ;; org-agenda window setup (don't always split frame)
   (setq org-agenda-window-setup 'current-window)
 
-  (add-hook 'window-state-change-hook (lambda ()
-					(if (string= major-mode "org-agenda-mode")
-						(org-agenda-redo)
-					      nil)))
-
   
   ;; for some reason this was needed when I first put this config together
   (org-reload))

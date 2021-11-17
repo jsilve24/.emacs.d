@@ -39,12 +39,18 @@
 
 ;;; completion
 ;;;###autoload
+(defun jds/yas-or-company ()
+  (interactive)
+  (if (yas-expand)
+      nil
+    (company-complete-common)))
+;;;###autoload
 (defun jds/tab-dwim ()
   (interactive)
   (cond
    ((and (texmathp) (bound-and-true-p cdlatex-mode))  (cdlatex-tab))
    ((message--in-tocc-p) (completion-at-point))
-   (t (company-complete-common))))
+   (t (jds/yas-or-company))))
 (defun jds/completion-keys ()
   (evil-local-set-key 'insert (kbd "<tab>") #'jds/tab-dwim))
 (add-hook 'text-mode-hook 'jds/completion-keys)
@@ -114,6 +120,12 @@
  "wm" #'delete-other-windows
  "wb" #'switch-to-minibuffer)
 
+
+;;; toggle
+(jds/leader-def
+  "t" '(:ignore t :wk "toggles")
+  "tm" #'hide-mode-line-mode)
+
 ;;; buffers
 
 (jds/leader-def
@@ -159,8 +171,8 @@
  "<" #'org-capture-goto-target ;; new and follow
  ">" #'org-capture-goto-last-stored
  "c" #'jds/mu4e-compose-goto-to
- "m" #'jds/open-mu4e-new-frame
- "M" #'mu4e
+ "M" #'jds/open-mu4e-new-frame
+ "m" #'mu4e
  "l" #'org-store-link
  "i" #'org-insert-link
  ;; "t" #'vterm

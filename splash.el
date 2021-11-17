@@ -48,6 +48,7 @@
     ;; (setq-local line-number-mode nil)
     (get-buffer "*splash*")))
 
+
 ;; (add-hook 'window-setup-hook 'jds/splash-setup)
 ;; (setq initial-buffer-choice #'jds/splash-setup)
 

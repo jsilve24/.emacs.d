@@ -11,6 +11,7 @@
 	  "\\*Apropos\\*"
           "\\*Async Shell Command\\*"
 	  "\\*mu4e-update\\*"
+	  "\\*Warnings\\*"
           help-mode
 	  helpful-mode
           compilation-mode))

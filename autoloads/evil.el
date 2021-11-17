@@ -32,12 +32,14 @@
 
 
 ;; from spacemacs
+;;;###autoload
 (defun jds/evil-insert-line-above (count)
   "Insert one or several lines above the current point's line without changing
 the current state and point position."
   (interactive "p")
   (dotimes (_ count) (save-excursion (evil-insert-newline-above))))
 
+;;;###autoload
 (defun jds/evil-insert-line-below (count)
   "Insert one or several lines below the current point's line without changing
 the current state and point position."

@@ -24,11 +24,12 @@
 (use-package yasnippet
   :straight t
   :ensure t
+  :bind ("C-SPC" . yas-expand)
   :config
   (setq yas-snippet-dirs
 	'("~/.emacs.d/snippets"))
-  (yas-global-mode 1)
-  (add-to-list 'company-backends 'company-yasnippet))
+  (yas-global-mode 1))
+
 
 
 
