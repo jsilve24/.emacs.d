@@ -70,17 +70,13 @@
                             ("pdf view" . mu4e-action-view-as-pdf)
                             ("thread view" . mu4e-action-show-thread)))
 
-    ;; No line breaks in compose
-    ;; (defun no-auto-fill ()
-    ;;   "Turn off auto-fill-mode."
-    ;;     (auto-fill-mode -1))
-    ;; ;; Turn off 80-character auto-wrap
-    ;; (add-hook 'mu4e-compose-mode-hook #'no-auto-fill)
 
-    ;; hook found in
-    ;; /usr/local/share/emacs/site-lisp/mu4e/mu4e-headers.el
-    ;; (add-hook 'mu4e-headers-found-hook  (lambda ()
-    ;;                                    (setq-local truncate-lines t)))
+    ;; nicer header view
+    (setq mu4e-headers-fields
+	  '((:human-date . 12)
+	    (:flags . 6)
+	    (:from . 22)
+	    (:subject . 60)))
 
     (setq mu4e-bookmarks
           '(( :name  "Unread messages"
@@ -110,7 +106,6 @@
             (end-of-line)
             (insert (read-string "Subject (optional): "))
             (message "Sending...")))))
-
     (add-hook 'message-send-hook #'+mu4e-check-for-subject)
 
 ;;; Add My Email Accounts
@@ -218,7 +213,7 @@
  "u"      '(mu4e-update-mail-and-index :which-key "update mail and index")
  "s"      '(mu4e-view-save-attachments :which-key "save-attachments")
  "T"          #'mu4e-headers-mark-thread
- "l"          #'jds/capture-mu4e-message)
+ "l"          #'+mu4e/capture-msg-to-agenda)
 
 (with-eval-after-load 'link-hint
   (link-hint-define-type 'mu4e-message

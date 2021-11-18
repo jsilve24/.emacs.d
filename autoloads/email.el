@@ -63,12 +63,12 @@ default/fallback account."
       context))))
 
 
-;;;###autoload
-(defun jds/capture-mu4e-message ()
-  "Quickly open email capture template when looking at a mu4e message."
-  (interactive)
-  (call-interactively 'org-store-link)
-  (org-capture nil "e"))
+;; ;;;###autoload
+;; (defun jds/capture-mu4e-message ()
+;;   "Quickly open email capture template when looking at a mu4e message."
+;;   (interactive)
+;;   (call-interactively 'org-store-link)
+;;   (org-capture nil "e"))
 
 
 ;;; not stolen from doom
@@ -153,6 +153,71 @@ default/fallback account."
   (interactive)
   (select-frame (make-frame))
   (mu4e))
+
+
+
+;; below is stolen from doom
+(defvar +org-capture-emails-file "mail.org"
+  "Default target for storing mu4e emails captured from within mu4e.
+Requires a \"* Email\" heading be present in the file.")
+
+;; Adding emails to the agenda
+;; Perfect for when you see an email you want to reply to
+;; later, but don't want to forget about
+;;;###autoload
+(defun +mu4e/capture-msg-to-agenda (arg)
+  "Refile a message and add a entry in `+org-capture-emails-file' with a
+deadline.  Default deadline is today.  With one prefix, deadline
+is tomorrow.  With two prefixes, select the deadline."
+  (interactive "p")
+  (let ((sec "^* Email")
+        (msg (mu4e-message-at-point)))
+    (when msg
+      ;; put the message in the agenda
+      (with-current-buffer (find-file-noselect
+                            (expand-file-name +org-capture-emails-file org-directory))
+        (save-excursion
+          ;; find header section
+          (goto-char (point-min))
+          (when (re-search-forward sec nil t)
+            (let (org-M-RET-may-split-line
+                  (lev (org-outline-level))
+                  (folded-p (invisible-p (point-at-eol)))
+                  (from (plist-get msg :from)))
+              ;; place the subheader
+              (when folded-p (show-branches))    ; unfold if necessary
+              (org-end-of-meta-data) ; skip property drawer
+              (org-insert-todo-heading 1)        ; insert a todo heading
+              (when (= (org-outline-level) lev)  ; demote if necessary
+                (org-do-demote))
+              ;; insert message and add deadline
+              (insert (concat " Respond to "
+                              "[[mu4e:msgid:"
+                              (plist-get msg :message-id) "]["
+                              (truncate-string-to-width
+                               (or (caar from) (cdar from)) 25 nil nil t)
+                              " - "
+                              (truncate-string-to-width
+                               (plist-get msg :subject) 40 nil nil t)
+                              "]] "))
+              (org-deadline nil
+                            (cond ((= arg 1) (format-time-string "%Y-%m-%d"))
+                                  ((= arg 4) "+1d")))
+
+              (org-update-parent-todo-statistics)
+
+              ;; refold as necessary
+              (if folded-p
+                  (progn
+                    (org-up-heading-safe)
+                    (hide-subtree))
+                (hide-entry))))))
+      (message "Refiled \"%s\" and added to the agenda for %s"
+               (truncate-string-to-width
+                (plist-get msg :subject) 40 nil nil t)
+               (cond ((= arg 1) "today")
+                     ((= arg 4) "tomorrow")
+                     (t         "later"))))))
 
 (provide 'email)
 ;;; email.el ends here

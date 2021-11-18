@@ -185,14 +185,15 @@
            "* %? \n %^T\n %a")
           ("n" "note" entry (file+headline "~/Dropbox/org/notes.org" "Notes")
            "* NOTE %? :NOTE:\n %U")
-	  ("e" "email" entry (file+headline "~/Dropbox/org/mail.org" "Email")
-	   "* TODO %:fromname: %a %?\nDEADLINE: %(org-insert-time-stamp (org-read-date nil t \"+2d\"))"
-	   :immediate-finish t)))
+	  ;; ("e" "email" entry (file+headline "~/Dropbox/org/mail.org" "Email")
+	  ;;  "* TODO %:fromname: %a %?\nDEADLINE: %(org-insert-time-stamp (org-read-date nil t \"+2d\"))"
+	  ;;  :immediate-finish t)
+	  ))
 
   ;; make some templates only available in some modes
-  (setq org-capture-templates-contexts '(("e" ((in-mode . "message-mode")
-					       (in-mode . "mu4e-headers-mode")
-					       (in-mode . "mu4e-view-mode")))))
+  ;; (setq org-capture-templates-contexts '(("e" ((in-mode . "message-mode")
+  ;; 					       (in-mode . "mu4e-headers-mode")
+  ;; 					       (in-mode . "mu4e-view-mode")))))
   
   ;;; appearnace customizatoins
   (setq org-ellipsis " ▾")
