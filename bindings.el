@@ -144,6 +144,11 @@
  "bI" #'ibuffer-other-window
  "bx" #'(lambda () (interactive) (switch-to-buffer (get-buffer-create "*scratch*"))))
 
+(general-define-key
+ :keymaps 'ibuffer-mode-map
+ :states '(mnv)
+ "f" #'avy-goto-line)
+
 ;;; text editing
 (jds/leader-def
   "a"      '(:ignore t :wk "editing")
@@ -170,6 +175,9 @@
  "," #'org-capture           ;; q "new"
  "<" #'org-capture-goto-target ;; new and follow
  ">" #'org-capture-goto-last-stored
+ "a" #'(lambda () (interactive) (affe-find "/home/jds6696/"))
+ "z" #'zoxide-find-file
+ "Z" #'zoxide-cd
  "c" #'jds/mu4e-compose-goto-to
  "M" #'jds/open-mu4e-new-frame
  "m" #'mu4e
@@ -177,8 +185,9 @@
  "i" #'org-insert-link
  ;; "t" #'vterm
  "t" #'multi-vterm-next
- "a" #'jds/org-agenda-show-custom-day
- "A" #'org-agenda
+ "o" #'jds/org-agenda-show-custom-day
+ "O" #'jds/open-custom-day-agenda-new-frame
+ "p" #'org-agenda
  "s" #'consult-org-agenda
  "S" #'org-search-view
  "k" #'helpful-at-point

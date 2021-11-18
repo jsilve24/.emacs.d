@@ -270,7 +270,8 @@
 (jds/localleader-def
   :keymaps '(org-capture-mode-map org-mode-map)
   "t"  #'org-todo
-  "s"  #'org-screenshot-take
+  "s"  #'org-sparse-tree
+  "S"  #'org-screenshot-take
   "a"  #'org-attach
   "q"  #'org-set-tags-command
   "d"  '(:ignore t :wk "date")
@@ -288,6 +289,14 @@
   "r"  #'org-refile
   "n"  #'org-narrow-to-subtree
   "N"  #'widen)
+
+
+;;; autoloads
+;;;###autoload
+(defun jds/open-custom-day-agenda-new-frame ()
+  (interactive)
+  (select-frame (make-frame))
+  (org-agenda nil "d"))
 
 
   ;; (map! :after (org evil-org)
