@@ -25,7 +25,7 @@
 (use-package mu4e
   :straight (:local-repo "/usr/share/emacs/site-lisp/mu4e"
              :pre-build ())
-  :commands mu4e mu4e-compose-new
+  :commands mu4e mu4e-compose-new mu4e-headers-search-bookmark mu4e-get-bookmark-query  
   :init
   (provide 'html2text) ;; disable obsolete package
   :config
