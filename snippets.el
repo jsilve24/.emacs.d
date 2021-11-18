@@ -31,7 +31,7 @@
   (yas-global-mode 1))
 
 
-
+;;; abbreviations
 
 (provide 'snippets)
 ;;; snippets.el ends here

@@ -126,7 +126,27 @@
     (when (consp word)
       (flyspell-do-correct 'save nil (car word) current-location (cadr word) (caddr word) current-location))))
 
-;;; recomplete
+
+;; from here: 
+;; https://emacs.stackexchange.com/questions/2793/is-it-possible-to-auto-correct-spelling-on-space
+(defun jds/flyspell-correct-word-then-abbrev (p)
+  "Call `flyspell-correct-wrapper'. Then create an abbrev for the correction made.
+With prefix P, create local abbrev. Otherwise it will be global."
+  (interactive "P")
+  (let ((bef (downcase (or (thing-at-point 'word) ""))) aft)
+    (call-interactively 'flyspell-correct-wrapper)
+    (setq aft (downcase (or (thing-at-point 'word) "")))
+    (unless (string= aft bef)
+      (message "\"%s\" now expands to \"%s\" %sally"
+               bef aft (if p "loc" "glob"))
+      (define-abbrev
+        (if p local-abbrev-table global-abbrev-table)
+        bef aft))))
+
+(setq save-abbrevs t)
+(setq-default abbrev-mode t)
+
+
 
 
 (provide 'spelling)

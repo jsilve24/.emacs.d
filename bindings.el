@@ -293,6 +293,7 @@
  :states '(normal visual)
  "<M-tab>" #'flyspell-correct-wrapper
  "zg" #'jds/save-word
+ "zG" #'jds/flyspell-correct-word-then-abbrev
  ;; "[s" #'jds/spell-fix-previous-error
  ;; "]s" #'jds/spell-fix-next-error
  "[s" #'flyspell-correct-previous
