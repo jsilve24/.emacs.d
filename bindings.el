@@ -152,6 +152,7 @@
 ;;; text editing
 (jds/leader-def
   "a"      '(:ignore t :wk "editing")
+  "as"     #'synosaurus-choose-and-replace
   "af"     '(:ignore t :wk "fill/unfill")
   "afp"    #'fill-paragraph
   "afr"    #'fill-region

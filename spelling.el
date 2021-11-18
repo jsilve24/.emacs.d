@@ -147,6 +147,14 @@ With prefix P, create local abbrev. Otherwise it will be global."
 (setq-default abbrev-mode t)
 
 
+;;; dictionary and thesaurus
+;; need to have wordnet-cli and wordnet-common installed
+(use-package synosaurus
+  :hook (text-mode . synosaurus-mode)
+  :config
+  (setq  synosaurus-choose-method 'default))
+
+
 
 
 (provide 'spelling)

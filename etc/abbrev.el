@@ -1,7 +1,9 @@
 ;;-*-coding: utf-8;-*-
 (define-abbrev-table 'global-abbrev-table
   '(
-    ("hte" "the" nil :count 5)
+    ("contension" "contention" nil :count 0)
+    ("hte" "the" nil :count 6)
+    ("invarinat" "invariant" nil :count 0)
     ("qualtiites" "qualities" nil :count 0)
    ))
 
