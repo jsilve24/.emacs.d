@@ -179,14 +179,20 @@
  "z" #'zoxide-find-file
  "Z" #'zoxide-cd
  "c" #'jds/mu4e-compose-goto-to
- "M" #'jds/open-mu4e-new-frame
- "m" #'mu4e
+ ;; "M" #'jds/open-mu4e-new-frame
+ ;; "m" #'mu4e
+ "m" #'(lambda () (interactive)
+	 (mu4e-headers-search-bookmark
+	  (mu4e-get-bookmark-query ?t)))
+ "M" #'(lambda () (interactive)
+	 (select-frame (make-frame))
+	 (mu4e-headers-search-bookmark (mu4e-get-bookmark-query ?t)))
  "l" #'org-store-link
  "i" #'org-insert-link
  ;; "t" #'vterm
  "t" #'multi-vterm-next
- "o" #'jds/org-agenda-show-custom-day
- "O" #'jds/open-custom-day-agenda-new-frame
+ "f" #'jds/org-agenda-show-custom-day
+ "F" #'jds/open-custom-day-agenda-new-frame
  "p" #'org-agenda
  "s" #'consult-org-agenda
  "S" #'org-search-view
