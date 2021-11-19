@@ -34,7 +34,7 @@
 (general-define-key
  :keymaps 'override
  "M-'" #'popper-toggle-latest
- "C-M-'" #'popper-toggle-latest
+ "C-M-'" #'popper-cycle
  "C-M-\"" #'popper-toggle-type)
 
 ;;; completion
@@ -43,7 +43,9 @@
   (interactive)
   (if (yas-expand)
       nil
-    (company-complete-common)))
+    (if (company-complete-common)
+	nil
+      (call-interactively #'company-dabbrev))))
 ;;;###autoload
 (defun jds/tab-dwim ()
   (interactive)
@@ -52,7 +54,8 @@
    ((message--in-tocc-p) (completion-at-point))
    (t (jds/yas-or-company))))
 (defun jds/completion-keys ()
-  (evil-local-set-key 'insert (kbd "<tab>") #'jds/tab-dwim))
+  (evil-local-set-key 'insert (kbd "<tab>") #'jds/tab-dwim)
+  (evil-local-set-key 'insert (kbd "C-l")   #'company-ispell))
 (add-hook 'text-mode-hook 'jds/completion-keys)
 (add-hook 'prog-mode-hook 'jds/completion-keys)
 
@@ -111,14 +114,17 @@
  "wl" #'evil-window-right
  "wh" #'evil-window-left
  "wj" #'evil-window-down
+ "wq" #'kill-buffer-and-window
  "wk" #'evil-window-up
  "wl" #'evil-window-right
  "wH" #'+evil/window-move-left
  "wJ" #'+evil/window-move-down
  "wK" #'+evil/window-move-up
  "wL" #'+evil/window-move-right
- "wm" #'delete-other-windows
- "wb" #'switch-to-minibuffer)
+ "wb" #'switch-to-minibuffer
+ "wm" '(:ignore t :which-key "maximize")
+ "wmm" #'delete-other-windows
+ "wmv" #'delete-other-windows-vertically)
 
 
 ;;; toggle

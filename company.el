@@ -56,8 +56,8 @@
 
   ;; Buffer-local backends will be computed when loading a major mode, so
   ;; only specify a global default here. `'
-  (setq company-backend '(company-capf company-files company-yasnippet company-dabbrev)))
-
+  (setq company-backends '(company-capf company-files)))
 
 (provide 'company)
 ;;; company.el ends here
+

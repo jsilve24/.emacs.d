@@ -30,7 +30,7 @@
 
 ;;; Core
 (load-config "core.el")
-(load-config "wm.el")
+;; (load-config "wm.el")
 (load-config "evil.el")
 (load-config "autoloads/evil.el")
 (load-config "autoloads/textobjects.el")
@@ -79,6 +79,8 @@
 
 (setq-default fill-column 100)
 
+;;; update package archives to include melpa
+(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
 
 ;;; miscellaneous
 
@@ -92,8 +94,8 @@
 
 ;; easy way to try out packages
 ;; M-x try RET package-name
-(use-package try
-  :straight t)
+;; (use-package try
+;;   :straight t)
 
 (use-package beacon
   :straight t

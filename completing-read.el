@@ -196,7 +196,7 @@ targets."
   (([remap apropos]                      . #'consult-apropos)
   ([remap bookmark-jump]                . #'consult-bookmark)
    ([remap evil-show-marks]              . #'consult-mark)
-   ([remap evil-show-jumps]              . #'+vertico/jump-list)
+   ;; ([remap evil-show-jumps]              . #'+vertico/jump-list)
    ([remap goto-line]                    . #'consult-goto-line)
    ([remap imenu]                        . #'consult-imenu)
    ([remap locate]                       . #'consult-locate)
@@ -207,7 +207,8 @@ targets."
    ([remap switch-to-buffer-other-window]. #'consult-buffer-other-window)
    ([remap switch-to-buffer-other-frame] . #'consult-buffer-other-frame)
    ([remap yank-pop]                     . #'consult-yank-pop)
-   ([remap persp-switch-to-buffer]       . #'+vertico/switch-workspace-buffer))
+   ;; ([remap persp-switch-to-buffer]       . #'+vertico/switch-workspace-buffer)
+   )
 
   :init
   (advice-add #'completing-read-multiple :override #'consult-completing-read-multiple)

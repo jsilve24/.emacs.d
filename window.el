@@ -37,5 +37,11 @@
 ;; save and restore window and frame configurations
 (use-package burly)
 
+;; delete-frame when delete-window called and window is last one
+;; just loading this package advises the function delete-window
+(use-package frame-cmds
+  :straight (frame-cmds :type git :host github :repo "emacsmirror/frame-cmds")
+  :ensure t)
+
 (provide 'window)
 ;;; window.el ends here

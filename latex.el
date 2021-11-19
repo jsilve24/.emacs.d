@@ -198,19 +198,17 @@
 (jds/localleader-def
  :keymaps 'LaTeX-mode-map
  "\\" #'TeX-command-run-all
- "TAB" #'reftex-toc
  "e" #'LaTeX-environment
  "s" #'LaTeX-section
  "c" #'LaTeX-close-environment
  "n" #'TeX-next-error
  "N" #'TeX-previous-error
  "i" #'LaTeX-insert-item
-
  "r" '(:ignore :which-key "reftex")
  "rb" #'citar-insert-citation
  "rR" #'citar-refresh
- "r" #'reftex-reference
- "l" #'reftex-label
+ "rr" #'reftex-reference
+ "rl" #'reftex-label
  "t" #'reftex-toc
  "c" #'reftex-citation)
 

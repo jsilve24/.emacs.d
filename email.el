@@ -25,7 +25,7 @@
 (use-package mu4e
   :straight (:local-repo "/usr/share/emacs/site-lisp/mu4e"
              :pre-build ())
-  :commands mu4e mu4e-compose-new mu4e-headers-search-bookmark mu4e-get-bookmark-query  
+  :commands mu4e mu4e-compose-new mu4e-headers-search-bookmark mu4e-get-bookmark-query mu4e~start  
   :init
   (provide 'html2text) ;; disable obsolete package
   :config
@@ -149,7 +149,11 @@
     (mu4e-icalendar-setup)
     (setq gnus-icalendar-org-capture-file "~/Dropbox/org/calendar.org")
     (setq gnus-icalendar-org-capture-headline '("Calendar")) ;;make sure to create Calendar heading first
-    (gnus-icalendar-org-setup))
+    (gnus-icalendar-org-setup)
+
+    ;; start mu4e in background 
+    (mu4e 4)
+    )
 
 
 (use-package epa
