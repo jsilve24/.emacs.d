@@ -138,7 +138,7 @@
     :states '(normal visual motion emacs)
     :keymaps 'override
     :prefix "SPC"
-    :global-prefix "M-SPC")
+    :global-prefix "C-SPC")
   (general-create-definer jds/sub-leader-def
     :states '(normal visual motion emacs)
     :keymaps 'override

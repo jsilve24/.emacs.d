@@ -24,7 +24,7 @@
 (use-package yasnippet
   :straight t
   :ensure t
-  :bind ("C-SPC" . yas-expand)
+  :bind ("M-SPC" . yas-expand)
   :config
   (setq yas-snippet-dirs
 	'("~/.emacs.d/snippets"))
