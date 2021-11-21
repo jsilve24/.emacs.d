@@ -52,7 +52,6 @@
 
 ;; NOTE: The first time you load your configuration on a new machine, you’ll need to run `M-x
 ;; all-the-icons-install-fonts` so that mode line icons display correctly.
-(straight-use-package 'doom-modeline)
 (use-package doom-modeline
   :init (doom-modeline-mode 1)
   :custom ((doom-modeline-height 15))

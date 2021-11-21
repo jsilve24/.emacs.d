@@ -142,11 +142,13 @@
   (general-create-definer jds/sub-leader-def
     :states '(normal visual motion emacs)
     :keymaps 'override
-    :prefix ",")
+    :prefix ","
+    :global-prefix "C-,")
   (general-create-definer jds/localleader-def
     :states '(normal visual motion emacs)
     :keymaps 'override
-    :prefix "\\")
+    :prefix "\\"
+    :global-prefix "C-\\")
   (general-create-definer jds/sub-localleader-def
     :states '(normal visual motion emacs)
     :keymaps 'override

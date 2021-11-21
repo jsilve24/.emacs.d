@@ -239,13 +239,35 @@ targets."
   ;; :preview-key on a per-command basis using the `consult-customize' macro.
   (consult-customize
    consult-theme
-   :preview-key '(:debounce 0.2 any)
+   :preview-key '(:debounce 0.5 any)
    consult-ripgrep consult-git-grep consult-grep
    consult-bookmark consult-recent-file consult-xref
    consult--source-file consult--source-project-file consult--source-bookmark
    :preview-key (kbd "M-."))
 
-  (setq consult-narrow-key "<"
+
+  ;; dont' preview exwm buffers
+  ;; see: https://github.com/minad/consult/wiki#do-not-preview-exwm-windows-or-tramp-buffers
+  ;; TODO: may be able to fix this by modifying or advising consult--buffer-preview to figure out
+  ;; where X window is currently displayed and put it back when done
+  (defun consult-buffer-state-no-x ()
+  "Buffer state function that doesn't preview X buffers."
+  (let ((orig-state (consult--buffer-state))
+        (filter (lambda (cand restore)
+                  (if (or restore
+                          (let ((buffer (get-buffer cand)))
+                            (and buffer
+                                 (not (eq 'exwm-mode (buffer-local-value 'major-mode buffer))))))
+                      cand
+                    nil))))
+    (lambda (cand restore)
+      (funcall orig-state (funcall filter cand restore) restore))))
+
+(setq consult--source-buffer
+      (plist-put consult--source-buffer :state #'consult-buffer-state-no-x))
+  
+
+  (setq consult-narrow-key "\\"
         consult-line-numbers-widen t
         consult-async-min-input 2
         consult-async-refresh-delay  0.15

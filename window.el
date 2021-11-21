@@ -24,7 +24,7 @@
   :straight t
   :init
   (setq aw-background nil)
-  (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
+  (setq aw-keys '(?a ?s ?d ?f ?g ?h  ?k ?l ?y ?p ?r))
   :config
   (setq aw-scope 'global)
   (custom-set-faces

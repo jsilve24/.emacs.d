@@ -4,6 +4,11 @@
   (let ((command-parts (split-string command "[ ]+")))
     (apply #'call-process `(,(car command-parts) nil 0 nil ,@(cdr command-parts)))))
 
+;; (defun efs/set-wallpaper ()
+;;   (interactive)
+;;   ;; NOTE: You will need to update this to a valid background path!
+;;   (start-process-shell-command
+;;       "feh" nil  "feh --bg-scale /home/jds6696/.local/share/wallpapers/grey-arch.jpg"))
 
 (defun efs/exwm-update-class ()
   (exwm-workspace-rename-buffer exwm-class-name))
@@ -26,17 +31,69 @@
   (pcase exwm-class-name
     ("Firefox" (exwm-workspace-move-window 2))
     ("qutebrowser" (hide-mode-line-mode))
+    ("Google-chrome" (hide-mode-line-mode))
     ;; ("mpv" (exwm-floating-toggle-floating)
     ;;        (exwm-layout-toggle-mode-line))
     ))
 
-;; This function should be used only after configuring autorandr!
-;; (defun efs/update-displays ()
-;;   (efs/run-in-background "autorandr --change --force")
-;;   (efs/set-wallpaper)
-;;   (message "Display config: %s"
-;;            (string-trim (shell-command-to-string "autorandr --current"))))
 
+
+;; This function should be used only after configuring autorandr!
+(defun efs/update-displays ()
+  (efs/run-in-background "autorandr --change --force")
+  ;; (efs/set-wallpaper)
+  (message "Display config: %s"
+	   (string-trim (shell-command-to-string "autorandr --current"))))
+
+
+(defun exwm-layout-toggle-fullscreen-or-single-window ()
+  (interactive)
+  (if (eq major-mode 'exwm-mode)
+      (call-interactively 'exwm-layout-toggle-fullscreen)
+    (toggle-single-window)))
+
+;; function that maximizes not just x windows but also emacs buffers
+(defvar single-window--last-configuration nil "Last window conf wiguration before calling `delete-other-windows'.")
+(defun toggle-single-window ()
+  "Un-maximize current window.
+If multiple windows are active, save window configuration and
+delete other windows.  If only one window is active and a window
+configuration was previously save, restore that configuration."
+  (interactive)
+  (if (= (count-windows) 1)
+      (when single-window--last-configuration
+        (set-window-configuration single-window--last-configuration))
+    (setq single-window--last-configuration (current-window-configuration))
+    (delete-other-windows)))
+
+
+;; function to toggle vertical horizontal splits
+;; from wiki: https://www.emacswiki.org/emacs/ToggleWindowSplit
+(defun window-toggle-split-direction ()
+  "Switch window split from horizontally to vertically, or vice versa.
+i.e. change right window to bottom, or change bottom window to right."
+  (interactive)
+  (require 'windmove)
+  (let ((done))
+    (dolist (dirs '((right . down) (down . right)))
+      (unless done
+        (let* ((win (selected-window))
+               (nextdir (car dirs))
+               (neighbour-dir (cdr dirs))
+               (next-win (windmove-find-other-window nextdir win))
+               (neighbour1 (windmove-find-other-window neighbour-dir win))
+               (neighbour2 (if next-win (with-selected-window next-win
+                                          (windmove-find-other-window neighbour-dir next-win)))))
+          ;;(message "win: %s\nnext-win: %s\nneighbour1: %s\nneighbour2:%s" win next-win neighbour1 neighbour2)
+          (setq done (and (eq neighbour1 neighbour2)
+                          (not (eq (minibuffer-window) next-win))))
+          (if done
+              (let* ((other-buf (window-buffer next-win)))
+                (delete-window next-win)
+                (if (eq nextdir 'right)
+                    (split-window-vertically)
+                  (split-window-horizontally))
+                (set-window-buffer (windmove-find-other-window neighbour-dir) other-buf))))))))
 
 
 
@@ -46,8 +103,17 @@
   ;; set the default number of workspaces
   (setq exwm-workspace-number 6)
 
-  ;; (require 'exwm-randr)
-  ;; (exwm-randr-enable)
+  ;; Set the screen resolution (update this to be the correct resolution for your screen!)
+  (require 'exwm-randr)
+  (exwm-randr-enable)
+  (start-process-shell-command "xrandr" nil "xrandr --output eDP-1 --primary --mode 1920x1080 --pos 0x0 --rotate normal")
+
+  ;; This will need to be updated to the name of a display!  You can find
+  ;; the names of your displays by looking at arandr or the output of xrandr
+  (setq exwm-randr-workspace-monitor-plist '(1 "eDP-1" 2 "eDP-1" 3 "HDMI-1-1" 4  "HDMI-1-1" 5 "DP-1-1" 6 "DP-1-1"))
+
+  (add-hook 'exwm-randr-screen-change-hook #'efs/update-displays)
+  (efs/update-displays)
 
   ;; Load the system tray before exwm-init
   (require 'exwm-systemtray)
@@ -59,8 +125,12 @@
   (setq window-divider-default-right-width 1)
   (window-divider-mode 1)
 
+  
   (display-time-mode 1)
   (display-battery-mode 1)
+
+  (setq exwm-workspace-minibuffer-postion 'bottom)
+  ;; (exwm-workspace-display-echo-area-timeout 1)
   
   
   (efs/run-in-background "nm-applet")
@@ -86,6 +156,9 @@
   ;; Display all EXWM buffers in every workspace buffer list
   (setq exwm-workspace-show-all-buffers t)
 
+  ;; allow pulling exwm buffers where I want (e.g., pull it from another window to current window
+  ;; using consult-buffer)
+  (setq exwm-layout-show-all-buffers t)
 
   ;; Ctrl+Q will enable the next key to be sent directly
   (define-key exwm-mode-map [?\C-q] 'exwm-input-send-next-key)
@@ -97,10 +170,13 @@
       ?\C-h
       ?\M-x
       ?\M-`
+      ?\M-' ;; popups dismisal
       ?\M-&
       ?\M-:
       ?\C-\M-j  ;; Buffer list
       ?\C-\ ;;Ctrl+Space
+      ?\C-,
+      ?\C-\\
       ?\M-\ ))  ;; Meta+Space
   
   ;; Ctrl+Q will enable the next key to be sent directly
@@ -112,7 +188,8 @@
         `(
           ;; Reset to line-mode (C-c C-k switches to char-mode via exwm-input-release-keyboard)
           ([?\s-r] . exwm-reset)
-	  ([?\s-f] . exwm-layout-toggle-fullscreen)
+	  ;; ([?\s-f] . exwm-layout-toggle-fullscreen)
+	  ([?\s-f] . exwm-layout-toggle-fullscreen-or-single-window)
 	  ([?\s-z] . exwm-input-toggle-keyboard)
 
 
@@ -131,6 +208,8 @@
           ([?\s-L] . +evil/window-move-right)
           ([?\s-K] . +evil/window-move-up)
           ([?\s-J] . +evil/window-move-down)
+
+	  ([?\s-Q] . kill-buffer-and-window)
 
 
           ;; Launch applications via shell command
@@ -172,17 +251,163 @@
 
 	  ))
 
-  
+  (defun switch-to-last-buffer ()
+  "Switch to last open buffer in current window."
+  (interactive)
+  (switch-to-buffer (other-buffer (current-buffer) 1)))
+  (exwm-input-set-key (kbd "s-`") #'switch-to-last-buffer)
+  (exwm-input-set-key (kbd "s-v") #'window-toggle-split-direction)
 
   (exwm-enable)
   ;; (require 'exwm-config)
   ;; (exwm-config-default)
   )
 
+;; allow moving between monitors
+(use-package framemove
+  :config
+  (setq framemove-hook-into-windmove t))
+
+;; make windmove-display work more universally
+(setq switch-to-buffer-obey-display-actions t)
+
 (use-package app-launcher
   :straight '(app-launcher :host github :repo "SebastienWae/app-launcher")
   :config
   (exwm-input-set-key (kbd "s-;") #'app-launcher-run-app))
+
+
+;; this is awesome -- taken from here: https://karthinks.com/software/fifteen-ways-to-use-embark/
+(with-eval-after-load 'app-launcher
+  (with-eval-after-load 'consult 
+    (eval-when-compile
+      (defmacro my/embark-ace-action (fn)
+	`(defun ,(intern (concat "my/embark-ace-" (symbol-name fn))) ()
+	   (interactive)
+	   (with-demoted-errors "%s"
+	     (require 'ace-window)
+	     (let ((aw-dispatch-always t))
+	       (aw-switch-to-window (aw-select nil))
+	       (call-interactively (symbol-function ',fn)))))))
+
+    (define-key embark-file-map     (kbd "o") (my/embark-ace-action find-file))
+    (define-key embark-buffer-map   (kbd "o") (my/embark-ace-action switch-to-buffer))
+    (define-key embark-bookmark-map (kbd "o") (my/embark-ace-action bookmark-jump))
+
+
+    (eval-when-compile
+      (defmacro my/embark-split-action (fn split-type)
+	`(defun ,(intern (concat "my/embark-"
+				 (symbol-name fn)
+				 "-"
+				 (car (last  (split-string
+					      (symbol-name split-type) "-"))))) ()
+	   (interactive)
+	   (funcall #',split-type)
+	   (call-interactively #',fn))))
+
+    (define-key embark-file-map     (kbd "s") (my/embark-split-action find-file split-window-below))
+    (define-key embark-buffer-map   (kbd "s") (my/embark-split-action switch-to-buffer split-window-below))
+    (define-key embark-bookmark-map (kbd "s") (my/embark-split-action bookmark-jump split-window-below))
+
+    (define-key embark-file-map     (kbd "v") (my/embark-split-action find-file split-window-right))
+    (define-key embark-buffer-map   (kbd "v") (my/embark-split-action switch-to-buffer split-window-right))
+    (define-key embark-bookmark-map (kbd "v") (my/embark-split-action bookmark-jump split-window-right))
+
+
+    ;; new completion category called "application"
+    (add-to-list 'marginalia-prompt-categories '("Run app: " . application))
+
+    
+    ;; make app-launcher keymap
+    (embark-define-keymap embark-application-map
+      "Keymap for use with app-launcher")
+    (add-to-list 'embark-keymap-alist '(application . embark-application-map))
+    (define-key embark-application-map (kbd "o") (my/embark-ace-action app-launcher-run-app))
+    (define-key embark-application-map (kbd "v") (my/embark-split-action app-launcher-run-app split-window-right))
+    (define-key embark-bookmark-map (kbd "s") (my/embark-split-action app-launcher-run-app split-window-below))))
+
+
+
+;;; setup modeline
+;; from here: https://chrishayward.xyz/dotfiles/
+;; Define a modeline segment to show the workspace information.
+(with-eval-after-load 'doom-modeline
+  (doom-modeline-def-segment jds/exwm-workspaces
+    (exwm-workspace--update-switch-history)
+    (concat
+     (doom-modeline-spc)
+     (elt (let* ((num (exwm-workspace--count))
+		 (sequence (number-sequence 0 (1- num)))
+		 (not-empty (make-vector num nil)))
+	    (dolist (i exwm--id-buffer-alist)
+	      (with-current-buffer (cdr i)
+		(when exwm--frame
+		  (setf (aref not-empty
+			      (exwm-workspace--position exwm--frame))
+			t))))
+	    (mapcar
+	     (lambda (i)
+	       (mapconcat
+		(lambda (j)
+		  ;; (format (if (= i j) "[%s]" " %s ")
+		  (format (if (= i j) "[%s]" "")
+			  (propertize
+			   (apply exwm-workspace-index-map (list j))
+			   'face
+			   (cond ((frame-parameter (elt exwm-workspace--list j)
+						   'exwm-urgency)
+				  '(:inherit warning :weight bold))
+				 ((= i j) '(:inherit underline :weight bold))
+				 ((aref not-empty j) '(:inherit success :weight bold))
+				 (t `((:foreground ,(face-foreground 'mode-line-inactive))))))))
+		sequence ""))
+	     sequence))
+	  (exwm-workspace--position (selected-frame)))))
+
+  ;; Define a custom modeline to override the default.
+  (doom-modeline-def-modeline 'jds/modeline
+    '(bar workspace-name jds/exwm-workspaces window-number modals buffer-info remote-host buffer-position word-count parrot selection-info)
+    '(objed-state misc-info persp-name battery grip irc mu4e gnus github debug repl lsp minor-modes input-method indent-info buffer-encoding major-mode process vcs checker))
+
+  ;; Define a method to load the modeline.
+  (defun jds/load-modeline ()
+    "Load the default modeline."
+    (doom-modeline-set-modeline 'jds/modeline 'default))
+
+  (add-hook 'doom-modeline-mode-hook 'jds/load-modeline)
+  ;; (doom-modeline-mode +1)
+  (doom-modeline-set-modeline 'dotfiles/modeline 'default))
+
+;; (defun jds/current-workspace ()
+
+;;   )
+
+;; (use-package smart-mode-line
+;;   :config
+;;   (setq sml/theme 'respectful)
+;;   (sml/setup))
+;; (use-package mini-modeline
+;;   ;; :after smart-mode-line
+;;   :config
+;;   (setq ring-bell-function 'ignore)
+;;   (mini-modeline-mode t)
+;;   ;; (setq mini-modeline-l-format '(:eval (format "[%s]" (exwm-workspace--position (selected-frame))))) ;
+;;   (setq mini-modeline-l-format '(:eval (format "[%s]" exwm-workspace-current-index))) ;
+;;   )
+;; (use-package diminish
+;;   :after mini-modeline
+;;   :config
+;;   (diminish 'evil-snipe-local-mode)
+;;   (diminish 'projectile-mode)
+;;   (diminish 'eldoc-mode)
+;;   (diminish 'abbrev-mode)
+;;   (diminish 'company-mode)
+;;   (diminish 'yas-minor-mode)
+;;   (diminish 'mini-modeline-mode)
+;;   (diminish 'which-key-mode)
+;;   (diminish 'visual-line-mode)
+;;   (diminish 'evil-collection-unimpaired-mode))
 
 
 
