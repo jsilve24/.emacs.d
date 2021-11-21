@@ -46,6 +46,8 @@
 	   (string-trim (shell-command-to-string "autorandr --current"))))
 
 
+
+
 (defun exwm-layout-toggle-fullscreen-or-single-window ()
   (interactive)
   (if (eq major-mode 'exwm-mode)
@@ -163,6 +165,9 @@ i.e. change right window to bottom, or change bottom window to right."
   ;; Ctrl+Q will enable the next key to be sent directly
   (define-key exwm-mode-map [?\C-q] 'exwm-input-send-next-key)
 
+
+  
+
   ;; these keys should always pass through to Emacs
   (setq exwm-input-prefix-keys
     '(?\C-x
@@ -170,6 +175,7 @@ i.e. change right window to bottom, or change bottom window to right."
       ?\C-h
       ?\M-x
       ?\M-`
+      ?\s-d
       ?\M-' ;; popups dismisal
       ?\M-&
       ?\M-:
@@ -210,7 +216,6 @@ i.e. change right window to bottom, or change bottom window to right."
           ([?\s-J] . +evil/window-move-down)
 
 	  ([?\s-Q] . kill-buffer-and-window)
-
 
           ;; Launch applications via shell command
           ([?\s-:] . (lambda (command)
@@ -263,6 +268,47 @@ i.e. change right window to bottom, or change bottom window to right."
   ;; (exwm-config-default)
   )
 
+
+(with-eval-after-load 'exwm
+  ;; from exwm cookbook
+  (defun exwm-async-run (name)
+    "Run a process asynchronously"
+    (interactive)
+    (start-process name nil name))
+
+  (defun run-or-raise-or-dismiss (program program-buffer-name)
+    "If no instance of the program is running, launch the program.
+If an instance already exists, and its corresponding buffer is
+displayed on the screen, move to the buffer. If the buffer is not
+visible, switch to the buffer in the current window. Finally, if
+the current buffer is already that of the program, bury the
+buffer (=minimizing in other WM/DE)"
+    ;; check current buffer
+    (if (string= (buffer-name) program-buffer-name)
+	(bury-buffer)
+      ;; either switch to or launch program
+      (progn
+	(if (get-buffer program-buffer-name)
+	    (progn
+	      (if (get-buffer-window program-buffer-name)
+		  (select-window (display-buffer program-buffer-name) nil)
+		(exwm-workspace-switch-to-buffer program-buffer-name)))
+	  ;; start program
+	  (exwm-async-run program)))))
+  (setq exwm-launcher-map (make-sparse-keymap))
+  (exwm-input-set-key (kbd "s-d") exwm-launcher-map))
+
+(with-eval-after-load 'evil
+  (general-define-key
+   :keymaps 'exwm-launcher-map
+   "q" '((lambda () (interactive) (run-or-raise-or-dismiss "qutebrowser" "qutebrowser")) :wk "qutebrowser")
+   "s" 'evil-window-vsplit
+   "s" 'evil-window-split
+   "S" #'+evil/window-split-and-follow
+   "V" #'+evil/window-vsplit-and-follow
+   "RET" 'multi-vterm
+   "S-<return>" #'(lambda () (interactive) (progn (+evil/window-vsplit-and-follow) (multi-vterm)))))
+
 ;; allow moving between monitors
 (use-package framemove
   :config
@@ -272,60 +318,23 @@ i.e. change right window to bottom, or change bottom window to right."
 (setq switch-to-buffer-obey-display-actions t)
 
 (use-package app-launcher
+  :ensure t
   :straight '(app-launcher :host github :repo "SebastienWae/app-launcher")
   :config
   (exwm-input-set-key (kbd "s-;") #'app-launcher-run-app))
 
-
-;; this is awesome -- taken from here: https://karthinks.com/software/fifteen-ways-to-use-embark/
 (with-eval-after-load 'app-launcher
-  (with-eval-after-load 'consult 
-    (eval-when-compile
-      (defmacro my/embark-ace-action (fn)
-	`(defun ,(intern (concat "my/embark-ace-" (symbol-name fn))) ()
-	   (interactive)
-	   (with-demoted-errors "%s"
-	     (require 'ace-window)
-	     (let ((aw-dispatch-always t))
-	       (aw-switch-to-window (aw-select nil))
-	       (call-interactively (symbol-function ',fn)))))))
-
-    (define-key embark-file-map     (kbd "o") (my/embark-ace-action find-file))
-    (define-key embark-buffer-map   (kbd "o") (my/embark-ace-action switch-to-buffer))
-    (define-key embark-bookmark-map (kbd "o") (my/embark-ace-action bookmark-jump))
-
-
-    (eval-when-compile
-      (defmacro my/embark-split-action (fn split-type)
-	`(defun ,(intern (concat "my/embark-"
-				 (symbol-name fn)
-				 "-"
-				 (car (last  (split-string
-					      (symbol-name split-type) "-"))))) ()
-	   (interactive)
-	   (funcall #',split-type)
-	   (call-interactively #',fn))))
-
-    (define-key embark-file-map     (kbd "s") (my/embark-split-action find-file split-window-below))
-    (define-key embark-buffer-map   (kbd "s") (my/embark-split-action switch-to-buffer split-window-below))
-    (define-key embark-bookmark-map (kbd "s") (my/embark-split-action bookmark-jump split-window-below))
-
-    (define-key embark-file-map     (kbd "v") (my/embark-split-action find-file split-window-right))
-    (define-key embark-buffer-map   (kbd "v") (my/embark-split-action switch-to-buffer split-window-right))
-    (define-key embark-bookmark-map (kbd "v") (my/embark-split-action bookmark-jump split-window-right))
-
-
+  (with-eval-after-load 'marginalia
     ;; new completion category called "application"
     (add-to-list 'marginalia-prompt-categories '("Run app: " . application))
 
-    
-    ;; make app-launcher keymap
+    ;; make app-launcher keymap for embark and add nice functions to them
     (embark-define-keymap embark-application-map
-      "Keymap for use with app-launcher")
+			  "Keymap for use with app-launcher")
     (add-to-list 'embark-keymap-alist '(application . embark-application-map))
-    (define-key embark-application-map (kbd "o") (my/embark-ace-action app-launcher-run-app))
-    (define-key embark-application-map (kbd "v") (my/embark-split-action app-launcher-run-app split-window-right))
-    (define-key embark-bookmark-map (kbd "s") (my/embark-split-action app-launcher-run-app split-window-below))))
+    (define-key embark-application-map (kbd "o") (jds/embark-ace-action app-launcher-run-app))
+    (define-key embark-application-map (kbd "v") (jds/embark-split-action app-launcher-run-app split-window-right))
+    (define-key embark-bookmark-map (kbd "s") (jds/embark-split-action app-launcher-run-app split-window-below))))
 
 
 

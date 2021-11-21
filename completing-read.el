@@ -124,7 +124,6 @@
 ;; investigate embark-keymap-alist for finding correct embark-keymaps
 
 
-(straight-use-package 'embark)
 (use-package embark
   :ensure t
   :after which-key
@@ -182,7 +181,59 @@ targets."
         (apply fn args))))
 
   (advice-add #'embark-completing-read-prompter
-              :around #'embark-hide-which-key-indicator))
+              :around #'embark-hide-which-key-indicator)
+
+
+  ;; this is awesome -- taken from here: https://karthinks.com/software/fifteen-ways-to-use-embark/
+    (eval-when-compile
+      (defmacro jds/embark-ace-action (fn)
+	`(defun ,(intern (concat "jds/embark-ace-" (symbol-name fn))) ()
+	   (interactive)
+	   (with-demoted-errors "%s"
+	     (require 'ace-window)
+	     (let ((aw-dispatch-always t))
+	       (aw-switch-to-window (aw-select nil))
+	       (call-interactively (symbol-function ',fn)))))))
+
+    (define-key embark-file-map     (kbd "o") (jds/embark-ace-action find-file))
+    (define-key embark-buffer-map   (kbd "o") (jds/embark-ace-action switch-to-buffer))
+    (define-key embark-bookmark-map (kbd "o") (jds/embark-ace-action bookmark-jump))
+
+
+    (eval-when-compile
+      (defmacro jds/embark-split-action (fn split-type)
+	`(defun ,(intern (concat "jds/embark-"
+				 (symbol-name fn)
+				 "-"
+				 (car (last  (split-string
+					      (symbol-name split-type) "-"))))) ()
+	   (interactive)
+	   (funcall #',split-type)
+	   (call-interactively #',fn))))
+
+    (define-key embark-file-map     (kbd "s") (jds/embark-split-action find-file split-window-below))
+    (define-key embark-buffer-map   (kbd "s") (jds/embark-split-action switch-to-buffer split-window-below))
+    (define-key embark-bookmark-map (kbd "s") (jds/embark-split-action bookmark-jump split-window-below))
+
+    (define-key embark-file-map     (kbd "v") (jds/embark-split-action find-file split-window-right))
+    (define-key embark-buffer-map   (kbd "v") (jds/embark-split-action switch-to-buffer split-window-right))
+    (define-key embark-bookmark-map (kbd "v") (jds/embark-split-action bookmark-jump split-window-right))
+
+
+    ;; open file as sudo
+    (defun sudo-find-file (file)
+      "Open FILE as root."
+      (interactive "FOpen file as root: ")
+      (when (file-writable-p file)
+	(user-error "File is user writeable, aborting sudo"))
+      (find-file (if (file-remote-p file)
+		     (concat "/" (file-remote-p file 'method) ":"
+			     (file-remote-p file 'user) "@" (file-remote-p file 'host)
+			     "|sudo:root@"
+			     (file-remote-p file 'host) ":" (file-remote-p file 'localname))
+		   (concat "/sudo:root@localhost:" file))))
+
+    (define-key embark-file-map (kbd "S") 'sudo-find-file))
 
 
 ;;; consult
