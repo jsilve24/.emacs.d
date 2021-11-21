@@ -302,6 +302,7 @@ buffer (=minimizing in other WM/DE)"
   (general-define-key
    :keymaps 'exwm-launcher-map
    "q" '((lambda () (interactive) (run-or-raise-or-dismiss "qutebrowser" "qutebrowser")) :wk "qutebrowser")
+   "Q" '((lambda () (interactive) (progn (+evil/window-vsplit-and-follow) (exwm-async-run "qutebrowser"))) :wk "qutebrowser")
    "s" 'evil-window-vsplit
    "s" 'evil-window-split
    "S" #'+evil/window-split-and-follow
