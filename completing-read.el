@@ -260,7 +260,6 @@ targets."
    ([remap yank-pop]                     . #'consult-yank-pop)
    ;; ([remap persp-switch-to-buffer]       . #'+vertico/switch-workspace-buffer)
    )
-
   :init
   (advice-add #'completing-read-multiple :override #'consult-completing-read-multiple)
   (advice-add #'multi-occur :override #'consult-multi-occur)
@@ -294,7 +293,12 @@ targets."
    consult-ripgrep consult-git-grep consult-grep
    consult-bookmark consult-recent-file consult-xref
    consult--source-file consult--source-project-file consult--source-bookmark
-   :preview-key (kbd "M-."))
+   :preview-key (kbd "M-.")
+
+   ;; consult-buffer filter buffer list
+   (add-to-list 'consult-buffer-filter "\\*straight-process\\*")
+   (add-to-list 'consult-buffer-filter "\\*splash\\*")
+   )
 
 
   ;; dont' preview exwm buffers
