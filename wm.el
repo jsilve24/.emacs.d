@@ -30,8 +30,8 @@
   (interactive)
   (pcase exwm-class-name
     ("Firefox" (exwm-workspace-move-window 2))
-    ("qutebrowser" (hide-mode-line-mode))
-    ("Google-chrome" (hide-mode-line-mode))
+    ;; ("qutebrowser" (hide-mode-line-mode))
+    ;; ("Google-chrome" (hide-mode-line-mode))
     ;; ("mpv" (exwm-floating-toggle-floating)
     ;;        (exwm-layout-toggle-mode-line))
     ))
@@ -216,6 +216,7 @@ i.e. change right window to bottom, or change bottom window to right."
           ([?\s-J] . +evil/window-move-down)
 
 	  ([?\s-Q] . kill-buffer-and-window)
+	  ([?\s-\ ] . ace-window)
 
           ;; Launch applications via shell command
           ([?\s-:] . (lambda (command)
@@ -326,6 +327,7 @@ buffer (=minimizing in other WM/DE)"
 
 (with-eval-after-load 'app-launcher
   (with-eval-after-load 'marginalia
+    (with-eval-after-load 'embark 
     ;; new completion category called "application"
     (add-to-list 'marginalia-prompt-categories '("Run app: " . application))
 
@@ -335,7 +337,7 @@ buffer (=minimizing in other WM/DE)"
     (add-to-list 'embark-keymap-alist '(application . embark-application-map))
     (define-key embark-application-map (kbd "o") (jds/embark-ace-action app-launcher-run-app))
     (define-key embark-application-map (kbd "v") (jds/embark-split-action app-launcher-run-app split-window-right))
-    (define-key embark-bookmark-map (kbd "s") (jds/embark-split-action app-launcher-run-app split-window-below))))
+    (define-key embark-bookmark-map (kbd "s") (jds/embark-split-action app-launcher-run-app split-window-below)))))
 
 
 

@@ -24,9 +24,10 @@
   :straight t
   :init
   (setq aw-background nil)
-  (setq aw-keys '(?a ?s ?d ?f ?g ?h  ?k ?l ?y ?p ?r))
+  (setq aw-keys '(?a ?s ?d ?f ?g ?h  ?k ?l ?y ?p ?r ?q ?w))
   :config
   (setq aw-scope 'global)
+  (ace-window-display-mode t)		; display labels in mode line -- works for x windows
   (custom-set-faces
    '(aw-leading-char-face
      ((t (:inherit ace-jump-face-foreground :height 2.5 :foreground "red"))))))
