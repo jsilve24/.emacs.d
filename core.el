@@ -276,7 +276,13 @@
   (setq recentf-max-menu-items 100
         recentf-max-saved-items 400
         recentf-auto-cleanup 'never)
-  (run-at-time nil (* 5 60) 'recentf-save-list))
+  (run-at-time nil (* 5 60) 'recentf-save-list)
+
+  ;; exclude some files from tracking
+  ;; if you add something here you then need to run recentf-cleanup to take effect
+  (add-to-list 'recentf-exclude "~/\\.mail/*")
+  (add-to-list 'recentf-exclude "^/tmp/*")
+  )
 
 
 ;; Keep folders Clean
