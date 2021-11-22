@@ -127,8 +127,9 @@ i.e. change right window to bottom, or change bottom window to right."
   (setq window-divider-default-right-width 1)
   (window-divider-mode 1)
 
-  
   (display-time-mode 1)
+  (setq display-time-24hr-format t
+	display-time-day-and-date t)
   (display-battery-mode 1)
 
   (setq exwm-workspace-minibuffer-postion 'bottom)
@@ -175,7 +176,7 @@ i.e. change right window to bottom, or change bottom window to right."
       ?\C-h
       ?\M-x
       ?\M-`
-      ?\s-d
+      ?\s-\t
       ?\M-' ;; popups dismisal
       ?\M-&
       ?\M-:
@@ -297,7 +298,7 @@ buffer (=minimizing in other WM/DE)"
 	  ;; start program
 	  (exwm-async-run program)))))
   (setq exwm-launcher-map (make-sparse-keymap))
-  (exwm-input-set-key (kbd "s-d") exwm-launcher-map))
+  (exwm-input-set-key (kbd "s-<tab>") exwm-launcher-map))
 
 (with-eval-after-load 'evil
   (general-define-key
@@ -370,7 +371,8 @@ buffer (=minimizing in other WM/DE)"
 			   (cond ((frame-parameter (elt exwm-workspace--list j)
 						   'exwm-urgency)
 				  '(:inherit warning :weight bold))
-				 ((= i j) '(:inherit underline :weight bold))
+				 ;; ((= i j) '(:inherit underline :weight bold))
+				 ((= i j) '(:weight bold))
 				 ((aref not-empty j) '(:inherit success :weight bold))
 				 (t `((:foreground ,(face-foreground 'mode-line-inactive))))))))
 		sequence ""))
@@ -379,7 +381,8 @@ buffer (=minimizing in other WM/DE)"
 
   ;; Define a custom modeline to override the default.
   (doom-modeline-def-modeline 'jds/modeline
-    '(bar workspace-name jds/exwm-workspaces window-number modals buffer-info remote-host buffer-position word-count parrot selection-info)
+    ;; '(bar workspace-name jds/exwm-workspaces window-number modals buffer-info remote-host buffer-position word-count parrot selection-info)
+    '(bar workspace-name jds/exwm-workspaces window-number modals buffer-info remote-host word-count parrot selection-info)
     '(objed-state misc-info persp-name battery grip irc mu4e gnus github debug repl lsp minor-modes input-method indent-info buffer-encoding major-mode process vcs checker))
 
   ;; Define a method to load the modeline.
