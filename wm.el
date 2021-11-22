@@ -316,8 +316,10 @@ buffer (=minimizing in other WM/DE)"
 
 ;; allow moving between monitors
 (use-package framemove
+  :straight (framemove :type git :host github :repo "jsilve24/framemove")
   :config
   (setq framemove-hook-into-windmove t))
+
 
 ;; make windmove-display work more universally
 (setq switch-to-buffer-obey-display-actions t)
@@ -326,6 +328,7 @@ buffer (=minimizing in other WM/DE)"
   :ensure t
   :straight '(app-launcher :host github :repo "SebastienWae/app-launcher")
   :config
+
   (exwm-input-set-key (kbd "s-;") #'app-launcher-run-app))
 
 (with-eval-after-load 'app-launcher

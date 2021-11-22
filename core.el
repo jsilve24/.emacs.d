@@ -282,7 +282,7 @@
   ;; if you add something here you then need to run recentf-cleanup to take effect
   (add-to-list 'recentf-exclude "~/\\.mail/*")
   (add-to-list 'recentf-exclude "^/tmp/*")
-  )
+  (recentf-cleanup))
 
 
 ;; Keep folders Clean
