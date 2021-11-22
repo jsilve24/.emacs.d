@@ -6,6 +6,8 @@
 
 ;;; main ess setup
 (use-package ess
+  :mode (("\\.[rR]\\'" . ess-r-mode))
+  :commands R ess-r-mode
   :init (require 'ess-site)
   :config
   (setq ess-offset-continued 'straight
@@ -45,7 +47,6 @@
 ;;; setup polymode
 
 (use-package markdown-mode
-  :ensure t
   :mode
   (("README\\.md\\'" . gfm-mode)
    ("\\.md\\'" . markdown-mode)
@@ -78,7 +79,6 @@
 
 ;; Add yaml to markdown an .yml files
 (use-package yaml-mode
-  :ensure t
   :mode (("\\.yml\\'" . yaml-mode)))
 
 

@@ -240,7 +240,6 @@ targets."
 ;; Install Consult if you want additional featureful completion commands, e.g, the buffer switcher
 ;; consult-buffer with preview or the line-based search consult-line.
 
-(straight-use-package 'consult)
 (use-package consult
   :defer t
   :bind
@@ -293,12 +292,16 @@ targets."
    consult-ripgrep consult-git-grep consult-grep
    consult-bookmark consult-recent-file consult-xref
    consult--source-file consult--source-project-file consult--source-bookmark
-   :preview-key (kbd "M-.")
+   :preview-key (kbd "M-."))
 
    ;; consult-buffer filter buffer list
    (add-to-list 'consult-buffer-filter "\\*straight-process\\*")
+   (add-to-list 'consult-buffer-filter "\\*helpful*")
+   (add-to-list 'consult-buffer-filter "\\*Apropos\\*")
+   (add-to-list 'consult-buffer-filter "\\*zoxide\\*")
+   (add-to-list 'consult-buffer-filter "\\*trace*")
+   (add-to-list 'consult-buffer-filter "\\*sent draft\\*")
    (add-to-list 'consult-buffer-filter "\\*splash\\*")
-   )
 
 
   ;; dont' preview exwm buffers
