@@ -52,7 +52,6 @@
                      ;; "e" #'wdired-change-to-wdired-mode
                      "c" #'dired-rsync
                      "+" #'jds/make-dated-directory
-                     "a" #'jds/attach-files
                      "d" #'jds/dragon-dired)
 
 

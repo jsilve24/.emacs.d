@@ -33,7 +33,7 @@
         mu4e-change-file-names-when-moving t
         mu4e-compose-context-policy 'ask ;; help separate accounts
         mu4e-context-policy 'pick-first
-        mu4e-compose-in-new-frame t
+        ;; mu4e-compose-in-new-frame t
         mu4e-sent-messages-behavior 'delete ;; servers take care of this
         mu4e-update-interval 360
         mu4e-headers-include-related nil
@@ -156,6 +156,147 @@
     )
 
 
+;; create new mu4e-compose-in-new-window
+(with-eval-after-load 'mu4e
+
+  (defvar mu4e-compose-in-new-window t
+    "Like mu4e-compose-in-new-frame but for windows.")
+
+  (defun mu4e~draft-open-file (path switch-function)
+    "Open the the draft file at PATH."
+    (let ((buf (find-file-noselect path)))
+      (funcall (or 
+		switch-function
+		(and mu4e-compose-in-new-frame 'switch-to-buffer-other-frame)
+		(and mu4e-compose-in-new-window 'switch-to-buffer-other-window)
+		'switch-to-buffer)
+	       buf)))
+
+  (cl-defun mu4e~compose-handler (compose-type &optional original-msg includes
+					       switch-function)
+    "Create a new draft message, or open an existing one.
+
+COMPOSE-TYPE determines the kind of message to compose and is a
+symbol, either `reply', `forward', `edit', `resend' `new'. `edit'
+is for editing existing (draft) messages. When COMPOSE-TYPE is
+`reply' or `forward', MSG should be a message plist.  If
+COMPOSE-TYPE is `new', ORIGINAL-MSG should be nil.
+
+Optionally (when forwarding, replying) ORIGINAL-MSG is the original
+message we will forward / reply to.
+
+Optionally (when inline forwarding) INCLUDES contains a list of
+   (:file-name <filename> :mime-type <mime-type>
+    :description <description> :disposition <disposition>)
+or
+   (:buffer-name <filename> :mime-type <mime-type>
+    :description <description> :disposition <disposition>)
+for the attachments to include; file-name refers to
+a file which our backend has conveniently saved for us (as a
+tempfile).  The properties :mime-type, :description and :disposition
+are optional."
+
+    ;; Run the hooks defined for `mu4e-compose-pre-hook'. If compose-type is
+    ;; `reply', `forward' or `edit', `mu4e-compose-parent-message' points to the
+    ;; message being forwarded or replied to, otherwise it is nil.
+    (set (make-local-variable 'mu4e-compose-parent-message) original-msg)
+    (put 'mu4e-compose-parent-message 'permanent-local t)
+    ;; remember the compose-type
+    (set (make-local-variable 'mu4e-compose-type) compose-type)
+    (put 'mu4e-compose-type 'permanent-local t)
+    ;; maybe switch the context
+    (mu4e~context-autoswitch mu4e-compose-parent-message
+			     mu4e-compose-context-policy)
+    (run-hooks 'mu4e-compose-pre-hook)
+
+    ;; this opens (or re-opens) a messages with all the basic headers set.
+    (let ((winconf (current-window-configuration)))
+      (condition-case nil
+	  (mu4e-draft-open compose-type original-msg switch-function)
+	(quit (set-window-configuration winconf)
+	      (mu4e-message "Operation aborted")
+	      (cl-return-from mu4e~compose-handler))))
+    ;; insert mail-header-separator, which is needed by message mode to separate
+    ;; headers and body. will be removed before saving to disk
+    (mu4e~draft-insert-mail-header-separator)
+
+    ;; maybe encrypt/sign replies
+    (let ((mu4e-compose-crypto-policy     ; backwards compatibility
+	   (append
+	    (cl-case mu4e-compose-crypto-reply-encrypted-policy
+	      (sign '(sign-encrypted-replies))
+	      (encrypt '(encrypt-encrypted-replies))
+	      (sign-and-encrypt
+	       '(sign-encrypted-replies encrypt-encrypted-replies)))
+	    (cl-case mu4e-compose-crypto-reply-plain-policy
+	      (sign '(sign-plain-replies))
+	      (encrypt '(encrypt-plain-replies))
+	      (sign-and-encrypt
+	       '(sign-plain-replies encrypt-plain-replies)))
+	    mu4e-compose-crypto-policy)))
+      (mu4e-compose-crypto-message original-msg compose-type))
+
+    ;; include files -- e.g. when inline forwarding a message with
+    ;; attachments, we take those from the original.
+    (save-excursion
+      (goto-char (point-max)) ;; put attachments at the end
+
+      (if (and (eq compose-type 'forward) mu4e-compose-forward-as-attachment)
+	  (mu4e-compose-attach-message original-msg)
+	(dolist (att includes)
+	  (let ((file-name (plist-get att :file-name))
+		(mime (plist-get att :mime-type))
+		(description (plist-get att :description))
+		(disposition (plist-get att :disposition)))
+	    (if file-name
+		(mml-attach-file file-name mime description disposition)
+	      (mml-attach-buffer (plist-get att :buffer-name)
+				 mime description disposition))))))
+
+    (mu4e~compose-set-friendly-buffer-name compose-type)
+
+    ;; now jump to some useful positions, and start writing that mail!
+    (if (member compose-type '(new forward))
+	(message-goto-to)
+      ;; otherwise, it depends...
+      (cl-case message-cite-reply-position
+	((above traditional)
+	 (message-goto-body))
+	(t
+	 (when (message-goto-signature)
+	   (forward-line -2)))))
+
+    ;; bind to `mu4e-compose-parent-message' of compose buffer
+    (set (make-local-variable 'mu4e-compose-parent-message) original-msg)
+    (put 'mu4e-compose-parent-message 'permanent-local t)
+    ;; set mu4e-compose-type once more for this buffer,
+    (set (make-local-variable 'mu4e-compose-type) compose-type)
+    (put 'mu4e-compose-type 'permanent-local t)
+
+    ;; hide some headers
+    (mu4e~compose-hide-headers)
+    ;; switch on the mode
+    (mu4e-compose-mode)
+    ;; don't allow undoing anything before this.
+    (setq buffer-undo-list nil)
+
+    (when mu4e-compose-in-new-frame
+      ;; make sure to close the frame when we're done with the message these are
+      ;; all buffer-local;
+      (push 'delete-frame message-exit-actions)
+      (push 'delete-frame message-postpone-actions))
+
+
+    (when mu4e-compose-in-new-window
+      ;; make sure to close the frame when we're done with the message these are
+      ;; all buffer-local;
+      (push 'delete-window message-exit-actions)
+      (push 'delete-window message-postpone-actions))
+
+    ;; buffer is not user-modified yet
+    (set-buffer-modified-p nil)))
+
+
 (use-package epa
   :after mu4e
   :config
@@ -185,6 +326,27 @@
   (org-msg-mode))
 
 
+
+;;; dired - embark -- attach files to messages
+(autoload 'gnus-dired-attach "gnus-dired")
+(jds/localleader-def
+  :keymaps 'ranger-mode-map
+  "a" #'gnus-dired-attach)
+
+;;;###autoload
+(defun embark-attach-file (file)
+  "Attach FILE to an  email message.
+The message to which FILE is attached is chosen as for `gnus-dired-attach`,
+that is: if no message buffers are found a new email is started; if some
+message buffer exist you are asked whether you want to start a new email
+anyway, if you say no and there is only one message buffer the attachements
+are place there, otherwise you are prompted for a message buffer."
+  (interactive "fAttach: ")
+  (gnus-dired-attach (list file)))
+
+(general-define-key
+ :keymaps 'embark-file-map
+ "a" #'embark-attach-file)
 
 
 ;;; bindings
@@ -235,29 +397,6 @@
  "F" #'link-hint-open-link)
 
 
-;; ;;; setup thread-folding
-;; (use-package mu4e-thread-folding
-;;   :straight (mu4e-thread-folding :type git :host github :repo "rougier/mu4e-thread-folding" :branch "master")
-;;   :defer t
-;;   :config
-;;   (add-to-list 'mu4e-header-info-custom
-;;                '(:empty . (:name "Empty"
-;;                            :shortname ""
-;;                            :function (lambda (msg) "  "))))
-;;   (setq mu4e-headers-fields '((:empty         .    2)
-;;                               (:human-date    .   12)
-;;                               (:flags         .    6)
-;;                               (:mailing-list  .   10)
-;;                               (:from          .   22)
-;;                               (:subject       .   nil)))
-;; (define-key mu4e-headers-mode-map (kbd "<tab>")     'mu4e-headers-toggle-at-point)
-;; (define-key mu4e-headers-mode-map (kbd "<left>")    'mu4e-headers-fold-at-point)
-;; (define-key mu4e-headers-mode-map (kbd "<S-left>")  'mu4e-headers-fold-all)
-;; (define-key mu4e-headers-mode-map (kbd "<right>")   'mu4e-headers-unfold-at-point)
-;; (define-key mu4e-headers-mode-map (kbd "<S-right>") 'mu4e-headers-unfold-all)
-;; )
-
-
-
 (provide 'email)
 ;;; email.el ends here
+
