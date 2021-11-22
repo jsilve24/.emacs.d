@@ -213,14 +213,15 @@
 ;;; lazyness -- use evil-org
 (use-package evil-org
   :straight (evil-org :local-repo "~/.myvanilla.d/local-packages/evil-org-mode")
+  :after evil
   :hook (org-mode . evil-org-mode)
   :hook (org-capture-mode . evil-insert-state)
   :hook (org-agenda-mode . evil-org-agenda-set-keys)
   :init
 
   ;; hack-fix for https://github.com/Somelauw/evil-org-mode/issues/93
-  (fset 'evil-redirect-digit-argument 'ignore) 
-  (add-to-list 'evil-digit-bound-motions 'evil-org-beginning-of-line)
+  ;; (fset 'evil-redirect-digit-argument 'ignore) 
+  ;; (add-to-list 'evil-digit-bound-motions 'evil-org-beginning-of-line)
   (evil-define-key 'motion 'evil-org-mode
     (kbd "0") 'evil-org-beginning-of-line)
   (evil-define-key 'normal 'evil-org-mode

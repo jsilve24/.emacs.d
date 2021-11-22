@@ -140,6 +140,7 @@ i.e. change right window to bottom, or change bottom window to right."
   (efs/run-in-background "dropbox")
   (efs/run-in-background "davmail -server")
   (efs/run-in-background "~/bin/i3-battery-popup")
+  (efs/run-in-background "caffeine")
 
   ;; When window "class" updates, use it to set the buffer name
   (add-hook 'exwm-update-class-hook #'efs/exwm-update-class)
@@ -216,6 +217,7 @@ i.e. change right window to bottom, or change bottom window to right."
           ([?\s-K] . +evil/window-move-up)
           ([?\s-J] . +evil/window-move-down)
 
+	  ([?\s-q] . delete-window)
 	  ([?\s-Q] . kill-buffer-and-window)
 	  ([?\s-\ ] . ace-window)
 

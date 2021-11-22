@@ -20,7 +20,6 @@
 ;;; Code:
 
 (use-package company
-  :straight t
   :commands (company-complete-common
              company-complete
              company-complete-common-or-cycle
@@ -54,15 +53,14 @@
         company-idle-delay nil)
   :config
 
-  ;; make ESC abort 
-  (evil-make-intercept-map company-active-map 'insert)
-  (general-def company-active-map [escape] 'company-abort)
-  
   ;; Buffer-local backends will be computed when loading a major mode, so
   ;; only specify a global default here. `'
   (setq company-backends '(company-capf company-files)))
 
-
+(with-eval-after-load 'company-mode
+    ;; make ESC abort 
+  (evil-make-intercept-map company-active-map 'insert)
+  (general-def company-active-map [escape] 'company-abort))
 
 (provide 'company)
 ;;; company.el ends here
