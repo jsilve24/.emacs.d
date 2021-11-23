@@ -198,8 +198,7 @@
 	 (mu4e-headers-search-bookmark
 	  (mu4e-get-bookmark-query ?t)))
  "M" #'(lambda () (interactive)
-	 ;; (if (frame-parameter (selected-frame) 'exwm-active) ... ...)
-	 (select-frame (make-frame))
+	 (jds~new-frame-or-new-window)
 	 (mu4e-headers-search-bookmark (mu4e-get-bookmark-query ?t)))
  "l" #'org-store-link
  "i" #'org-insert-link

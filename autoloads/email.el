@@ -151,7 +151,7 @@ default/fallback account."
 ;;;###autoload
 (defun jds/open-mu4e-new-frame ()
   (interactive)
-  (select-frame (make-frame))
+  (jds~new-frame-or-new-window)
   (mu4e))
 
 

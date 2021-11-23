@@ -31,7 +31,7 @@
 ;;;###autoload
 (defun jds/open-custom-day-agenda-new-frame ()
   (interactive)
-  (select-frame (make-frame))
+  (jds~new-frame-or-new-window)
   (org-agenda nil "d"))
 
 ;;;###autoload

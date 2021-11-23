@@ -19,6 +19,14 @@
 ;;
 ;;; Code:
 
+;;;###autoload
+(defun jds~new-frame-or-new-window ()
+  "New Frame and Focus unless using EXWM then new window."
+    (if (frame-parameter (selected-frame) 'exwm-active)
+      (progn
+	(split-window-right)
+	(call-interactively #'other-window))
+    (select-frame (make-frame))))
 
 (use-package ace-window
   :straight t
