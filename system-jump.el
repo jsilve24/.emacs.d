@@ -39,6 +39,20 @@
 ;;       :leader
 ;;       :desc "affe find" "fa" (lambda () (interactive) (affe-find "/home/jds6696/")))
 
+;;;###autoload
+(defun jds/affe-find-files-home ()
+  "Affe find in home-directory but ignoring some file-types directories."
+  (interactive)
+  (let ((affe-find-command
+	 (concat 
+	  "find -type f "
+	  "\! \( -path */.git/* \) "
+	  "\! \( -path */.dropbox/* \) "
+	  "\! \( -path */.mail/* \) "
+	  "\! \( -path */python3\.9/* \) "
+	  )))
+    (affe-find "~")))
+
 
 ;;; some shortcuts and utilities taken from doom
 ;;;###autoload

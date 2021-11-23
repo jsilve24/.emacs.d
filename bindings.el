@@ -71,7 +71,7 @@
  "ff" #'find-file
  "fr" #'consult-recent-file
  "fs" #'save-buffer
- "fa" #'(lambda () (interactive) (affe-find "/home/jds6696/"))
+ "fa" #'jds/affe-find-files-home
  "fS" #'evil-write-all
  "fz" #'zoxide-find-file
  "fZ" #'zoxide-cd
@@ -188,7 +188,7 @@
  "," #'org-capture           ;; q "new"
  "<" #'org-capture-goto-target ;; new and follow
  ">" #'org-capture-goto-last-stored
- "a" #'(lambda () (interactive) (affe-find "/home/jds6696/"))
+ "a" #'jds/affe-find-files-home
  "z" #'zoxide-find-file
  "Z" #'zoxide-cd
  "c" #'jds/mu4e-compose-goto-to
