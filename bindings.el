@@ -186,6 +186,7 @@
 
 (jds/sub-leader-def
  "," #'org-capture           ;; q "new"
+ "C-," #'org-capture           ;; q "new"
  "<" #'org-capture-goto-target ;; new and follow
  ">" #'org-capture-goto-last-stored
  "a" #'jds/affe-find-files-home
