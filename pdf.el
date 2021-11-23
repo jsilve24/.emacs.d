@@ -68,7 +68,8 @@
 	 (printers (-map (lambda (x) (nth 1 (split-string x " ")))
 			 printers))
 	 ;; move to front of list
-	 (printers (cons (car default) (remove (car default) printers))))))
+	 (printers (cons (car default) (remove (car default) printers))))
+	 printers))
 
 
 ;;;###autoload
