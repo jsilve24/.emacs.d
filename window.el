@@ -38,8 +38,27 @@
   (setq aw-keys '(?a ?d ?f ?g ?h  ?k ?l ?y ?p ?r ?q ?w ?b))
   :config
   ;; get more consistent bindings with my setup everywhere else
-  (setcar (assoc ?v aw-dispatch-alist) ?s)
-  (setcar (assoc ?b aw-dispatch-alist) ?v)
+  ;; customize movement action
+
+
+  (setq aw-dispatch-alist
+  '((?x aw-delete-window "Delete Window")
+    (?m aw-swap-window "Swap Windows")
+    (?M aw-move-window "Move Window")
+    (?v aw-move-window-split-right "Move Window to right")
+    (?s aw-move-window-split-below "Move Window below")
+    (?c aw-copy-window "Copy Window")
+    (?j aw-switch-buffer-in-window "Select Buffer")
+    (?n aw-flip-window)
+    (?u aw-switch-buffer-other-window "Switch Buffer Other Window")
+    (?e aw-execute-command-other-window "Execute Command Other Window")
+    (?F aw-split-window-fair "Split Fair Window")
+    ;; (?s aw-split-window-vert "Split Vert Window")
+    ;; (?v aw-split-window-horz "Split Horz Window")
+    (?o delete-other-windows "Delete Other Windows")
+    (?T aw-transpose-frame "Transpose Frame")
+    ;; ?i ?r ?t are used by hyperbole.el
+    (?? aw-show-dispatch-help)))
   
   (setq aw-scope 'global)
   (ace-window-display-mode t)		; display labels in mode line -- works for x windows
@@ -47,6 +66,26 @@
    '(aw-leading-char-face
      ((t (:inherit ace-jump-face-foreground :height 2.5 :foreground "red"))))))
 
+
+;;;###autoload
+(defun aw-move-window-split-right (window)
+  "Like the default aw-move-window but splits and puts on right."
+  (let ((buffer (current-buffer)))
+    (switch-to-buffer (other-buffer))
+    (aw-switch-to-window window)
+    (split-window-right)
+    (call-interactively #'other-window)
+    (switch-to-buffer buffer)))
+
+;;;###autoload
+(defun aw-move-window-split-below (window)
+  "Like the default aw-move-window but splits and puts on below."
+  (let ((buffer (current-buffer)))
+    (switch-to-buffer (other-buffer))
+    (aw-switch-to-window window)
+    (split-window-below)
+    (call-interactively #'other-window)
+    (switch-to-buffer buffer)))
 
 (use-package transpose-frame)
 
