@@ -238,6 +238,13 @@
 ;; Typing yes/no is obnoxious when y/n will do
 (fset #'yes-or-no-p #'y-or-n-p)
 
+;; from here: http://trey-jackson.blogspot.com/2010/04/emacs-tip-36-abort-minibuffer-when.html
+;; this is a life saver
+(defun stop-using-minibuffer ()
+  "kill the minibuffer"
+  (when (and (>= (recursion-depth) 1) (active-minibuffer-window))
+    (abort-recursive-edit)))
+(add-hook 'mouse-leave-buffer-hook 'stop-using-minibuffer)
 
 ;;; Random
 ;; (defun flash-mode-line ()
@@ -282,6 +289,8 @@
   ;; if you add something here you then need to run recentf-cleanup to take effect
   (add-to-list 'recentf-exclude "~/\\.mail/*")
   (add-to-list 'recentf-exclude "^/tmp/*")
+  (add-to-list 'recentf-exclude "\\.synctex\\.gz$")
+  (add-to-list 'recentf-exclude "recentf-save\\.el")
   (recentf-cleanup))
 
 
