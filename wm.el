@@ -4,11 +4,11 @@
   (let ((command-parts (split-string command "[ ]+")))
     (apply #'call-process `(,(car command-parts) nil 0 nil ,@(cdr command-parts)))))
 
-;; (defun efs/set-wallpaper ()
-;;   (interactive)
-;;   ;; NOTE: You will need to update this to a valid background path!
-;;   (start-process-shell-command
-;;       "feh" nil  "feh --bg-scale /home/jds6696/.local/share/wallpapers/grey-arch.jpg"))
+(defun efs/set-wallpaper ()
+  (interactive)
+  ;; NOTE: You will need to update this to a valid background path!
+  (start-process-shell-command
+      "feh" nil  "feh --bg-scale /home/jds6696/.local/share/wallpapers/grey-arch.jpg"))
 
 (defun efs/exwm-update-class ()
   (exwm-workspace-rename-buffer exwm-class-name))
@@ -41,7 +41,7 @@
 ;; This function should be used only after configuring autorandr!
 (defun efs/update-displays ()
   (efs/run-in-background "autorandr --change --force")
-  ;; (efs/set-wallpaper)
+  (efs/set-wallpaper)
   (message "Display config: %s"
 	   (string-trim (shell-command-to-string "autorandr --current"))))
 
@@ -104,6 +104,8 @@ i.e. change right window to bottom, or change bottom window to right."
   :config
   ;; set the default number of workspaces
   (setq exwm-workspace-number 6)
+  ;; initial workspace
+  (setq exwm-workspace-current-index 1)
 
   ;; Set the screen resolution (update this to be the correct resolution for your screen!)
   (require 'exwm-randr)
@@ -239,16 +241,26 @@ i.e. change right window to bottom, or change bottom window to right."
                     (number-sequence 0 9))
 
 	  ;; 's-shift-N': move window to certain workspace
-          ([?\s-!] . (lambda () (interactive) (exwm-workspace-move-window 1)))
-          ([?\s-@] . (lambda () (interactive) (exwm-workspace-move-window 2)))
-          ([?\s-#] . (lambda () (interactive) (exwm-workspace-move-window 3)))
-          ([?\s-$] . (lambda () (interactive) (exwm-workspace-move-window 4)))
-          ([?\s-%] . (lambda () (interactive) (exwm-workspace-move-window 5)))
-          ([?\s-^] . (lambda () (interactive) (exwm-workspace-move-window 6)))
-          ([?\s-&] . (lambda () (interactive) (exwm-workspace-move-window 7)))
-          ([?\s-*] . (lambda () (interactive) (exwm-workspace-move-window 8)))
-          ([?\s-\(] . (lambda () (interactive) (exwm-workspace-move-window 9)))
-          ([?\s-\)] . (lambda () (interactive) (exwm-workspace-move-window 0)))
+          ;; ([?\s-!] . (lambda () (interactive) (exwm-workspace-move-window 1)))
+          ;; ([?\s-@] . (lambda () (interactive) (exwm-workspace-move-window 2)))
+          ;; ([?\s-#] . (lambda () (interactive) (exwm-workspace-move-window 3)))
+          ;; ([?\s-$] . (lambda () (interactive) (exwm-workspace-move-window 4)))
+          ;; ([?\s-%] . (lambda () (interactive) (exwm-workspace-move-window 5)))
+          ;; ([?\s-^] . (lambda () (interactive) (exwm-workspace-move-window 6)))
+          ;; ([?\s-&] . (lambda () (interactive) (exwm-workspace-move-window 7)))
+          ;; ([?\s-*] . (lambda () (interactive) (exwm-workspace-move-window 8)))
+          ;; ([?\s-\(] . (lambda () (interactive) (exwm-workspace-move-window 9)))
+          ;; ([?\s-\)] . (lambda () (interactive) (exwm-workspace-move-window 0)))
+          ([?\s-!] . (lambda () (interactive) (eh-current-window-to-workspace-and-follow-by-index 1)))
+          ([?\s-@] . (lambda () (interactive) (eh-current-window-to-workspace-and-follow-by-index 2)))
+          ([?\s-#] . (lambda () (interactive) (eh-current-window-to-workspace-and-follow-by-index 3)))
+          ([?\s-$] . (lambda () (interactive) (eh-current-window-to-workspace-and-follow-by-index 4)))
+          ([?\s-%] . (lambda () (interactive) (eh-current-window-to-workspace-and-follow-by-index 5)))
+          ([?\s-^] . (lambda () (interactive) (eh-current-window-to-workspace-and-follow-by-index 6)))
+          ([?\s-&] . (lambda () (interactive) (eh-current-window-to-workspace-and-follow-by-index 7)))
+          ([?\s-*] . (lambda () (interactive) (eh-current-window-to-workspace-and-follow-by-index 8)))
+          ([?\s-\(] . (lambda () (interactive) (eh-current-window-to-workspace-and-follow-by-index 9)))
+          ([?\s-\)] . (lambda () (interactive) (eh-current-window-to-workspace-and-follow-by-index 0)))
 	  ;; ,@(mapcar (lambda (i j)
 	  ;; 	      `(,(kbd (format "s-%d" i)) .
 	  ;; 		(lambda ()
@@ -319,6 +331,12 @@ buffer (=minimizing in other WM/DE)"
   :straight (framemove :type git :host github :repo "jsilve24/framemove")
   :config
   (setq framemove-hook-into-windmove t))
+
+
+;; exwm-helper to move window / buffer to new frame (including fames not currently visible)
+(use-package exwm-helper
+  :commands eh-current-window-to-workspace-and-follow-by-index eh-current-window-to-workspace-completing-read
+  :straight (exwm-helper :type git :host github :repo "jsilve24/exwm-helper"))
 
 
 ;; make windmove-display work more universally
