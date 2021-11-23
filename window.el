@@ -35,8 +35,12 @@
   :straight t
   :init
   (setq aw-background nil)
-  (setq aw-keys '(?a ?s ?d ?f ?g ?h  ?k ?l ?y ?p ?r ?q ?w))
+  (setq aw-keys '(?a ?d ?f ?g ?h  ?k ?l ?y ?p ?r ?q ?w ?b))
   :config
+  ;; get more consistent bindings with my setup everywhere else
+  (setcar (assoc ?v aw-dispatch-alist) ?s)
+  (setcar (assoc ?b aw-dispatch-alist) ?v)
+  
   (setq aw-scope 'global)
   (ace-window-display-mode t)		; display labels in mode line -- works for x windows
   (custom-set-faces

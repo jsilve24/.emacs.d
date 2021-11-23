@@ -53,11 +53,53 @@
    "SPC" nil))
 
 
+;;; print-helper -- not enough to make a stand-alone package
+;;;###autoload
+(require 'dash)
+(defun ph--get-list-of-priters ()
+  "Return list of printer with default in position 1."
+  (let* ((printers (shell-command-to-string "lpstat -p -d"))
+	 (printers (split-string printers "\n"))
+	 (default (-filter (lambda (x) (string-match "default destination" x))
+		   printers))
+	 (printers (-filter (lambda (x) (string-match "printer " x))
+		    printers))
+	 (default (last (split-string (car default) " ")))
+	 (printers (-map (lambda (x) (nth 1 (split-string x " ")))
+			 printers))
+	 ;; move to front of list
+	 (printers (cons (car default) (remove (car default) printers))))))
+
+
+;;;###autoload
+(defun ph-pdf-misc-print-document (&optoinal arg)
+  "Wrapper around pdf-misc-print-document that allows you to
+  select printer (pulling priter list and default from lpstat -p
+  -d command) using completing-read. Also doesn't ask what
+  printer to use instead assumes that
+  `pdf-misc-print-program-executable' is already set."
+  (interactive "P")
+  (if arg 
+      (let ((printer (completing-read "Choose a printer:" (ph--get-list-of-priters)))
+	    (pdf-misc-print-program-args
+	     ;; should this not have a space after P?
+	     (cons (concat "-P " printer) pdf-misc-print-program-args))) 
+	(pdf-misc-print-document
+	 (pdf-view-buffer-file-name)
+	 ;; dont' prompt for program to print with (nil)
+	 nil))
+    ;; no prefix -- just use default printer
+    (pdf-misc-print-document
+     (pdf-view-buffer-file-name)
+     ;; dont' prompt for program to print with (nil)
+     nil)))
+
+
+
 (jds/localleader-def
  :keymaps '(pdf-view-mode-map)
- "p" #'(lambda () (interactive) (pdf-misc-print-document
-				 (pdf-view-buffer-file-name)
-				 nil)))	; don't prompt for program to print with
+ ;; prefix-argument to select which printer to use
+ "p" #'ph-pdf-misc-print-document)
 
 
 

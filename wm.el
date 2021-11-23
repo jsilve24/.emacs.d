@@ -220,6 +220,11 @@ i.e. change right window to bottom, or change bottom window to right."
           ([?\s-K] . +evil/window-move-up)
           ([?\s-J] . +evil/window-move-down)
 
+	  ([?\s-v] . windmove-display-right)
+	  ([?\s-V] . windmove-display-left)
+	  ([?\s-s] . windmove-display-down)
+	  ([?\s-S] . windmove-display-up)
+
 	  ([?\s-q] . delete-window)
 	  ([?\s-Q] . kill-buffer-and-window)
 	  ([?\s-\ ] . ace-window)
@@ -278,7 +283,7 @@ i.e. change right window to bottom, or change bottom window to right."
   (interactive)
   (switch-to-buffer (other-buffer (current-buffer) 1)))
   (exwm-input-set-key (kbd "s-`") #'switch-to-last-buffer)
-  (exwm-input-set-key (kbd "s-v") #'window-toggle-split-direction)
+  (exwm-input-set-key (kbd "s-t") #'window-toggle-split-direction)
 
   (exwm-enable)
   ;; (require 'exwm-config)
@@ -319,7 +324,8 @@ buffer (=minimizing in other WM/DE)"
   (general-define-key
    :keymaps 'exwm-launcher-map
    "q" '((lambda () (interactive) (run-or-raise-or-dismiss "qutebrowser" "qutebrowser")) :wk "qutebrowser")
-   "Q" '((lambda () (interactive) (progn (+evil/window-vsplit-and-follow) (exwm-async-run "qutebrowser"))) :wk "qutebrowser")
+   "Q" '((lambda () (interactive) (progn (+evil/window-vsplit-and-follow) (exwm-async-run "qutebrowser"))) :wk "qutebrowser-new-window")
+   "y" '((lambda () (interactive) (run-or-raise-or-dismiss "slack" "slack")) :wk "slack")
    "v" 'evil-window-vsplit
    "s" 'evil-window-split
    "S" #'+evil/window-split-and-follow
