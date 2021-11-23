@@ -196,8 +196,9 @@ i.e. change right window to bottom, or change bottom window to right."
   ;; Keep in mind that changing this list after EXWM initializes has no effect.
   (setq exwm-input-global-keys
         `(
+	  ([?\s-r] . hydra-resize/body)
           ;; Reset to line-mode (C-c C-k switches to char-mode via exwm-input-release-keyboard)
-          ([?\s-r] . exwm-reset)
+          ([?\s-R] . exwm-reset)
 	  ;; ([?\s-f] . exwm-layout-toggle-fullscreen)
 	  ([?\s-f] . exwm-layout-toggle-fullscreen-or-single-window)
 	  ([?\s-z] . exwm-input-toggle-keyboard)

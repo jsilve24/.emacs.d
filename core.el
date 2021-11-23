@@ -316,6 +316,21 @@
   :straight t
   :defer t)
 
+;;; hydras
+
+(use-package hydra
+  :commands hydra-resize/body
+  :config
+  ;; window resize hydra
+  (defhydra hydra-resize ()
+    ("+" text-scale-increase "zoom-in")
+    ("-" text-scale-decrease "zoom-out")
+    ("h" (lambda () (interactive) (shrink-window-horizontally 2)) "-narrower-")
+    ("l" (lambda () (interactive) (enlarge-window-horizontally 2)) "-wider")
+    ("j" (lambda () (interactive) (shrink-window 2)) "|shorter|")
+    ("k" (lambda () (interactive) (enlarge-window 2)) "|longer|")
+    ("=" balance-windows "balance")
+    ("q" nil "quit")))
 
 (provide 'core)
 ;;; core.el ends here
