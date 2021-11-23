@@ -24,6 +24,7 @@
 (use-package auctex
   :straight t;;(auctex :type git :host github :repo "emacs-stright/auctex" :branch "master")
   :mode ("\\.tex\\'" . LaTeX-mode)
+  :hook (LaTeX-mode . reftex-mode)
   :config
   (setq TeX-parse-self t ;; parse on load
         TeX-auto-save t  ;; parse on save
