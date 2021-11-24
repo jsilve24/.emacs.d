@@ -60,18 +60,28 @@
 ;; expansion. `partial-completion' is important for wildcard support.
 ;; Multiple files can be opened at once with `find-file' if you enter a
 ;; wildcard. You may also give the `initials' completion style a try.
-(straight-use-package 'orderless)
 (use-package orderless
   :init
   ;; Configure a custom style dispatcher (see the Consult wiki)
   ;; (setq orderless-style-dispatchers '(+orderless-dispatch)
   ;;       orderless-component-separator #'orderless-escapable-split-on-space)
+  ;; (setq completion-styles '(basic partial-completion orderless)
   (setq completion-styles '(basic partial-completion orderless)
         completion-category-defaults nil
-        completion-category-overrides '((file (styles partial-completion)))))
+        completion-category-overrides '((file (styles partial-completion))))
+  ;; allow orderless completion in company
+  (setq orderless-component-separator "[ &]"))
+
+;; The matching portions of candidates aren’t highlighted. That’s because company-capf is hard-coded
+;; to look for the completions-common-part face, and it only use one face, company-echo-common to
+;; highlight candidates.
+;; (with-eval-after-load 'company
+;;   (defun just-one-face (fn &rest args)
+;;     (let ((orderless-match-faces [completions-common-part]))
+;;       (apply fn args)))
+;;   (advice-add 'company-capf--candidates :around #'just-one-face))
 
 ;; Persist history over Emacs restarts. Vertico sorts by history position.
-(straight-use-package 'savehist)
 (use-package savehist
   :init
   (savehist-mode))

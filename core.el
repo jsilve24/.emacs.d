@@ -247,24 +247,19 @@
 (add-hook 'mouse-leave-buffer-hook 'stop-using-minibuffer)
 
 ;;; Random
-;; (defun flash-mode-line ()
-;;   (invert-face 'mode-line)
-;;   (run-with-timer 0.1 nil #'invert-face 'mode-line))
-;; (setq visible-bell nil
-;;       ring-bell-function
-;;          (lambda ()
-;; 	   (unless (memq this-command
-;; 			 '(isearch-abort
-;; 			   abort-recursive-edit
-;; 			   exit-minibuffer
-;; 			   keyboard-quit))
-;; 	     (flash-mode-line))))
+
+;; autorevert org and dired buffers
+(use-package autorevert
+  :config
+  (setq auto-revert-check-vc-info t)
+  (global-auto-revert-mode t))
+
+
+;; save place between sessions
+(save-place-mode 1)
 
 ;; sentence setup
 (setq sentence-end-double-space nil)
-
-;;; TODO not honestly sure what this does want it in mu4e headers but not sure about elsewhere
-;; (setq-default truncate-lines t)
 
 ;; turn on visual line mode
 (global-visual-line-mode 1)
