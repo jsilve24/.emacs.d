@@ -130,6 +130,8 @@
 
 ;; from here: 
 ;; https://emacs.stackexchange.com/questions/2793/is-it-possible-to-auto-correct-spelling-on-space
+(defvar jds/abbrev-file "~/.emacs.d/etc/abbrev.el") ;; where to save abbreviations (this is default)
+;;;###autoload
 (defun jds/flyspell-correct-word-then-abbrev (p)
   "Call `flyspell-correct-wrapper'. Then create an abbrev for the correction made.
 With prefix P, create local abbrev. Otherwise it will be global."
@@ -142,9 +144,10 @@ With prefix P, create local abbrev. Otherwise it will be global."
                bef aft (if p "loc" "glob"))
       (define-abbrev
         (if p local-abbrev-table global-abbrev-table)
-        bef aft))))
+        bef aft))
+    (write-abbrev-file jds/abbrev-file)))
 
-(setq save-abbrevs t)
+(setq save-abbrevs t) ;; not strictly needed or used since I updated above function to auto-save 
 (setq-default abbrev-mode t)
 
 

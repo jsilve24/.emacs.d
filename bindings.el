@@ -269,6 +269,7 @@
  "gv" #'evil-visual-restore
  "gu"  #'evil-downcase
  "gU"  #'evil-upcase
+ "gt" #'jds/title-case-region-or-line
  "go" #'jds/evil-insert-line-below
  "gO" #'jds/evil-insert-line-above
  ;; avy and hinting
@@ -296,6 +297,10 @@
  "gf" #'avy-goto-char
  "gi" #'consult-outline
  "gI" #'consult-imenu-multi)
+
+(general-define-key
+ :states '(n v)
+ "U" #'evil-invert-char)
 
 ;; make gh mode specific -- for headings or sections (can popup-imenu or something)
 (general-define-key
