@@ -23,7 +23,7 @@
 
 ;; get newest version of org
 (straight-use-package 'org)
-(straight-use-package 'org-contrib)
+(straight-use-package '(org-contrib :type git :host github :repo "emacsmirror/org-contrib"))
 
 (use-package org
   ;; :commands (org-agenda)

@@ -82,7 +82,10 @@
 
 ;;; update package archives to include melpa
 (require 'package)
-(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
+(setq package-archives '(("gnu" . "https://elpa.gnu.org/packages/")
+			 ("melpa" . "https://melpa.org/packages/")
+			 ("nongnu" . "https://elpa.nongnu.org/nongnu/")))
+;; (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
 
 ;;; miscellaneous
 
