@@ -144,8 +144,8 @@ With prefix P, create local abbrev. Otherwise it will be global."
                bef aft (if p "loc" "glob"))
       (define-abbrev
         (if p local-abbrev-table global-abbrev-table)
-        bef aft))
-    (write-abbrev-file jds/abbrev-file)))
+        bef aft)
+      (write-abbrev-file jds/abbrev-file))))
 
 (setq save-abbrevs t) ;; not strictly needed or used since I updated above function to auto-save 
 (setq-default abbrev-mode t)

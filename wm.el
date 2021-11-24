@@ -224,10 +224,13 @@ i.e. change right window to bottom, or change bottom window to right."
 	  ([?\s-V] . windmove-display-left)
 	  ([?\s-s] . windmove-display-down)
 	  ([?\s-S] . windmove-display-up)
+	  ([?\s-p] . windmove-display-same-window) ;; "at point"
 
 	  ([?\s-q] . delete-window)
 	  ([?\s-Q] . kill-buffer-and-window)
+	  ([?\s-d] . kill-current-buffer)
 	  ([?\s-\ ] . ace-window)
+	  ([?\s--] . bury-buffer)
 
           ;; Launch applications via shell command
           ([?\s-:] . (lambda (command)
