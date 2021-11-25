@@ -152,13 +152,7 @@
   (general-create-definer jds/sub-localleader-def
     :states '(normal visual motion emacs)
     :keymaps 'override
-    :prefix "<backspace>")
-
-  ;; move macros
-  ;; (general-define-key
-  ;;  :states '(n v)
-  ;;  "Q" #'evil-record-macro)
-  )
+    :prefix "<backspace>"))
 
 
 
@@ -180,6 +174,7 @@
 (dolist (mode '(;;org-mode-hook
                 term-mode-hook
                 pdf-view-mode-hook
+		doc-view-mode-hook
 		vterm-mode-hook
                 shell-mode-hook
                 treemacs-mode-hook
