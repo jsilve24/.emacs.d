@@ -66,6 +66,46 @@
 (use-package unfill
   :commands (unfill-paragraph unfill-region unfill-toggle))
 
+
+;;; easier lisp editing with lispyville
+(use-package lispy
+  :config
+  (lispy-set-key-theme '(lispy c-digits))
+  (add-hook 'emacs-lisp-mode-hook (lambda () (lispy-mode 1)))
+
+  ;; use lispy in minibuffer eval-expression
+  ;; (defun conditionally-enable-lispy ()
+  ;;   (when (eq this-command 'eval-expression)
+  ;;     (lispy-mode 1)))
+  ;; (add-hook 'minibuffer-setup-hook 'conditionally-enable-lispy)
+  )
+
+(use-package lispyville
+  :after lispy
+  :hook (lispy-mode . lispyville-mode)
+  :config
+  ;; choose key-themes I want
+  (lispyville-set-key-theme
+   '(operators
+     text-objects
+     (atom-motions t)
+     ;; additional-motions ;; these are just weird
+     prettify 
+     ;; commentary ;; doesn't work since I set gc in override see hook below instead
+     slurp/barf-cp
+     wrap
+     additional
+     additional-insert
+     ;;arrows
+     ))
+  ;; hack to activate some commentary functions 
+  (defun lispyville-activate-commentary-theme ()
+      ;; override default comment
+    (evil-define-key 'motion 'local (kbd "M-;") #'lispyville-comment-or-uncomment-line)
+    (evil-define-key 'insert 'local (kbd "M-;") #'lispyville-comment-or-uncomment-line)) 
+  (add-hook 'lispyville-mode-hook #'lispyville-activate-commentary-theme))
+
+
 ;; stolen from here: http://xahlee.info/emacs/emacs/elisp_title_case_text.html
 ;;;###autoload
 (defun jds/title-case-region-or-line (@begin @end)
