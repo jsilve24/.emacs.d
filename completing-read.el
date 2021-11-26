@@ -139,8 +139,8 @@
   :after which-key
 
   :bind
-  (("C-;" . embark-act)         ;; pick some comfortable binding
-   ("C-." . embark-dwim)        ;; good alternative: M-.
+  (("C-;" . embark-act)	      ;; pick some comfortable binding
+   ("C-." . embark-dwim)      ;; good alternative: M-.
    ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
 
   :init
@@ -150,9 +150,9 @@
   :config
   ;; Hide the mode line of the Embark live/completions buffers
   (add-to-list 'display-buffer-alist
-               '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
-                 nil
-                 (window-parameters (mode-line-format . none))))
+	       '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+		 nil
+		 (window-parameters (mode-line-format . none))))
 
   (defun embark-which-key-indicator ()
     "An embark indicator that displays keymaps using which-key.
@@ -161,89 +161,93 @@ current target followed by an ellipsis if there are further
 targets."
     (lambda (&optional keymap targets prefix)
       (if (null keymap)
-          (which-key--hide-popup-ignore-command)
-        (which-key--show-keymap
-         (if (eq (plist-get (car targets) :type) 'embark-become)
-             "Become"
-           (format "Act on %s '%s'%s"
-                   (plist-get (car targets) :type)
-                   (embark--truncate-target (plist-get (car targets) :target))
-                   (if (cdr targets) "…" "")))
-         (if prefix
-             (pcase (lookup-key keymap prefix 'accept-default)
-               ((and (pred keymapp) km) km)
-               (_ (key-binding prefix 'accept-default)))
-           keymap)
-         nil nil t (lambda (binding)
-                     (not (string-suffix-p "-argument" (cdr binding))))))))
+	  (which-key--hide-popup-ignore-command)
+	(which-key--show-keymap
+	 (if (eq (plist-get (car targets) :type) 'embark-become)
+	     "Become"
+	   (format "Act on %s '%s'%s"
+		   (plist-get (car targets) :type)
+		   (embark--truncate-target (plist-get (car targets) :target))
+		   (if (cdr targets) "…" "")))
+	 (if prefix
+	     (pcase (lookup-key keymap prefix 'accept-default)
+	       ((and (pred keymapp) km) km)
+	       (_ (key-binding prefix 'accept-default)))
+	   keymap)
+	 nil nil t (lambda (binding)
+		     (not (string-suffix-p "-argument" (cdr binding))))))))
 
   (setq embark-indicators
-        '(embark-which-key-indicator
-          embark-highlight-indicator
-          embark-isearch-highlight-indicator))
+	'(embark-which-key-indicator
+	  embark-highlight-indicator
+	  embark-isearch-highlight-indicator))
 
   (defun embark-hide-which-key-indicator (fn &rest args)
     "Hide the which-key indicator immediately when using the completing-read prompter."
     (when-let ((win (get-buffer-window which-key--buffer
-                                       'visible)))
+				       'visible)))
       (quit-window 'kill-buffer win)
       (let ((embark-indicators (delq #'embark-which-key-indicator embark-indicators)))
-        (apply fn args))))
+	(apply fn args))))
 
   (advice-add #'embark-completing-read-prompter
-              :around #'embark-hide-which-key-indicator)
+	      :around #'embark-hide-which-key-indicator)
 
 
   ;; this is awesome -- taken from here: https://karthinks.com/software/fifteen-ways-to-use-embark/
-    (eval-when-compile
-      (defmacro jds/embark-ace-action (fn)
-	`(defun ,(intern (concat "jds/embark-ace-" (symbol-name fn))) ()
-	   (interactive)
-	   (with-demoted-errors "%s"
-	     (require 'ace-window)
-	     (let ((aw-dispatch-always t))
-	       (aw-switch-to-window (aw-select nil))
-	       (call-interactively (symbol-function ',fn)))))))
+  (eval-when-compile
+    (defmacro jds/embark-ace-action (fn)
+      `(defun ,(intern (concat "jds/embark-ace-" (symbol-name fn))) ()
+	 (interactive)
+	 (with-demoted-errors "%s"
+	   (require 'ace-window)
+	   (let ((aw-dispatch-always t)
+		 (aw-dispatch-alist '((?= aw-split-window-fair "Split Fair Window")
+				      (?s aw-split-window-vert "Split Vert Window")
+				      (?v aw-split-window-horz "Split Horz Window")
+				      (?o delete-other-windows "Delete Other Windows"))))
+	     (aw-switch-to-window (aw-select nil))
+	     (call-interactively (symbol-function ',fn)))))))
 
-    (define-key embark-file-map     (kbd "o") (jds/embark-ace-action find-file))
-    (define-key embark-buffer-map   (kbd "o") (jds/embark-ace-action switch-to-buffer))
-    (define-key embark-bookmark-map (kbd "o") (jds/embark-ace-action bookmark-jump))
-
-
-    (eval-when-compile
-      (defmacro jds/embark-split-action (fn split-type)
-	`(defun ,(intern (concat "jds/embark-"
-				 (symbol-name fn)
-				 "-"
-				 (car (last  (split-string
-					      (symbol-name split-type) "-"))))) ()
-	   (interactive)
-	   (funcall #',split-type)
-	   (call-interactively #',fn))))
-
-    (define-key embark-file-map     (kbd "s") (jds/embark-split-action find-file split-window-below))
-    (define-key embark-buffer-map   (kbd "s") (jds/embark-split-action switch-to-buffer split-window-below))
-    (define-key embark-bookmark-map (kbd "s") (jds/embark-split-action bookmark-jump split-window-below))
-
-    (define-key embark-file-map     (kbd "v") (jds/embark-split-action find-file split-window-right))
-    (define-key embark-buffer-map   (kbd "v") (jds/embark-split-action switch-to-buffer split-window-right))
-    (define-key embark-bookmark-map (kbd "v") (jds/embark-split-action bookmark-jump split-window-right))
+  (define-key embark-file-map (kbd "o") (jds/embark-ace-action find-file))
+  (define-key embark-buffer-map (kbd "o") (jds/embark-ace-action switch-to-buffer))
+  (define-key embark-bookmark-map (kbd "o") (jds/embark-ace-action bookmark-jump))
 
 
-    ;; open file as sudo
-    (defun sudo-find-file (file)
-      "Open FILE as root."
-      (interactive "FOpen file as root: ")
-      (when (file-writable-p file)
-	(user-error "File is user writeable, aborting sudo"))
-      (find-file (if (file-remote-p file)
-		     (concat "/" (file-remote-p file 'method) ":"
-			     (file-remote-p file 'user) "@" (file-remote-p file 'host)
-			     "|sudo:root@"
-			     (file-remote-p file 'host) ":" (file-remote-p file 'localname))
-		   (concat "/sudo:root@localhost:" file))))
+  (eval-when-compile
+    (defmacro jds/embark-split-action (fn split-type)
+      `(defun ,(intern (concat "jds/embark-"
+			       (symbol-name fn)
+			       "-"
+			       (car (last (split-string
+					   (symbol-name split-type) "-"))))) ()
+	 (interactive)
+	 (funcall #',split-type)
+	 (call-interactively #',fn))))
 
-    (define-key embark-file-map (kbd "S") 'sudo-find-file))
+  (define-key embark-file-map (kbd "s") (jds/embark-split-action find-file split-window-below))
+  (define-key embark-buffer-map (kbd "s") (jds/embark-split-action switch-to-buffer split-window-below))
+  (define-key embark-bookmark-map (kbd "s") (jds/embark-split-action bookmark-jump split-window-below))
+
+  (define-key embark-file-map (kbd "v") (jds/embark-split-action find-file split-window-right))
+  (define-key embark-buffer-map (kbd "v") (jds/embark-split-action switch-to-buffer split-window-right))
+  (define-key embark-bookmark-map (kbd "v") (jds/embark-split-action bookmark-jump split-window-right))
+
+
+  ;; open file as sudo
+  (defun sudo-find-file (file)
+    "Open FILE as root."
+    (interactive "FOpen file as root: ")
+    (when (file-writable-p file)
+      (user-error "File is user writeable, aborting sudo"))
+    (find-file (if (file-remote-p file)
+		   (concat "/" (file-remote-p file 'method) ":"
+			   (file-remote-p file 'user) "@" (file-remote-p file 'host)
+			   "|sudo:root@"
+			   (file-remote-p file 'host) ":" (file-remote-p file 'localname))
+		 (concat "/sudo:root@localhost:" file))))
+
+  (define-key embark-file-map (kbd "S") 'sudo-find-file))
 
 
 ;;; consult

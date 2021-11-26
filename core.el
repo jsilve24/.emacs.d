@@ -245,6 +245,7 @@
 
 ;; autorevert org and dired buffers
 (use-package autorevert
+  :ensure t
   :config
   (setq auto-revert-check-vc-info t)
   (global-auto-revert-mode t))

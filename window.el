@@ -35,7 +35,7 @@
   :straight t
   :init
   (setq aw-background nil)
-  (setq aw-keys '(?a ?d ?f ?g ?h  ?k ?l ?y ?p ?r ?q ?w ?b))
+  (setq aw-keys '(?a ?d ?f ?g ?h  ?k ?l ?y ?r ?q ?w ?b))
   :config
   ;; get more consistent bindings with my setup everywhere else
   ;; customize movement action
@@ -44,9 +44,10 @@
   (setq aw-dispatch-alist
   '((?x aw-delete-window "Delete Window")
     (?m aw-swap-window "Swap Windows")
-    (?M aw-move-window "Move Window")
+    (?p aw-move-window "Move Window")
     (?v aw-move-window-split-right "Move Window to right")
     (?s aw-move-window-split-below "Move Window below")
+    (?= aw-move-window-split-fair "Move Window fair split")
     (?c aw-copy-window "Copy Window")
     (?j aw-switch-buffer-in-window "Select Buffer")
     (?n aw-flip-window "Jump to previous window")
@@ -66,6 +67,19 @@
    '(aw-leading-char-face
      ((t (:inherit ace-jump-face-foreground :height 2.5 :foreground "red"))))))
 
+;;;###autoload
+(defun aw-move-window-split-fair (window)
+  "Like the default aw-move-window but splits based on target window dimension.
+Controlled by `aw-fair-aspect-ratio'."
+  (let ((buffer (current-buffer))
+	(w (window-body-width window))
+	(h (window-body-height window)))
+    (aw-switch-to-window window)
+    (if (< (* h aw-fair-aspect-ratio) w)
+	(aw-split-window-horz window)
+      (aw-split-window-vert window))
+    (call-interactively #'other-window)
+    (switch-to-buffer buffer)))
 
 ;;;###autoload
 (defun aw-move-window-split-right (window)
