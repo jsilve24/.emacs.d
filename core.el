@@ -68,6 +68,7 @@
 ;; receiving input, which should help a little with scrolling performance.
 (setq redisplay-skip-fontification-on-input t)
 
+
 ;; Reduce *Message* noise at startup. An empty scratch buffer (or the dashboard)
 ;; is more than enough.
 (setq inhibit-startup-screen t
@@ -78,9 +79,6 @@
       ;; pull in a ton of packages. `doom/open-scratch-buffer' provides a better
       ;; scratch buffer anyway.
       initial-major-mode 'fundamental-mode
-      initial-buffer-choice (lambda () (progn
-					 (switch-to-buffer (get-buffer-create "*splash*"))
-					 (splash--setup)))
       initial-scratch-message nil)
 
 

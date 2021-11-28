@@ -61,6 +61,19 @@
 
 ;;; dashboard
 
+
+
+;; use kisses mode to make things nice on startup
+(use-package kisses
+  :straight (kisses :local-repo "~/.emacs.d/local-packages/kisses/")
+  :ensure t)
+(setq initial-buffer-choice 'kisses-initial-buffer)
+;; initial-buffer-choice (lambda () (progn
+      ;; 					 (switch-to-buffer (get-buffer-create "*splash*"))
+      ;; 					 (splash--setup)))
+
+
+
 ;; (straight-use-package 'dashboard)
 ;; (use-package dashboard
 ;;   :ensure t

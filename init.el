@@ -105,10 +105,20 @@
 (use-package beacon
   :straight t
   :config
+  (add-to-list 'beacon-dont-blink-major-modes 'kisses-mode)
   (beacon-mode 1))
 
 
 (setq epg-pinentry-mode 'loopback)
+
+
+;;; profiling and debugging
+(use-package esup
+  :ensure t
+  :pin melpa
+  :config
+  (setq esup-depth 0))
+
 
 (provide 'init)
 ;;; init.el ends here
@@ -126,3 +136,5 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(aw-leading-char-face ((t (:inherit ace-jump-face-foreground :height 2.5 :foreground "red")))))
+(put 'narrow-to-region 'disabled nil)
+(put 'scroll-left 'disabled nil)
