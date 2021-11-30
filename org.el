@@ -288,6 +288,7 @@
 
 (jds/localleader-def
   :keymaps 'org-mode-map
+  "A"  #'org-archive-subtree
   "r"  #'org-refile
   "n"  #'org-narrow-to-subtree
   "N"  #'widen)

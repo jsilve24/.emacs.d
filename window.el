@@ -61,7 +61,7 @@
     ;; ?i ?r ?t are used by hyperbole.el
     (?? aw-show-dispatch-help)))
   
-  (setq aw-scope 'global)
+  (setq aw-scope 'visible)
   (ace-window-display-mode t)		; display labels in mode line -- works for x windows
   (custom-set-faces
    '(aw-leading-char-face

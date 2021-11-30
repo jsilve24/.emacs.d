@@ -227,7 +227,7 @@ i.e. change right window to bottom, or change bottom window to right."
 	  ([?\s-p] . windmove-display-same-window) ;; "at point"
 
 	  ([?\s-q] . delete-window)
-	  ([?\s-Q] . kill-buffer-and-window)
+	  ([?\s-Q] . jds/kill-buffer-delete-window)
 	  ([?\s-d] . kill-current-buffer)
 	  ([?\s-\ ] . ace-window)
 	  ([?\s--] . bury-buffer)
@@ -295,6 +295,18 @@ i.e. change right window to bottom, or change bottom window to right."
 
 
 (with-eval-after-load 'exwm
+
+  ;; make sure window really closes when killing exwm buffer
+  (defun jds/kill-buffer-delete-window ()
+    "Simpler than kill-buffer-and-window but that was not working for EXWM windows."
+    (interactive)
+    (if (not (string= major-mode "exwm-mode"))
+	(kill-buffer-and-window)
+      (let ((buffer (current-buffer))
+	    (window (selected-window)))
+	(kill-buffer buffer)
+	(delete-window window))))
+
   ;; from exwm cookbook
   (defun exwm-async-run (name)
     "Run a process asynchronously"

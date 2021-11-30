@@ -1,6 +1,7 @@
 ;;-*-coding: utf-8;-*-
 (define-abbrev-table 'global-abbrev-table
   '(
+    ("acknowledgement" "acknowledgment" nil :count 0)
     ("anlalysis" "analysis" nil :count 0)
     ("anlaysis" "analysis" nil :count 1)
     ("clinitians" "clinicians" nil :count 0)
@@ -25,8 +26,9 @@
     ("qualtiites" "qualities" nil :count 0)
     ("relationshiop" "relationship" nil :count 1)
     ("reserchers" "researchers" nil :count 0)
+    ("restirctions" "restrictions" nil :count 0)
     ("restrictiive" "restrictive" nil :count 0)
-    ("teh" "the" nil :count 4)
+    ("teh" "the" nil :count 5)
     ("unacknoledged" "unacknowledged" nil :count 0)
     ("uncetainty" "uncertainty" nil :count 0)
    ))

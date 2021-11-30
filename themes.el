@@ -66,7 +66,10 @@
 ;; use kisses mode to make things nice on startup
 (use-package kisses
   :straight (kisses :local-repo "~/.emacs.d/local-packages/kisses/")
-  :ensure t)
+  :ensure t
+  :config 
+  (put-text-property 0 (length kisses-banner) 'face 'outline-1
+		     kisses-banner))
 (setq initial-buffer-choice 'kisses-initial-buffer)
 ;; initial-buffer-choice (lambda () (progn
       ;; 					 (switch-to-buffer (get-buffer-create "*splash*"))
