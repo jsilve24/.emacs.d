@@ -119,6 +119,9 @@
   (setq org-agenda-block-separator nil)
   (setq org-priority-default ?C) ;; needed for proper ordering of next block
 
+  ;; don't show same agenda item twice if two different time-stamps
+  (setq org-agenda-skip-additional-timestamps-same-entry t)
+
   (setq org-agenda-custom-commands
         `(("d" "Custom Day View"
            ((agenda "" ((org-agenda-span 'day)
