@@ -45,6 +45,15 @@
 (use-package doom-themes
   :init (load-theme 'doom-vibrant t))
 
+
+(use-package kaolin-themes
+  ;; :config
+  ;; (load-theme 'kaolin-dark t)
+  ;; (kaolin-treemacs-theme)
+  )
+
+;; (use-package modus-themes)
+
 ;;; modline
 
 (straight-use-package 'all-the-icons)

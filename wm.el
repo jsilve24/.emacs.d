@@ -362,7 +362,10 @@ buffer (=minimizing in other WM/DE)"
 
 
 ;; make windmove-display work more universally
-(setq switch-to-buffer-obey-display-actions t)
+;; this line was causing point to jump lines in mu4e header view when opening messages. 
+;; this line was also causing problems and trigoring
+;; window-size-change-functions on refocus. 
+;; (setq switch-to-buffer-obey-display-actions t)
 
 (use-package app-launcher
   :ensure t

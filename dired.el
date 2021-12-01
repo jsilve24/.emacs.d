@@ -54,6 +54,15 @@
                      "+" #'jds/make-dated-directory
                      "d" #'jds/dragon-dired)
 
+;;; Autoloads
+
+;;;###autoload
+(defun jds/dired-jump-and-kill-buffer ()
+    "Kill current buffer after dired-jump."
+  (interactive)
+  (let ((buffer (current-buffer)))
+    (dired-jump)
+    (kill-buffer buffer)))
 
 ;;; fluff
 (use-package all-the-icons-dired
