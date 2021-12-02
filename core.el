@@ -269,9 +269,9 @@
   :after evil
   :config
   (recentf-mode 1)
-  (setq recentf-max-menu-items 100
-        recentf-max-saved-items 400
-        recentf-auto-cleanup 'never)
+  (setq recentf-max-menu-items 400
+        recentf-max-saved-items 1000
+        recentf-auto-cleanup 'mode)
   (run-at-time nil (* 5 60) 'recentf-save-list)
 
   ;; exclude some files from tracking

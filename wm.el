@@ -341,6 +341,7 @@ buffer (=minimizing in other WM/DE)"
    "q" '((lambda () (interactive) (run-or-raise-or-dismiss "qutebrowser" "qutebrowser")) :wk "qutebrowser")
    "Q" '((lambda () (interactive) (progn (+evil/window-vsplit-and-follow) (exwm-async-run "qutebrowser"))) :wk "qutebrowser-new-window")
    "y" '((lambda () (interactive) (run-or-raise-or-dismiss "slack" "slack")) :wk "slack")
+   "c" '((lambda () (interactive) (async-shell-command "~/bin/capslock.sh")) :wk "capslock.sh")
    "v" 'evil-window-vsplit
    "s" 'evil-window-split
    "S" #'+evil/window-split-and-follow

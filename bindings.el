@@ -213,9 +213,9 @@
  "k" #'helpful-at-point
  "d" #'dired-jump
  "D" #'jds/dired-jump-and-kill-buffer
- "t" #'(:ignore t :wk "dired to")
- "td" #'jds/deer-downloads
- "th" #'(lambda () (interactive) (deer "/home/jds6696/")))
+ "j" #'(:ignore t :wk "dired jump to")
+ "jd" #'jds/deer-downloads
+ "jh" #'(lambda () (interactive) (deer "/home/jds6696/")))
 
 ;;; faster editing in text buffers
 

@@ -54,8 +54,8 @@
 
 
 ;;; print-helper -- not enough to make a stand-alone package
-;;;###autoload
 (require 'dash)
+;;;###autoload
 (defun ph--get-list-of-priters ()
   "Return list of printer with default in position 1."
   (let* ((printers (shell-command-to-string "lpstat -p -d"))
@@ -73,7 +73,7 @@
 
 
 ;;;###autoload
-(defun ph-pdf-misc-print-document (&optoinal arg)
+(defun ph-pdf-misc-print-document (&optional arg)
   "Wrapper around pdf-misc-print-document that allows you to
   select printer (pulling priter list and default from lpstat -p
   -d command) using completing-read. Also doesn't ask what
