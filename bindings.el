@@ -36,7 +36,10 @@
  :keymaps 'override
  "M-'" #'popper-toggle-latest
  "C-M-'" #'popper-cycle
- "C-M-\"" #'popper-toggle-type)
+ "C-M-\"" #'popper-toggle-type
+ "C-;" #'embark-act
+ "C-:" #'embark-dwim)
+
 
 ;;; completion
 ;;;###autoload
