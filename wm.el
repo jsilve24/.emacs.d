@@ -29,8 +29,8 @@
 (defun efs/configure-window-by-class ()
   (interactive)
   (pcase exwm-class-name
-    ("Firefox" (exwm-workspace-move-window 2))
-    ;; ("qutebrowser" (hide-mode-line-mode))
+    ;; ("Firefox" (exwm-workspace-move-window 2))
+    ("qutebrowser" (exwm-workspace-rename-buffer (format "Qutebrowser: %s" exwm-title)))
     ;; ("Google-chrome" (hide-mode-line-mode))
     ;; ("mpv" (exwm-floating-toggle-floating)
     ;;        (exwm-layout-toggle-mode-line))

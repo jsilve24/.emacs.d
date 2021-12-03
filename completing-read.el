@@ -303,13 +303,13 @@ targets."
    :preview-key (kbd "M-."))
 
    ;; consult-buffer filter buffer list
-   (add-to-list 'consult-buffer-filter "\\*straight-process\\*")
+   ;; (add-to-list 'consult-buffer-filter "\\*straight-process\\*")
    (add-to-list 'consult-buffer-filter "\\*helpful*")
    (add-to-list 'consult-buffer-filter "\\*Apropos\\*")
    (add-to-list 'consult-buffer-filter "\\*zoxide\\*")
    (add-to-list 'consult-buffer-filter "\\*trace*")
    (add-to-list 'consult-buffer-filter "\\*sent draft\\*")
-   (add-to-list 'consult-buffer-filter "\\*splash\\*")
+   ;; (add-to-list 'consult-buffer-filter "\\*splash\\*")
 
 
   ;; dont' preview exwm buffers

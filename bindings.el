@@ -19,7 +19,7 @@
 ;;
 ;;; Code:
 
-(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+;; (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
 
 ;;; universal argument and other short stuff
@@ -50,13 +50,22 @@
     (if (company-complete-common)
 	nil
       (call-interactively #'company-dabbrev))))
+
+
 ;;;###autoload
 (defun jds/tab-dwim ()
   (interactive)
   (cond
-   ((and (texmathp) (bound-and-true-p cdlatex-mode))  (cdlatex-tab))
-   ((message--in-tocc-p) (completion-at-point))
-   (t (jds/yas-or-company))))
+   ((and (string= (string (char-before)) " ")
+	 (string= major-mode "org-mode"))
+    (org-cycle))
+   ((and (texmathp) (bound-and-true-p cdlatex-mode))
+    (cdlatex-tab)) 
+   ((message--in-tocc-p)
+    (completion-at-point))
+   (t
+    (jds/yas-or-company))))
+
 (defun jds/completion-keys ()
   (evil-local-set-key 'insert (kbd "<tab>") #'jds/tab-dwim)
   (evil-local-set-key 'insert (kbd "C-l")   #'company-ispell))
