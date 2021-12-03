@@ -52,7 +52,7 @@
   ;; (kaolin-treemacs-theme)
   )
 
-;; (use-package modus-themes)
+(use-package modus-themes)
 
 ;;; modline
 
