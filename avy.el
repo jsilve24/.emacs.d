@@ -42,6 +42,7 @@
 (use-package link-hint
   :straight t
   :after avy
+  :ensure t
   :config
   ;; Use qutebrowser to open urls
   (setq browse-url-browser-function 'browse-url-generic)

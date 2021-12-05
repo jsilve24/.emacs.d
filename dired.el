@@ -19,57 +19,114 @@
 ;;
 ;;; Code:
 
-(use-package ranger
-  :straight t
-  ;; :commands (deer ranger jds/deer-downloads)
-  :ensure t
-  ;; :after dired
+;; (use-package ranger
+;;   :straight t
+;;   ;; :commands (deer ranger jds/deer-downloads)
+;;   :ensure t
+;;   ;; :after dired
+;;   :config
+;;   (ranger-override-dired-mode t)
+
+;;   (setq ranger-parent-depth 1
+;;         ranger-width-parents 0.2
+;;         ranger-width-preview 0.4)
+
+;;   (link-hint-define-type 'dired-files-and-directories
+;;     :next #'ranger-next-file
+;;     :at-point-p #'dired-file-name-at-point
+;;     :open #'ranger-find-file
+;;     :goto #'dired-goto-file-1
+;;     :vars '(ranger-mode))
+;;   (push 'link-hint-dired-files-and-directories link-hint-types))
+
+;; (general-define-key
+;;  :keymaps 'ranger-mode-map
+;;  "f"  nil
+;;  "F" nil
+;;  "f"         #'jds/link-hint-goto-link
+;;  "F"         #'link-hint-open-link
+;;  "<backtab>" #'dired-unmark)
+
+;; ;; local bindings
+;; (jds/localleader-def ranger-mode-map
+;;                      ;; "e" #'wdired-change-to-wdired-mode
+;;                      "c" #'dired-rsync
+;;                      "+" #'jds/make-dated-directory
+;;                      "d" #'jds/dragon-dired)
+
+;;; setup default dired -- cheatsheet here:
+;; https://github.com/daviwil/emacs-from-scratch/blob/8c302a79bf5700f6ef0279a3daeeb4123ae8bd59/Emacs.org#dired
+;; more here: https://github.com/Fuco1/dired-hacks/tree/7c0ef09d57a80068a11edc74c3568e5ead5cc15a#dired-open
+(use-package dired
+  :straight (:type built-in)
+  :commands (dired dired-jump)
+  :custom ((dired-listing-switches "-agho --group-directories-first"))
   :config
-  (ranger-override-dired-mode t)
+  (evil-collection-define-key 'normal 'dired-mode-map
+    "h" 'dired-single-up-directory
+    "l" 'dired-single-buffer)
 
-  (setq ranger-parent-depth 1
-        ranger-width-parents 0.2
-        ranger-width-preview 0.4)
+  (link-hint-define-type 'dired-filename
+    :goto #'dired-goto-file))
 
-  (link-hint-define-type 'dired-files-and-directories
-    :next #'ranger-next-file
-    :at-point-p #'dired-file-name-at-point
-    :open #'ranger-find-file
-    :goto #'dired-goto-file-1
-    :vars '(ranger-mode))
-  (push 'link-hint-dired-files-and-directories link-hint-types))
 
-(general-define-key
- :keymaps 'ranger-mode-map
- "f"  nil
- "F" nil
- "f"         #'jds/link-hint-goto-link
- "F"         #'link-hint-open-link
- "<backtab>" #'dired-unmark)
+
+;; don't use multiple buffers
+(use-package dired-single)
+
+(use-package dired-open
+  :config
+  (setq dired-open-extensions '(("docx" . "libreoffice")
+				("doc" . "libreoffice")
+				("xlsx" . "libreoffice")
+				("xls" . "libreoffice"))))
+
+(use-package dired-hide-dotfiles
+  :hook (dired-mode . dired-hide-dotfiles-mode)
+  :config
+  (evil-collection-define-key 'normal 'dired-mode-map
+    "H" 'dired-hide-dotfiles-mode))
+
+(use-package dired-copy-paste
+  :straight (dired-copy-paste :type git :host github :repo "jsilve24/dired-copy-paste"))
+
+;; setup wv, ws, we bindings
+(with-eval-after-load 'dired 
+  (defun jds~dired-setup-function ()
+    "Function to setup buffer local variables. Added to `dired-mode-hook`."
+    (general-define-key
+     :states 'normal
+     :keymaps 'local
+     "f" #'jds/link-hint-goto-link
+     "F" #'link-hint-open-link
+     "w"  #'(:ignore t)
+     "wo" #'dired-view-file
+     ";"  #'(:ignore t)
+     ";d" #'dired-copy-paste-do-cut
+     ";y" #'dired-copy-paste-do-copy
+     ";p" #'dired-copy-paste-do-paste))
+  (add-hook 'dired-mode-hook 'jds~dired-setup-function))
 
 ;; local bindings
-(jds/localleader-def ranger-mode-map
+(jds/localleader-def dired-mode-map
                      ;; "e" #'wdired-change-to-wdired-mode
-                     "c" #'dired-rsync
+                     ;; "c" #'dired-rsync
                      "+" #'jds/make-dated-directory
                      "d" #'jds/dragon-dired)
 
-;;; Autoloads
 
-;;;###autoload
-(defun jds/dired-jump-and-kill-buffer ()
-    "Kill current buffer after dired-jump."
-  (interactive)
-  (let ((buffer (current-buffer)))
-    (dired-jump)
-    (kill-buffer buffer)))
+
+;; (use-package dired+)
+
+
+
 
 ;;; fluff
 (use-package all-the-icons-dired
   :straight t
   :after ranger
   :config
-  (add-hook 'ranger-mode-hook 'all-the-icons-dired-mode))
+  (add-hook 'dired-mode-hook 'all-the-icons-dired-mode))
 
 (provide 'dired)
 ;;; dired.el ends here

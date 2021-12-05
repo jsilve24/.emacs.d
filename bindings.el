@@ -223,11 +223,12 @@
  "s" #'consult-org-agenda
  "S" #'org-search-view
  "k" #'helpful-at-point
- "d" #'dired-jump
+ ;; "d" #'dired-jump
+ "d" #'jds/dired-jump-reuse-dired
  "D" #'jds/dired-jump-and-kill-buffer
  "j" #'(:ignore t :wk "dired jump to")
- "jd" #'jds/deer-downloads
- "jh" #'(lambda () (interactive) (deer "/home/jds6696/")))
+ "jd" #'(lambda () (interactive) (dired "~/Downloads/"))
+ "jh" #'(lambda () (interactive) (dired "~")))
 
 ;;; faster editing in text buffers
 
