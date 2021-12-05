@@ -252,7 +252,7 @@ targets."
   :defer t
   :bind
   (([remap apropos]                      . #'consult-apropos)
-  ([remap bookmark-jump]                . #'consult-bookmark)
+   ([remap bookmark-jump]                . #'consult-bookmark)
    ([remap evil-show-marks]              . #'consult-mark)
    ;; ([remap evil-show-jumps]              . #'+vertico/jump-list)
    ([remap goto-line]                    . #'consult-goto-line)
@@ -302,14 +302,24 @@ targets."
    consult--source-file consult--source-project-file consult--source-bookmark
    :preview-key (kbd "M-."))
 
-   ;; consult-buffer filter buffer list
-   ;; (add-to-list 'consult-buffer-filter "\\*straight-process\\*")
-   (add-to-list 'consult-buffer-filter "\\*helpful*")
-   (add-to-list 'consult-buffer-filter "\\*Apropos\\*")
-   (add-to-list 'consult-buffer-filter "\\*zoxide\\*")
-   (add-to-list 'consult-buffer-filter "\\*trace*")
-   (add-to-list 'consult-buffer-filter "\\*sent draft\\*")
-   ;; (add-to-list 'consult-buffer-filter "\\*splash\\*")
+  ;; consult-buffer filter buffer list
+  ;; (add-to-list 'consult-buffer-filter "\\*straight-process\\*")
+  (add-to-list 'consult-buffer-filter "\\*helpful*")
+  (add-to-list 'consult-buffer-filter "\\*Apropos\\*")
+  (add-to-list 'consult-buffer-filter "\\*zoxide\\*")
+  (add-to-list 'consult-buffer-filter "\\*trace*")
+  (add-to-list 'consult-buffer-filter "\\*sent draft\\*")
+  ;; (add-to-list 'consult-buffer-filter "\\*splash\\*")
+
+    ;; combine sources for consult-buffer
+  (setq consult-buffer-sources '(consult--source-buffer
+				 consult--source-bookmark
+				 consult-projectile--source-projectile-file
+				 consult-projectile--source-projectile-project
+				 consult--source-file
+				 consult--source-recent-file))
+
+
 
 
   ;; dont' preview exwm buffers
@@ -317,28 +327,44 @@ targets."
   ;; TODO: may be able to fix this by modifying or advising consult--buffer-preview to figure out
   ;; where X window is currently displayed and put it back when done
   (defun consult-buffer-state-no-x ()
-  "Buffer state function that doesn't preview X buffers."
-  (let ((orig-state (consult--buffer-state))
-        (filter (lambda (cand restore)
-                  (if (or restore
-                          (let ((buffer (get-buffer cand)))
-                            (and buffer
-                                 (not (eq 'exwm-mode (buffer-local-value 'major-mode buffer))))))
-                      cand
-                    nil))))
-    (lambda (cand restore)
-      (funcall orig-state (funcall filter cand restore) restore))))
+    "Buffer state function that doesn't preview X buffers."
+    (let ((orig-state (consult--buffer-state))
+	  (filter (lambda (cand restore)
+		    (if (or restore
+			    (let ((buffer (get-buffer cand)))
+			      (and buffer
+				   (not (eq 'exwm-mode (buffer-local-value 'major-mode buffer))))))
+			cand
+		      nil))))
+      (lambda (cand restore)
+	(funcall orig-state (funcall filter cand restore) restore))))
 
-(setq consult--source-buffer
-      (plist-put consult--source-buffer :state #'consult-buffer-state-no-x))
-  
+  (setq consult--source-buffer
+	(plist-put consult--source-buffer :state #'consult-buffer-state-no-x))
+
+
+  ;; group exwm buffers together
+  (defun exwm-all-buffers ()
+    (seq-filter
+     (lambda (buffer)
+       (eq 'exwm-mode (buffer-local-value 'major-mode buffer)))
+     (buffer-list)))
+  (defvar exwm-buffer-source
+    `(:name "EXWM"
+	    :hidden t
+	    :narrow ?x
+	    :category buffer
+	    :state ,#'consult--buffer-state
+	    :items ,(lambda () (mapcar #'buffer-name (exwm-all-buffers)))))
+  (add-to-list 'consult-buffer-sources 'exwm-buffer-source 'append)
+
 
   (setq consult-narrow-key "\\"
-        consult-line-numbers-widen t
-        consult-async-min-input 2
-        consult-async-refresh-delay  0.15
-        consult-async-input-throttle 0.2
-        consult-async-input-debounce 0.1)
+	consult-line-numbers-widen t
+	consult-async-min-input 2
+	consult-async-refresh-delay 0.15
+	consult-async-input-throttle 0.2
+	consult-async-input-debounce 0.1)
 
   ;; Optionally make narrowing help available in the minibuffer.
   ;; You may want to use `embark-prefix-help-command' or which-key instead.
@@ -346,17 +372,17 @@ targets."
 
   ;; Optionally configure a function which returns the project root directory.
   ;; There are multiple reasonable alternatives to chose from.
-  ;;;; 1. project.el (project-roots)
+;;;; 1. project.el (project-roots)
   (setq consult-project-root-function
         (lambda ()
           (when-let (project (project-current))
             (car (project-roots project)))))
-  ;;;; 2. projectile.el (projectile-project-root)
+;;;; 2. projectile.el (projectile-project-root)
   ;; (autoload 'projectile-project-root "projectile")
   ;; (setq consult-project-root-function #'projectile-project-root)
-  ;;;; 3. vc.el (vc-root-dir)
+;;;; 3. vc.el (vc-root-dir)
   ;; (setq consult-project-root-function #'vc-root-dir)
-  ;;;; 4. locate-dominating-file
+;;;; 4. locate-dominating-file
   ;; (setq consult-project-root-function (lambda () (locate-dominating-file "." ".git")))
 
 

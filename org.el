@@ -38,7 +38,9 @@
   ;; don't include files in .attach
   (setq org-agenda-files
 	(seq-filter
-	 (lambda (x) (not (string-match-p (rx "\.attach") x)))
+	 (lambda (x) (and  (not (string-match-p (rx "\.attach") x))
+			  (not (string-match-p (rx "ShoeTracking\.org") x))
+			  (not (string-match-p (rx "emacs cheatsheet\.org") x))))
 	 (directory-files-recursively "~/Dropbox/org/" "\\.org$")))
 
 
