@@ -33,16 +33,15 @@
   (defun native-comp-available-p () nil)
   
   :config
-  (setq org-directory "~/Dropbox/org")
-
   ;; don't include files in .attach
   (setq org-agenda-files
 	(seq-filter
 	 (lambda (x) (and  (not (string-match-p (rx "\.attach") x))
-			  (not (string-match-p (rx "ShoeTracking\.org") x))
-			  (not (string-match-p (rx "emacs cheatsheet\.org") x))))
+			  (not (string-match-p (rx "ShoeTracking") x))
+			  (not (string-match-p (rx "emacs cheatsheet") x))))
 	 (directory-files-recursively "~/Dropbox/org/" "\\.org$")))
 
+  (setq org-directory "~/Dropbox/org")
 
   ;;; high level config
   (setq org-default-notes-file "~/Dropbox/org/inbox.org")
@@ -245,6 +244,14 @@
   (evil-org-agenda-set-keys))
 
 
+;;; undoing some messed up bindings from somewhere, not sure where these came from
+(general-define-key
+ :states '(n v m i e)
+ :keymaps 'org-mode-map
+ "M-<return>" #'org-meta-return
+ "M-S-<return>" #'org-insert-todo-heading
+ "C-<return>" #'+org/insert-item-below
+ "C-S-<return>" #'+org/insert-item-above)
 
 
 ;;; local bindings

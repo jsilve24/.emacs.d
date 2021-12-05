@@ -478,8 +478,8 @@ buffer (=minimizing in other WM/DE)"
 ;;; fixing issues (e.g., ediff)
 
 ;; ;; Don't let ediff break EXWM, keep it in one frame
-;; (setq ediff-diff-options "-w"
-;;       ediff-split-window-function 'split-window-horizontally
-;;       ediff-window-setup-function 'ediff-setup-windows-plain)
+(setq ediff-diff-options "-w"
+      ediff-split-window-function 'split-window-horizontally
+      ediff-window-setup-function 'ediff-setup-windows-plain)
 
 (provide 'wm)
