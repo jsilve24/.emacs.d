@@ -219,15 +219,6 @@
   :config (global-evil-surround-mode 1))
 
 
-;;; key-chord for evil
-(use-package key-chord
-  :config 
-  (key-chord-mode 1)
-  (setq key-chord-one-keys-delay 0.010
-	key-chord-two-keys-delay 0.04)
-  (key-chord-define-global "jk" 'evil-force-normal-state)
-  ;; (key-chord-define evil-insert-state-map "jk" 'evil-normal-state)
-  )
 
 ;; (use-package evil-traces
 ;;   :straight t

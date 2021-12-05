@@ -304,7 +304,6 @@
   (select-frame (make-frame))
   (org-agenda nil "d"))
 
-
   ;; (map! :after (org evil-org)
   ;;       :map org-capture-mode-map
   ;;       :localleader
