@@ -334,5 +334,22 @@
     ("=" balance-windows "balance")
     ("q" nil "quit")))
 
+
+;;; Autoloads
+
+;;https://emacs.stackexchange.com/questions/54500/how-to-add-a-locally-override-the-message-function
+;;;###autoload
+(defmacro jds~with-temp-advice (fn-orig where fn-advice &rest body)
+  "Execute BODY with advice temporarily enabled."
+  `(let ((fn-advice-var ,fn-advice))
+     (unwind-protect
+	 (progn
+           (advice-add ,fn-orig ,where fn-advice-var)
+           ,@body)
+       (advice-remove ,fn-orig fn-advice-var))))
+
+
+
+
 (provide 'core)
 ;;; core.el ends here

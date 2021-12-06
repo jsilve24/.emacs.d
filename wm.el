@@ -359,7 +359,10 @@ buffer (=minimizing in other WM/DE)"
 ;; exwm-helper to move window / buffer to new frame (including fames not currently visible)
 (use-package exwm-helper
   :commands eh-current-window-to-workspace-and-follow-by-index eh-current-window-to-workspace-completing-read
-  :straight (exwm-helper :type git :host github :repo "jsilve24/exwm-helper"))
+  :straight (exwm-helper :type git :host github :repo "jsilve24/exwm-helper")
+  :config
+  (setq eh-split-window-function 'jds~new-frame-or-new-window
+	eh-last-window-function  '(lambda () (progn  (switch-to-buffer "*splash*") (kisses-recenter)))))
 
 
 ;; make windmove-display work more universally

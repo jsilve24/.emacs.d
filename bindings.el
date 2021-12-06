@@ -34,7 +34,7 @@
 
 (general-define-key
  :keymaps 'override
- "M-'" #'popper-toggle-latest
+ "C-'" #'popper-toggle-latest
  "C-M-'" #'popper-cycle
  "C-M-\"" #'popper-toggle-type
  "C-;" #'embark-act
@@ -72,10 +72,6 @@
 (add-hook 'text-mode-hook 'jds/completion-keys)
 (add-hook 'prog-mode-hook 'jds/completion-keys)
 
-;; (general-define-key
-;;  :keymaps 'overide
-;;  :states '(n v i m o e)
-;;  "C-u" #'universal-argument)
 
 ;;; filesystem bindings
 (jds/leader-def

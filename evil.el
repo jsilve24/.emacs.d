@@ -22,18 +22,24 @@
 
 ;;; simple undo system
 
-(use-package undo-fu
-  :straight t)
+;; (use-package undo-fu
+;;   :straight t)
+
+(use-package undo-tree
+  :ensure t
+  :config
+  (global-undo-tree-mode))
 
 ;;; main evil config
 ;; (setq evil-respect-visual-line-mode t) ; needs to be front and center
 (straight-use-package 'evil)
 (use-package evil
   :init
-  (setq evil-want-integration t)
-  (setq evil-want-keybinding nil)
-  (setq evil-want-C-u-scroll nil)
-  (setq evil-want-C-i-jump t)
+  (setq evil-want-C-i-jump t
+	evil-want-Y-yank-to-eol t
+	evil-want-C-u-scroll nil
+	evil-want-keybinding nil
+	evil-want-integration t)
   ;; from doom
   (defun +evil-default-cursor-fn ()
     (evil-set-cursor-color (get 'cursor 'evil-normal-color)))
@@ -57,7 +63,8 @@
         ;; It's infuriating that innocuous "beginning of line" or "end of line"
         ;; errors will abort macros, so suppress them:
         evil-kbd-macro-suppress-motion-error t
-        evil-undo-system 'undo-fu)
+        ;; evil-undo-system 'undo-fu
+        evil-undo-system 'undo-tree)
   :config
   (evil-mode 1)
 
@@ -83,8 +90,8 @@
 
 
 
-  ;; make normal state teh default always
-  (setq evil-emacs-state-modes nil)
+  ;; make normal state the default always
+  (setq evil-emacs-state-modes '(vterm-mode))
   (setq evil-insert-state-modes nil)
   (setq evil-motion-state-modes nil)
 

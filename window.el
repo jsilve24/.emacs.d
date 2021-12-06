@@ -63,7 +63,7 @@ i.e. windows tiled side-by-side."
 	      (split-height-threshold 20))
 	  (if (not (split-window-sensibly-prefer-horizontal))
 	      (split-window-right)))
-	(call-interactively #'other-window))
+	(other-window 1))
     (select-frame (make-frame))))
 
 (use-package ace-window
@@ -143,9 +143,25 @@ Controlled by `aw-fair-aspect-ratio'."
 
 ;; delete-frame when delete-window called and window is last one
 ;; just loading this package advises the function delete-window
-(use-package frame-cmds
-  :straight (frame-cmds :type git :host github :repo "emacsmirror/frame-cmds")
-  :ensure t)
+;; don't want this if using exwm
+;; (use-package frame-cmds
+;;   :straight (frame-cmds :type git :host github :repo "emacsmirror/frame-cmds")
+;;   :ensure t)
+
+;; (defadvice delete-window (around delete-frame-if-one-win activate)
+;;   "If WINDOW is the only one in its frame, then `delete-frame' too."
+;;   (if (fboundp 'with-selected-window)   ; Emacs 22+
+;;       (with-selected-window
+;;           (or (ad-get-arg 0)  (selected-window))
+;;         (if (one-window-p t) (delete-frame) ad-do-it))
+;;     (save-current-buffer
+;;       (select-window (or (ad-get-arg 0)  (selected-window)))
+;;       (if (one-window-p t) (delete-frame) ad-do-it))))
+
+
+;;; how to handle last window in frame
+
+
 
 (provide 'window)
 ;;; window.el ends here

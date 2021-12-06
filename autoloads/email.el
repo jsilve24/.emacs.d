@@ -76,31 +76,19 @@ default/fallback account."
 ;; better handling of mu4e links in org
 
 ;; better handling of mu4e links
-;;;###autoload
-;;https://emacs.stackexchange.com/questions/54500/how-to-add-a-locally-override-the-message-function
-(defmacro jds~with-temp-advice (fn-orig where fn-advice &rest body)
-  "Execute BODY with advice temporarily enabled."
-  `(let ((fn-advice-var ,fn-advice))
-    (unwind-protect
-      (progn
-        (advice-add ,fn-orig ,where fn-advice-var)
-        ,@body)
-      (advice-remove ,fn-orig fn-advice-var))))
-
-
 ;;https://mu-discuss.narkive.com/GxjFjuhz/open-org-mode-link-to-mu4e-message-in-new-frame
-;;;###autoload
-(defun jds/mu4e-follow-link-new-frame-window ()
-  "Follow mu4e link in org-mode open in new frame.
-   Open in new window if universal prefix passed."
-  (interactive)
-  (if current-prefix-arg
-      (jds~with-temp-advice 'mu4e-view-message-with-message-id
-                            :before (lambda (MSGID) (select-window (split-window-sensibly)))
-                            (+org/dwim-at-point))
-      (jds~with-temp-advice 'mu4e-view-message-with-message-id
-                            :before (lambda (MSGID) (select-frame (make-frame)))
-                            (+org/dwim-at-point))))
+;; ;;;###autoload
+;; (defun jds/mu4e-follow-link-new-frame-window ()
+;;   "Follow mu4e link in org-mode open in new frame.
+;;    Open in new window if universal prefix passed."
+;;   (interactive)
+;;   (if current-prefix-arg
+;;       (jds~with-temp-advice 'mu4e-view-message-with-message-id
+;;                             :before (lambda (MSGID) (select-window (split-window-sensibly)))
+;;                             (+org/dwim-at-point))
+;;       (jds~with-temp-advice 'mu4e-view-message-with-message-id
+;;                             :before (lambda (MSGID) (select-frame (make-frame)))
+;;                             (+org/dwim-at-point))))
 
 ;;;###autoload
 (defun jds/mu4e-compose-goto-to ()
