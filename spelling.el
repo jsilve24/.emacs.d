@@ -46,7 +46,16 @@
 (use-package flyspell
   :after evil-easymotion
   :when (executable-find "aspell")
-  :hook (text-mode . flyspell-mode))
+  :hook (text-mode . flyspell-mode)
+  :config
+  ;; performance suggestion from wiki
+  (setq flyspell-issue-message-flag nil))
+
+;; (use-package flyspell-lazy
+;;   :straight (flyspell-lazy :type git :host github :repo "rolandwalker/flyspell-lazy")
+;;   :after flyspell
+;;   :config
+;;   (flyspell-lazy-mode 1))
 
 (use-package flyspell-correct
   :straight t

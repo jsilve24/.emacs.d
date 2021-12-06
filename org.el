@@ -302,6 +302,7 @@
   :keymaps 'org-mode-map
   "A"  #'org-archive-subtree
   "r"  #'org-refile
+  "e"  #'org-export-dispatch
   "n"  #'org-narrow-to-subtree
   "N"  #'widen)
 

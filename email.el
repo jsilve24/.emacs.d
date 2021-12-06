@@ -314,7 +314,7 @@ are optional."
   :after mu4e
   :config
   (setq
-  org-msg-options "html-postamble:nil num:nil ^:{} toc:nil author:nil email:nil \\n:t"
+  org-msg-options "html-postamble:nil num:nil ^:{} toc:nil author:nil email:nil \\n:t tex:dvipng"
   org-msg-startup "hidestars indent inlineimages"
   org-msg-default-alternatives '((new . (text html))
                                  (reply-to-html . (text html))
@@ -333,7 +333,7 @@ are optional."
 ;;; dired - embark -- attach files to messages
 (autoload 'gnus-dired-attach "gnus-dired")
 (jds/localleader-def
-  :keymaps 'ranger-mode-map
+  :keymaps 'dired-mode-map
   "a" #'gnus-dired-attach)
 
 ;;;###autoload
@@ -372,7 +372,7 @@ are place there, otherwise you are prompted for a message buffer."
  "k"      '(message-kill-buffer :which-key "kill message")
  "gp"     '(jds/org-msg-goto-properties :which-key "goto properties")
  "gb"     '(jds/org-msg-goto-body :which-key "goto body")
-
+ "v"      'org-msg-preview
  "t"      '(:ignore t :which-key "toggle")
  "i"      '(jds/org-msg-add-inlineimages :which-key "inlineimages")
  "m"      '(jds/org-msg-add-text2png :which-key "tex2png"))
