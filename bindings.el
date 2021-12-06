@@ -386,6 +386,9 @@
   (key-chord-define-global "wq" 'save-buffer)
   (key-chord-define-global "WQ" 'evil-write-all))
 
+(defun jds~org-agenda-local-bindings ()
+  (key-chord-define-local "wq" #'org-save-all-org-buffers))
+(add-hook 'org-agenda-mode-hook 'jds~org-agenda-local-bindings)
 
 
 (provide 'bindings)
