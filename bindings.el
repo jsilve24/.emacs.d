@@ -56,11 +56,12 @@
 (defun jds/tab-dwim ()
   (interactive)
   (cond
+   ((and (texmathp) (or (bound-and-true-p cdlatex-mode)
+			org-cdlatex-mode))
+    (cdlatex-tab))
    ((and (string= (string (char-before)) " ")
 	 (string= major-mode "org-mode"))
     (org-cycle))
-   ((and (texmathp) (bound-and-true-p cdlatex-mode))
-    (cdlatex-tab)) 
    ((message--in-tocc-p)
     (completion-at-point))
    (t

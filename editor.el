@@ -41,7 +41,6 @@
 
 
 (use-package evil-embrace
-  :straight t
   :after evil-surround
   :config
   (evil-embrace-enable-evil-surround-integration)

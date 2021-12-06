@@ -1,23 +1,4 @@
 ;;; snippets.el --- setup yasnippets and such -*- lexical-binding: t; -*-
-;;
-;; Copyright (C) 2021 Justin Silverman
-;;
-;; Author: Justin Silverman <https://github.com/jsilve24>
-;; Maintainer: Justin Silverman <jsilve24@gmail.com>
-;; Created: October 22, 2021
-;; Modified: October 22, 2021
-;; Version: 0.0.1
-;; Keywords: abbrev bib c calendar comm convenience data docs emulations extensions faces files frames games hardware help hypermedia i18n internal languages lisp local maint mail matching mouse multimedia news outlines processes terminals tex tools unix vc wp
-;; Homepage: https://github.com/jsilve24/snippets
-;; Package-Requires: ((emacs "24.3"))
-;;
-;; This file is not part of GNU Emacs.
-;;
-;;; Commentary:
-;;
-;;  setup yasnippets and such
-;;
-;;; Code:
 
 ;;; setup consult-yassnippet
 
@@ -44,13 +25,18 @@
   (defmacro jds~aas-setup-insert-math (mode)
     `(progn (aas-set-snippets ,mode
 	      :cond #'(lambda () (not (texmathp)))
-	      ";m" (jds~yas-lambda-expand "\\\\($1\\\\)")
-	      ";M" (jds~yas-lambda-expand "\\\[$1\\\]"))
+	      ";m " (jds~yas-lambda-expand "\\\\($1\\\\)")
+	      ";M " (jds~yas-lambda-expand "\\\[$1\\\]"))
 	    (aas-set-snippets ,mode
 	      :cond #'texmathp
-	      ";u" (jds~yas-lambda-expand "_\\{$1\\}")
-	      ";U" (jds~yas-lambda-expand "^\\{$1\\}"))))
-
+	      ";u " (jds~yas-lambda-expand "_\\{$1\\}")
+	      ";U " (jds~yas-lambda-expand "^\\{$1\\}")
+	      ";aeq " "&="
+	      ";asim" "&\sim"
+	      ";udot " (jds~yas-lambda-expand "_\\{\\cdot\\}")
+	      ";inv " (jds~yas-lambda-expand "^\\{-1\\}")
+	      ";perp " (jds~yas-lambda-expand "^\\{\\perp\\}")
+	      ";para " (jds~yas-lambda-expand "^\\{\\parallel\\}"))))
   (jds~aas-setup-insert-math 'org-mode)
   (jds~aas-setup-insert-math 'latex-mode)
 

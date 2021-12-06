@@ -23,6 +23,13 @@
 ;;
 ;;; Code:
 
+
+;;; update package archives to include melpa
+(require 'package)
+(setq package-archives '(("gnu" . "https://elpa.gnu.org/packages/")
+			 ("melpa" . "https://melpa.org/packages/")
+			 ("nongnu" . "https://elpa.nongnu.org/nongnu/")))
+
 ;;; Simple macros
 
 (defun load-config (fn)
@@ -80,12 +87,6 @@
 (setq-default fill-column 100)
 
 
-;;; update package archives to include melpa
-(require 'package)
-(setq package-archives '(("gnu" . "https://elpa.gnu.org/packages/")
-			 ("melpa" . "https://melpa.org/packages/")
-			 ("nongnu" . "https://elpa.nongnu.org/nongnu/")))
-;; (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
 
 ;;; miscellaneous
 

@@ -26,7 +26,7 @@
     ("identifes" "identifies" nil :count 0)
     ("infernece" "inference" nil :count 5)
     ("informatoin" "information" nil :count 2)
-    ("interms" "in" nil :count 1)
+    ("interms" "in terms" nil :count 1)
     ("intorducing" "introducing" nil :count 0)
     ("intriduce" "introduce" nil :count 0)
     ("introuce" "introduce" nil :count 0)
