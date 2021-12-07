@@ -47,24 +47,24 @@
     (evil-set-cursor-color (get 'cursor 'evil-emacs-color)))
 
   (setq evil-ex-search-vim-style-regexp t
-        evil-ex-visual-char-range t
-        evil-mode-line-format nil
-        evil-symbol-word-search t
-        ;; if the current state is obvious from the cursor's color/shape, then
-        ;; we won't need superfluous indicators to do it instead.
-        evil-default-cursor '+evil-default-cursor-fn
-        evil-normal-state-cursor 'box
-        evil-emacs-state-cursor  '(box +evil-emacs-cursor-fn)
-        evil-insert-state-cursor 'bar
-        evil-visual-state-cursor 'hollow
-        ;; Only do highlighting in selected window so that Emacs has less work
-        ;; to do highlighting them all.
-        evil-ex-interactive-search-highlight 'selected-window
-        ;; It's infuriating that innocuous "beginning of line" or "end of line"
-        ;; errors will abort macros, so suppress them:
-        evil-kbd-macro-suppress-motion-error t
-        ;; evil-undo-system 'undo-fu
-        evil-undo-system 'undo-tree)
+	evil-ex-visual-char-range t
+	evil-mode-line-format nil
+	evil-symbol-word-search t
+	;; if the current state is obvious from the cursor's color/shape, then
+	;; we won't need superfluous indicators to do it instead.
+	evil-default-cursor '+evil-default-cursor-fn
+	evil-normal-state-cursor 'box
+	evil-emacs-state-cursor '(box +evil-emacs-cursor-fn)
+	evil-insert-state-cursor 'bar
+	evil-visual-state-cursor 'hollow
+	;; Only do highlighting in selected window so that Emacs has less work
+	;; to do highlighting them all.
+	evil-ex-interactive-search-highlight 'selected-window
+	;; It's infuriating that innocuous "beginning of line" or "end of line"
+	;; errors will abort macros, so suppress them:
+	evil-kbd-macro-suppress-motion-error t
+	;; evil-undo-system 'undo-fu
+	evil-undo-system 'undo-tree)
   :config
   (evil-mode 1)
 
@@ -116,8 +116,19 @@
   (setq evil-kill-on-visual-paste nil)
 
   ;; Get better undo history in insert mode
-  (setq evil-want-fine-undo t))
+  (setq evil-want-fine-undo t)
 
+  ;; deal with whitespace polluting kill-ring
+  ;; from here: https://emacs.stackexchange.com/questions/39434/evil-dont-yank-with-only-whitespace-to-register
+  (define-key evil-normal-state-map "x" 'delete-forward-char)
+  (define-key evil-normal-state-map "X" 'delete-backward-char)
+  (evil-define-operator evil-delete-without-register-if-whitespace (beg end type reg yank-handler)
+    (interactive "<R><y>")
+    (let ((text (replace-regexp-in-string "\n" "" (filter-buffer-substring beg end))))
+      (if (string-match-p "^\\s-*$" text)
+	  (evil-delete beg end type ?_)
+	(evil-delete beg end type reg yank-handler))))
+  (define-key evil-normal-state-map "d" #'evil-delete-without-register-if-whitespace))
 
 ;;; evil-collection
 
