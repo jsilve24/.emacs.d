@@ -71,6 +71,7 @@
 (load-config "snippets.el")
 ;; ;; after everything else
 (load-config "bindings.el")
+(load-config "debugging.el")
 
 
 ;;; languages
