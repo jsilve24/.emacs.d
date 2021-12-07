@@ -22,6 +22,12 @@
     `'(lambda () (interactive)
 	(yas-expand-snippet ,str)))
 
+  (defun jds~string-just-one-space (str)
+    (progn
+      (just-one-space)
+      (insert str)
+      (just-one-space)))
+
   (defmacro jds~aas-setup-insert-math (mode)
     `(progn (aas-set-snippets ,mode
 	      :cond #'(lambda () (not (texmathp)))
@@ -29,14 +35,16 @@
 	      ";M " (jds~yas-lambda-expand "\\\[$1\\\]"))
 	    (aas-set-snippets ,mode
 	      :cond #'texmathp
-	      ";u " (jds~yas-lambda-expand "_\\{$1\\}")
-	      ";U " (jds~yas-lambda-expand "^\\{$1\\}")
-	      ";aeq " "&="
-	      ";asim" "&\sim"
-	      ";udot " (jds~yas-lambda-expand "_\\{\\cdot\\}")
-	      ";inv " (jds~yas-lambda-expand "^\\{-1\\}")
-	      ";perp " (jds~yas-lambda-expand "^\\{\\perp\\}")
-	      ";para " (jds~yas-lambda-expand "^\\{\\parallel\\}"))))
+	      ";u "      (jds~yas-lambda-expand "_\\{$1\\}")
+	      ";U "      (jds~yas-lambda-expand "^\\{$1\\}")
+	      ";udot "   (jds~yas-lambda-expand "_\\{\\cdot $1\\}")
+	      ";aeq "   #'(lambda () (interactive) (jds~string-just-one-space "&="))
+	      ";asim "  #'(lambda () (interactive) (jds~string-just-one-space "&\\sim"))
+	      ";inv "    (jds~yas-lambda-expand "^\\{-1\\}")
+	      ";inset "    (jds~yas-lambda-expand "\\in\\\\{$1\\\\}")
+	      ";perp "   (jds~yas-lambda-expand "^\\{\\perp\\}")
+	      ";para "   (jds~yas-lambda-expand "^\\{\\parallel\\}")
+	      ";text "   (jds~yas-lambda-expand "\\text\\{$1\\}"))))
   (jds~aas-setup-insert-math 'org-mode)
   (jds~aas-setup-insert-math 'latex-mode)
 

@@ -27,15 +27,26 @@
   :config
   (avy-setup-default)
   (setq avy-keys (number-sequence ?a ?z)
-        avy-style 'de-bruijn
-        avy-all-windows 'nil
-        avy-case-fold-search t
-        avy-highlight-first t
-        avy-single-candidate-jump t
-        avy-styles-alst '((avy-goto-line . pre))
-        avy-orders-alist '((avy-goto-char . avy-order-closest)
-                           (avy-goto-word-0 . avy-order-closest)
-                           (avy-goto-line . avy-order-closest))))
+	avy-style 'de-bruijn
+	avy-all-windows '()
+	avy-case-fold-search t
+	avy-highlight-first t
+	avy-single-candidate-jump t
+	avy-styles-alst '((avy-goto-line . pre))
+	avy-orders-alist '((avy-goto-char . avy-order-closest)
+			   (avy-goto-word-0 . avy-order-closest)
+			   (avy-goto-line . avy-order-closest)))
+  ;; embark act from here https://karthinks.com/software/avy-can-do-anything/
+  (defun avy-action-embark (pt)
+    (unwind-protect
+	(save-excursion
+	  (goto-char pt)
+	  (embark-act))
+      (select-window
+       (cdr (ring-ref avy-ring 0))))
+    t)
+
+  (setf (alist-get ?\; avy-dispatch-alist) 'avy-action-embark))
 
 ;;; link-hint
 

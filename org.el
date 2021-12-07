@@ -8,27 +8,35 @@
 
 (use-package org
   ;; :commands (org-agenda)
-  :hook (org-mode . turn-on-org-cdlatex)
   :init
-  ;;; hack to avoid
-  ;;; org-element-cache-map: Symbol’s function definition is void: native-comp-available-p
+;;; hack to avoid
+;;; org-element-cache-map: Symbol’s function definition is void: native-comp-available-p
   (defun native-comp-available-p () nil)
   
   :config
+  
   ;; don't include files in .attach
   (setq org-agenda-files
 	(seq-filter
 	 (lambda (x) (and  (not (string-match-p (rx "\.attach") x))
-			  (not (string-match-p (rx "ShoeTracking") x))
-			  (not (string-match-p (rx "emacs cheatsheet") x))))
+			   (not (string-match-p (rx "ShoeTracking") x))
+			   (not (string-match-p (rx "emacs cheatsheet") x))))
 	 (directory-files-recursively "~/Dropbox/org/" "\\.org$")))
 
   (setq org-directory "~/Dropbox/org")
 
-  ;;; high level config
+;;; high level config
   (setq org-default-notes-file "~/Dropbox/org/inbox.org")
 
-  ;;; make org-ret follow inks
+  ;; turn on cdlatex
+  (add-hook 'org-mode-hook 'turn-on-org-cdlatex)
+  ;; latex highlighting
+  (setq org-highlight-latex-and-related '(latex entities))
+  (set-face-attribute 'org-latex-and-related nil
+		      :foreground "#51afef"
+		      :weight 'normal)
+  
+;;; make org-ret follow inks
   (setq org-return-follows-link t)
 
   
@@ -53,12 +61,12 @@
   (setq org-blank-before-new-entry (quote ((heading)
                                            (plain-list-item . auto))))
 
-  (add-hook 'org-trigger-hook 'save-buffer)
+  ;; (add-hook 'org-trigger-hook 'save-buffer)
 
   ;; Prevent editing invisible (folded) text
   (setq org-catch-invisible-edits 'error)
 
-  ;;; setup refile
+;;; setup refile
 
   ;; Targets include this file and any file contributing to the agenda - up to 9 levels deep
   (setq org-refile-targets (quote ((nil :maxlevel . 9)
@@ -66,7 +74,7 @@
 
   ;; make it work nicely with vertico
   (setq org-refile-use-outline-path 'file
-      org-outline-path-complete-in-steps nil)
+	org-outline-path-complete-in-steps nil)
   
 
   ;; Allow refile to create parent tasks with confirmation
@@ -78,7 +86,7 @@
     (not (member (nth 2 (org-heading-components)) org-done-keywords)))
   (setq org-refile-target-verify-function 'bh/verify-refile-target)
 
-  ;;; setup agenda
+;;; setup agenda
 
   ;; More visible current time in Agenda
   (setq org-agenda-current-time-string ">>>>>>>>>> NOW <<<<<<<<<<")
@@ -118,14 +126,14 @@
                         (org-agenda-format-date "")
                         (org-agenda-skip-function '(lambda () (interactive) (skip-not-tag "mail")))))
             (tags-todo "REFILE" ((org-agenda-overriding-header "To Refile")
-                            (org-tags-match-list-sublevels nil)))))))
+				 (org-tags-match-list-sublevels nil)))))))
 
 
   ;; Remove completed deadline and scheduled tasks from the agenda view
   (setq org-agenda-skip-deadline-if-done t)
   (setq org-agenda-skip-scheduled-if-done t)
 
-  ;;; setup capture
+;;; setup capture
 
   (add-hook 'org-capture-before-finalize-hook (lambda () (org-align-tags t)))
   (setq org-capture-templates
@@ -181,7 +189,7 @@
   ;; 					       (in-mode . "mu4e-headers-mode")
   ;; 					       (in-mode . "mu4e-view-mode")))))
   
-  ;;; appearnace customizatoins
+;;; appearnace customizatoins
   (setq org-ellipsis " ▾")
 
   ;; don't wrap lines in org-agenda
