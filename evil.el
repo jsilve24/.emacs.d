@@ -186,7 +186,7 @@
   :ensure t
   :config
   (global-evil-surround-mode 1)
-  not sure why its bound to gS or S in visual state but I don't like the asymmetry
+  ;; not sure why its bound to gS or S in visual state but I don't like the asymmetry
   (evil-define-key 'visual evil-surround-mode-map "s" 'evil-surround-region)
   (evil-define-key 'visual evil-surround-mode-map "S" 'evil-Surround-region))
 
