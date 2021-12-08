@@ -358,7 +358,7 @@ buffer (=minimizing in other WM/DE)"
 
 ;; exwm-helper to move window / buffer to new frame (including fames not currently visible)
 (use-package exwm-helper
-  :commands eh-current-window-to-workspace-and-follow-by-index eh-current-window-to-workspace-completing-read
+  :commands eh-current-window-to-workspace-and-follow-by-index eh-current-window-to-workspace-and-follow-by-index
   :straight (exwm-helper :type git :host github :repo "jsilve24/exwm-helper")
   :config
   (setq eh-split-window-function 'jds~new-frame-or-new-window
@@ -390,7 +390,7 @@ buffer (=minimizing in other WM/DE)"
     (add-to-list 'embark-keymap-alist '(application . embark-application-map))
     (define-key embark-application-map (kbd "o") (jds/embark-ace-action app-launcher-run-app))
     (define-key embark-application-map (kbd "v") (jds/embark-split-action app-launcher-run-app split-window-right))
-    (define-key embark-bookmark-map (kbd "s") (jds/embark-split-action app-launcher-run-app split-window-below)))))
+    (define-key embark-application-map (kbd "s") (jds/embark-split-action app-launcher-run-app split-window-below)))))
 
 
 
