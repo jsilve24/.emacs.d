@@ -119,7 +119,7 @@
   (setq evil-want-fine-undo t)
 
   ;; deal with whitespace polluting kill-ring
-  ;; from here: https://emacs.stackexchange.com/questions/39434/evil-dont-yank-with-only-whitespace-to-register
+  ;;from here: https://emacs.stackexchange.com/questions/39434/evil-dont-yank-with-only-whitespace-to-register
   (define-key evil-normal-state-map "x" 'delete-forward-char)
   (define-key evil-normal-state-map "X" 'delete-backward-char)
   (evil-define-operator evil-delete-without-register-if-whitespace (beg end type reg yank-handler)
@@ -128,7 +128,8 @@
       (if (string-match-p "^\\s-*$" text)
 	  (evil-delete beg end type ?_)
 	(evil-delete beg end type reg yank-handler))))
-  (define-key evil-normal-state-map "d" #'evil-delete-without-register-if-whitespace))
+  (define-key evil-normal-state-map "d" #'evil-delete-without-register-if-whitespace)
+  )
 
 ;;; evil-collection
 
@@ -143,55 +144,6 @@
 
 ;;; Additional Evil packages
 
-;; (use-package evil-embrace
-;;   :straight t
-;;   :commands embrace-add-pair embrace-add-pair-regexp
-;;   :hook (LaTeX-mode . embrace-LaTeX-mode-hook)
-;;   :hook (LaTeX-mode . +evil-embrace-latex-mode-hook-h)
-;;   :hook (org-mode . embrace-org-mode-hook)
-;;   :hook (ruby-mode . embrace-ruby-mode-hook)
-;;   :hook (emacs-lisp-mode . embrace-emacs-lisp-mode-hook)
-;;   :hook ((lisp-mode emacs-lisp-mode clojure-mode racket-mode hy-mode)
-;;          . +evil-embrace-lisp-mode-hook-h)
-;;   :hook ((c++-mode rustic-mode csharp-mode java-mode swift-mode typescript-mode)
-;;          . +evil-embrace-angle-bracket-modes-hook-h)
-;;   :hook (scala-mode . +evil-embrace-scala-mode-hook-h)
-;;   :init
-;;   (after! evil-surround
-;;     (evil-embrace-enable-evil-surround-integration))
-;;   :config
-;;   (setq evil-embrace-show-help-p nil)
-
-;;   (defun +evil-embrace-scala-mode-hook-h ()
-;;     (embrace-add-pair ?$ "${" "}"))
-
-;;   (defun +evil-embrace-latex-mode-hook-h ()
-;;     (embrace-add-pair-regexp ?l "\\[a-z]+{" "}" #'+evil--embrace-latex))
-
-;;   (defun +evil-embrace-lisp-mode-hook-h ()
-;;     ;; Avoid `embrace-add-pair-regexp' because it would overwrite the default
-;;     ;; `f' rule, which we want for other modes
-;;     (push (cons ?f (make-embrace-pair-struct
-;;                     :key ?f
-;;                     :read-function #'+evil--embrace-elisp-fn
-;;                     :left-regexp "([^ ]+ "
-;;                     :right-regexp ")"))
-;;           embrace--pairs-list))
-
-;;   (defun +evil-embrace-angle-bracket-modes-hook-h ()
-;;     (let ((var (make-local-variable 'evil-embrace-evil-surround-keys)))
-;;       (set var (delq ?< evil-embrace-evil-surround-keys))
-;;       (set var (delq ?> evil-embrace-evil-surround-keys)))
-;;     (embrace-add-pair-regexp ?< "\\_<[a-z0-9-_]+<" ">" #'+evil--embrace-angle-brackets)
-;;     (embrace-add-pair ?> "<" ">"))
-
-;;   ;; Add escaped-sequence support to embrace
-;;   (setf (alist-get ?\\ (default-value 'embrace--pairs-list))
-;;         (make-embrace-pair-struct
-;;          :key ?\\
-;;          :read-function #'+evil--embrace-escaped
-;;          :left-regexp "\\[[{(]"
-;;          :right-regexp "\\[]})]")))
 
 
 
@@ -227,15 +179,45 @@
   :general ([remap comment-line] #'evilnc-comment-or-uncomment-lines))
 
 
-;;; evil-surround
+
+;;; evil-suround and evil-embrace
 (use-package evil-surround
   :straight t
-  :commands (global-evil-surround-mode
-             evil-surround-edit
-             evil-Surround-edit
-             evil-surround-region)
-  :config (global-evil-surround-mode 1))
+  :ensure t
+  :config
+  (global-evil-surround-mode 1)
+  not sure why its bound to gS or S in visual state but I don't like the asymmetry
+  (evil-define-key 'visual evil-surround-mode-map "s" 'evil-surround-region)
+  (evil-define-key 'visual evil-surround-mode-map "S" 'evil-Surround-region))
 
+
+(use-package evil-embrace
+  :after evil-surround
+  :config
+  (evil-embrace-enable-evil-surround-integration)
+  (add-hook 'LaTeX-mode-hook 'embrace-LaTeX-mode-hook)
+  (add-hook 'org-mode-hook 'embrace-org-mode-hook))
+;; see here: https://github.com/cute-jumper/embrace.el#adding-more-surrounding-pairs
+;; for how to add more custom pairs
+
+
+;;; setup evil alignment (evil-lion)
+(use-package evil-lion
+  :straight t
+  :defer t
+  :config
+  ;; these need to be called before evil-lion-mode is called
+  (setq evil-lion-left-align-key (kbd "z l"))
+  (setq evil-lion-right-align-key (kbd "z L"))
+  (evil-lion-mode))
+
+
+(use-package evil-args
+  :demand t
+  :after evil
+  :commands (evil-inner-arg evil-outer-arg
+             evil-forward-arg evil-backward-arg
+             evil-jump-out-args))
 
 
 ;; (use-package evil-traces

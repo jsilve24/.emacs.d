@@ -29,36 +29,6 @@
 ;; seems lighter weight than smartparens
 (electric-pair-mode 1)
 
-;;; evil-suround and evil-embrace
-(use-package evil-surround
-  :straight t
-  :ensure t
-  :config
-  (global-evil-surround-mode 1)
-  ;; not sure why its bound to gS or S in visual state but I don't like the asymmetry
-  (evil-define-key 'visual evil-surround-mode-map "s" 'evil-surround-region)
-  (evil-define-key 'visual evil-surround-mode-map "S" 'evil-Surround-region))
-
-
-(use-package evil-embrace
-  :after evil-surround
-  :config
-  (evil-embrace-enable-evil-surround-integration)
-  (add-hook 'LaTeX-mode-hook 'embrace-LaTeX-mode-hook)
-  (add-hook 'org-mode-hook 'embrace-org-mode-hook))
-;; see here: https://github.com/cute-jumper/embrace.el#adding-more-surrounding-pairs
-;; for how to add more custom pairs
-
-
-;;; setup evil alignment (evil-lion)
-(use-package evil-lion
-  :straight t
-  :defer t
-  :config
-  ;; these need to be called before evil-lion-mode is called
-  (setq evil-lion-left-align-key (kbd "z l"))
-  (setq evil-lion-right-align-key (kbd "z L"))
-  (evil-lion-mode))
 
 
 ;;; fill and unfill

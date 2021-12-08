@@ -249,7 +249,7 @@
 ;;; git
 
 (jds/leader-def
- "g" '(:ignore t :which-key "search")
+ "g" '(:ignore t :which-key "git")
  "gg" #'magit-status)
 
 ;;; evil bindings
