@@ -228,6 +228,30 @@ targets."
   (define-key embark-bookmark-map (kbd "v") (jds/embark-split-action bookmark-jump split-window-right))
 
 
+  ;; create new embark keymap for org-headings
+  (add-to-list 'marginalia-prompt-categories '("Go to heading:" . consult-org-heading))
+  (embark-define-keymap embark-consult-org-heading-map
+    "Keymap to use with embark and consult-org-heading")
+  (add-to-list 'embark-keymap-alist '(consult-org-heading . embark-consult-org-heading-map))
+  (define-key embark-consult-org-heading-map (kbd "o") (jds/embark-ace-action consult-org-agenda))
+  (define-key embark-consult-org-heading-map (kbd "v") (jds/embark-split-action consult-org-agenda split-window-right))
+  (define-key embark-consult-org-heading-map (kbd "s") (jds/embark-split-action consult-org-agenda split-window-below)))))
+
+  
+  ;; (with-eval-after-load 'app-launcher
+  ;;   (with-eval-after-load 'marginalia
+  ;;     (with-eval-after-load 'embark 
+  ;;     ;; new completion category called "application"
+  ;;     (add-to-list 'marginalia-prompt-categories '("Run app: " . application))
+
+  ;;     ;; make app-launcher keymap for embark and add nice functions to them
+  ;;     (embark-define-keymap embark-application-map
+  ;; 			  "Keymap for use with app-launcher")
+  ;;     (add-to-list 'embark-keymap-alist '(application . embark-application-map))
+  ;;     (define-key embark-application-map (kbd "o") (jds/embark-ace-action app-launcher-run-app))
+  ;;     (define-key embark-application-map (kbd "v") (jds/embark-split-action app-launcher-run-app split-window-right))
+  ;;     (define-key embark-application-map (kbd "s") (jds/embark-split-action app-launcher-run-app split-window-below)))))
+
   ;; open file as sudo
   (defun sudo-find-file (file)
     "Open FILE as root."
