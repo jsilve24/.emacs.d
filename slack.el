@@ -7,6 +7,9 @@
   (setq slack-buffer-emojify t
 	slack-prefer-current-team t)
   :config
+  ;; make default same window
+  (setq slack-buffer-function #'switch-to-buffer)
+  
   (slack-register-team
    :name "silvermanlabhq"
    :default t
@@ -17,6 +20,30 @@
 	    :host "silvermanlabhq.slack.com"
 	    :user "justinsilverman@psu.edu^cookie")
    :subscribed-channels '((bacteremia fido-development general random interesting-papers)))
+
+  ;; link-hint for files
+  ;; Mandatory Keywords :next should be a function that returns the position of
+  ;; the next link after the point (i.e. if there is a link at the point, it should not return the
+  ;; point). It should take one argument that corresponds to the end bound for searching. Also, it
+  ;; should not move the point.
+
+  ;; :at-point-p should be a function that returns a non-nil value if there is a link at the point.
+  ;; Its return value can be used in the action functions.
+  (defun jds~slack-at-file-p ()
+    (get-text-property (point) 'file))
+
+  (defun  jds~slack-next-file (end)
+    (if (jds~slack-at-file-p)
+	nil
+      (save-excursion
+	(re-search-forward "open in browser" end t)
+	(backward-word 4)
+	(point))))
+  (link-hint-define-type 'slack-file
+    :next #'jds~slack-next-file
+    :at-point-p #'jds~slack-at-file-p
+    :open #'slack-file-display)
+  (push 'link-hint-slack-file link-hint-types)
 
   ;; this code from here: https://ag91.github.io/blog/2020/09/12/org-mode-links-for-emacs-slack/
   (with-eval-after-load 'org
@@ -102,7 +129,8 @@
   "u" 'slack-room-update-messages
   "M" 'slack-message-embed-mention
   "C" 'slack-message-embed-channel
-  "a" 'slack-file-upload)
+  "a" 'slack-file-upload
+  "A" 'slack-download-file-at-point)
 
 (general-define-key
  :keymaps 'slack-mode-map

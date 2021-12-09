@@ -120,15 +120,15 @@
 
   ;; deal with whitespace polluting kill-ring
   ;;from here: https://emacs.stackexchange.com/questions/39434/evil-dont-yank-with-only-whitespace-to-register
-  (define-key evil-normal-state-map "x" 'delete-forward-char)
-  (define-key evil-normal-state-map "X" 'delete-backward-char)
-  (evil-define-operator evil-delete-without-register-if-whitespace (beg end type reg yank-handler)
-    (interactive "<R><y>")
-    (let ((text (replace-regexp-in-string "\n" "" (filter-buffer-substring beg end))))
-      (if (string-match-p "^\\s-*$" text)
-	  (evil-delete beg end type ?_)
-	(evil-delete beg end type reg yank-handler))))
-  (define-key evil-normal-state-map "d" #'evil-delete-without-register-if-whitespace)
+  ;; (define-key evil-normal-state-map "x" 'delete-forward-char)
+  ;; (define-key evil-normal-state-map "X" 'delete-backward-char)
+  ;; (evil-define-operator evil-delete-without-register-if-whitespace (beg end type reg yank-handler)
+  ;;   (interactive "<R><y>")
+  ;;   (let ((text (replace-regexp-in-string "\n" "" (filter-buffer-substring beg end))))
+  ;;     (if (string-match-p "^\\s-*$" text)
+  ;; 	  (evil-delete beg end type ?_)
+  ;; 	(evil-delete beg end type reg yank-handler))))
+  ;; (define-key evil-normal-state-map "d" #'evil-delete-without-register-if-whitespace)
   )
 
 ;;; evil-collection
