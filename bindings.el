@@ -179,9 +179,7 @@
   "afr"    #'fill-region
   "afP"    #'unfill-paragraph
   "afR"    #'unfill-region
-  "af SPC" #'unfill-toggle
-  "al"     #'evil-lion-left
-  "aL"     #'evil-lion-right)
+  "af SPC" #'unfill-toggle)
 
 
 ;;; repls and such
@@ -194,38 +192,40 @@
 ;;; org and apps
 
 (jds/sub-leader-def
- "," #'org-capture           ;; q "new"
- "C-," #'org-capture           ;; q "new"
- "<" #'org-capture-goto-target ;; new and follow
- ">" #'org-capture-goto-last-stored
- "a" #'jds/affe-find-files-home
- "z" #'zoxide-find-file
- "Z" #'zoxide-cd
- "c" #'jds/mu4e-compose-goto-to
- ;; "M" #'jds/open-mu4e-new-frame
- ;; "m" #'mu4e
- "m" #'(lambda () (interactive)
-	 (mu4e-headers-search-bookmark
-	  (mu4e-get-bookmark-query ?t)))
- "M" #'(lambda () (interactive)
-	 (jds~new-frame-or-new-window)
-	 (mu4e-headers-search-bookmark (mu4e-get-bookmark-query ?t)))
- "l" #'org-store-link
- "i" #'org-insert-link
- ;; "t" #'vterm
- "t" #'multi-vterm-next
- "f" #'jds/org-agenda-show-custom-day
- "F" #'jds/open-custom-day-agenda-new-frame
- "p" #'org-agenda
- "s" #'consult-org-agenda
- "S" #'org-search-view
- "k" #'helpful-at-point
- ;; "d" #'dired-jump
- "d" #'jds/dired-jump-reuse-dired
- "D" #'jds/dired-jump-and-kill-buffer
- "j" #'(:ignore t :wk "dired jump to")
- "jd" #'(lambda () (interactive) (dired "~/Downloads/"))
- "jh" #'(lambda () (interactive) (dired "~")))
+  "," #'org-capture		;; q "new"
+  "C-," #'org-capture		;; q "new"
+  "<" #'org-capture-goto-target ;; new and follow
+  ">" #'org-capture-goto-last-stored
+  "a" #'jds/affe-find-files-home
+  "z" #'zoxide-find-file
+  "Z" #'zoxide-cd
+  "c" #'jds/mu4e-compose-goto-to
+  ;; "M" #'jds/open-mu4e-new-frame
+  ;; "m" #'mu4e
+  "m" #'(lambda () (interactive)
+	  (mu4e-headers-search-bookmark
+	   (mu4e-get-bookmark-query ?t)))
+  "M" #'(lambda () (interactive)
+	  (jds~new-frame-or-new-window)
+	  (mu4e-headers-search-bookmark (mu4e-get-bookmark-query ?t)))
+  "l" #'org-store-link
+  "i" #'org-insert-link
+  ;; "t" #'vterm
+  "t" #'multi-vterm-next
+  "f" #'jds/org-agenda-show-custom-day
+  "F" #'jds/open-custom-day-agenda-new-frame
+  "p" #'org-agenda
+  "s" #'consult-org-agenda
+  "S" #'org-search-view
+  "y" #'slack-im-select
+  "Y" #'slack-channel-select
+  "k" #'helpful-at-point
+  ;; "d" #'dired-jump
+  "d" #'jds/dired-jump-reuse-dired
+  "D" #'jds/dired-jump-and-kill-buffer
+  "j" #'(:ignore t :wk "dired jump to")
+  "jd" #'(lambda () (interactive) (dired "~/Downloads/"))
+  "jh" #'(lambda () (interactive) (dired "~")))
 
 ;;; faster editing in text buffers
 
@@ -338,10 +338,12 @@
 (general-define-key
  :states '(normal visual)
  ;; note a bunch taken by evil fold
- "zf" #'find-file-at-point
- "zF" #'find-file-other-frame
- "zd" #'xref-find-definitions
- "zD" #'xref-find-definitions-other-frame)
+ "zf"  #'find-file-at-point
+ "zF"  #'find-file-other-frame
+ "zd"  #'xref-find-definitions
+ "zD"  #'xref-find-definitions-other-frame
+ "zl"  #'evil-lion-left
+ "zL"  #'evil-lion-right)
 
 (general-define-key
  :keymaps 'org-mode-map

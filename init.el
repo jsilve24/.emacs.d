@@ -79,6 +79,9 @@
 (load-config "ess.el")
 (load-config "autoloads/ess-autoloads.el")
 
+;;; "optional" applications
+(load-config "slack.el")
+
 ;; Start Server if not already running
 (require 'server)
 (if (and (fboundp 'server-running-p)

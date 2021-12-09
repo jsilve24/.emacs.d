@@ -171,6 +171,8 @@
 ;; Disable line numbers for some modes
 (dolist (mode '(;;org-mode-hook
                 term-mode-hook
+		slack-message-buffer-mode-hook
+		slack-file-list-buffer-mode-hook
                 pdf-view-mode-hook
 		doc-view-mode-hook
 		vterm-mode-hook
