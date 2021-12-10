@@ -57,8 +57,7 @@
   (lispyville-set-key-theme
    '(operators
      text-objects
-     c-w
-     (atom-motions)
+     atom-motions
      ;; additional-motions ;; these are just weird I just bind these myself
      prettify 
      ;; commentary ;; doesn't work since I set gc in override see hook below instead
@@ -66,8 +65,7 @@
      wrap
      additional
      additional-insert
-     ;;arrows
-     ))
+     mark))
   ;; hack to activate some commentary (and more) functions 
   (defun lispyville-activate-commentary-theme ()
     ;; override default comment
@@ -81,7 +79,8 @@
     (evil-define-key 'insert 'local (kbd "[") 'self-insert-command)
     (evil-define-key 'insert 'local (kbd "]") 'self-insert-command)
     (evil-define-key '(motion) 'local (kbd "(") 'lispyville-backward-up-list)
-    (evil-define-key '(motion) 'local (kbd ")") 'lispyville-up-list))
+    (evil-define-key '(motion) 'local (kbd ")") 'lispyville-up-list)
+    (evil-define-key '(insert) 'local (kbd "C-w") 'lispyville-delete-backward-word))
   (add-hook 'lispyville-mode-hook #'lispyville-activate-commentary-theme))
 
 
