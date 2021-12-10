@@ -49,7 +49,7 @@
   ;; (add-hook 'minibuffer-setup-hook 'conditionally-enable-lispy)
   )
 
-use-package lispyville
+(use-package lispyville
   :after lispy
   :hook (lispy-mode . lispyville-mode)
   :config
