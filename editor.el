@@ -49,7 +49,7 @@
   ;; (add-hook 'minibuffer-setup-hook 'conditionally-enable-lispy)
   )
 
-(use-package lispyville
+use-package lispyville
   :after lispy
   :hook (lispy-mode . lispyville-mode)
   :config
@@ -57,8 +57,9 @@
   (lispyville-set-key-theme
    '(operators
      text-objects
-     (atom-motions t)
-     ;; additional-motions ;; these are just weird
+     c-w
+     (atom-motions)
+     ;; additional-motions ;; these are just weird I just bind these myself
      prettify 
      ;; commentary ;; doesn't work since I set gc in override see hook below instead
      slurp/barf-cp
@@ -67,12 +68,22 @@
      additional-insert
      ;;arrows
      ))
-  ;; hack to activate some commentary functions 
+  ;; hack to activate some commentary (and more) functions 
   (defun lispyville-activate-commentary-theme ()
-      ;; override default comment
+    ;; override default comment
     (evil-define-key 'motion 'local (kbd "M-;") #'lispyville-comment-or-uncomment-line)
-    (evil-define-key 'insert 'local (kbd "M-;") #'lispyville-comment-or-uncomment-line)) 
+    (evil-define-key 'insert 'local (kbd "M-;") #'lispyville-comment-or-uncomment-line)
+    (evil-define-key 'insert 'local (kbd ";") #'self-insert-command)
+    (evil-define-key '(motion operator) 'local (kbd "[[") 'lispyville-previous-opening)
+    (evil-define-key '(motion operator) 'local (kbd "{") 'lispyville-previous-closing)
+    (evil-define-key '(motion operator) 'local (kbd "]]") 'lispyville-next-opening)
+    (evil-define-key '(motion operator) 'local (kbd "}") 'lispyville-next-closing)
+    (evil-define-key 'insert 'local (kbd "[") 'self-insert-command)
+    (evil-define-key 'insert 'local (kbd "]") 'self-insert-command)
+    (evil-define-key '(motion) 'local (kbd "(") 'lispyville-backward-up-list)
+    (evil-define-key '(motion) 'local (kbd ")") 'lispyville-up-list))
   (add-hook 'lispyville-mode-hook #'lispyville-activate-commentary-theme))
+
 
 
 ;; stolen from here: http://xahlee.info/emacs/emacs/elisp_title_case_text.html

@@ -16,6 +16,7 @@
 (use-package aas
   :hook (LaTeX-mode . aas-activate-for-major-mode)
   :hook (org-mode . aas-activate-for-major-mode)
+  :hook (emacs-lisp-mode . aas-activate-for-major-mode)
   :config
 
   (defmacro jds~yas-lambda-expand (str)
@@ -48,6 +49,15 @@
   (jds~aas-setup-insert-math 'org-mode)
   (jds~aas-setup-insert-math 'latex-mode)
 
+  ;; elisp snippets
+  (aas-set-snippets 'emacs-lisp-mode
+    ";auto" ";;;###autoload"
+    ";straight" (jds~yas-lambda-expand  ":straight ($1 :type git :host github :repo \"$2\")")
+    ";defun" (jds~yas-lambda-expand "(defun $1 ($2)\n\"$3\"\n$4)")
+    ";defmacro" (jds~yas-lambda-expand "(defmacro $1 ($2)\n\"$3\"\n\`($4))")
+    ";setq" (jds~yas-lambda-expand "(setq $1 $2)")
+    ";use"  (jds~yas-lambda-expand "(use-package $1)"))
+  
   ;; (aas-set-snippets 'text-mode
   ;;   ;; expand unconditionally
   ;;   "o-" "ō"
