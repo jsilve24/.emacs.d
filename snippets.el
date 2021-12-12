@@ -57,7 +57,35 @@
     ";defmacro" (jds~yas-lambda-expand "(defmacro $1 ($2)\n\"$3\"\n\`($4))")
     ";setq" (jds~yas-lambda-expand "(setq $1 $2)")
     ";use"  (jds~yas-lambda-expand "(use-package $1)"))
+
+  (defun jds~comment-rule (string)
+    "Prompts for `STRING` and horizontal rule starting with comment char as heading."
+    (interactive "sHeadline: ")
+    (comment-normalize-vars)
+    ;; make a blank line if not already on one
+    (if (progn (beginning-of-line)
+	       (looking-at-p "[[:space:]]*$"))
+	(delete-region (point) (progn (skip-chars-forward " \t") (point)))
+      (move-end-of-line 1)
+      (open-line 1)
+      (forward-line))
+    (insert-char (string-to-char comment-start) 3)
+    (just-one-space)
+    (insert string)
+    (end-of-line)
+    ;; (let ((p (point)))
+    ;;   (comment-line 1)
+    ;;   (goto-char p)
+    ;;   (end-of-line))
+    (just-one-space)
+    (while (< (current-column) 80)
+      (insert "-")))
   
+  ;; all programming modes
+  (aas-set-snippets 'prog-mode
+    ";h " #'jds~comment-rule)
+
+
   ;; (aas-set-snippets 'text-mode
   ;;   ;; expand unconditionally
   ;;   "o-" "ō"

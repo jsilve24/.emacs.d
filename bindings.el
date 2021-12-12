@@ -218,7 +218,7 @@
   "s" #'consult-org-agenda
   "S" #'org-search-view
   "y" #'slack-select-rooms
-  ;; "Y" #'slack-channel-select
+  "Y" #'slack-select-unread-rooms
   "k" #'helpful-at-point
   ;; "d" #'dired-jump
   "d" #'jds/dired-jump-reuse-dired

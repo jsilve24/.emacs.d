@@ -235,7 +235,7 @@ targets."
   (add-to-list 'embark-keymap-alist '(consult-org-heading . embark-consult-org-heading-map))
   (define-key embark-consult-org-heading-map (kbd "o") (jds/embark-ace-action consult-org-agenda))
   (define-key embark-consult-org-heading-map (kbd "v") (jds/embark-split-action consult-org-agenda split-window-right))
-  (define-key embark-consult-org-heading-map (kbd "s") (jds/embark-split-action consult-org-agenda split-window-below)))))
+  (define-key embark-consult-org-heading-map (kbd "s") (jds/embark-split-action consult-org-agenda split-window-below))
 
   
   ;; open file as sudo

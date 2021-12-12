@@ -2,10 +2,12 @@
 
 
 (use-package slack
-  :commands slack-start
+  :commands slack-start 
   :init
   (setq slack-buffer-emojify t
 	slack-prefer-current-team t)
+  ;; just here to avoid issues with autoloads below not sure why this is necessary
+  (defun slack-thread-message-buffer ())
   :config
   ;; make default same window
   (setq slack-buffer-function #'switch-to-buffer)
@@ -53,7 +55,7 @@ mention-count)) (channel . (has-unreads . mention-count)))))"
   (setq slack-enable-global-mode-string t)
 
   ;; enable live markup in messages
-  (setq slack-enable-wysiwyg t)
+  ;; (setq slack-enable-wysiwyg t)
 
   ;; add company support
   (add-to-list 'company-backends 'company-slack-backend)
@@ -85,64 +87,71 @@ mention-count)) (channel . (has-unreads . mention-count)))))"
   ;;   :open #'slack-file-display)
   ;; (push 'link-hint-slack-file link-hint-types)
 
-  ;; this code from here: https://ag91.github.io/blog/2020/09/12/org-mode-links-for-emacs-slack/
+  )
+
+(with-eval-after-load 'slack
   (with-eval-after-load 'org
+    ;; this code from here: https://ag91.github.io/blog/2020/09/12/org-mode-links-for-emacs-slack/
     ;; custom org-link type
     (org-link-set-parameters "emacs-slack"
 			     :follow #'ol/slack-follow-link
 			     :export #'ol/slack-export
-			     :store #'ol/slack-store-link)
+			     :store #'ol/slack-store-link)))
 
-    (defun ol/slack-export (link description format)
-      "Export a emacs-slack link from Org files."
-      (let ((desc (or description link)))
-	desc))
+;;;###autoload
+(defun ol/slack-export (link description format)
+  "Export a emacs-slack link from Org files."
+  (let ((desc (or description link)))
+    desc))
 
-    (defun ol/slack-store-link ()
-      "Store a link to a man page."
-      (when (eq major-mode 'slack-message-buffer-mode)
-	(let* ((buf slack-current-buffer)
-	       (team (slack-buffer-team buf))
-	       (team-name (oref team name))
-	       (room (slack-buffer-room buf))
-	       (room-name (slack-room-name room team))
-	       (link (funcall
-		      slack-message-notification-title-format-function
-		      team-name
-		      room-name
-		      (cl-typep buf 'slack-thread-message-buffer)))
-	       (description))
-	  (org-link-store-props
-	   :type "emacs-slack"
-	   :link (concat "emacs-slack:" link)
-	   :description (concat "Slack message in #" room-name)))))
+;;;###autoload
+(defun ol/slack-store-link ()
+  "Store a link to a man page."
+  (when (eq major-mode 'slack-message-buffer-mode)
+    (let* ((buf slack-current-buffer)
+	   (team (slack-buffer-team buf))
+	   (team-name (oref team name))
+	   (room (slack-buffer-room buf))
+	   (room-name (slack-room-name room team))
+	   (link (funcall
+		  slack-message-notification-title-format-function
+		  team-name
+		  room-name
+		  (cl-typep buf 'slack-thread-message-buffer)))
+	   (description))
+      (org-link-store-props
+       :type "emacs-slack"
+       :link (concat "emacs-slack:" link)
+       :description (concat "Slack message in #" room-name)))))
 
-    (defun ol/slack-follow-link (link)
-      "Follow LINK with format `   team - channel'."
-      (let* ((team (--> link
-			(s-split "-" it)
-			first
-			s-trim))
-	     (team-object (ol/slack-string-to-team team)))
-	(slack-room-display (ol/slack-string-to-room team-object link) team-object)))
+;;;###autoload
+(defun ol/slack-follow-link (link)
+  "Follow LINK with format `   team - channel'."
+  (let* ((team (--> link
+		    (s-split "-" it)
+		    first
+		    s-trim))
+	 (team-object (ol/slack-string-to-team team)))
+    (slack-room-display (ol/slack-string-to-room team-object link) team-object)))
 
+;;;###autoload
+(defun ol/slack-room-select (room rooms team)
+  "Select ROOM from ROOMS and TEAM."
+  (let* ((alist (slack-room-names
+		 rooms team #'(lambda (rs) (cl-remove-if #'slack-room-hidden-p rs))))
+	 (selected (cdr (cl-assoc room alist :test 'ol/room-name-equal))))
+    selected))
 
-    (defun ol/slack-room-select (room rooms team)
-      "Select ROOM from ROOMS and TEAM."
-      (let* ((alist (slack-room-names
-		     rooms team #'(lambda (rs) (cl-remove-if #'slack-room-hidden-p rs))))
-	     (selected (cdr (cl-assoc room alist :test 'ol/room-name-equal))))
-	selected))
-
-    (defun ol/room-name-equal (room channel-room)
-      "Check ROOM is equal to CHANNEL-ROOM."
-      (string=
-       (s-downcase (s-trim room))
-       (s-downcase
-	(let ((trimmed (s-trim (s-chop-prefix " * " channel-room))))
-	  (if (> (length trimmed) (length room))
-	      (substring trimmed 0 (length room))
-	    trimmed)))))))
+;;;###autoload
+(defun ol/room-name-equal (room channel-room)
+  "Check ROOM is equal to CHANNEL-ROOM."
+  (string=
+   (s-downcase (s-trim room))
+   (s-downcase
+    (let ((trimmed (s-trim (s-chop-prefix " * " channel-room))))
+      (if (> (length trimmed) (length room))
+	  (substring trimmed 0 (length room))
+	trimmed)))))
 
 
 (jds/localleader-def
