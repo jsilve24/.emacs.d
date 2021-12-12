@@ -30,6 +30,7 @@
 (electric-pair-mode 1)
 
 
+(use-package expand-region)
 
 ;;; fill and unfill
 (use-package unfill

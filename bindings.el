@@ -393,6 +393,13 @@
   (key-chord-define-local "wq" #'org-save-all-org-buffers))
 (add-hook 'org-agenda-mode-hook 'jds~org-agenda-local-bindings)
 
+(general-vmap
+  :keymap 'global
+  "m" #'er/expand-region
+  "M" #'er/contract-region)
+
+
+
 
 (provide 'bindings)
 ;;; bindings.el ends here
