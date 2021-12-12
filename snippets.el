@@ -11,10 +11,12 @@
 	'("~/.emacs.d/snippets"))
   (yas-global-mode 1))
 
+
 ;; setup auto-activating snippets
 
 (use-package aas
   :hook (LaTeX-mode . aas-activate-for-major-mode)
+  :hook (latex-mode . aas-activate-for-major-mode)
   :hook (org-mode . aas-activate-for-major-mode)
   :hook (emacs-lisp-mode . aas-activate-for-major-mode)
   :config
@@ -33,7 +35,8 @@
     `(progn (aas-set-snippets ,mode
 	      :cond #'(lambda () (not (texmathp)))
 	      ";m" (jds~yas-lambda-expand "\\\\($1\\\\)")
-	      ";M" (jds~yas-lambda-expand "\\\[$1\\\]"))
+	      ";M" (jds~yas-lambda-expand "\\\[$1\\\]")
+	      ";begin"  (jds~yas-lambda-expand "\\begin\\{$1\\}\n$0\n\\end\\{$1\\}"))
 	    (aas-set-snippets ,mode
 	      :cond #'texmathp
 	      ";u"      (jds~yas-lambda-expand "_\\{$1\\}")
@@ -69,22 +72,22 @@
       (move-end-of-line 1)
       (open-line 1)
       (forward-line))
-    (insert-char (string-to-char comment-start) 3)
+    (let ((nchar (if (string= major-mode "emacs-lisp-mode")
+		     3
+		   1)))
+      (insert-char (string-to-char comment-start) nchar))
     (just-one-space)
     (insert string)
     (end-of-line)
-    ;; (let ((p (point)))
-    ;;   (comment-line 1)
-    ;;   (goto-char p)
-    ;;   (end-of-line))
     (just-one-space)
     (while (< (current-column) 80)
       (insert "-")))
-  
-  ;; all programming modes
-  (aas-set-snippets 'prog-mode
-    ";h " #'jds~comment-rule)
 
+  (defmacro jds~aas-setup-headings (mode)
+    `(aas-set-snippets ,mode
+       ";h " #'jds~comment-rule))
+  (jds~aas-setup-headings 'latex-mode)
+  (jds~aas-setup-headings 'prog-mode)
 
   ;; (aas-set-snippets 'text-mode
   ;;   ;; expand unconditionally
