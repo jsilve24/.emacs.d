@@ -36,30 +36,45 @@
 	      :cond #'(lambda () (not (texmathp)))
 	      ";m" (jds~yas-lambda-expand "\\\\($1\\\\)")
 	      ";M" (jds~yas-lambda-expand "\\\[$1\\\]")
-	      ";begin"  (jds~yas-lambda-expand "\\begin\\{$1\\}\n$0\n\\end\\{$1\\}"))
+	      ";begin" (jds~yas-lambda-expand "\\begin\\{$1\\}\n$0\n\\end\\{$1\\}"))
 	    (aas-set-snippets ,mode
 	      :cond #'texmathp
-	      ";u"      (jds~yas-lambda-expand "_\\{$1\\}")
-	      ";U"      (jds~yas-lambda-expand "^\\{$1\\}")
-	      ";sdot"   (jds~yas-lambda-expand "_\\{\\cdot $1\\}")
-	      ";aeq"   #'(lambda () (interactive) (jds~string-just-one-space "&="))
-	      ";asim"  #'(lambda () (interactive) (jds~string-just-one-space "&\\sim"))
-	      ";inv"    (jds~yas-lambda-expand "^\\{-1\\}")
-	      ";inset"    (jds~yas-lambda-expand "\\in\\\\{$1\\\\}")
-	      ";perp"   (jds~yas-lambda-expand "^\\{\\perp\\}")
-	      ";para"   (jds~yas-lambda-expand "^\\{\\parallel\\}")
-	      ";text"   (jds~yas-lambda-expand "\\text\\{$1\\}"))))
+	      ";u" (jds~yas-lambda-expand "_\\{$1\\}")
+	      ";U" (jds~yas-lambda-expand "^\\{$1\\}")
+	      ";sdot" (jds~yas-lambda-expand "_\\{\\cdot $1\\}")
+	      ";aeq" #'(lambda () (interactive) (jds~string-just-one-space "&="))
+	      ";asim" #'(lambda () (interactive) (jds~string-just-one-space "&\\sim"))
+	      ";inv" (jds~yas-lambda-expand "^\\{-1\\}")
+	      ";inset" (jds~yas-lambda-expand "\\in\\\\{$1\\\\}")
+	      ";perp" (jds~yas-lambda-expand "^\\{\\perp\\}")
+	      ";para" (jds~yas-lambda-expand "^\\{\\parallel\\}")
+	      ";text" (jds~yas-lambda-expand "\\text\\{$1\\}"))))
   (jds~aas-setup-insert-math 'org-mode)
   (jds~aas-setup-insert-math 'latex-mode)
+
+  ;; org mode links
+  (defun jds~org-agenda-link ()
+    "Quickly Insert Org Agenda Links using consult-org-agenda."
+    (interactive)
+    (save-excursion
+      (let ((buf (current-buffer)))
+	(consult-org-agenda)
+	(let ((link (call-interactively
+		     #'(lambda () (interactive) (org-store-link t)))))
+	  (switch-to-buffer buf)
+	  (insert link)))))
+
+  (aas-set-snippets 'org-mode
+    ";lo" #'jds~org-agenda-link)
 
   ;; elisp snippets
   (aas-set-snippets 'emacs-lisp-mode
     ";auto" ";;;###autoload"
-    ";straight" (jds~yas-lambda-expand  ":straight ($1 :type git :host github :repo \"$2\")")
+    ";straight" (jds~yas-lambda-expand ":straight ($1 :type git :host github :repo \"$2\")")
     ";defun" (jds~yas-lambda-expand "(defun $1 ($2)\n\"$3\"\n$4)")
     ";defmacro" (jds~yas-lambda-expand "(defmacro $1 ($2)\n\"$3\"\n\`($4))")
     ";setq" (jds~yas-lambda-expand "(setq $1 $2)")
-    ";use"  (jds~yas-lambda-expand "(use-package $1)"))
+    ";use" (jds~yas-lambda-expand "(use-package $1)"))
 
   (defun jds~comment-rule (string)
     "Prompts for `STRING` and horizontal rule starting with comment char as heading."
@@ -113,6 +128,7 @@
   ;; (aas-set-snippets 'latex-mode
   ;;   "supp" nil)
   )
+
 
 
 
