@@ -54,7 +54,10 @@
 	      ";inset" (jds~yas-lambda-expand "\\in\\\\{$1\\\\}")
 	      ";perp" (jds~yas-lambda-expand "^\\{\\perp\\}")
 	      ";para" (jds~yas-lambda-expand "^\\{\\parallel\\}")
-	      ";text" (jds~yas-lambda-expand "\\text\\{$1\\}"))))
+	      ";text" (jds~yas-lambda-expand "\\text\\{$1\\}")
+	      ";cases" (jds~yas-lambda-expand "\\begin\\{cases\\}\n$0 \\\\\n\\end\\{cases\\}")
+	      ";figure" (jds~yas-lambda-expand-snippet-by-key "figure")
+	      ";article" (jds~yas-lambda-expand-snippet-by-key "article-template"))))
   (jds~aas-setup-insert-math 'org-mode)
   (jds~aas-setup-insert-math 'latex-mode)
 
