@@ -123,10 +123,7 @@
 
 ;;; fluff
 (use-package all-the-icons-dired
-  :straight t
-  :after ranger
-  :config
-  (add-hook 'dired-mode-hook 'all-the-icons-dired-mode))
+  :hook (dired-mode . all-the-icons-dired-mode))
 
 (provide 'dired)
 ;;; dired.el ends here

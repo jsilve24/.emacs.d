@@ -42,7 +42,9 @@
 	      :cond #'(lambda () (not (texmathp)))
 	      ";m" (jds~yas-lambda-expand "\\\\($1\\\\)")
 	      ";M" (jds~yas-lambda-expand "\\\[$1\\\]")
-	      ";begin" (jds~yas-lambda-expand "\\begin\\{$1\\}\n$0\n\\end\\{$1\\}"))
+	      ";begin" (jds~yas-lambda-expand "\\begin\\{$1\\}\n$0\n\\end\\{$1\\}")
+	      ";figure" (jds~yas-lambda-expand-snippet-by-key "figure")
+	      ";article" (jds~yas-lambda-expand-snippet-by-key "article-template"))
 	    (aas-set-snippets ,mode
 	      :cond #'texmathp
 	      ";u" (jds~yas-lambda-expand "_\\{$1\\}")
@@ -55,9 +57,7 @@
 	      ";perp" (jds~yas-lambda-expand "^\\{\\perp\\}")
 	      ";para" (jds~yas-lambda-expand "^\\{\\parallel\\}")
 	      ";text" (jds~yas-lambda-expand "\\text\\{$1\\}")
-	      ";cases" (jds~yas-lambda-expand "\\begin\\{cases\\}\n$0 \\\\\n\\end\\{cases\\}")
-	      ";figure" (jds~yas-lambda-expand-snippet-by-key "figure")
-	      ";article" (jds~yas-lambda-expand-snippet-by-key "article-template"))))
+	      ";cases" (jds~yas-lambda-expand "\\begin\\{cases\\}\n$0 \\\\\n\\end\\{cases\\}"))))
   (jds~aas-setup-insert-math 'org-mode)
   (jds~aas-setup-insert-math 'latex-mode)
 
