@@ -19,6 +19,9 @@
   :hook (latex-mode . aas-activate-for-major-mode)
   :hook (org-mode . aas-activate-for-major-mode)
   :hook (emacs-lisp-mode . aas-activate-for-major-mode)
+  :hook (markdown-mode . aas-activate-for-major-mode)
+  :hook (ess-r-mode . aas-activate-for-major-mode)
+  :hook (inferior-ess-mode . aas-activate-for-major-mode)
   :config
 
   (defmacro jds~yas-lambda-expand (str)
@@ -26,10 +29,10 @@
 	(yas-expand-snippet ,str)))
 
   (defmacro jds~yas-lambda-expand-snippet-by-key (name)
-      "Return function that programatically expand snippet by NAME"
-      `(quote  (lambda () (interactive)
-		 (yas-expand-snippet
-		  (yas-lookup-snippet ,name)))))
+    "Return function that programatically expand snippet by NAME"
+    `(quote  (lambda () (interactive)
+	       (yas-expand-snippet
+		(yas-lookup-snippet ,name)))))
 
   (defun jds~string-just-one-space (str)
     (progn
@@ -60,6 +63,7 @@
 	      ";cases" (jds~yas-lambda-expand "\\begin\\{cases\\}\n$0 \\\\\n\\end\\{cases\\}"))))
   (jds~aas-setup-insert-math 'org-mode)
   (jds~aas-setup-insert-math 'latex-mode)
+  (jds~aas-setup-insert-math 'markdown-mode-map)
 
   ;; org mode links
   (defun jds~org-agenda-link ()
@@ -95,6 +99,14 @@
     ";or" (jds~yas-lambda-expand "(org $0)")
     ";header" (jds~yas-lambda-expand-snippet-by-key "package-header"))
 
+  (defmacro jds~aas-setup-ess (mode)
+    `(aas-set-snippets ,mode
+    ";;" #'r/insert-assign 
+    ";m" #'r/insert-pipe))
+  (jds~aas-setup-ess 'ess-r-mode)
+  (jds~aas-setup-ess 'inferior-ess-mode)
+  
+  
   (defun jds~comment-rule (string)
     "Prompts for `STRING` and horizontal rule starting with comment char as heading."
     (interactive "sHeadline: ")
