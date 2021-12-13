@@ -25,6 +25,12 @@
     `'(lambda () (interactive)
 	(yas-expand-snippet ,str)))
 
+  (defmacro jds~yas-lambda-expand-snippet-by-key (name)
+      "Return function that programatically expand snippet by NAME"
+      `(quote  (lambda () (interactive)
+		 (yas-expand-snippet
+		  (yas-lookup-snippet ,name)))))
+
   (defun jds~string-just-one-space (str)
     (progn
       (just-one-space)
@@ -71,10 +77,20 @@
   (aas-set-snippets 'emacs-lisp-mode
     ";auto" ";;;###autoload"
     ";straight" (jds~yas-lambda-expand ":straight ($1 :type git :host github :repo \"$2\")")
-    ";defun" (jds~yas-lambda-expand "(defun $1 ($2)\n\"$3\"\n$4)")
+    ";defun" (jds~yas-lambda-expand "(defun $1 ($2)\n\"$3\"${4:\n(interactive${5: \"$6\"})}\n$7)")
     ";defmacro" (jds~yas-lambda-expand "(defmacro $1 ($2)\n\"$3\"\n\`($4))")
+    ";defvar" (jds~yas-lambda-expand "(defvar ${1:symbol} ${2:initvalue} \"${3:docstring}\")")
+    ";defcustom" (jds~yas-lambda-expand "(defcustom ${1:symbol} ${2:standard} \"${3:docstring}\"${4: args})")
     ";setq" (jds~yas-lambda-expand "(setq $1 $2)")
-    ";use" (jds~yas-lambda-expand "(use-package $1)"))
+    ";use" (jds~yas-lambda-expand "(use-package $1)")
+    ";cond" (jds~yas-lambda-expand "(cond\n(${1:condition} ${2:body})$0)")
+    ";hook" (jds~yas-lambda-expand "(add-hook '${1:name}-hook ${2:'${3:function}})$0")
+    ";bound" (jds~yas-lambda-expand "(if (fboundp '$1)\n$0)")
+    ";lambda" (jds~yas-lambda-expand "(lambda ($1) ${2:(interactive)} $0)") 
+    ";let" (jds~yas-lambda-expand "(let${1:*} (${2:args})\n$0)")
+    ";not" (jds~yas-lambda-expand "(not $0)")
+    ";or" (jds~yas-lambda-expand "(org $0)")
+    ";header" (jds~yas-lambda-expand-snippet-by-key "package-header"))
 
   (defun jds~comment-rule (string)
     "Prompts for `STRING` and horizontal rule starting with comment char as heading."
