@@ -61,7 +61,7 @@ mention-count)) (channel . (has-unreads . mention-count)))))"
   (add-to-list 'company-backends 'company-slack-backend)
   ;; setup tab command - bind over lui mode completion 
   ;; (add-hook 'slack-mode-hook 'jds/completion-keys)
-  (setq lui-completion-function 'company-expand)
+  (setq lui-completion-function 'company-complete)
 
   ;; link-hint for files
   ;; Mandatory Keywords :next should be a function that returns the position of

@@ -51,11 +51,16 @@
 	nil
       (call-interactively #'company-dabbrev))))
 
+;;;###autoload
+(defun jds~blank-line-p ()
+    "Is point currently on blank line."
+  (looking-at-p "[[:space:]]*$"))
 
 ;;;###autoload
 (defun jds/tab-dwim ()
   (interactive)
   (cond
+   ((jds~blank-line-p) (indent-relative)) 
    ((and (texmathp) (or (bound-and-true-p cdlatex-mode)
 			org-cdlatex-mode))
     (cdlatex-tab))
@@ -69,7 +74,8 @@
 
 (defun jds/completion-keys ()
   (evil-local-set-key 'insert (kbd "<tab>") #'jds/tab-dwim)
-  (evil-local-set-key 'insert (kbd "C-l")   #'company-ispell))
+  ;; (evil-local-set-key 'insert (kbd "C-l")   #'company-ispell)
+  )
 (add-hook 'text-mode-hook 'jds/completion-keys)
 (add-hook 'prog-mode-hook 'jds/completion-keys)
 
