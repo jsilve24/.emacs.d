@@ -65,6 +65,10 @@
   (jds~aas-setup-insert-math 'latex-mode)
   (jds~aas-setup-insert-math 'markdown-mode-map)
 
+  ;; latex mode citations
+  (aas-set-snippets 'latex-mode
+    ";cite" 'citar-insert-citation)
+
   ;; org mode links
   (defun jds~org-agenda-link ()
     "Quickly Insert Org Agenda Links using consult-org-agenda."
@@ -101,8 +105,8 @@
 
   (defmacro jds~aas-setup-ess (mode)
     `(aas-set-snippets ,mode
-    ";;" #'r/insert-assign 
-    ";m" #'r/insert-pipe))
+       ";;" #'r/insert-assign 
+       ";m" #'r/insert-pipe))
   (jds~aas-setup-ess 'ess-r-mode)
   (jds~aas-setup-ess 'inferior-ess-mode)
   

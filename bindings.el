@@ -54,13 +54,15 @@
 ;;;###autoload
 (defun jds~blank-line-p ()
     "Is point currently on blank line."
-  (looking-at-p "[[:space:]]*$"))
+  (looking-at-p "^[[:space:]]*$"))
 
 ;;;###autoload
 (defun jds/tab-dwim ()
   (interactive)
   (cond
-   ((jds~blank-line-p) (indent-relative)) 
+   ((jds~blank-line-p) (progn (indent-relative)
+			      (if (string= major-mode "org=mode")
+				  (org-beginning-of-line))))
    ((and (texmathp) (or (bound-and-true-p cdlatex-mode)
 			org-cdlatex-mode))
     (cdlatex-tab))
