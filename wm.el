@@ -15,6 +15,7 @@
 
 (defun efs/exwm-update-title ()
   (pcase exwm-class-name
+    ("qutebrowser" (exwm-workspace-rename-buffer (format "Qutebrowser: %s" exwm-title)))
     ("Firefox" (exwm-workspace-rename-buffer (format "Firefox: %s" exwm-title)))))
 
 ;; This function isn't currently used, only serves as an example how to
@@ -338,7 +339,8 @@ buffer (=minimizing in other WM/DE)"
 (with-eval-after-load 'evil
   (general-define-key
    :keymaps 'exwm-launcher-map
-   "q" '((lambda () (interactive) (run-or-raise-or-dismiss "qutebrowser" "qutebrowser")) :wk "qutebrowser")
+   ;; "q" '((lambda () (interactive) (run-or-raise-or-dismiss "qutebrowser" "qutebrowser")) :wk "qutebrowser")
+   "q" '((lambda () (interactive) (exwm-async-run "qutebrowser")) :wk "qutebrowser-new-window")
    "Q" '((lambda () (interactive) (progn (+evil/window-vsplit-and-follow) (exwm-async-run "qutebrowser"))) :wk "qutebrowser-new-window")
    "y" '((lambda () (interactive) (run-or-raise-or-dismiss "slack" "Slack")) :wk "slack")
    "c" '((lambda () (interactive) (async-shell-command "~/bin/capslock.sh")) :wk "capslock.sh")
