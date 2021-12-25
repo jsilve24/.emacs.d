@@ -22,6 +22,8 @@
   :hook (markdown-mode . aas-activate-for-major-mode)
   :hook (ess-r-mode . aas-activate-for-major-mode)
   :hook (inferior-ess-mode . aas-activate-for-major-mode)
+  :hook (python-mode . aas-activate-for-major-mode)
+  :hook (text-mode . aas-activate-for-major-mode)
   :config
 
   (defmacro jds~yas-lambda-expand (str)
@@ -138,6 +140,10 @@
        ";h " #'jds~comment-rule))
   (jds~aas-setup-headings 'latex-mode)
   (jds~aas-setup-headings 'prog-mode)
+  (jds~aas-setup-headings 'python-mode)
+
+  (aas-set-snippets 'text-mode
+    ";phone" "(310) 806-2315")
 
   ;; (aas-set-snippets 'text-mode
   ;;   ;; expand unconditionally

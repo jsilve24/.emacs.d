@@ -113,6 +113,7 @@
  :keymaps '(polymode-mode-map markdown-mode-map)
   "rc" #'r/rmd-insert-chunk
   "rr" #'r/rmd-render
+  "\\" #'r/rmd-render
   "rd" #'r/draft-rmd)
 
 (general-define-key

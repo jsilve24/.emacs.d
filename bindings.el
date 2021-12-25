@@ -230,6 +230,7 @@
   "k" #'helpful-at-point
   ;; "d" #'dired-jump
   "d" #'jds/dired-jump-reuse-dired
+  ;; "d" #'dired-sidebar-toggle-sidebar
   "D" #'jds/dired-jump-and-kill-buffer
   "j" #'(:ignore t :wk "dired jump to")
   "jd" #'(lambda () (interactive) (dired "~/Downloads/"))
@@ -340,8 +341,8 @@
  "[S" #'evil-prev-flyspell-error
  "]S" #'evil-next-flyspell-error)
 (general-define-key
- :states '(insert normal visual)
- "M-z" #'flyspell-auto-correct-previous-word)
+ :states '(insert)
+ "<M-tab>" #'flyspell-auto-correct-previous-word)
 
 (general-define-key
  :states '(normal visual)

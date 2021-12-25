@@ -204,6 +204,10 @@
   (org-reload))
 
 
+;;; other packages -------------------------------------------------------------
+
+
+
 ;;; lazyness -- use evil-org
 (use-package evil-org
   :straight (evil-org :local-repo "~/.myvanilla.d/local-packages/evil-org-mode")

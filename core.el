@@ -184,6 +184,7 @@
 		org-capture-before-finalize-hook
 		mu4e-headers-mode-hook
                 org-agenda-mode-hook
+		dired-sidebar-mode
                 eshell-mode-hook))
   (add-hook mode (lambda () (display-line-numbers-mode 0))))
 

@@ -22,7 +22,6 @@
 ;;; setup auctex
 
 (use-package auctex
-  :straight t;;(auctex :type git :host github :repo "emacs-stright/auctex" :branch "master")
   :mode ("\\.tex\\'" . LaTeX-mode)
   :hook (LaTeX-mode . reftex-mode)
   :config
@@ -99,7 +98,7 @@
 ;;; setup latexmk
 
 (use-package auctex-latexmk
-  :straight t
+  :mode "\\.tex\\'"
   :after auctex
   :init
   ;; Pass the -pdf flag when TeX-PDF-mode is active
@@ -108,9 +107,10 @@
  ;; Set LatexMk as the default
   (add-hook 'LaTeX-mode
             (lambda () (setq TeX-command-default "LatexMk")))
+  (add-hook 'latex-mode
+            (lambda () (setq TeX-command-default "LatexMk")))
   ;; Add latexmk as a TeX target
-  (auctex-latexmk-setup)
-  )
+  (auctex-latexmk-setup))
 
 ;;; setup tecosaurs thing...
 
