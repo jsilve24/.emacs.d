@@ -181,12 +181,13 @@ i.e. change right window to bottom, or change bottom window to right."
       ?\M-x
       ?\M-`
       ?\s-\t
-      ?\M-' ;; popups dismisal
+      ?\M-'  ;; nothing at the moment, reserved though
       ?\M-&
       ?\M-:
       ?\C-\M-j  ;; Buffer list
       ?\C-\ ;;Ctrl+Space
       ?\C-,
+      ?\C-' ;; popups dismisal
       ?\C-\\
       ?\M-\ ))  ;; Meta+Space
   

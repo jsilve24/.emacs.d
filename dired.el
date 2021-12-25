@@ -90,6 +90,7 @@
 (use-package dired-copy-paste
   :straight (dired-copy-paste :type git :host github :repo "jsilve24/dired-copy-paste"))
 
+
 ;; setup wv, ws, we bindings
 (with-eval-after-load 'dired 
   (defun jds~dired-setup-function ()
@@ -103,6 +104,12 @@
      "wo" #'dired-view-file
      ";"  #'(:ignore t)
      ";d" #'dired-copy-paste-do-cut
+     "y" '(:ignore t :wk "yank")
+     "yd" #'jds/dired-copy-dirname-as-kill
+     ;; copy filename 
+     "yf" #'dired-copy-filename-as-kill
+     ;; copy absolute filepath
+     "yy" #'(lambda () (interactive) (dired-copy-filename-as-kill 0))
      ";y" #'dired-copy-paste-do-copy
      ";p" #'dired-copy-paste-do-paste))
   (add-hook 'dired-mode-hook 'jds~dired-setup-function))
