@@ -300,9 +300,15 @@ are optional."
     (when mu4e-compose-obey-display-action
       ;; make sure to close the frame when we're done with the message these are
       ;; all buffer-local;
+      ;; JDS: Made this buffer local to be able to modify multiple messages without
+      ;;      record of what should happen 
+      (setq-local message-postpone-actions nil
+		  message-exit-actions nil
+		  message-kill-actions nil)
       (if (window-prev-buffers)
 	  nil
 	(push 'delete-window message-exit-actions)
+	(push 'delete-window message-kill-actions)
 	(push 'delete-window message-postpone-actions)))
     
     ;; buffer is not user-modified yet
