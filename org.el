@@ -244,8 +244,11 @@
  :keymaps 'org-mode-map
  "M-<return>" #'org-meta-return
  "M-S-<return>" #'org-insert-todo-heading
- "C-<return>" #'+org/insert-item-below
- "C-S-<return>" #'+org/insert-item-above)
+ ;; "C-<return>" #'+org/insert-item-below
+ "C-<return>" #'org-insert-heading-respect-content
+ "C-S-<return>" #'org-insert-todo-heading-respect-content
+ ;; "C-S-<return>" #'+org/insert-item-above
+ )
 
 
 ;;; local bindings
