@@ -24,13 +24,14 @@
 
 ;;; universal argument and other short stuff
 (jds/leader-def 
- "/" #'consult-ripgrep
- "?" #'affe-grep
- ";" #'pp-eval-expression
- "RET" #'consult-projectile
- "\`" #'evil-switch-to-windows-last-buffer
- "SPC" #'consult-buffer
- "C-SPC" #'consult-buffer)
+  "/" #'consult-ripgrep
+  "?" #'affe-grep
+  ";" #'pp-eval-expression
+  "RET" #'consult-projectile
+  "\`" #'evil-switch-to-windows-last-buffer
+  "-"  #'vertico-repeat
+  "SPC" #'consult-buffer
+  "C-SPC" #'consult-buffer)
 
 (general-define-key
  :keymaps 'override

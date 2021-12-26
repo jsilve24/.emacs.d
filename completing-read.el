@@ -41,7 +41,10 @@
           (apply (if vertico-mode
                      #'consult-completion-in-region
                    #'completion--in-region)
-                 args))))
+                 args)))
+  :config
+  ;; setup to allow resuming last vertico session (with vertico-repeat)
+  (add-hook 'minibuffer-setup-hook #'vertico-repeat-save))
 
 ;; Configure directory extension.
 ;; NOTE: The file `vertico-directory.el' must be installed manually.
