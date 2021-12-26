@@ -351,6 +351,7 @@
  "zF"  #'find-file-other-frame
  "zd"  #'xref-find-definitions
  "zD"  #'xref-find-definitions-other-frame
+ "zs"  #'xref-find-references
  "zl"  #'evil-lion-left
  "zL"  #'evil-lion-right)
 

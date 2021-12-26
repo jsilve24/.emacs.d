@@ -162,18 +162,25 @@
 ;; create new mu4e-compose-in-new-window
 (with-eval-after-load 'mu4e
 
-  (defvar mu4e-compose-in-new-window t
+  (defvar mu4e-compose-obey-display-action t
     "Like mu4e-compose-in-new-frame but for windows.")
+
+  (defun mu4e~switch-to-buffer-obey-display-action (BUFFER-OR-NAME &optional NORECORD FORCE-SAME-WINDOW)
+    "Thin Wrapper around switch to buffer that enforces obey display action."
+    (let ((switch-to-buffer-obey-display-actions t))
+      (switch-to-buffer BUFFER-OR-NAME NORECORD FORCE-SAME-WINDOW)))
 
   (defun mu4e~draft-open-file (path switch-function)
     "Open the the draft file at PATH."
     (let ((buf (find-file-noselect path)))
-      (funcall (or 
+      (funcall (or
 		switch-function
 		(and mu4e-compose-in-new-frame 'switch-to-buffer-other-frame)
-		(and mu4e-compose-in-new-window 'switch-to-buffer-other-window)
+		(and mu4e-compose-obey-display-action 'mu4e~switch-to-buffer-obey-display-action)
 		'switch-to-buffer)
 	       buf)))
+
+  
 
   (cl-defun mu4e~compose-handler (compose-type &optional original-msg includes
 					       switch-function)
@@ -224,7 +231,7 @@ are optional."
     (mu4e~draft-insert-mail-header-separator)
 
     ;; maybe encrypt/sign replies
-    (let ((mu4e-compose-crypto-policy     ; backwards compatibility
+    (let ((mu4e-compose-crypto-policy	; backwards compatibility
 	   (append
 	    (cl-case mu4e-compose-crypto-reply-encrypted-policy
 	      (sign '(sign-encrypted-replies))
@@ -290,15 +297,16 @@ are optional."
       (push 'delete-frame message-postpone-actions))
 
 
-    (when mu4e-compose-in-new-window
+    (when mu4e-compose-obey-display-action
       ;; make sure to close the frame when we're done with the message these are
       ;; all buffer-local;
-      (push 'delete-window message-exit-actions)
-      (push 'delete-window message-postpone-actions))
-
+      (if (window-prev-buffers)
+	  nil
+	(push 'delete-window message-exit-actions)
+	(push 'delete-window message-postpone-actions)))
+    
     ;; buffer is not user-modified yet
     (set-buffer-modified-p nil)))
-
 
 (use-package epa
   :after mu4e
