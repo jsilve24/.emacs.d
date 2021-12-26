@@ -317,6 +317,19 @@ i.e. change right window to bottom, or change bottom window to right."
     (interactive)
     (start-process name nil name))
 
+  ;; stolen from here: https://kfx.fr/e/koe-utils.el
+  (defun jds/quiet-async-shell-commands (cmd &rest cmds)
+  "Run async shell CMD with optional CMDS in a oneliner silently."
+  (interactive)
+  (let
+    ((display-buffer-alist
+       (list
+         (cons
+          "\\*Async Shell Command\\*.*"
+          (cons #'display-buffer-no-window nil)))))
+    (async-shell-command
+      (concat cmd " " (string-join cmds " ")))))
+
   (defun run-or-raise-or-dismiss (program program-buffer-name)
     "If no instance of the program is running, launch the program.
 If an instance already exists, and its corresponding buffer is
@@ -346,7 +359,7 @@ buffer (=minimizing in other WM/DE)"
    "q" '((lambda () (interactive) (exwm-async-run "qutebrowser")) :wk "qutebrowser-new-window")
    "Q" '((lambda () (interactive) (progn (+evil/window-vsplit-and-follow) (exwm-async-run "qutebrowser"))) :wk "qutebrowser-new-window")
    "y" '((lambda () (interactive) (run-or-raise-or-dismiss "slack" "Slack")) :wk "slack")
-   "c" '((lambda () (interactive) (async-shell-command "~/bin/capslock.sh")) :wk "capslock.sh")
+   "c" '((lambda () (interactive) (jds/quiet-async-shell-commands "~/bin/capslock.sh")) :wk "capslock.sh")
    "v" 'evil-window-vsplit
    "s" 'evil-window-split
    "S" #'+evil/window-split-and-follow

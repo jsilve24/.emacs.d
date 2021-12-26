@@ -399,12 +399,35 @@ are place there, otherwise you are prompted for a message buffer."
  "l"          #'+mu4e/capture-msg-to-agenda)
 
 (with-eval-after-load 'link-hint
+
+  ;; :next function should not move the point 
+  ;;    it should talk one optional argument that is an end bound 
+  (defun jds~mu4e-headers-next-for-link-hint (&optional bound)
+    "Function wrapping mu4e-headers-next and mathing spect for link-hint :next function."
+    (save-excursion
+      (mu4e-headers-next)
+      (if (and bound
+	       (> (point) bound))
+	  nil
+	(point))))
+
+  (defun jds~mu4e-at-point-p ()
+    "Function suitable for :at-point-p in link-hint for mu4e. Return message id to pass to
+mu4e-headers-goto-message-id."
+    (let* ((map (and
+		 (pos-visible-in-window-p)
+		 (mu4e-message-at-point t)))
+	   (msgid (if (not map)
+		      nil
+		    (plist-get map :message-id))))
+      msgid))
+  
   (link-hint-define-type 'mu4e-message
-    :next #'mu4e-headers-next
-    :at-point-p #'(lambda () (interactive) (and (pos-visible-in-window-p) (mu4e-message-at-point t)))
+    :next #'jds~mu4e-headers-next-for-link-hint
+    :at-point-p #'jds~mu4e-at-point-p
     :open #'mu4e-headers-view-message
     :copy #'mu4e-copy-message-path
-    :goto #'mu4e-headers-goto-message-id
+    :goto 'identidy
     :vars '(mu4e-headers-mode))
   (push 'link-hint-mu4e-message link-hint-types))
 (general-define-key

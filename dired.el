@@ -62,14 +62,38 @@
   :commands (dired dired-jump)
   :custom ((dired-listing-switches "-agho --group-directories-first"))
   :config
+  ;; tell emacs to revert each Dired buffer automatically when revisiting buffer
+  (setq dired-auto-revert-buffer t)
+  ;; Auto-refresh dired on filesystem change
+  (add-hook 'dired-mode-hook 'auto-revert-mode)
   (evil-collection-define-key 'normal 'dired-mode-map
     "h" 'dired-single-up-directory
-    "l" 'dired-single-buffer)
+    "l" 'dired-single-buffer))
 
-  (link-hint-define-type 'dired-filename
-    :goto #'dired-goto-file))
+(require 'dired-hacks-utils)
+;;;###autoload
+(defun jds~avy-dired-cands ()
+  (save-excursion
+    (save-restriction
+      (narrow-to-region (window-start) (window-end (selected-window) t))
+      (goto-char (point-min))
+      (setq pt (point))
+      (dired-hacks-next-file)
+      (let ((candidates (list  (cons  (point) (selected-window)))))
+	(setq pt (point))
+	(dired-hacks-next-file)
+	(while (not (equal (point) pt))
+	  (setq pt (point))
+	  (push (cons  (point) (selected-window)) candidates)
+	  (dired-hacks-next-file))
+	(nreverse  candidates)))))
 
-
+;;;###autoload
+(defun jds/avy-dired ()
+    "Goto a visible file or directory in a dired-buffer."
+  (interactive)
+  (avy-action-goto (avy-with jds/avy-dired
+		     (avy-process (jds~avy-dired-cands)))))
 
 ;; don't use multiple buffers
 (use-package dired-single)
@@ -98,7 +122,7 @@
     (general-define-key
      :states 'normal
      :keymaps 'local
-     "f" #'jds/link-hint-goto-link
+     "f" #'jds/avy-dired
      "F" #'link-hint-open-link
      "w"  #'(:ignore t)
      "wo" #'dired-view-file

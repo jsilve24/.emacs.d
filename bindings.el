@@ -173,21 +173,43 @@
 
 ;;; buffers
 
+;;;###autoload
+(defun jds/switch-to-splash ()
+  "Switch to splash buffer if it exists, otherwise call kisses-redraw."
+  (interactive)
+  (let ((buf (get-buffer "*splash*")))
+    (if buf
+	(switch-to-buffer buf)
+      (kisses-redraw))))
+
+;;;###autoload
+(defun jds/switch-to-agenda-file (fn)
+    "Display file listed org-directory."
+  (interactive)
+  (find-file
+   (expand-file-name fn org-directory)))
+
 (jds/leader-def
- "b"  '(:ignore t :which-key "buffer/bookmark")
- "bb" #'consult-buffer
- "bB" #'consult-buffer-other-frame
- "bo" #'consult-bookmark
- "bO" #'burly-open-last-bookmark
- "bd" #'kill-current-buffer
- "bw" #'burly-bookmark-windows
- "bf" #'burly-bookmark-frames
- "bm" #'bookmark-set
- "bM" #'bookmark-delete
- "br" #'revert-buffer
- "bi" #'ibuffer-jump
- "bI" #'ibuffer-other-window
- "bx" #'(lambda () (interactive) (switch-to-buffer (get-buffer-create "*scratch*"))))
+  "b"  '(:ignore t :which-key "buffer/bookmark")
+  "bb" #'consult-buffer
+  "bB" #'consult-buffer-other-frame
+  "bo" #'consult-bookmark
+  "bO" #'burly-open-last-bookmark
+  "bd" #'kill-current-buffer
+  "bw" #'burly-bookmark-windows
+  "bf" #'burly-bookmark-frames
+  "bm" #'bookmark-set
+  "bM" #'bookmark-delete
+  "br" #'revert-buffer
+  "bi" #'ibuffer-jump
+  "bI" #'ibuffer-other-window
+  "bx" '((lambda () (interactive) (switch-to-buffer (get-buffer-create "*scratch*"))) :which-key "scratch")
+  "bz" '((lambda () (interactive) (switch-to-buffer (messages-buffer))) :which-key "messages")
+  "bs" #'jds/switch-to-splash
+  "bt" '((lambda () (interactive) (jds/switch-to-agenda-file "tasks.org")) :which-key "tasks")
+  "bp" '((lambda () (interactive) (jds/switch-to-agenda-file "meetings_psu.org")) :which-key "meetings-psu")
+  "bp" '((lambda () (interactive) (jds/switch-to-agenda-file "notes.org")) :which-key "notes"))
+
 
 (general-define-key
  :keymaps 'ibuffer-mode-map
