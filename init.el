@@ -66,6 +66,7 @@
 (load-config "email.el")
 (load-config "calendar.el")
 (load-config "autoloads/movement.el")
+(load-config "ibuffer.el")
 ;; (load-config "frames.el")
 (load-config "editor.el")
 (load-config "snippets.el")

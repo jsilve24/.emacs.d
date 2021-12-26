@@ -40,3 +40,16 @@
   (interactive)
   (avy-action-goto (avy-with jds/avy-ibuffer
 		     (avy-process (jds~avy-ibuffer-cands)))))
+
+(defun jds/avy-ibuffer-and-go ()
+  "Jump to visible buffer in ibuffer mode with hining."
+  (interactive)
+  (jds/avy-ibuffer)
+  (ibuffer-visit-buffer))
+
+
+(general-define-key
+ :keymaps 'ibuffer-mode-map
+ :states 'n
+ "f" #'jds/avy-ibuffer
+ "F" #'jds/avy-ibuffer-and-go)
