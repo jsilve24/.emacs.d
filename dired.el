@@ -138,6 +138,11 @@ line."
 (use-package dired-copy-paste
   :straight (dired-copy-paste :type git :host github :repo "jsilve24/dired-copy-paste"))
 
+;;;###autoload
+(defun jds/dired-copy-dirname-as-kill ()
+  "Yank current directory path."
+  (interactive)
+  (kill-new dired-directory))
 
 ;; setup wv, ws, we bindings
 (with-eval-after-load 'dired 

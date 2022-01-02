@@ -257,7 +257,15 @@
   "D" #'jds/dired-jump-and-kill-buffer
   "j" #'(:ignore t :wk "dired jump to")
   "jd" #'(lambda () (interactive) (dired "~/Downloads/"))
-  "jh" #'(lambda () (interactive) (dired "~")))
+  "jh" #'(lambda () (interactive) (dired "~"))
+  "jo" '((lambda () (interactive) (dired "~/Dropbox/org")) :wk "org")
+  "jc" '((lambda () (interactive) (dired "~/.emacs.d")) :wk "config")
+  "jg" '((lambda () (interactive) (dired "~/Dropbox/Faculty/Grants")) :wk "grants")
+  "ja" '((lambda () (interactive) (dired "~/Dropbox/Faculty/advising")) :wk "advising")
+  "jp" '((lambda () (interactive) (dired "~/Dropbox/Faculty/Presentations")) :wk "presentations")
+  "jt" '((lambda () (interactive) (dired "~/Dropbox/Faculty/Teaching")) :wk "teaching")
+  "ji" '((lambda () (interactive) (dired "~/Dropbox/Faculty/Teaching")) :wk "teaching")
+  )
 
 ;;; faster editing in text buffers
 
