@@ -280,6 +280,7 @@
  "s" '(:ignore t :which-key "search")
  "ss" #'consult-line
  "sS" #'(lambda () (interactive) (consult-line-multi 'all-buffers))
+ "sc" '((lambda () (interactive) (consult-ripgrep "~/.emacs.d")) :wk "ripgrep-config")
  "sm" #'consult-mark
  ;; "si" #'consult-outline
  ;; "sI" #'consult-imenu-multi
@@ -332,6 +333,7 @@
  "gd" #'jds/avy-goto-delim-start
  "gD" #'jds/avy-goto-delim-end
  "gs" #'consult-line
+ "gS" #'(lambda () (interactive) (consult-line-multi 'all-buffers))
  "g'" #'jds/avy-goto-quote
  "g." #'jds/avy-goto-punctuation
  "gj" #'evilem-motion-next-visual-line
