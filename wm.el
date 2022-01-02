@@ -143,7 +143,7 @@ i.e. change right window to bottom, or change bottom window to right."
   (efs/run-in-background "davmail -server")
   (efs/run-in-background "~/bin/i3-battery-popup")
   (efs/run-in-background "caffeine")
-  (efs/run-in-background "dropbox")
+  (efs/run-in-background "dropbox start")
 
   ;; When window "class" updates, use it to set the buffer name
   (add-hook 'exwm-update-class-hook #'efs/exwm-update-class)
@@ -235,6 +235,7 @@ i.e. change right window to bottom, or change bottom window to right."
 	  ([?\s-d] . kill-current-buffer)
 	  ([?\s-\ ] . ace-window)
 	  ([?\s--] . bury-buffer)
+	  ([?\s-=] . balance-windows)
 
           ;; Launch applications via shell command
           ([?\s-:] . (lambda (command)

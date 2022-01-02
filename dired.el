@@ -70,7 +70,31 @@
     "h" 'dired-single-up-directory
     "l" 'dired-single-buffer))
 
-(require 'dired-hacks-utils)
+
+
+;; stole the below function from dired-hacks-utils.el since it was difficult
+;; to just install that one file with straight. 
+;;;###autoload
+(defun dired-hacks-next-file (&optional arg)
+  "Move point to the next file.
+Optional prefix ARG says how many lines to move; default is one
+line."
+  (interactive "p")
+  (unless arg (setq arg 1))
+  (if (< arg 0)
+      (dired-hacks-previous-file (- arg))
+    (--dotimes arg
+      (forward-line)
+      (while (and (or (not (dired-utils-is-file-p))
+                      (get-text-property (point) 'invisible))
+                  (= (forward-line) 0))))
+    (if (not (= (point) (point-max)))
+        (dired-move-to-filename)
+      (forward-line -1)
+      (dired-move-to-filename)
+      nil)))
+
+
 ;;;###autoload
 (defun jds~avy-dired-cands ()
   (save-excursion
@@ -158,6 +182,13 @@
 ;;; fluff
 (use-package all-the-icons-dired
   :hook (dired-mode . all-the-icons-dired-mode))
+
+
+;;; mode specific bindings
+(general-define-key
+ :keymaps 'dired-mode-map
+ :states 'n
+ "zh" #'dired-hide-dotfiles-mode)
 
 (provide 'dired)
 ;;; dired.el ends here

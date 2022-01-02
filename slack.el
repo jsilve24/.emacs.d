@@ -2,6 +2,7 @@
 
 
 (use-package slack
+  :straight (:type git :host github :repo "isamert/emacs-slack" :branch "fix-curl-downloader")
   :commands slack-start 
   :init
   (setq slack-buffer-emojify t

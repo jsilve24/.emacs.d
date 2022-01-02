@@ -24,6 +24,7 @@
   :hook (inferior-ess-mode . aas-activate-for-major-mode)
   :hook (python-mode . aas-activate-for-major-mode)
   :hook (text-mode . aas-activate-for-major-mode)
+  :hook (prog-mode . aas-activate-for-major-mode)
   :config
 
   (defmacro jds~yas-lambda-expand (str)
@@ -48,7 +49,11 @@
 	      ";m" (jds~yas-lambda-expand "\\\\($1\\\\)")
 	      ";M" (jds~yas-lambda-expand "\\\[$1\\\]")
 	      ";begin" (jds~yas-lambda-expand "\\begin\\{$1\\}\n$0\n\\end\\{$1\\}")
-	      ";figure" (jds~yas-lambda-expand-snippet-by-key "figure")
+	      ";figure" (jds~yas-lambda-expand "\\begin\\{figure\\}[ht]
+  \\\centering
+  \\\includegraphics[${1:options}]\\{figures/${2:path.pdf}\\}
+  \\\caption\\{\\\label\\{fig:${3:label}\\} $0\\}
+\\end\\{figure\\}")
 	      ";article" (jds~yas-lambda-expand-snippet-by-key "article-template"))
 	    (aas-set-snippets ,mode
 	      :cond #'texmathp
@@ -65,7 +70,8 @@
 	      ";cases" (jds~yas-lambda-expand "\\begin\\{cases\\}\n$0 \\\\\n\\end\\{cases\\}"))))
   (jds~aas-setup-insert-math 'org-mode)
   (jds~aas-setup-insert-math 'latex-mode)
-  (jds~aas-setup-insert-math 'markdown-mode-map)
+  (jds~aas-setup-insert-math 'markdown-mode)
+
 
   ;; latex mode citations
   (aas-set-snippets 'latex-mode
