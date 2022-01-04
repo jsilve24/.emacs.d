@@ -93,7 +93,8 @@
         '((?< ("\\leftarrow" "\\Leftarrow" "\\longleftarrow" "\\Longleftarrow"))
           (?> ("\\rightarrow" "\\Rightarrow" "\\longrightarrow" "\\Longrightarrow"))
           (?\\ ("\\parallel"))
-          (?| ("\\perp")))))
+          (?| ("\\perp"))))
+ (setq cdlatex-math-modify-alist '((?\p "\\proc" nil t nil nil))))
 
 ;;; setup latexmk
 

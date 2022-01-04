@@ -400,16 +400,24 @@ are place there, otherwise you are prompted for a message buffer."
 
 (with-eval-after-load 'link-hint
 
-  ;; :next function should not move the point 
-  ;;    it should talk one optional argument that is an end bound 
-  (defun jds~mu4e-headers-next-for-link-hint (&optional bound)
-    "Function wrapping mu4e-headers-next and mathing spect for link-hint :next function."
-    (save-excursion
-      (mu4e-headers-next)
-      (if (and bound
-	       (> (point) bound))
-	  nil
-	(point))))
+  ;; :next function should not move the point
+  ;;    it should talk one optional argument that is an end bound
+  (defun jds~mu4e-headers-next-for-link-hint (&optional bound jump)
+    "Function wrapping mu4e-headers-next and mathing spect for link-hint :next function. If `jump` then will also move to next message."
+    (let ((ret (save-excursion
+		 (progn
+		   (mu4e-headers-next)
+		   (if (or (and bound
+				(> (point) bound))
+			   (progn
+			     (beginning-of-line)
+			     (looking-at-p "^End of search results.*")))
+		       nil
+		     (point))))))
+      (if jump
+	  (if ret
+	      (goto-char ret))
+	ret)))
 
   (defun jds~mu4e-at-point-p ()
     "Function suitable for :at-point-p in link-hint for mu4e. Return message id to pass to
@@ -421,19 +429,43 @@ mu4e-headers-goto-message-id."
 		      nil
 		    (plist-get map :message-id))))
       msgid))
-  
+
   (link-hint-define-type 'mu4e-message
     :next #'jds~mu4e-headers-next-for-link-hint
     :at-point-p #'jds~mu4e-at-point-p
     :open #'mu4e-headers-view-message
     :copy #'mu4e-copy-message-path
-    :goto 'identidy
     :vars '(mu4e-headers-mode))
-  (push 'link-hint-mu4e-message link-hint-types))
+  (push 'link-hint-mu4e-message link-hint-types)
+
+  (defun jds~avy-mu4e-header-cands ()
+    (interactive)
+    (save-excursion
+      (save-restriction
+	(narrow-to-region (window-start) (window-end (selected-window) t))
+	(goto-char (point-min))
+	(setq pt (point))
+	(jds~mu4e-headers-next-for-link-hint nil t)
+	(beginning-of-line)
+	(let ((candidates (list (cons (point) (selected-window)))))
+	  (while (not (equal pt (point)))
+	    (setq pt (point))
+	    (end-of-line)
+	    (jds~mu4e-headers-next-for-link-hint nil t)
+	    (beginning-of-line)
+	    (push (cons (point) (selected-window)) candidates))
+	  (nreverse candidates)))))
+
+  (defun jds/avy-mu4e-header ()
+    "Goto a visible message header in mu4e using avy."
+    (interactive)
+    (avy-action-goto (avy-with jds/avy-ibuffer
+		       (avy-process (jds~avy-mu4e-header-cands))))))
+
 (general-define-key
  :states '(n v m)
  :keymaps 'mu4e-headers-mode-map
- "f" #'jds/link-hint-goto-link
+ "f" #'jds/avy-mu4e-header
  "F" #'link-hint-open-link)
 
 
