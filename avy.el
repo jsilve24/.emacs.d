@@ -27,7 +27,8 @@
   :config
   (avy-setup-default)
   (setq avy-keys (number-sequence ?a ?z)
-	avy-style 'de-bruijn
+	;; avy-style 'de-bruijn
+	avy-style 'at-full
 	avy-all-windows '()
 	avy-case-fold-search t
 	avy-highlight-first t

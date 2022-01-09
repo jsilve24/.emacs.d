@@ -222,6 +222,17 @@
 
 ;;; org and apps
 
+;;;###autoload
+(defun jds/help-thing-at-point ()
+    "Look up documentation for thing at point."
+    (interactive)
+    (cond
+     ((or (string= major-mode "ess-r-mode")
+	  (string= major-mode "inferior-ess-r-mode"))
+      (call-interactively #'ess-display-help-on-object))
+     (t (helpful-at-point))))
+
+
 (jds/sub-leader-def
   "," #'org-capture		;; q "new"
   "C-," #'org-capture		;; q "new"
@@ -250,7 +261,7 @@
   "S" #'org-search-view
   "y" #'slack-select-rooms
   "Y" #'slack-select-unread-rooms
-  "k" #'helpful-at-point
+  "k" #'jds/help-thing-at-point
   ;; "d" #'dired-jump
   "d" #'jds/dired-jump-reuse-dired
   ;; "d" #'dired-sidebar-toggle-sidebar
@@ -290,8 +301,9 @@
 ;;; git
 
 (jds/leader-def
- "g" '(:ignore t :which-key "git")
- "gg" #'magit-status)
+  "g" '(:ignore t :which-key "git")
+  "gg" #'magit-status
+  "gt" #'git-timemachine)
 
 ;;; evil bindings
 

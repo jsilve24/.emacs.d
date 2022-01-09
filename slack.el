@@ -164,8 +164,8 @@ mention-count)) (channel . (has-unreads . mention-count)))))"
   :keymaps 'slack-mode-map
   :state 'normal
   "d" 'slack-buffer-kill
-  "ra" 'slack-message-add-reaction
-  "rr" 'slack-message-remove-reaction
+  "rr" 'slack-message-add-reaction
+  "rR" 'slack-message-remove-reaction
   "rs" 'slack-message-show-reaction-users
   "pl" 'slack-room-pins-list
   "pa" 'slack-message-pins-add

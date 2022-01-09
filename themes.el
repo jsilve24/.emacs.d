@@ -43,12 +43,13 @@
 (straight-use-package 'doom-themes)
 
 (use-package doom-themes
-  :init (load-theme 'doom-vibrant t))
+  :init (load-theme 'doom-vibrant t)
+  )
 
 
 (use-package kaolin-themes
-  ;; :config
-  ;; (load-theme 'kaolin-dark t)
+  :config
+  ;; (load-theme 'kaolin-aurora t)
   ;; (kaolin-treemacs-theme)
   )
 

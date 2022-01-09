@@ -31,10 +31,11 @@
   (global-undo-tree-mode))
 
 ;;; main evil config
-;; (setq evil-respect-visual-line-mode t) ; needs to be front and center
 (straight-use-package 'evil)
 (use-package evil
   :init
+  (setq evil-respect-visual-line-mode t) ; needs to be front and center
+
   (setq evil-want-C-i-jump t
 	evil-want-Y-yank-to-eol t
 	evil-want-C-u-scroll nil
@@ -133,8 +134,8 @@
 
 ;;; evil-collection
 
-(straight-use-package '(evil-collection :local-repo "~/.myvanilla.d/local-packages/evil-collection"))
 (use-package evil-collection
+  :straight (evil-collection :local-repo "~/.emacs.d/local-packages/evil-collection")
   :after evil
   :config
   ;; (setq evil-collection-mode-list

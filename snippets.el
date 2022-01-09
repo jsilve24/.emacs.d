@@ -186,10 +186,10 @@
 
 ;; latex autoactivating snippets
 
-(use-package laas
-  :straight (laas :type git :host github :repo "jsilve24/LaTeX-auto-activating-snippets")
-  :hook (LaTeX-mode . laas-mode)
-  :hook (org-mode . laas-mode))
+;; (use-package laas
+;;   :straight (laas :type git :host github :repo "jsilve24/LaTeX-auto-activating-snippets")
+;;   :hook (LaTeX-mode . laas-mode)
+;;   :hook (org-mode . laas-mode))
 
 
 

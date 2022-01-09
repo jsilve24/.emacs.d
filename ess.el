@@ -93,6 +93,13 @@
  "C-<" #'r/insert-assign
  "C->" #'r/insert-pipe)
 
+;; ;;;###autoload
+;; (defun jds~setup-ess-bindings ()
+;;   (evil-local-set-key '(override normal) ",k" #'ess-display-help-on-object))
+;; (add-hook 'ess-mode-hook 'jds~setup-ess-bindings)
+;; (add-hook 'inferior-ess-mode-hook 'jds~setup-ess-bindings)
+
+
 (jds/localleader-def
   :keymaps '(ess-mode-map inferior-ess-mode-map)
   "<tab>" '(ess-switch-to-inferior-or-script-buffer :wk "REPL-script switch")

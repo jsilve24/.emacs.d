@@ -39,5 +39,20 @@
 (use-package forge
   :after magit)
 
+;; for easier handling of pull-requests on github
+(use-package code-review)
+
+(general-define-key
+ :keymaps 'code-review-mode-map
+ :states 'n
+ "?" #'code-review-transient-api)
+
+(jds/localleader-def
+  :keymaps forge-topic-mode-map
+  "r" #'code-review-forge-pr-at-point)
+
+(use-package git-timemachine)
+
+
 (provide 'git)
 ;;; git.el ends here
