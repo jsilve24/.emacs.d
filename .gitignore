@@ -4,3 +4,6 @@
 /elpa/
 /local-packages/
 /.org-generic-id-locations
+/code-review-error.log
+/code-review-db-file.sqlite
+/.cache/
