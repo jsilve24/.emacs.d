@@ -48,7 +48,7 @@
  "?" #'code-review-transient-api)
 
 (jds/localleader-def
-  :keymaps forge-topic-mode-map
+  :keymaps 'forge-topic-mode-map
   "r" #'code-review-forge-pr-at-point)
 
 (use-package git-timemachine)

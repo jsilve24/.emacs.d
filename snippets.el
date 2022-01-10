@@ -33,9 +33,9 @@
 
   (defmacro jds~yas-lambda-expand-snippet-by-key (name)
     "Return function that programatically expand snippet by NAME"
-    `(quote  (lambda () (interactive)
-	       (yas-expand-snippet
-		(yas-lookup-snippet ,name)))))
+    `'(lambda () (interactive)
+	(yas-expand-snippet
+	 (yas-lookup-snippet ,name))))
 
   (defun jds~string-just-one-space (str)
     (progn
@@ -43,6 +43,15 @@
       (insert str)
       (just-one-space)))
 
+
+  (defmacro jds~aas-insert-math-symbol (symbol)
+    "Add aas snippet that expands to SYMBOL wrapped in math if
+not in math mode or SYMBOL in math mode. Don't add backslash
+escape."
+    `(lambda () (interactive)
+       (if (texmathp)
+	   (yas-expand-snippet (concat "\\" ,symbol))
+	 (yas-expand-snippet (concat "\\\\(\\" ,symbol "$0\\\\)")))))
   (defmacro jds~aas-setup-insert-math (mode)
     `(progn (aas-set-snippets ,mode
 	      :cond #'(lambda () (not (texmathp)))
@@ -67,10 +76,58 @@
 	      ";perp" (jds~yas-lambda-expand "^\\{\\perp\\}")
 	      ";para" (jds~yas-lambda-expand "^\\{\\parallel\\}")
 	      ";text" (jds~yas-lambda-expand "\\text\\{$1\\}")
-	      ";cases" (jds~yas-lambda-expand "\\begin\\{cases\\}\n$0 \\\\\n\\end\\{cases\\}"))))
+	      ";cases" (jds~yas-lambda-expand "\\begin\\{cases\\}\n$0 \\\\\n\\end\\{cases\\}"))
+	    (aas-set-snippets ,mode
+	      ";;a" (jds~aas-insert-math-symbol "theta")
+	      ";;A" (jds~aas-insert-math-symbol "theta")
+	      ";;b" (jds~aas-insert-math-symbol "beta")
+	      ";;B" (jds~aas-insert-math-symbol "Beta")
+	      ";;c" (jds~aas-insert-math-symbol "chi")
+	      ";;d" (jds~aas-insert-math-symbol "delta")
+	      ";;D" (jds~aas-insert-math-symbol "Delta")
+	      ";;e" (jds~aas-insert-math-symbol "epsilon")
+	      ";;E" (jds~aas-insert-math-symbol "Epsilon")
+	      ";;f" (jds~aas-insert-math-symbol "phi")
+	      ";;F" (jds~aas-insert-math-symbol "Phi")
+	      ";;h" (jds~aas-insert-math-symbol "eta")
+	      ";;H" (jds~aas-insert-math-symbol "Eta")
+	      ";;k" (jds~aas-insert-math-symbol "kappa")
+	      ";;l" (jds~aas-insert-math-symbol "lambda")
+	      ";;L" (jds~aas-insert-math-symbol "Lambda")
+	      ";;m" (jds~aas-insert-math-symbol "mu")
+	      ";;n" (jds~aas-insert-math-symbol "nu")
+	      ";;o" (jds~aas-insert-math-symbol "omega")
+	      ";;O" (jds~aas-insert-math-symbol "Omega")
+	      ";;p" (jds~aas-insert-math-symbol "pi")
+	      ";;P" (jds~aas-insert-math-symbol "Pi")
+	      ";;q" (jds~aas-insert-math-symbol "theta")
+	      ";;q" (jds~aas-insert-math-symbol "theta")
+	      ";;s" (jds~aas-insert-math-symbol "sigma")
+	      ";;S" (jds~aas-insert-math-symbol "Sigma")
+	      ";;r" (jds~aas-insert-math-symbol "rho")
+	      ";;t" (jds~aas-insert-math-symbol "tau")
+	      ";;u" (jds~aas-insert-math-symbol "upsilon")
+	      ";;U" (jds~aas-insert-math-symbol "Upsilon")
+	      ";;x" (jds~aas-insert-math-symbol "xi")
+	      ";;X" (jds~aas-insert-math-symbol "Xi")
+	      ";;y" (jds~aas-insert-math-symbol "psi")
+	      ";;Y" (jds~aas-insert-math-symbol "Psi")
+	      ";;z" (jds~aas-insert-math-symbol "zeta")
+	      ";;." (jds~aas-insert-math-symbol "cdot")
+	      ";;>" (jds~aas-insert-math-symbol "rightarrow")
+	      ";;<" (jds~aas-insert-math-symbol "leftarrow")
+	      ";;[" (jds~aas-insert-math-symbol "subset")
+	      ";;]" (jds~aas-insert-math-symbol "supset")
+	      ";;-" (jds~aas-insert-math-symbol "leftrightarrow")
+	      ";;0" (jds~aas-insert-math-symbol "emptyset")
+	      ";;^" (jds~aas-insert-math-symbol "uparrow")
+	      ";;_" (jds~aas-insert-math-symbol "downarrow"))))
   (jds~aas-setup-insert-math 'org-mode)
   (jds~aas-setup-insert-math 'latex-mode)
   (jds~aas-setup-insert-math 'markdown-mode)
+
+
+
 
 
   ;; latex mode citations
@@ -105,7 +162,7 @@
     ";cond" (jds~yas-lambda-expand "(cond\n(${1:condition} ${2:body})$0)")
     ";hook" (jds~yas-lambda-expand "(add-hook '${1:name}-hook ${2:'${3:function}})$0")
     ";bound" (jds~yas-lambda-expand "(if (fboundp '$1)\n$0)")
-    ";lambda" (jds~yas-lambda-expand "(lambda ($1) ${2:(interactive)} $0)") 
+    ";lambda" (jds~yas-lambda-expand "(lambda ($1) ${2:(interactive)} $0)")
     ";let" (jds~yas-lambda-expand "(let${1:*} (${2:args})\n$0)")
     ";not" (jds~yas-lambda-expand "(not $0)")
     ";or" (jds~yas-lambda-expand "(org $0)")
@@ -113,12 +170,12 @@
 
   (defmacro jds~aas-setup-ess (mode)
     `(aas-set-snippets ,mode
-       ";;" #'r/insert-assign 
+       ";;" #'r/insert-assign
        ";m" #'r/insert-pipe))
   (jds~aas-setup-ess 'ess-r-mode)
   (jds~aas-setup-ess 'inferior-ess-mode)
-  
-  
+
+
   (defun jds~comment-rule (string)
     "Prompts for `STRING` and horizontal rule starting with comment char as heading."
     (interactive "sHeadline: ")
