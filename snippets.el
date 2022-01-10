@@ -58,7 +58,8 @@ escape."
 	      ";m" (jds~yas-lambda-expand "\\\\($1\\\\)")
 	      ";M" (jds~yas-lambda-expand "\\\[$1\\\]")
 	      ";begin" (jds~yas-lambda-expand "\\begin\\{$1\\}\n$0\n\\end\\{$1\\}")
-	      ";figure" (jds~yas-lambda-expand "\\begin\\{figure\\}[ht]
+	      ";align" (jds~yas-lambda-expand "\\begin\\{align\\}\n$0\n\\end\\{align\\}")
+	      ";fig" (jds~yas-lambda-expand "\\begin\\{figure\\}[ht]
   \\\centering
   \\\includegraphics[${1:options}]\\{figures/${2:path.pdf}\\}
   \\\caption\\{\\\label\\{fig:${3:label}\\} $0\\}
@@ -69,14 +70,37 @@ escape."
 	      ";u" (jds~yas-lambda-expand "_\\{$1\\}")
 	      ";U" (jds~yas-lambda-expand "^\\{$1\\}")
 	      ";sdot" (jds~yas-lambda-expand "_\\{\\cdot $1\\}")
-	      ";aeq" #'(lambda () (interactive) (jds~string-just-one-space "&="))
-	      ";asim" #'(lambda () (interactive) (jds~string-just-one-space "&\\sim"))
 	      ";inv" (jds~yas-lambda-expand "^\\{-1\\}")
 	      ";inset" (jds~yas-lambda-expand "\\in\\\\{$1\\\\}")
 	      ";perp" (jds~yas-lambda-expand "^\\{\\perp\\}")
 	      ";para" (jds~yas-lambda-expand "^\\{\\parallel\\}")
 	      ";text" (jds~yas-lambda-expand "\\text\\{$1\\}")
-	      ";cases" (jds~yas-lambda-expand "\\begin\\{cases\\}\n$0 \\\\\n\\end\\{cases\\}"))
+	      ";cases" (jds~yas-lambda-expand "\\begin\\{cases\\}\n$0 \\\\\n\\end\\{cases\\}")
+	      ";all" "\\forall"
+	      ";set" (jds~yas-lambda-expand "\\{$0\\}")
+	      ";pp" (jds~yas-lambda-expand "p($0)")
+	      ";pr" (jds~yas-lambda-expand "P($0)")
+	      ";pc" (jds~yas-lambda-expand "p($1 \\vert $2)")
+	      ";approx" "\\approx"
+	      ";norm" (jds~yas-lambda-expand "N($1,$2)")
+	      ";|" "\\vert"
+	      ";cov" (jds~yas-lambda-expand "\\text{Cov}($0)")
+	      ";var" (jds~yas-lambda-expand "\\text{Var}($0)")
+	      ";ii" "_{ii}"
+	      ";ij" "_{ij}"
+	      ";jj" "_{jj}"
+	      "TT"  "^{T}"
+	      ";tt" "_{t}"
+	      ">>" "\\gg"
+	      ">=" "\\geq"
+	      "<=" "\\leq"
+	      "!=" "\neq"
+	      "AE" #'(lambda () (interactive) (jds~string-just-one-space "&="))
+	      "AA" #'(lambda () (interactive) (jds~string-just-one-space "&"))
+	      "inn" "\\in"
+	      "AS" #'(lambda () (interactive) (jds~string-just-one-space "&\\sim"))
+	      "SS" "\\sim"
+	      "//" (jds~yas-lambda-expand "\\frac\\{$1\\}\\{$2\\}"))
 	    (aas-set-snippets ,mode
 	      ";;a" (jds~aas-insert-math-symbol "theta")
 	      ";;A" (jds~aas-insert-math-symbol "theta")
@@ -118,16 +142,16 @@ escape."
 	      ";;<" (jds~aas-insert-math-symbol "leftarrow")
 	      ";;[" (jds~aas-insert-math-symbol "subset")
 	      ";;]" (jds~aas-insert-math-symbol "supset")
-	      ";;-" (jds~aas-insert-math-symbol "leftrightarrow")
+	      ";;=" (jds~aas-insert-math-symbol "leftrightarrow")
 	      ";;0" (jds~aas-insert-math-symbol "emptyset")
 	      ";;^" (jds~aas-insert-math-symbol "uparrow")
-	      ";;_" (jds~aas-insert-math-symbol "downarrow"))))
+	      ";;_" (jds~aas-insert-math-symbol "downarrow")
+	      ";;8" (jds~aas-insert-math-symbol "infty")
+	      ";;+" (jds~aas-insert-math-symbol "oplus")
+	      ";;-" (jds~aas-insert-math-symbol "ominus"))))
   (jds~aas-setup-insert-math 'org-mode)
   (jds~aas-setup-insert-math 'latex-mode)
   (jds~aas-setup-insert-math 'markdown-mode)
-
-
-
 
 
   ;; latex mode citations
