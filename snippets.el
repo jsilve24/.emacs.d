@@ -62,7 +62,8 @@ escape."
 	      ";fig" (jds~yas-lambda-expand "\\begin\\{figure\\}[ht]
   \\\centering
   \\\includegraphics[${1:options}]\\{figures/${2:path.pdf}\\}
-  \\\caption\\{\\\label\\{fig:${3:label}\\} $0\\}
+  \\\caption\\{ $0\\}
+\\\label\\{fig:${3:label}\\}
 \\end\\{figure\\}")
 	      ";article" (jds~yas-lambda-expand-snippet-by-key "article-template"))
 	    (aas-set-snippets ,mode
@@ -113,6 +114,8 @@ escape."
 	      ";;E" (jds~aas-insert-math-symbol "Epsilon")
 	      ";;f" (jds~aas-insert-math-symbol "phi")
 	      ";;F" (jds~aas-insert-math-symbol "Phi")
+	      ";;g" (jds~aas-insert-math-symbol "gamma")
+	      ";;G" (jds~aas-insert-math-symbol "Gamma")
 	      ";;h" (jds~aas-insert-math-symbol "eta")
 	      ";;H" (jds~aas-insert-math-symbol "Eta")
 	      ";;k" (jds~aas-insert-math-symbol "kappa")

@@ -99,13 +99,13 @@
 ;;; setup latexmk
 
 (use-package auctex-latexmk
-  :mode "\\.tex\\'"
   :after auctex
+  ;; :after auctex
   :init
   ;; Pass the -pdf flag when TeX-PDF-mode is active
   (setq auctex-latexmk-inherit-TeX-PDF-mode t)
   :config
- ;; Set LatexMk as the default
+  ;; Set LatexMk as the default
   (add-hook 'LaTeX-mode
             (lambda () (setq TeX-command-default "LatexMk")))
   (add-hook 'latex-mode
@@ -151,7 +151,10 @@
   :straight t
   :after cdlatex
   :config
-  (company-auctex-init))
+  (add-to-list 'company-backends
+	     '(company-auctex-macros company-auctex-symbols company-auctex-environments))
+  ;; (company-auctex-init)
+  )
 
 ;;; setup adaptive-wrap for nicer look
 
@@ -194,25 +197,31 @@
 
 ;;; setup biblio
 
+;;; setup company-reftex
+(use-package company-reftex
+  :after latex
+  :config
+  (add-to-list 'company-backends 'company-reftex-labels)
+  (add-to-list 'company-backends 'company-reftex-citations))
 
 ;;; keybindings
 
 (jds/localleader-def
- :keymaps 'LaTeX-mode-map
- "\\" #'TeX-command-run-all
- "e" #'LaTeX-environment
- "s" #'LaTeX-section
- "c" #'LaTeX-close-environment
- "n" #'TeX-next-error
- "N" #'TeX-previous-error
- "i" #'LaTeX-insert-item
- "r" '(:ignore :which-key "reftex")
- "rb" #'citar-insert-citation
- "rR" #'citar-refresh
- "rr" #'reftex-reference
- "rl" #'reftex-label
- "t" #'reftex-toc
- "c" #'reftex-citation)
+  :keymaps 'LaTeX-mode-map
+  "\\" #'TeX-command-run-all
+  "e" #'LaTeX-environment
+  "s" #'LaTeX-section
+  "c" #'LaTeX-close-environment
+  "n" #'TeX-next-error
+  "N" #'TeX-previous-error
+  "i" #'LaTeX-insert-item
+  "r" '(:ignore :which-key "reftex")
+  "rb" #'citar-insert-citation
+  "rR" #'citar-refresh
+  "rr" #'reftex-reference
+  "rl" #'reftex-label
+  "t" #'reftex-toc
+  "c" #'reftex-citation)
 
 (provide 'latex)
 ;;; latex.el ends here

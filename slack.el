@@ -6,7 +6,8 @@
   :commands slack-start 
   :init
   (setq slack-buffer-emojify t
-	slack-prefer-current-team t)
+	slack-prefer-current-team t
+	slack-file-dir "~/Downloads/")
   ;; just here to avoid issues with autoloads below not sure why this is necessary
   (defun slack-thread-message-buffer ())
   :config
