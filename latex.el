@@ -196,6 +196,8 @@
 
 
 ;;; setup biblio
+(use-package biblio
+  :after latex)
 
 ;;; setup company-reftex
 (use-package company-reftex
@@ -215,13 +217,16 @@
   "n" #'TeX-next-error
   "N" #'TeX-previous-error
   "i" #'LaTeX-insert-item
+  "t" #'reftex-toc)
+
+(jds/localleader-def
+  :keymaps '(LaTeX-mode-map bibtex-mode-map)
   "r" '(:ignore :which-key "reftex")
   "rb" #'citar-insert-citation
   "rR" #'citar-refresh
   "rr" #'reftex-reference
   "rl" #'reftex-label
-  "t" #'reftex-toc
-  "c" #'reftex-citation)
+  "rs" #'biblio-lookup)
 
 (provide 'latex)
 ;;; latex.el ends here

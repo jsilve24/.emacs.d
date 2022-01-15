@@ -172,6 +172,7 @@
 (dolist (mode '(;;org-mode-hook
                 term-mode-hook
 		slack-message-buffer-mode-hook
+		slack-file-info-buffer-mode-hook
 		slack-file-list-buffer-mode-hook
                 pdf-view-mode-hook
 		doc-view-mode-hook
@@ -280,6 +281,8 @@
   ;; exclude some files from tracking
   ;; if you add something here you then need to run recentf-cleanup to take effect
   (add-to-list 'recentf-exclude "~/\\.mail/*")
+  (add-to-list 'recentf-exclude "*\\.fdb_latexmk")
+  (add-to-list 'recentf-exclude "*\\.fls")
   (add-to-list 'recentf-exclude "^/tmp/*")
   (add-to-list 'recentf-exclude "\\.synctex\\.gz$")
   (add-to-list 'recentf-exclude "recentf-save\\.el")

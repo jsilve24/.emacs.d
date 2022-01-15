@@ -59,6 +59,7 @@ escape."
 	      ";M" (jds~yas-lambda-expand "\\\[$1\\\]")
 	      ";begin" (jds~yas-lambda-expand "\\begin\\{$1\\}\n$0\n\\end\\{$1\\}")
 	      ";align" (jds~yas-lambda-expand "\\begin\\{align\\}\n$0\n\\end\\{align\\}")
+	      ";cite" (jds~yas-lambda-expand  "\\cite\\{$0\\}")
 	      ";fig" (jds~yas-lambda-expand "\\begin\\{figure\\}[ht]
   \\\centering
   \\\includegraphics[${1:options}]\\{figures/${2:path.pdf}\\}
