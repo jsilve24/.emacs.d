@@ -147,5 +147,15 @@ Prefix argument, don't kill prior dired buffers."
       (-map 'kill-buffer buffers-to-kill)))
   (dired-jump))
 
+;;;###autoload
+(defun jds/dired-screenshot ()
+    "Promp for filename, take screenshot and save to current directory."
+    (interactive)
+    (let* ((fn (read-string "Filename: "))
+	   (fn (expand-file-name fn default-directory))
+	   (command (format "import %s" fn)))
+      (message command)
+      (shell-command command)))
+
 (provide 'dired)
 ;;; dired.el ends here

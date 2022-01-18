@@ -171,9 +171,10 @@ line."
 (jds/localleader-def dired-mode-map
                      ;; "e" #'wdired-change-to-wdired-mode
                      ;; "c" #'dired-rsync
+                     "S" #'jds/dired-screenshot
                      "+" #'jds/make-dated-directory
                      "d" #'jds/dragon-dired)
-
+		     
 
 
 ;; (use-package dired+)

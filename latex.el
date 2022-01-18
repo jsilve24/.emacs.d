@@ -99,7 +99,7 @@
 ;;; setup latexmk
 
 (use-package auctex-latexmk
-  :after auctex
+  :after tex
   ;; :after auctex
   :init
   ;; Pass the -pdf flag when TeX-PDF-mode is active
