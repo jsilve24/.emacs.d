@@ -236,8 +236,9 @@
 (jds/sub-leader-def
   "," #'org-capture		;; q "new"
   "C-," #'org-capture		;; q "new"
-  "<" #'org-capture-goto-target ;; new and follow
-  ">" #'org-capture-goto-last-stored
+  ;; "<" #'org-capture-goto-target ;; new and follow
+  ">" #'org-refile-goto-last-stored
+  "<" #'org-capture-goto-last-stored
   "a" #'jds/affe-find-files-home
   "z" #'zoxide-find-file
   "Z" #'zoxide-cd

@@ -104,8 +104,7 @@ escape."
 	      "SS" "\\sim"
 	      "//" (jds~yas-lambda-expand "\\frac\\{$1\\}\\{$2\\}"))
 	    (aas-set-snippets ,mode
-	      ";;a" (jds~aas-insert-math-symbol "theta")
-	      ";;A" (jds~aas-insert-math-symbol "theta")
+	      ";;a" (jds~aas-insert-math-symbol "alpha")
 	      ";;b" (jds~aas-insert-math-symbol "beta")
 	      ";;B" (jds~aas-insert-math-symbol "Beta")
 	      ";;c" (jds~aas-insert-math-symbol "chi")
@@ -129,7 +128,7 @@ escape."
 	      ";;p" (jds~aas-insert-math-symbol "pi")
 	      ";;P" (jds~aas-insert-math-symbol "Pi")
 	      ";;q" (jds~aas-insert-math-symbol "theta")
-	      ";;q" (jds~aas-insert-math-symbol "theta")
+	      ";;Q" (jds~aas-insert-math-symbol "Theta")
 	      ";;s" (jds~aas-insert-math-symbol "sigma")
 	      ";;S" (jds~aas-insert-math-symbol "Sigma")
 	      ";;r" (jds~aas-insert-math-symbol "rho")
