@@ -91,17 +91,20 @@ escape."
 	      ";ii" "_{ii}"
 	      ";ij" "_{ij}"
 	      ";jj" "_{jj}"
-	      "TT"  "^{T}"
+	      ";;2" "^{2}"
+	      ";;3" "^{3}"
+	      "TT" "^{T}"
 	      ";tt" "_{t}"
 	      ">>" "\\gg"
 	      ">=" "\\geq"
 	      "<=" "\\leq"
 	      "!=" "\neq"
+	      "EE" #'(lambda () (interactive) (jds~string-just-one-space "="))
 	      "AE" #'(lambda () (interactive) (jds~string-just-one-space "&="))
 	      "AA" #'(lambda () (interactive) (jds~string-just-one-space "&"))
 	      "inn" "\\in"
 	      "AS" #'(lambda () (interactive) (jds~string-just-one-space "&\\sim"))
-	      "SS" "\\sim"
+	      "SS" #'(lambda () (interactive) (jds~string-just-one-space "\\sim"))
 	      "//" (jds~yas-lambda-expand "\\frac\\{$1\\}\\{$2\\}"))
 	    (aas-set-snippets ,mode
 	      ";;a" (jds~aas-insert-math-symbol "alpha")

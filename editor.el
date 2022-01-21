@@ -148,5 +148,15 @@ Version 2017-01-11"
            $strPairs))))))
 
 
+;;; highlighting ---------------------------------------------------------------
+
+(use-package hl-todo
+  :hook (latex-mode . hl-todo-mode)
+  :hook (LaTeX-mode . hl-todo-mode))
+
+(jds/localleader-def
+  :keymaps 'LaTeX-mode-map
+  "f" #'hl-todo-occur)
+
 (provide 'editor)
 ;;; editor.el ends here

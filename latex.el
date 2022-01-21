@@ -99,7 +99,8 @@
 ;;; setup latexmk
 
 (use-package auctex-latexmk
-  :after tex
+  :mode ("\\.tex\\'" . LaTeX-mode)
+  :ensure auctex
   ;; :after auctex
   :init
   ;; Pass the -pdf flag when TeX-PDF-mode is active
@@ -141,9 +142,9 @@
 ;;; setup evil-tex
 
 (use-package evil-tex
-  :straight t
   :after latex
-  :hook (LaTeX-mode . evil-tex-mode))
+  :hook (LaTeX-mode . evil-tex-mode)
+  :hook (org-mode . evil-tex-mode))
 
 ;;; setup company-auctex and company-reftex (and perhaps company-math)
 
