@@ -329,7 +329,6 @@ targets."
 				 consult--source-bookmark
 				 consult-projectile--source-projectile-file
 				 consult-projectile--source-projectile-project
-				 consult--source-file
 				 consult--source-recent-file))
 
 
