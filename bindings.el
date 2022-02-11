@@ -356,7 +356,7 @@
  ;; "gq" #'XXX
  ;; "gQ" #'XXX
  "ga" #'ace-window
- ;; "gA" #'XXX
+ "gA" #'jds/ace-window-save-excursion
  "gz" #'jds/avy-fix-spelling
  ;; "gZ" #'XXX
  ;; "gt" #'XXX

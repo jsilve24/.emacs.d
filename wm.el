@@ -1,4 +1,4 @@
-;;; wm.el --- EXWM config -*- lexical-binding: t; -*-
+;; wm.el --- EXWM config -*- lexical-binding: t; -*-
 
 (defun efs/run-in-background (command)
   (let ((command-parts (split-string command "[ ]+")))
@@ -15,7 +15,7 @@
 
 (defun efs/exwm-update-title ()
   (pcase exwm-class-name
-    ("qutebrowser" (exwm-workspace-rename-buffer (format "Qutebrowser: %s" exwm-title)))
+    ;; ("qutebrowser" (exwm-workspace-rename-buffer (format "Qutebrowser: %s" exwm-title)))
     ("Firefox" (exwm-workspace-rename-buffer (format "Firefox: %s" exwm-title)))))
 
 ;; This function isn't currently used, only serves as an example how to
@@ -31,7 +31,7 @@
   (interactive)
   (pcase exwm-class-name
     ;; ("Firefox" (exwm-workspace-move-window 2))
-    ("qutebrowser" (exwm-workspace-rename-buffer (format "Qutebrowser: %s" exwm-title)))
+    ;; ("qutebrowser" (exwm-workspace-rename-buffer (format "Qutebrowser: %s" exwm-title)))
     ;; ("Google-chrome" (hide-mode-line-mode))
     ;; ("mpv" (exwm-floating-toggle-floating)
     ;;        (exwm-layout-toggle-mode-line))
@@ -155,7 +155,9 @@ i.e. change right window to bottom, or change bottom window to right."
   (add-hook 'exwm-manage-finish-hook #'efs/configure-window-by-class)
   
   ;; rebind caps lock
-  (start-process-shell-command "capslock" nil "~/bin/capslock.sh")
+  ;; (start-process-shell-command "capslock" nil "~/bin/capslock.sh")
+  (start-process-shell-command "kmonad" nil "/usr/bin/kmonad ~/.config/kmonad/kinesis.kbd")
+
   
   ;; Automatically send the mouse cursor to the selected workspace's display
   (setq exwm-workspace-warp-cursor t)
@@ -451,49 +453,22 @@ buffer (=minimizing in other WM/DE)"
 	  (exwm-workspace--position (selected-frame)))))
 
   ;; Define a custom modeline to override the default.
-  (doom-modeline-def-modeline 'jds/modeline
-    ;; '(bar workspace-name jds/exwm-workspaces window-number modals buffer-info remote-host buffer-position word-count parrot selection-info)
-    '(bar workspace-name jds/exwm-workspaces window-number modals buffer-info remote-host word-count parrot selection-info)
-    '(objed-state misc-info persp-name battery grip irc mu4e gnus github debug repl lsp minor-modes input-method indent-info buffer-encoding major-mode process vcs checker))
+  ;; (doom-modeline-def-modeline 'jds/modeline
+  ;;   ;; '(bar workspace-name jds/exwm-workspaces window-number modals buffer-info remote-host buffer-position word-count parrot selection-info)
+  ;;   '(bar workspace-name jds/exwm-workspaces window-number modals buffer-info remote-host word-count parrot selection-info)
+  ;;   '(objed-state misc-info persp-name battery grip irc mu4e gnus github debug repl lsp minor-modes input-method indent-info buffer-encoding major-mode process vcs checker))
 
-  ;; Define a method to load the modeline.
-  (defun jds/load-modeline ()
-    "Load the default modeline."
-    (doom-modeline-set-modeline 'jds/modeline 'default))
+  ;; ;; Define a method to load the modeline.
+  ;; (defun jds/load-modeline ()
+  ;;   "Load the default modeline."
+  ;;   (doom-modeline-set-modeline 'jds/modeline 'default))
 
-  (add-hook 'doom-modeline-mode-hook 'jds/load-modeline)
-  ;; (doom-modeline-mode +1)
-  (doom-modeline-set-modeline 'dotfiles/modeline 'default))
+  ;; (add-hook 'doom-modeline-mode-hook 'jds/load-modeline)
+  ;; ;; (doom-modeline-mode +1)
+  ;; (doom-modeline-set-modeline 'dotfiles/modeline 'default))
 
-;; (defun jds/current-workspace ()
+  )
 
-;;   )
-
-;; (use-package smart-mode-line
-;;   :config
-;;   (setq sml/theme 'respectful)
-;;   (sml/setup))
-;; (use-package mini-modeline
-;;   ;; :after smart-mode-line
-;;   :config
-;;   (setq ring-bell-function 'ignore)
-;;   (mini-modeline-mode t)
-;;   ;; (setq mini-modeline-l-format '(:eval (format "[%s]" (exwm-workspace--position (selected-frame))))) ;
-;;   (setq mini-modeline-l-format '(:eval (format "[%s]" exwm-workspace-current-index))) ;
-;;   )
-;; (use-package diminish
-;;   :after mini-modeline
-;;   :config
-;;   (diminish 'evil-snipe-local-mode)
-;;   (diminish 'projectile-mode)
-;;   (diminish 'eldoc-mode)
-;;   (diminish 'abbrev-mode)
-;;   (diminish 'company-mode)
-;;   (diminish 'yas-minor-mode)
-;;   (diminish 'mini-modeline-mode)
-;;   (diminish 'which-key-mode)
-;;   (diminish 'visual-line-mode)
-;;   (diminish 'evil-collection-unimpaired-mode))
 
 
 

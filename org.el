@@ -262,9 +262,10 @@
 (jds/localleader-def
   :keymaps 'org-capture-mode-map
   "\\" #'org-capture-finalize
-  "k"  #'org-capture-kill
-  "r"  #'org-capture-refile
-  "a"  #'org-attach)
+  "C-\\" #'org-capture-finalize
+  "k" #'org-capture-kill
+  "r" #'org-capture-refile
+  "a" #'org-attach)
 
 
 ;; get q

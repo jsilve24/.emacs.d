@@ -73,6 +73,7 @@
 ;; ;; after everything else
 (load-config "bindings.el")
 (load-config "debugging.el")
+(load-config "languages.el")
 
 
 ;;; languages

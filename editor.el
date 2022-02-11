@@ -150,13 +150,32 @@ Version 2017-01-11"
 
 ;;; highlighting ---------------------------------------------------------------
 
-(use-package hl-todo
-  :hook (latex-mode . hl-todo-mode)
-  :hook (LaTeX-mode . hl-todo-mode))
+;; (use-package hl-todo
+;;   :hook (LaTeX-mode hl-todo-mode)
+;;   :hook (ess-r-mode hl-todo-mode)
+;;   :hook (emacs-lisp-mode hl-todo-mode)
+;;   :config
+;;   (setq hl-todo-keyword-faces
+;; 	'(("HOLD" . "#d0bf8f")
+;; 	  ("TODO" . "#cc9393")
+;; 	  ("NEXT" . "#dca3a3")
+;; 	  ("THEM" . "#dc8cc3")
+;; 	  ("PROG" . "#7cb8bb")
+;; 	  ("OKAY" . "#7cb8bb")
+;; 	  ("DONT" . "#5f7f5f")
+;; 	  ("FAIL" . "#8c5353")
+;; 	  ("DONE" . "#afd8af")
+;; 	  ("NOTE" . "#d0bf8f")
+;; 	  ("CITE" . "#d0bf8f")
+;; 	  ("HACK" . "#d0bf8f")
+;; 	  ("TEMP" . "#d0bf8f")
+;; 	  ("FIXME" . "#cc9393")
+;; 	  ("XXX+" . "#cc9393")))
+;;   (global-hl-todo-mode))
 
-(jds/localleader-def
-  :keymaps 'LaTeX-mode-map
-  "f" #'hl-todo-occur)
+;; (jds/localleader-def
+;;   :keymaps '(LaTeX-mode-map emacs-lisp-mode-map ess-r-mode-map)
+;;   "f" #'hl-todo-occur)
 
 (provide 'editor)
 ;;; editor.el ends here

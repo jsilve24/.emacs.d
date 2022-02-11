@@ -97,10 +97,9 @@
  (setq cdlatex-math-modify-alist '((?\p "\\proc" nil t nil nil))))
 
 ;;; setup latexmk
-
 (use-package auctex-latexmk
   :mode ("\\.tex\\'" . LaTeX-mode)
-  :ensure auctex
+  ;; :ensure auctex
   ;; :after auctex
   :init
   ;; Pass the -pdf flag when TeX-PDF-mode is active
