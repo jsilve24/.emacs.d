@@ -216,8 +216,7 @@ targets."
       `(defun ,(intern (concat "jds/embark-"
 			       (symbol-name fn)
 			       "-"
-			       (car (last (split-string
-					   (symbol-name split-type) "-"))))) ()
+			       (symbol-name split-type))) ()
 	 (interactive)
 	 (funcall #',split-type)
 	 (call-interactively #',fn))))

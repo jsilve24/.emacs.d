@@ -402,16 +402,17 @@ buffer (=minimizing in other WM/DE)"
 (with-eval-after-load 'app-launcher
   (with-eval-after-load 'marginalia
     (with-eval-after-load 'embark 
-    ;; new completion category called "application"
-    (add-to-list 'marginalia-prompt-categories '("Run app: " . application))
+      ;; new completion category called "application"
+      (add-to-list 'marginalia-prompt-categories '("Run app: " . application))
 
-    ;; make app-launcher keymap for embark and add nice functions to them
-    (embark-define-keymap embark-application-map
-			  "Keymap for use with app-launcher")
-    (add-to-list 'embark-keymap-alist '(application . embark-application-map))
-    (define-key embark-application-map (kbd "o") (jds/embark-ace-action app-launcher-run-app))
-    (define-key embark-application-map (kbd "v") (jds/embark-split-action app-launcher-run-app +evil/window-vsplit-and-follow))
-    (define-key embark-application-map (kbd "s") (jds/embark-split-action app-launcher-run-app +evil/window-split-and-follow)))))
+      ;; make app-launcher keymap for embark and add nice functions to them
+      (embark-define-keymap embark-application-map
+	"Keymap for use with app-launcher")
+      (add-to-list 'embark-keymap-alist '(application . embark-application-map))
+      (define-key embark-application-map (kbd "o") (jds/embark-ace-action app-launcher-run-app))
+      (define-key embark-application-map (kbd "v") (jds/embark-split-action app-launcher-run-app +evil/window-vsplit-and-follow))
+      (define-key embark-application-map (kbd "s") (jds/embark-split-action app-launcher-run-app	+evil/window-split-and-follow))
+      )))
 
 
 

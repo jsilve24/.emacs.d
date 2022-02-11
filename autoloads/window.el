@@ -92,7 +92,7 @@ the only window, use evil-window-move-* (e.g. `evil-window-move-far-left')."
 If `evil-split-window-below' is non-nil, the new window isn't focused."
   (interactive)
   (split-window-below)
-  (sit-for .01)
+  (sit-for .01) ; added for exwm buffers
   (other-window 1))
 
 ;;;###autoload
@@ -101,7 +101,7 @@ If `evil-split-window-below' is non-nil, the new window isn't focused."
 If `evil-vsplit-window-right' is non-nil, the new window isn't focused."
   (interactive)
   (split-window-right)
-  (sit-for .01)
+  (sit-for .01) ; added for exwm buffers
   (other-window 1))
 
 
