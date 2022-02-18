@@ -177,7 +177,8 @@ escape."
 	  (insert link)))))
 
   (aas-set-snippets 'org-mode
-    ";lo" #'jds~org-agenda-link)
+    ";lo" #'jds~org-agenda-link
+    ";sq" (jds~yas-lambda-expand "#+BEGIN_QUOTE\n$0\n#+END_QUOTE"))
 
   ;; elisp snippets
   (aas-set-snippets 'emacs-lisp-mode

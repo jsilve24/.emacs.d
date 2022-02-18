@@ -440,7 +440,7 @@
   :config 
   (key-chord-mode 1)
   (setq key-chord-one-keys-delay 0.010
-	key-chord-two-keys-delay 0.04)
+	key-chord-two-keys-delay 0.06)
   (key-chord-define-global "jk" 'evil-force-normal-state)
   (key-chord-define-global "wq" 'save-buffer)
   (key-chord-define-global "WQ" 'evil-write-all))
