@@ -55,8 +55,8 @@
 
 (use-package modus-themes)
 
-(straight-use-package '(shanty-theme :host github :repo "qhga/shanty-theme"))
-(use-package shanty-theme)
+;; (straight-use-package '(shanty-theme :host github :repo "qhga/shanty-theme"))
+;; (use-package shanty-theme)
 
 ;;; modline
 

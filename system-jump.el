@@ -19,16 +19,31 @@
 ;;
 ;;; Code:
 
-
-
 (use-package zoxide
-  :commands (zoxide-add zoxide-find-file zoxide-cd zoxide-query)
+  :commands (zoxide-add zoxide-find-file zoxide-cd zoxide-query zoxide-travel)
   :straight (zoxide :type git :host gitlab :repo "Vonfry/zoxide.el" :branch "master")
   :hook
   ((find-file . zoxide-add)
    (projectile-after-switch-project . zoxide-add)
-   (dired-after-readin . zoxide-add)))
+   (dired-after-readin . zoxide-add))
+  :config
+  ;; Needed to add the expand-file-name to below to get it working well 
+(defun zoxide-add (&optional path &rest _)
+  "Add PATH to zoxide database.  This function is called asynchronously."
+  (interactive "Dpath: ")
+  (unless path
+    (setq path (expand-file-name default-directory)))
+  (zoxide-run t "add" path)))
 
+;; (with-eval-after-load 'embark
+;;   (defun jds~embark-dired-jump-zoxide-add (_ &optional other-window)
+;;     "Advice to be added around embark-dired-jump to add path to zoxide."
+;;     ;; (if (string= major-mode "dired-mode")
+;;     ;; 	(progn
+;;     ;; 	  ;; (message default-directory)
+;;     ;; 	  (zoxide-add (expand-file-name default-directory))))
+;;     )
+;;   (advice-add 'embark-dired-jump :after 'jds~embark-dired-jump-zoxide-add))
 
 (straight-use-package 'affe)
 (use-package affe
