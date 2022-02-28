@@ -21,7 +21,9 @@
  "C-M-'" #'popper-cycle
  "C-M-\"" #'popper-toggle-type
  "C-;" #'embark-act
- "C-:" #'embark-dwim)
+ "C-:" #'embark-dwim
+ "C-<" #'lispyville-barf
+ "C->" #'lispyville-slurp)
 
 ;;;###autoload
 (defun jds~kill-whole-line ()
