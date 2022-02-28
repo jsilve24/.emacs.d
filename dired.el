@@ -70,6 +70,32 @@
     "h" 'dired-single-up-directory
     "l" 'dired-single-buffer))
 
+;;; dired-registers
+(with-eval-after-load 'dired
+
+  (defvar dired-registers--register-alist
+    (mapcar (lambda (c) (cons c nil)) (number-sequence ?a ?z))
+    "Alist of symbols and paths, the datastructure of the registers.")
+
+  (defun dired-registers-store (reg &optional path)
+    "Store path to register REG (passed as a character). If PATH is not provided, then use default-directory."
+    (interactive "c")
+    (let ((path
+	   (if path path default-directory)))
+      (setf (cdr (assoc reg dired-registers--register-alist)) path)))
+
+  (defun dired-registers-goto (reg)
+    "Dired to register stored in REG (passed as character)."
+    (interactive "c")
+    (let ((path (cdr (assoc reg dired-registers--register-alist))))
+      (if (file-exists-p path)
+	  (dired-single-buffer path)
+	(message (format
+		  "No valid path stored in regiseter %c"
+		  reg)))))
+  )
+
+
 
 
 ;; stole the below function from dired-hacks-utils.el since it was difficult
@@ -164,7 +190,9 @@ line."
      ;; copy absolute filepath
      "yy" #'(lambda () (interactive) (dired-copy-filename-as-kill 0))
      ";y" #'dired-copy-paste-do-copy
-     ";p" #'dired-copy-paste-do-paste))
+     ";p" #'dired-copy-paste-do-paste
+     ";m" #'dired-registers-store
+     ";'" #'dired-registers-goto))
   (add-hook 'dired-mode-hook 'jds~dired-setup-function))
 
 ;; local bindings

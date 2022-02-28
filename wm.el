@@ -145,6 +145,7 @@ i.e. change right window to bottom, or change bottom window to right."
   (efs/run-in-background "caffeine")
   (efs/run-in-background "dropbox start")
 
+
   ;; When window "class" updates, use it to set the buffer name
   (add-hook 'exwm-update-class-hook #'efs/exwm-update-class)
 
