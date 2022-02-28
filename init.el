@@ -45,7 +45,6 @@
 ;; (load-config "splash.el")
 (load-config "popups.el")
 (load-config "completing-read.el")
-(load-config "company.el")
 (load-config "org.el")
 (load-config "autoloads/org.el")
 (load-config "projects.el")
@@ -74,6 +73,10 @@
 (load-config "bindings.el")
 (load-config "debugging.el")
 (load-config "languages.el")
+
+;; for some reason has to be at the end to ensure 
+;; that company-active-map is defined
+(load-config "company.el")
 
 
 ;;; languages
