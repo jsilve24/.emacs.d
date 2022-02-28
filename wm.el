@@ -289,11 +289,7 @@ i.e. change right window to bottom, or change bottom window to right."
 
 	  ))
 
-  (defun switch-to-last-buffer ()
-  "Switch to last open buffer in current window."
-  (interactive)
-  (switch-to-buffer (other-buffer (current-buffer) 1)))
-  (exwm-input-set-key (kbd "s-`") #'switch-to-last-buffer)
+  (exwm-input-set-key (kbd "s-`") #'aw-previous-window)
   (exwm-input-set-key (kbd "s-t") #'window-toggle-split-direction)
 
   (exwm-enable)
@@ -366,6 +362,7 @@ buffer (=minimizing in other WM/DE)"
     (message "setting window dedication to %s" dedicated)
     (set-window-dedicated-p (selected-window) dedicated)))
 (exwm-input-set-key (kbd "s-e") #'my/set-window-dedicated)
+
 
 
 (with-eval-after-load 'evil

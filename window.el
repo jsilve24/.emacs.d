@@ -144,6 +144,17 @@ Controlled by `aw-fair-aspect-ratio'."
     (call-interactively #'other-window)
     (switch-to-buffer buffer)))
 
+
+;; from here https://github.com/abo-abo/ace-window/issues/125
+;;;###autoload
+(defun aw-previous-window ()
+  "Toggle between the last two selected windows."
+  (interactive)
+  (let ((win (get-mru-window t t t)))
+    (unless win (error "Last window not found."))
+    (aw-switch-to-window win)))
+
+
 (use-package transpose-frame)
 
 ;; save and restore window and frame configurations
