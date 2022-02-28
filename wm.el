@@ -323,16 +323,16 @@ i.e. change right window to bottom, or change bottom window to right."
 
   ;; stolen from here: https://kfx.fr/e/koe-utils.el
   (defun jds/quiet-async-shell-commands (cmd &rest cmds)
-  "Run async shell CMD with optional CMDS in a oneliner silently."
-  (interactive)
-  (let
-    ((display-buffer-alist
-       (list
-         (cons
-          "\\*Async Shell Command\\*.*"
-          (cons #'display-buffer-no-window nil)))))
-    (async-shell-command
-      (concat cmd " " (string-join cmds " ")))))
+    "Run async shell CMD with optional CMDS in a oneliner silently."
+    (interactive)
+    (let
+	((display-buffer-alist
+	  (list
+           (cons
+            "\\*Async Shell Command\\*.*"
+            (cons #'display-buffer-no-window nil)))))
+      (async-shell-command
+       (concat cmd " " (string-join cmds " ")))))
 
   (defun run-or-raise-or-dismiss (program program-buffer-name)
     "If no instance of the program is running, launch the program.
@@ -355,6 +355,18 @@ buffer (=minimizing in other WM/DE)"
 	  (exwm-async-run program)))))
   (setq exwm-launcher-map (make-sparse-keymap))
   (exwm-input-set-key (kbd "s-<tab>") exwm-launcher-map))
+
+
+;; largely templated off of the exwm cookbook (on the github wiki)
+;;;###autoload
+(defun jds~set-window-dedicated (arg)
+  "Toggle loose window dedication.  If prefix ARG, set strong."
+  (interactive "P")
+  (let* ((dedicated (if arg t (if (window-dedicated-p) nil "loose"))))
+    (message "setting window dedication to %s" dedicated)
+    (set-window-dedicated-p (selected-window) dedicated)))
+(exwm-input-set-key (kbd "s-e") #'my/set-window-dedicated)
+
 
 (with-eval-after-load 'evil
   (general-define-key
