@@ -361,7 +361,7 @@ buffer (=minimizing in other WM/DE)"
   (let* ((dedicated (if arg t (if (window-dedicated-p) nil "loose"))))
     (message "setting window dedication to %s" dedicated)
     (set-window-dedicated-p (selected-window) dedicated)))
-(exwm-input-set-key (kbd "s-e") #'my/set-window-dedicated)
+(exwm-input-set-key (kbd "s-e") #'jds~set-window-dedicated)
 
 
 

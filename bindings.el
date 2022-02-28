@@ -156,6 +156,10 @@
   "t" '(:ignore t :wk "toggles")
   "tm" #'hide-mode-line-mode)
 
+;;; screenshot
+(jds/leader-def
+  "S" #'jds/screenshot-dragon-temp-file)
+
 ;;; buffers
 
 ;;;###autoload

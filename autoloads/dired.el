@@ -54,12 +54,26 @@ Prefix argument, don't kill prior dired buffers."
   (dired-jump))
 
 ;;;###autoload
-(defun jds/dired-screenshot ()
+(defun jds/dired-screenshot (&optional filename)
     "Promp for filename, take screenshot and save to current directory."
     (interactive)
-    (let* ((fn (read-string "Filename: "))
+    (let* ((fn (if filename
+		   filename
+		 (read-string "Filename: ")))
 	   (fn (expand-file-name fn default-directory))
 	   (command (format "import %s" fn)))
       (message command)
       (shell-command command)))
 
+
+;;;###autoload
+(defun jds/screenshot-dragon-temp-file (&optional extension)
+  "Take screenshot, save to temporary file name, then present with dragon. Default filetype is PNG.
+Prompt for filetype with universal-prefix."
+  (interactive "P")
+  (let* ((fn (if extension
+		 (read-string "Filetype: ")
+	       "png"))
+	 (fn (make-temp-file "screenshot" nil fn)))
+    (jds/dired-screenshot fn)
+    (jds/dragon fn)))
