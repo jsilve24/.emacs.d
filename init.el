@@ -42,7 +42,6 @@
 (load-config "autoloads/evil.el")
 (load-config "autoloads/textobjects.el")
 (load-config "themes.el")
-;; (load-config "splash.el")
 (load-config "popups.el")
 (load-config "completing-read.el")
 (load-config "org.el")
