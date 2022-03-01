@@ -98,9 +98,10 @@
 
 
 (jds/localleader-def
- :keymaps '(pdf-view-mode-map)
- ;; prefix-argument to select which printer to use
- "p" #'ph-pdf-misc-print-document)
+  :keymaps '(pdf-view-mode-map)
+  ;; prefix-argument to select which printer to use
+  "p" #'ph-pdf-misc-print-document
+  "l" #'pdf-annot-list-annotations)
 
 
 
