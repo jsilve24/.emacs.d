@@ -14,31 +14,6 @@
     "h" 'dired-single-up-directory
     "l" 'dired-single-buffer))
 
-;;; dired-registers
-(with-eval-after-load 'dired
-
-  (defvar dired-registers--register-alist
-    (mapcar (lambda (c) (cons c nil)) (number-sequence ?a ?z))
-    "Alist of symbols and paths, the datastructure of the registers.")
-
-  (defun dired-registers-store (reg &optional path)
-    "Store path to register REG (passed as a character). If PATH is not provided, then use default-directory."
-    (interactive "c")
-    (let ((path
-	   (if path path default-directory)))
-      (setf (cdr (assoc reg dired-registers--register-alist)) path)))
-
-  (defun dired-registers-goto (reg)
-    "Dired to register stored in REG (passed as character)."
-    (interactive "c")
-    (let ((path (cdr (assoc reg dired-registers--register-alist))))
-      (if (file-exists-p path)
-	  (dired-single-buffer path)
-	(message (format
-		  "No valid path stored in regiseter %c"
-		  reg)))))
-  )
-
 
 
 ;; stole the below function from dired-hacks-utils.el since it was difficult
@@ -107,6 +82,19 @@ line."
 (use-package dired-copy-paste
   :straight (dired-copy-paste :type git :host github :repo "jsilve24/dired-copy-paste"))
 
+(use-package dired-registers
+  :straight (dired-registers :type git :host github :repo "jsilve24/dired-registers")
+  :config
+  (dired-registers-store ?d "~/Downloads/")
+  (dired-registers-store ?h "~/")
+  (dired-registers-store ?c "~/.emacs.d/")
+  (dired-registers-store ?g "~/Dropbox/Faculty/Grants/")
+  (dired-registers-store ?t "~/Dropbox/Faculty/Teaching/")
+  (dired-registers-store ?p "~/Dropbox/Faculty/Presentations/")
+  (dired-registers-store ?o "~/Dropbox/org/"))
+
+
+
 ;;;###autoload
 (defun jds/dired-copy-dirname-as-kill ()
   "Yank current directory path."
@@ -135,7 +123,7 @@ line."
      ";y" #'dired-copy-paste-do-copy
      ";p" #'dired-copy-paste-do-paste
      ";m" #'dired-registers-store
-     ";'" #'dired-registers-goto))
+     ";j" #'dired-registers-goto))
   (add-hook 'dired-mode-hook 'jds~dired-setup-function))
 
 ;; local bindings

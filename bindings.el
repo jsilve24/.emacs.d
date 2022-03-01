@@ -63,7 +63,7 @@
 (defun jds/tab-dwim ()
   (interactive)
   (cond
-   ((jds~blank-line-p) (progn (indent-relative)
+   ((jds~blank-line-p) (progn (indent-according-to-mode)
 			      (if (string= major-mode "org=mode")
 				  (org-beginning-of-line))))
    ((and (texmathp) (or (bound-and-true-p cdlatex-mode)
@@ -226,6 +226,15 @@
   "rp"   #'run-python
   "rl"   #'run-lisp)
 
+(jds/leader-def
+  "j" '(:ignore t :which-key "jump")
+  "j RET" #'dired-registers-goto-completing-read
+  "j m"   #'dired-registers-store
+  "j j"   #'dired-registers-goto
+  "j d"   '((lambda () (interactive) (dired-registers-goto ?d)) :wk "downloads")
+  "j o"   '((lambda () (interactive) (dired-registers-goto ?o)) :wk "org")
+  "j c"   '((lambda () (interactive) (dired-registers-goto ?c)) :wk "config"))
+
 ;;; org and apps
 
 ;;;###autoload
@@ -272,18 +281,7 @@
   ;; "d" #'dired-jump
   "d" #'jds/dired-jump-reuse-dired
   ;; "d" #'dired-sidebar-toggle-sidebar
-  "D" #'jds/dired-jump-and-kill-buffer
-  "j" #'(:ignore t :wk "dired jump to")
-  "jd" #'(lambda () (interactive) (dired "~/Downloads/"))
-  "jh" #'(lambda () (interactive) (dired "~"))
-  "jo" '((lambda () (interactive) (dired "~/Dropbox/org")) :wk "org")
-  "jc" '((lambda () (interactive) (dired "~/.emacs.d")) :wk "config")
-  "jg" '((lambda () (interactive) (dired "~/Dropbox/Faculty/Grants")) :wk "grants")
-  "ja" '((lambda () (interactive) (dired "~/Dropbox/Faculty/advising")) :wk "advising")
-  "jp" '((lambda () (interactive) (dired "~/Dropbox/Faculty/Presentations")) :wk "presentations")
-  "jt" '((lambda () (interactive) (dired "~/Dropbox/Faculty/Teaching")) :wk "teaching")
-  "ji" '((lambda () (interactive) (dired "~/Dropbox/Faculty/Teaching")) :wk "teaching")
-  )
+  "D" #'jds/dired-jump-and-kill-buffer)
 
 ;;; faster editing in text buffers
 
