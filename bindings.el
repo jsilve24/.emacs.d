@@ -116,6 +116,7 @@
 ;;; window management
 (jds/leader-def
  "w" '(:ignore t :which-key "window/frame")
+ "wt" #'tear-off-window
  "wT" #'transpose-frame
  "wf" #'make-frame
  ;; "wT" #'jds/window-go-home
@@ -145,13 +146,6 @@
  "wm" '(:ignore t :which-key "maximize")
  "wmm" #'delete-other-windows
  "wmv" #'delete-other-windows-vertically)
-
-(if (fboundp 'eh-current-window-to-frame) ;; proxy for "if currently using exwm"
-    (jds/leader-def
-      "wt" #'eh-current-window-to-frame)
-    (jds/leader-def
-      "wt" #'tear-off-window))
-
 
 ;;; toggle
 (jds/leader-def

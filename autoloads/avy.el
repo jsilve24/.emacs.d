@@ -144,13 +144,6 @@ BEG and END narrow the scope where candidates are searched."
 
 
 
-;;; link-hint
-
-;; ;;;###autoload
-;; (defun jds/link-hint-goto-link ()
-;;   "Use link-hint to jump to link but do nothing."
-;;   (interactive)
-;;   (link-hint--one :goto))
 
 (provide 'avy)
 ;;; avy.el ends here

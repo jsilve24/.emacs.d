@@ -35,24 +35,12 @@
     (setq path (expand-file-name default-directory)))
   (zoxide-run t "add" path)))
 
-;; (with-eval-after-load 'embark
-;;   (defun jds~embark-dired-jump-zoxide-add (_ &optional other-window)
-;;     "Advice to be added around embark-dired-jump to add path to zoxide."
-;;     ;; (if (string= major-mode "dired-mode")
-;;     ;; 	(progn
-;;     ;; 	  ;; (message default-directory)
-;;     ;; 	  (zoxide-add (expand-file-name default-directory))))
-;;     )
-;;   (advice-add 'embark-dired-jump :after 'jds~embark-dired-jump-zoxide-add))
 
 (straight-use-package 'affe)
 (use-package affe
   :commands (affe-find affe-grep)
   :config
   (setq affe-find-command "find -type f"))
-;; (map! :after consult
-;;       :leader
-;;       :desc "affe find" "fa" (lambda () (interactive) (affe-find "/home/jds6696/")))
 
 ;;;###autoload
 (defun jds/affe-find-files-home ()
@@ -106,17 +94,6 @@
   (let ((default-directory (completing-read "Project to search:"
                     (projectile-relevant-known-projects))))
     (projectile-find-file)))
-
-
-
-;; a more advanced version of finding files in directories is
-;; provided by the find-files-in-project library
-;; its a bit much for what I need though and projectile-find-file seems
-;; to do just fine
-;; (use-package find-file-in-project
-;;   :straight t)
-
-
 
 
 
