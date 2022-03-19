@@ -74,6 +74,7 @@ Prompt for filetype with universal-prefix."
   (let* ((fn (if extension
 		 (read-string "Filetype: ")
 	       "png"))
+	 (fn (concat "." fn))
 	 (fn (make-temp-file "screenshot" nil fn)))
     (jds/dired-screenshot fn)
     (jds/dragon fn)))

@@ -152,9 +152,10 @@
   "t" '(:ignore t :wk "toggles")
   "tm" #'hide-mode-line-mode)
 
-;;; screenshot
+;;; other
 (jds/leader-def
-  "S" #'jds/screenshot-dragon-temp-file)
+  "S" #'jds/screenshot-dragon-temp-file
+  "u" #'undo-tree-visualize)
 
 ;;; buffers
 

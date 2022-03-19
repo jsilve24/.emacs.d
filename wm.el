@@ -427,60 +427,9 @@ buffer (=minimizing in other WM/DE)"
 
 
 ;;; setup modeline
-;; from here: https://chrishayward.xyz/dotfiles/
-;; Define a modeline segment to show the workspace information.
-(with-eval-after-load 'doom-modeline
-  (doom-modeline-def-segment jds/exwm-workspaces
-    (exwm-workspace--update-switch-history)
-    (concat
-     (doom-modeline-spc)
-     (elt (let* ((num (exwm-workspace--count))
-		 (sequence (number-sequence 0 (1- num)))
-		 (not-empty (make-vector num nil)))
-	    (dolist (i exwm--id-buffer-alist)
-	      (with-current-buffer (cdr i)
-		(when exwm--frame
-		  (setf (aref not-empty
-			      (exwm-workspace--position exwm--frame))
-			t))))
-	    (mapcar
-	     (lambda (i)
-	       (mapconcat
-		(lambda (j)
-		  ;; (format (if (= i j) "[%s]" " %s ")
-		  (format (if (= i j) "[%s]" "")
-			  (propertize
-			   (apply exwm-workspace-index-map (list j))
-			   'face
-			   (cond ((frame-parameter (elt exwm-workspace--list j)
-						   'exwm-urgency)
-				  '(:inherit warning :weight bold))
-				 ;; ((= i j) '(:inherit underline :weight bold))
-				 ((= i j) '(:weight bold))
-				 ((aref not-empty j) '(:inherit success :weight bold))
-				 (t `((:foreground ,(face-foreground 'mode-line-inactive))))))))
-		sequence ""))
-	     sequence))
-	  (exwm-workspace--position (selected-frame)))))
-
-  ;; Define a custom modeline to override the default.
-  ;; (doom-modeline-def-modeline 'jds/modeline
-  ;;   ;; '(bar workspace-name jds/exwm-workspaces window-number modals buffer-info remote-host buffer-position word-count parrot selection-info)
-  ;;   '(bar workspace-name jds/exwm-workspaces window-number modals buffer-info remote-host word-count parrot selection-info)
-  ;;   '(objed-state misc-info persp-name battery grip irc mu4e gnus github debug repl lsp minor-modes input-method indent-info buffer-encoding major-mode process vcs checker))
-
-  ;; ;; Define a method to load the modeline.
-  ;; (defun jds/load-modeline ()
-  ;;   "Load the default modeline."
-  ;;   (doom-modeline-set-modeline 'jds/modeline 'default))
-
-  ;; (add-hook 'doom-modeline-mode-hook 'jds/load-modeline)
-  ;; ;; (doom-modeline-mode +1)
-  ;; (doom-modeline-set-modeline 'dotfiles/modeline 'default))
-
-  )
-
-
+(use-package exwm-modeline
+  :after (exwm)
+  (add-hook 'exwm-init-hook #'exwm-modeline-mode))
 
 
 ;;; fixing issues (e.g., ediff)

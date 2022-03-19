@@ -202,6 +202,7 @@ escape."
   (defmacro jds~aas-setup-ess (mode)
     `(aas-set-snippets ,mode
        ";;" #'r/insert-assign
+       ";in" "%in%"
        ";m" #'r/insert-pipe))
   (jds~aas-setup-ess 'ess-r-mode)
   (jds~aas-setup-ess 'inferior-ess-mode)
