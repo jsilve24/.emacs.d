@@ -81,7 +81,7 @@
   `pdf-misc-print-program-executable' is already set."
   (interactive "P")
   (if arg 
-      (let ((printer (completing-read "Choose a printer:" (ph--get-list-of-priters)))
+      (let* ((printer (completing-read "Choose a printer:" (ph--get-list-of-priters)))
 	    (pdf-misc-print-program-args
 	     ;; should this not have a space after P?
 	     (cons (concat "-P " printer) pdf-misc-print-program-args))) 
