@@ -429,6 +429,7 @@ buffer (=minimizing in other WM/DE)"
 ;;; setup modeline
 (use-package exwm-modeline
   :after (exwm)
+  :config
   (add-hook 'exwm-init-hook #'exwm-modeline-mode))
 
 

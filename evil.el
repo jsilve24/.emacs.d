@@ -39,6 +39,7 @@
   (setq evil-want-C-i-jump t
 	evil-want-Y-yank-to-eol t
 	evil-want-C-u-scroll nil
+	evil-want-C-d-scroll nil
 	evil-want-keybinding nil
 	evil-want-integration t)
   ;; from doom

@@ -71,7 +71,9 @@ line."
   (setq dired-open-extensions '(("docx" . "libreoffice")
 				("doc" . "libreoffice")
 				("xlsx" . "libreoffice")
-				("xls" . "libreoffice"))))
+				("xls" . "libreoffice")
+				("odp" . "libreoffice")
+				("pptx" . "libreoffice"))))
 
 (use-package dired-hide-dotfiles
   :hook (dired-mode . dired-hide-dotfiles-mode)
