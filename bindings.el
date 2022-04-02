@@ -11,7 +11,7 @@
   ";" #'pp-eval-expression
   "RET" #'consult-projectile
   "\`" #'evil-switch-to-windows-last-buffer
-  "-"  #'vertico-repeat
+  "-"  #'vertico-repeat-last
   "SPC" #'consult-buffer
   "C-SPC" #'consult-buffer)
 

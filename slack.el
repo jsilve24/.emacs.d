@@ -63,98 +63,10 @@ mention-count)) (channel . (has-unreads . mention-count)))))"
   (add-to-list 'company-backends 'company-slack-backend)
   ;; setup tab command - bind over lui mode completion 
   ;; (add-hook 'slack-mode-hook 'jds/completion-keys)
-  (setq lui-completion-function 'company-complete)
+  (setq lui-completion-function 'company-complete))
 
-  ;; link-hint for files
-  ;; Mandatory Keywords :next should be a function that returns the position of
-  ;; the next link after the point (i.e. if there is a link at the point, it should not return the
-  ;; point). It should take one argument that corresponds to the end bound for searching. Also, it
-  ;; should not move the point.
-
-  ;; :at-point-p should be a function that returns a non-nil value if there is a link at the point.
-  ;; Its return value can be used in the action functions.
-  ;; (defun jds~slack-at-file-p ()
-  ;;   (get-text-property (point) 'file))
-
-  ;; (defun jds~slack-next-file (end)
-  ;;   (if (jds~slack-at-file-p)
-  ;; 	nil
-  ;;     (save-excursion
-  ;; 	(re-search-forward "open in browser" end t)
-  ;; 	(backward-word 4)
-  ;; 	(point))))
-  ;; (link-hint-define-type 'slack-file
-  ;;   :next #'jds~slack-next-file
-  ;;   :at-point-p #'jds~slack-at-file-p
-  ;;   :open #'slack-file-display)
-  ;; (push 'link-hint-slack-file link-hint-types)
-
-  )
-
-(with-eval-after-load 'slack
-  (with-eval-after-load 'org
-    ;; this code from here: https://ag91.github.io/blog/2020/09/12/org-mode-links-for-emacs-slack/
-    ;; custom org-link type
-    (org-link-set-parameters "emacs-slack"
-			     :follow #'ol/slack-follow-link
-			     :export #'ol/slack-export
-			     :store #'ol/slack-store-link)))
-
-;;;###autoload
-(defun ol/slack-export (link description format)
-  "Export a emacs-slack link from Org files."
-  (let ((desc (or description link)))
-    desc))
-
-;;;###autoload
-(defun ol/slack-store-link ()
-  "Store a link to a man page."
-  (when (eq major-mode 'slack-message-buffer-mode)
-    (let* ((buf slack-current-buffer)
-	   (team (slack-buffer-team buf))
-	   (team-name (oref team name))
-	   (room (slack-buffer-room buf))
-	   (room-name (slack-room-name room team))
-	   (link (funcall
-		  slack-message-notification-title-format-function
-		  team-name
-		  room-name
-		  (cl-typep buf 'slack-thread-message-buffer)))
-	   (description))
-      (org-link-store-props
-       :type "emacs-slack"
-       :link (concat "emacs-slack:" link)
-       :description (concat "Slack message in #" room-name)))))
-
-;;;###autoload
-(defun ol/slack-follow-link (link)
-  "Follow LINK with format `   team - channel'."
-  (let* ((team (--> link
-		    (s-split "-" it)
-		    first
-		    s-trim))
-	 (team-object (ol/slack-string-to-team team)))
-    (slack-room-display (ol/slack-string-to-room team-object link) team-object)))
-
-;;;###autoload
-(defun ol/slack-room-select (room rooms team)
-  "Select ROOM from ROOMS and TEAM."
-  (let* ((alist (slack-room-names
-		 rooms team #'(lambda (rs) (cl-remove-if #'slack-room-hidden-p rs))))
-	 (selected (cdr (cl-assoc room alist :test 'ol/room-name-equal))))
-    selected))
-
-;;;###autoload
-(defun ol/room-name-equal (room channel-room)
-  "Check ROOM is equal to CHANNEL-ROOM."
-  (string=
-   (s-downcase (s-trim room))
-   (s-downcase
-    (let ((trimmed (s-trim (s-chop-prefix " * " channel-room))))
-      (if (> (length trimmed) (length room))
-	  (substring trimmed 0 (length room))
-	trimmed)))))
-
+(use-package ol-emacs-slack
+  :straight (ol-emacs-slack :type git :host github :repo "ag91/ol-emacs-slack"))
 
 (jds/localleader-def
   :keymaps 'slack-info-mode-map
