@@ -271,8 +271,8 @@
   "p" #'org-agenda
   "s" #'consult-org-agenda
   "S" #'org-search-view
-  "y" #'slack-select-rooms
-  "Y" #'slack-select-unread-rooms
+  "y" (jds~start-slack-function slack-select-rooms)
+  "Y" (jds~start-slack-function slack-select-unread-rooms)
   "k" #'jds/help-thing-at-point
   ;; "d" #'dired-jump
   "d" #'jds/dired-jump-reuse-dired

@@ -65,6 +65,15 @@ mention-count)) (channel . (has-unreads . mention-count)))))"
   ;; (add-hook 'slack-mode-hook 'jds/completion-keys)
   (setq lui-completion-function 'company-complete))
 
+;; macro to start slack if not already
+(defmacro jds~start-slack-function (fun)
+    "If slack is not already started, start it then run fun."
+    `(lambda () (interactive) 
+       (if (fboundp 'slack-select-rooms)
+	   (,fun)
+	 (slack-start)
+	 (,fun))))
+
 (use-package ol-emacs-slack
   :straight (ol-emacs-slack :type git :host github :repo "ag91/ol-emacs-slack"))
 

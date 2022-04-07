@@ -94,16 +94,27 @@
   (setq org-agenda-start-day "0d")
 
   (setq org-todo-keywords
-        '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d)")
-          (sequence "WAITING(w)" "HOLD(h)" "|" "MEETING(m)")))
+        '((sequence "TODO(t)" "NEXT(n)" "MAYBE(m)" "PROJ(p)" "|" "DONE(d)" "CANCELED(c)")
+          (sequence "WAITING(w)" "HOLD(h)" "|" "MEETING(M)")))
 
   (setq org-todo-keyword-faces
         '(("TODO" :foreground "orange" :weight bold)
           ("NEXT" :foreground "red" :weight bold)
           ("DONE" :foreground "forest green" :weight bold)
+	  ("PROJ" :foreground "light blue" :weight bold)
+	  ("MAYBE" :foreground "light orange" :weight bold)
           ("WAITING" :foreground "orange" :weight bold)
+          ("CANCELED" :foreground "magenta" :weight bold)
           ("HOLD" :foreground "magenta" :weight bold)
           ("MEETING" :foreground "forest green" :weight bold)))
+
+  ;; setup stuck-projects definitions
+  (setq org-stuck-projects
+	'("/PROJ"
+	  ("NEXT" "TODO")
+	  nil ; Tags that define a stuck project
+	  "SCHEDULED:" ; regex that denotes a not stuck project
+	  ))
 
 
   (setq org-agenda-compact-blocks nil)
