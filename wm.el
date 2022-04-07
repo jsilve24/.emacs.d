@@ -237,8 +237,8 @@ i.e. change right window to bottom, or change bottom window to right."
 	  ([?\s-Q] . jds/kill-buffer-delete-window)
 	  ([?\s-d] . kill-current-buffer)
 	  ([?\s-\ ] . ace-window)
-	  ([?\s--] . bury-buffer)
-	  ([?\s-=] . balance-windows)
+	  ([?\s-b] . bury-buffer)
+	  ([?\s-w] . balance-windows)
 
           ;; Launch applications via shell command
           ([?\s-:] . (lambda (command)
@@ -246,7 +246,7 @@ i.e. change right window to bottom, or change bottom window to right."
                        (start-process-shell-command command nil command)))
 
           ;; Switch workspace
-          ([?\s-w] . exwm-workspace-switch)
+          ;; ([?\s-w] . exwm-workspace-switch)
           ([?\s-`] . (lambda () (interactive) (exwm-workspace-switch-create 0)))
 
           ;; 's-N': Switch to certain workspace with Super (Win) plus a number key (0 - 9)
@@ -430,8 +430,12 @@ buffer (=minimizing in other WM/DE)"
 (use-package exwm-modeline
   :after (exwm)
   :config
+  ;; (setq exwm-modeline-dividers '("-", "- " ,  "|"))
   (add-hook 'exwm-init-hook #'exwm-modeline-mode))
 
+;;; setup brightness and volume
+(use-package desktop-environment
+  :straight (desktop-environment :type git :host github :repo "jsilve24/desktop-environment"))
 
 ;;; fixing issues (e.g., ediff)
 

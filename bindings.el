@@ -228,6 +228,7 @@
   "j j"   #'dired-registers-goto
   "j d"   '((lambda () (interactive) (dired-registers-goto ?d)) :wk "downloads")
   "j o"   '((lambda () (interactive) (dired-registers-goto ?o)) :wk "org")
+  "j h"   '((lambda () (interactive) (dired-registers-goto ?h)) :wk "home")
   "j c"   '((lambda () (interactive) (dired-registers-goto ?c)) :wk "config"))
 
 ;;; org and apps
