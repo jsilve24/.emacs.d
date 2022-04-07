@@ -435,7 +435,22 @@ buffer (=minimizing in other WM/DE)"
 
 ;;; setup brightness and volume
 (use-package desktop-environment
-  :straight (desktop-environment :type git :host github :repo "jsilve24/desktop-environment"))
+  :config
+  ;; don't let this package set global exwm input keys
+  (setq desktop-environment-update-exwm-global-keys nil
+	desktop-environment-brightness-get-command "xbacklight -get"
+	desktop-environment-brightness-set-command "xbacklight %s"
+	desktop-environment-brightness-get-regexp "\\([0-9]+\n\\)"
+	desktop-environment-brightness-normal-increment "+10"
+	desktop-environment-brightness-normal-decrement "-10"
+	desktop-environment-brightness-small-decrement "+5"
+	desktop-environment-brightness-small-decrement "-5")
+  ;; unset s-l binding
+  (progn
+    (setf
+     (alist-get (elt (kbd "s-l") 0) desktop-environment-mode-map nil t)
+     nil)
+    (desktop-environment-mode)))
 
 ;;; fixing issues (e.g., ediff)
 
