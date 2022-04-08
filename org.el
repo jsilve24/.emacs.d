@@ -7,12 +7,6 @@
 (straight-use-package '(org-contrib :type git :host github :repo "emacsmirror/org-contrib"))
 
 (use-package org
-  ;; :commands (org-agenda)
-  :init
-;;; hack to avoid
-;;; org-element-cache-map: Symbol’s function definition is void: native-comp-available-p
-  (defun native-comp-available-p () nil)
-  
   :config
   
   ;; don't include files in .attach

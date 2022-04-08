@@ -25,15 +25,24 @@
 
 
 ;;; update package archives to include melpa
-(require 'package)
-(setq package-archives '(("gnu" . "https://elpa.gnu.org/packages/")
-			 ("melpa" . "https://melpa.org/packages/")
-			 ("nongnu" . "https://elpa.nongnu.org/nongnu/")))
+;(require 'package)
+;(setq package-archives '(("gnu" . "https://elpa.gnu.org/packages/")
+;			 ("melpa" . "https://melpa.org/packages/")
+;			 ("nongnu" . "https://elpa.nongnu.org/nongnu/")))
 
 ;;; Simple macros
 
 (defun load-config (fn)
   (load (expand-file-name fn user-emacs-directory)))
+
+;; setup native compilation
+(if (and (fboundp 'native-comp-available-p)
+ 	        (native-comp-available-p))
+  (progn
+    (message "Native compilation is available")
+    (setq native-comp-deferred-compilation t))
+    (message "Native complation is *not* available"))
+
 
 ;;; Core
 (load-config "core.el")
@@ -68,7 +77,7 @@
 ;; (load-config "frames.el")
 (load-config "editor.el")
 (load-config "snippets.el")
-;; ;; after everything else
+;; after everything else
 (load-config "bindings.el")
 (load-config "debugging.el")
 (load-config "languages.el")
@@ -112,9 +121,8 @@
 ;;   :straight t)
 
 (use-package beacon
-  :straight t
   :config
-  (add-to-list 'beacon-dont-blink-major-modes 'kisses-mode)
+  ;(add-to-list 'beacon-dont-blink-major-modes 'kisses-mode)
   (beacon-mode 1))
 
 
@@ -122,11 +130,11 @@
 
 
 ;;; profiling and debugging
-(use-package esup
-  :ensure t
-  :pin melpa
-  :config
-  (setq esup-depth 0))
+;(use-package esup
+;  :ensure t
+;  :pin melpa
+;  :config
+;  (setq esup-depth 0))
 
 
 (provide 'init)
@@ -138,7 +146,9 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(custom-safe-themes
-   '("3c83b3676d796422704082049fc38b6966bcad960f896669dfc21a7a37a748fa" "c74e83f8aa4c78a121b52146eadb792c9facc5b1f02c917e3dbb454fca931223" "a27c00821ccfd5a78b01e4f35dc056706dd9ede09a8b90c6955ae6a390eb1c1e" default)))(custom-set-faces
+   '("3c83b3676d796422704082049fc38b6966bcad960f896669dfc21a7a37a748fa" "c74e83f8aa4c78a121b52146eadb792c9facc5b1f02c917e3dbb454fca931223" "a27c00821ccfd5a78b01e4f35dc056706dd9ede09a8b90c6955ae6a390eb1c1e" default))
+ '(warning-suppress-types '((comp))))
+(custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
