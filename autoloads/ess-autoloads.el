@@ -18,6 +18,12 @@
   (just-one-space 1))
 
 ;;;###autoload
+(defun r/clear-environment ()
+    "Clear the environment by running rm(list=ls())."
+  (interactive)
+  (ess-eval-linewise "rm(list=ls())"))
+
+;;;###autoload
 (defun r/draft-rmd ()
   "Draft a new Rmd file from a template interactively."
   (interactive)

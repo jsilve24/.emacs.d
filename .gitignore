@@ -7,3 +7,4 @@
 /code-review-error.log
 /code-review-db-file.sqlite
 /.cache/
+*.eln

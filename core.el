@@ -82,6 +82,18 @@
       initial-scratch-message nil)
 
 
+;; If non-nil, displaying help for an autoloaded function whose
+;; 'autoload' form provides no documentation string will try to load the
+;; file it's from.  This will give more extensive help for such
+;; functions.
+(setq help-enable-symbol-autoload t)
+
+
+;; New user option 'describe-bindings-outline'.
+;; It enables outlines in the output buffer of 'describe-bindings' that
+;; can provide a better overview in a long list of available bindings.
+(setq describe-bindings-outline t)
+
 ;;; Package System Setup
 
 ;; Install Straight -- per straight documentation

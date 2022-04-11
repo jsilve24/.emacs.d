@@ -40,21 +40,18 @@
 (use-package affe
   :commands (affe-find affe-grep)
   :config
-  (setq affe-find-command "find -type f"))
+  (setq affe-find-command (concat 
+	  "find -type f "
+	  "\! \( -path */.git/* \) "
+	  "\! \( -path */.dropbox/* \) "
+	  "\! \( -path */.mail/* \) "
+	  "\! \( -path */python3\.9/* \) ")))
 
 ;;;###autoload
 (defun jds/affe-find-files-home ()
   "Affe find in home-directory but ignoring some file-types directories."
   (interactive)
-  (let ((affe-find-command
-	 (concat 
-	  "find -type f "
-	  "\! \( -path */.git/* \) "
-	  "\! \( -path */.dropbox/* \) "
-	  "\! \( -path */.mail/* \) "
-	  "\! \( -path */python3\.9/* \) "
-	  )))
-    (affe-find "~")))
+    (affe-find "~"))
 
 
 ;;; some shortcuts and utilities taken from doom

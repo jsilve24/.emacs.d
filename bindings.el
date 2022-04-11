@@ -9,7 +9,7 @@
   "/" #'consult-ripgrep
   "?" #'affe-grep
   ";" #'pp-eval-expression
-  "RET" #'consult-projectile
+  "." #'consult-projectile
   "\`" #'evil-switch-to-windows-last-buffer
   "-"  #'vertico-repeat-last
   "SPC" #'consult-buffer
@@ -104,13 +104,17 @@
 
 ;;; help bindings
 (jds/leader-def
- "h" '(:ignore t :which-key "help")
- "hk" #'helpful-key
- "hf" #'helpful-callable
- "hv" #'helpful-variable
- "hF" #'describe-face
- "ha" #'consult-apropos
- "ht" #'consult-theme)
+  "h" '(:ignore t :which-key "help")
+  "hk" #'helpful-key
+  "hK" #'describe-keymap
+  "hf" #'helpful-callable
+  "hv" #'helpful-variable
+  "hF" #'describe-face
+  "ha" #'consult-apropos
+  "ht" #'consult-theme
+  "hl" #'view-lossage
+  "hi" #'info-display-manual
+  "hm" #'describe-mode)
 
 
 ;;; window management
@@ -312,7 +316,8 @@
 (jds/leader-def
   "g" '(:ignore t :which-key "git")
   "gg" #'magit-status
-  "gt" #'git-timemachine)
+  "gt" #'git-timemachine
+  "gb" #'magit-blame)
 
 ;;; evil bindings
 

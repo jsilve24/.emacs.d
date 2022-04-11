@@ -110,7 +110,8 @@
   "h" 'ess-doc-map
   "x" 'ess-extra-map
   "p" 'ess-r-package-dev-map
-  "q" 'ess-dev-map)
+  "q" 'ess-dev-map
+  "cc" #'r/clear-environment)
 
 (general-define-key
  :keymaps '(polymode-mode-map markdown-mode-map)

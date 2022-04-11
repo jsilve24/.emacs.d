@@ -74,7 +74,6 @@
 (load-config "calendar.el")
 (load-config "autoloads/movement.el")
 (load-config "ibuffer.el")
-;; (load-config "frames.el")
 (load-config "editor.el")
 (load-config "snippets.el")
 ;; after everything else
@@ -120,10 +119,11 @@
 ;; (use-package try
 ;;   :straight t)
 
-(use-package beacon
-  :config
-  ;(add-to-list 'beacon-dont-blink-major-modes 'kisses-mode)
-  (beacon-mode 1))
+;; Was not playihng nice with highlighting in qutebrowser
+;; (use-package beacon
+;;   :config
+;;   ;(add-to-list 'beacon-dont-blink-major-modes 'kisses-mode)
+;;   (beacon-mode 1))
 
 
 (setq epg-pinentry-mode 'loopback)
