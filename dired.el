@@ -7,7 +7,8 @@
   :custom ((dired-listing-switches "-agho --group-directories-first"))
   :config
   ;; tell emacs to revert each Dired buffer automatically when revisiting buffer
-  (setq dired-auto-revert-buffer t)
+  (setq dired-auto-revert-buffer t
+	dired-kill-when-opening-new-dired-buffer t)
   ;; Auto-refresh dired on filesystem change
   (add-hook 'dired-mode-hook 'auto-revert-mode)
   (evil-collection-define-key 'normal 'dired-mode-map

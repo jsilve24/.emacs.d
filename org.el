@@ -162,7 +162,6 @@
                     "  %U\n"
                     "** TRAM :p_tram:\n"
                     "** Bacteremia :p_bacteremia:\n"
-                    "** Farhani\n"
                     "** ARL :p_arl:")
            :jump-to-captured t)
           ("mPd" "meeting DIHI" entry (file "~/Dropbox/org/meetings_psu.org")
@@ -174,6 +173,7 @@
            ,(concat "* MEETING with Kyle :MEETING:w_kyle:\n"
                     "  %U\n"
                     "** cGSEA :p_cgsea:\n"
+                    "** Future Plans :p_cgsea:\n"
                     "  %?")
            :jump-to-captured t)
 
