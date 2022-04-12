@@ -32,12 +32,13 @@
                    (read-string "Directory Name:"))))
 
 ;;;###autoload
-(defun jds/dired-jump-and-kill-buffer ()
+(defun jds/dired-jump-and-kill-buffer (&optional arg)
   "Kill current buffer after dired-jump."
-  (interactive)
+  (interactive "P")
   (let ((buffer (current-buffer)))
     (dired-jump)
-    (kill-buffer buffer)))
+    (if arg
+	(kill-buffer buffer))))
 
 (require 'dash)
 (require 'dired-x)

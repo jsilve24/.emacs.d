@@ -162,7 +162,8 @@
                     "  %U\n"
                     "** TRAM :p_tram:\n"
                     "** Bacteremia :p_bacteremia:\n"
-                    "** ARL :p_arl:")
+                    ;; "** ARL :p_arl:"
+		    )
            :jump-to-captured t)
           ("mPd" "meeting DIHI" entry (file "~/Dropbox/org/meetings_psu.org")
            ,(concat "* MEETING with DIHI :MEETING:w_michelle:p_bacteremia:\n"

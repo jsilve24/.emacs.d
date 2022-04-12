@@ -286,7 +286,7 @@
   "y" (jds~start-slack-function slack-select-rooms)
   "Y" (jds~start-slack-function slack-select-unread-rooms)
   "k" #'jds/help-thing-at-point
-  "d" #'dired-jump
+  "d" #'jds/dired-jump-and-kill-buffer
   "D" #'dired-jump-other-window
   ;; "d" #'jds/dired-jump-reuse-dired
   ;; "d" #'dired-sidebar-toggle-sidebar
