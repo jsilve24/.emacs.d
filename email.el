@@ -314,14 +314,6 @@ are optional."
     ;; buffer is not user-modified yet
     (set-buffer-modified-p nil)))
 
-(use-package epa
-  :after mu4e
-  :config
-  (epa-file-enable)
-  (setq epa-file-cache-passphrase-for-symmetric-encryption t))
-
-
-
 ;;; setup org-msg
 (use-package org-msg
   :straight t

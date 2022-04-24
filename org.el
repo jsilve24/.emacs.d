@@ -308,7 +308,8 @@
   "r"  #'org-refile
   "e"  #'org-export-dispatch
   "n"  #'org-narrow-to-subtree
-  "N"  #'widen)
+  "N"  #'widen
+  "l"  #'org-latex-preview)
 
 
 ;;; autoloads

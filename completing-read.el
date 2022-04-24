@@ -279,6 +279,7 @@ targets."
    ([remap yank-pop]                     . #'consult-yank-pop)
    ;; ([remap persp-switch-to-buffer]       . #'+vertico/switch-workspace-buffer)
    )
+
   :init
   (advice-add #'completing-read-multiple :override #'consult-completing-read-multiple)
   (advice-add #'multi-occur :override #'consult-multi-occur)
@@ -287,7 +288,7 @@ targets."
   ;; preview for `consult-register', `consult-register-load',
   ;; `consult-register-store' and the Emacs built-ins.
   (setq register-preview-delay 0
-        register-preview-function #'consult-register-format)
+	register-preview-function #'consult-register-format)
 
   ;; Optionally tweak the register preview window.
   ;; This adds thin lines, sorting and hides the mode line of the window.
@@ -295,10 +296,9 @@ targets."
 
   ;; Use Consult to select xref locations with preview
   (setq xref-show-xrefs-function #'consult-xref
-        xref-show-definitions-function #'consult-xref)
+	xref-show-definitions-function #'consult-xref)
 
   :config
-
   ;; Optionally configure preview. The default value
   ;; is 'any, such that any key triggers the preview.
   ;; (setq consult-preview-key 'any)
@@ -323,7 +323,7 @@ targets."
   (add-to-list 'consult-buffer-filter "\\*sent draft\\*")
   ;; (add-to-list 'consult-buffer-filter "\\*splash\\*")
 
-    ;; combine sources for consult-buffer
+  ;; combine sources for consult-buffer
   (setq consult-buffer-sources '(consult--source-buffer
 				 consult--source-bookmark
 				 consult-projectile--source-projectile-file
@@ -335,23 +335,21 @@ targets."
 
   ;; dont' preview exwm buffers
   ;; see: https://github.com/minad/consult/wiki#do-not-preview-exwm-windows-or-tramp-buffers
-  ;; TODO: may be able to fix this by modifying or advising consult--buffer-preview to figure out
-  ;; where X window is currently displayed and put it back when done
-  (defun consult-buffer-state-no-x ()
-    "Buffer state function that doesn't preview X buffers."
-    (let ((orig-state (consult--buffer-state))
-	  (filter (lambda (cand restore)
-		    (if (or restore
-			    (let ((buffer (get-buffer cand)))
-			      (and buffer
-				   (not (eq 'exwm-mode (buffer-local-value 'major-mode buffer))))))
-			cand
-		      nil))))
-      (lambda (cand restore)
-	(funcall orig-state (funcall filter cand restore) restore))))
+;;   (defun consult-buffer-state-no-x ()
+;;   "Buffer state function that doesn't preview X buffers."
+;;   (let ((orig-state (consult--buffer-state))
+;;         (filter (lambda (action cand)
+;;                   (if (or (eq action 'return)
+;;                           (let ((buffer (get-buffer cand)))
+;;                             (and buffer
+;;                                  (not (eq 'exwm-mode (buffer-local-value 'major-mode buffer))))))
+;;                       cand
+;;                     nil))))
+;;     (lambda (action cand)
+;;       (funcall orig-state action (funcall filter action cand)))))
 
-  (setq consult--source-buffer
-	(plist-put consult--source-buffer :state #'consult-buffer-state-no-x))
+;; (setq consult--source-buffer
+;;       (plist-put consult--source-buffer :state #'consult-buffer-state-no-x))
 
 
   ;; group exwm buffers together
@@ -385,9 +383,9 @@ targets."
   ;; There are multiple reasonable alternatives to chose from.
 ;;;; 1. project.el (project-roots)
   (setq consult-project-root-function
-        (lambda ()
-          (when-let (project (project-current))
-            (car (project-roots project)))))
+	(lambda ()
+	  (when-let (project (project-current))
+	    (car (project-roots project)))))
 ;;;; 2. projectile.el (projectile-project-root)
   ;; (autoload 'projectile-project-root "projectile")
   ;; (setq consult-project-root-function #'projectile-project-root)

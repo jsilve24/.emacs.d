@@ -52,6 +52,7 @@ escape."
        (if (texmathp)
 	   (yas-expand-snippet (concat "\\" ,symbol))
 	 (yas-expand-snippet (concat "\\\\(\\" ,symbol "$0\\\\)")))))
+
   (defmacro jds~aas-setup-insert-math (mode)
     `(progn (aas-set-snippets ,mode
 	      :cond #'(lambda () (not (texmathp)))
@@ -77,15 +78,15 @@ escape."
 	      ";perp" (jds~yas-lambda-expand "^\\{\\perp\\}")
 	      ";para" (jds~yas-lambda-expand "^\\{\\parallel\\}")
 	      ";text" (jds~yas-lambda-expand "\\text\\{$1\\}")
-	      ";cases" (jds~yas-lambda-expand "\\begin\\{cases\\}\n$0 \\\\\n\\end\\{cases\\}")
+	      ";cases" (jds~yas-lambda-expand "\\begin\\{cases\\}\n$0 \\\\\\n\\end\\{cases\\}")
+	      ";frac" (jds~yas-lambda-expand "\\frac\\{$1\\}\\{$2\\}")
 	      ";all" "\\forall"
-	      ";set" (jds~yas-lambda-expand "\\{$0\\}")
+	      ";set" (jds~yas-lambda-expand "\\\\{$0\\\\}")
 	      ";pp" (jds~yas-lambda-expand "p($0)")
 	      ";pr" (jds~yas-lambda-expand "P($0)")
 	      ";pc" (jds~yas-lambda-expand "p($1 \\vert $2)")
 	      ";approx" "\\approx"
 	      ";norm" (jds~yas-lambda-expand "N($1,$2)")
-	      ";|" "\\vert"
 	      ";cov" (jds~yas-lambda-expand "\\text{Cov}($0)")
 	      ";var" (jds~yas-lambda-expand "\\text{Var}($0)")
 	      ";ii" "_{ii}"
@@ -138,6 +139,7 @@ escape."
 	      ";;t" (jds~aas-insert-math-symbol "tau")
 	      ";;u" (jds~aas-insert-math-symbol "upsilon")
 	      ";;U" (jds~aas-insert-math-symbol "Upsilon")
+	      ";;v" "\\vert"
 	      ";;x" (jds~aas-insert-math-symbol "xi")
 	      ";;X" (jds~aas-insert-math-symbol "Xi")
 	      ";;y" (jds~aas-insert-math-symbol "psi")

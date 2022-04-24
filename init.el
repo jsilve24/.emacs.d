@@ -126,7 +126,12 @@
 ;;   (beacon-mode 1))
 
 
-(setq epg-pinentry-mode 'loopback)
+(use-package epa
+  :config
+  (epa-file-enable)
+  (setq epa-file-cache-passphrase-for-symmetric-encryption t
+	epa-pinentry-mode 'loopback))
+
 
 
 ;;; profiling and debugging
