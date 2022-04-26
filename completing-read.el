@@ -69,7 +69,7 @@
   ;; (setq orderless-style-dispatchers '(+orderless-dispatch)
   ;;       orderless-component-separator #'orderless-escapable-split-on-space)
   ;; (setq completion-styles '(basic partial-completion orderless)
-  (setq completion-styles '(basic partial-completion orderless)
+  (setq completion-styles '(orderless partial-completion basic)
         completion-category-defaults nil
         completion-category-overrides '((file (styles partial-completion))))
   ;; allow orderless completion in company

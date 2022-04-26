@@ -98,20 +98,32 @@
 
 ;;; setup latexmk
 (use-package auctex-latexmk
-  :mode ("\\.tex\\'" . LaTeX-mode)
-  ;; :ensure auctex
-  ;; :after auctex
+  :ensure t
+  :defer t
+  :after latex
+  :functions auctex-latexmk-setup
+  :preface
+  ;; solving temporary issue with tex-buf.el not being found
+  ;; https://github.com/tom-tan/auctex-latexmk/issues/39
+  (defun my-auctex-latexmk-advice (req feature &rest args)
+    "Call REQ with FEATURE and ARGS, unless FEATURE is `tex-buf'."
+    (unless (eq feature 'tex-buf)
+      (apply req feature args)))
   :init
+  (unwind-protect
+      (progn (advice-add 'require :around #'my-auctex-latexmk-advice)
+	     (auctex-latexmk-setup))
+    (advice-remove 'require #'my-auctex-latexmk-advice))
+
   ;; Pass the -pdf flag when TeX-PDF-mode is active
   (setq auctex-latexmk-inherit-TeX-PDF-mode t)
   :config
   ;; Set LatexMk as the default
   (add-hook 'LaTeX-mode
-            (lambda () (setq TeX-command-default "LatexMk")))
+	    (lambda () (setq TeX-command-default "LatexMk")))
   (add-hook 'latex-mode
-            (lambda () (setq TeX-command-default "LatexMk")))
-  ;; Add latexmk as a TeX target
-  (auctex-latexmk-setup))
+	    (lambda () (setq TeX-command-default "LatexMk"))))
+
 
 ;;; setup tecosaurs thing...
 
