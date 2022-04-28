@@ -31,7 +31,8 @@
     '("-A" "Allow unrelated histories" "--allow-unrelated-histories"))
 
   ;; https://github.com/magit/ghub/issues/81
-  (setq ghub-use-workaround-for-emacs-bug 'force))
+  ;; (setq ghub-use-workaround-for-emacs-bug 'force)
+  )
 
 ;; NOTE: Make sure to configure a GitHub token before using this package!
 ;; - https://magit.vc/manual/forge/Token-Creation.html#Token-Creation

@@ -310,11 +310,12 @@
       `((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))
 
 
-;; Emacs stores `authinfo' in $home and in plain-text - lets not do that.
-(setq auth-sources '(default
-		    "secrets:default"
-		    "secrets:login"
-		    "~/.authinfo.gpg"))
+;; ;; Emacs stores `authinfo' in $home and in plain-text - lets not do that.
+;; (setq auth-sources '(default
+;; 		      "secrets:default"
+;; 		      "secrets:login"
+;; 		      "~/.authinfo.gpg"
+;; 		    "~/.netrc" ))
 
 
 ;; Can't get by without which-key

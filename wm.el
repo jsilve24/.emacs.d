@@ -41,7 +41,7 @@
 
 ;; This function should be used only after configuring autorandr!
 (defun efs/update-displays ()
-  (efs/run-in-background "autorandr --change --force")
+  (efs/run-in-background "autorandr --change")
   (efs/set-wallpaper)
   (message "Display config: %s"
 	   (string-trim (shell-command-to-string "autorandr --current"))))

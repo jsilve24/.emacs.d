@@ -97,6 +97,7 @@
  "fZ" #'zoxide-cd
  "fc" #'jds/open-config
  "fC" #'jds/find-file-config
+ "fk" #'projectile-kill-buffers
  "fp" #'consult-projectile
  "fP" #'jds/find-file-other-project
  "fo" #'projectile-find-other-file)
@@ -379,10 +380,6 @@
  "gf" #'avy-goto-char
  "gi" #'consult-outline
  "gI" #'consult-imenu-multi)
-
-(general-define-key
- :states '(n v)
- "U" #'evil-invert-char)
 
 ;; make gh mode specific -- for headings or sections (can popup-imenu or something)
 (general-define-key

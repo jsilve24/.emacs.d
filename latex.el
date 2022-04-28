@@ -24,6 +24,7 @@
 (use-package auctex
   :mode ("\\.tex\\'" . LaTeX-mode)
   :hook (LaTeX-mode . reftex-mode)
+  :ensure t
   :config
   (setq TeX-parse-self t ;; parse on load
         TeX-auto-save t  ;; parse on save
@@ -100,7 +101,6 @@
 (use-package auctex-latexmk
   :ensure t
   :defer t
-  :after latex
   :functions auctex-latexmk-setup
   :preface
   ;; solving temporary issue with tex-buf.el not being found
