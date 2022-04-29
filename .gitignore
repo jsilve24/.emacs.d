@@ -8,3 +8,4 @@
 /code-review-db-file.sqlite
 /.cache/
 *.eln
+/eln-cache/
