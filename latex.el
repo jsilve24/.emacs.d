@@ -153,15 +153,13 @@
 ;;; setup evil-tex
 
 (use-package evil-tex
-  :after latex
   :hook (LaTeX-mode . evil-tex-mode)
   :hook (org-mode . evil-tex-mode))
 
 ;;; setup company-auctex and company-reftex (and perhaps company-math)
 
 (use-package company-auctex
-  :straight t
-  :after cdlatex
+   :hook (LaTeX-mode . evil-tex-mode)
   :config
   (add-to-list 'company-backends
 	     '(company-auctex-macros company-auctex-symbols company-auctex-environments))
@@ -215,7 +213,7 @@
 
 ;;; setup company-reftex
 (use-package company-reftex
-  :after latex
+  :hook (LaTeX-mode . evil-tex-mode)
   :config
   (add-to-list 'company-backends 'company-reftex-labels)
   (add-to-list 'company-backends 'company-reftex-citations))

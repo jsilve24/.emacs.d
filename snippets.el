@@ -6,6 +6,7 @@
   :straight t
   :ensure t
   :bind ("M-SPC" . yas-expand)
+  :commands (yas-expand yas-expand-snippet)
   :config
   (setq yas-snippet-dirs
 	'("~/.emacs.d/snippets"))

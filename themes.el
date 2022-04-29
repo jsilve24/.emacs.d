@@ -81,8 +81,28 @@
   :straight (kisses :local-repo "~/.emacs.d/local-packages/kisses/")
   :ensure t
   :config 
-  (put-text-property 0 (length kisses-banner) 'face 'outline-1
-		     kisses-banner))
+  
+  (setq kisses-banner
+	"RRRRRRRRRRRRRRRRR                  AAA                      JJJJJJJJJJJIIIIIIIIII
+R::::::::::::::::R                A:::A                     J:::::::::JI::::::::I
+R::::::RRRRRR:::::R              A:::::A                    J:::::::::JI::::::::I
+RR:::::R     R:::::R            A:::::::A                   JJ:::::::JJII::::::II
+  R::::R     R:::::R           A:::::::::A                    J:::::J    I::::I
+  R::::R     R:::::R          A:::::A:::::A                   J:::::J    I::::I
+  R::::RRRRRR:::::R          A:::::A A:::::A                  J:::::J    I::::I
+  R:::::::::::::RR          A:::::A   A:::::A                 J:::::j    I::::I
+  R::::RRRRRR:::::R        A:::::A     A:::::A                J:::::J    I::::I
+  R::::R     R:::::R      A:::::AAAAAAAAA:::::A   JJJJJJJ     J:::::J    I::::I
+  R::::R     R:::::R     A:::::::::::::::::::::A  J:::::J     J:::::J    I::::I
+  R::::R     R:::::R    A:::::AAAAAAAAAAAAA:::::A J::::::J   J::::::J    I::::I
+RR:::::R     R:::::R   A:::::A             A:::::AJ:::::::JJJ:::::::J  II::::::II
+R::::::R     R:::::R  A:::::A               A:::::AJJ:::::::::::::JJ   I::::::::I
+R::::::R     R:::::R A:::::A                 A:::::A JJ:::::::::JJ     I::::::::I
+RRRRRRRR     RRRRRRRAAAAAAA                   AAAAAAA  JJJJJJJJJ       IIIIIIIIII")
+(put-text-property 0 (length kisses-banner) 'face 'outline-1
+		     kisses-banner)
+  )
+
 (setq initial-buffer-choice 'kisses-initial-buffer)
 ;; initial-buffer-choice (lambda () (progn
       ;; 					 (switch-to-buffer (get-buffer-create "*splash*"))
