@@ -1,23 +1,4 @@
 ;;; term.el --- vterm setup -*- lexical-binding: t; -*-
-;;
-;; Copyright (C) 2021 Justin Silverman
-;;
-;; Author: Justin Silverman <https://github.com/jsilve24>
-;; Maintainer: Justin Silverman <jsilve24@gmail.com>
-;; Created: October 22, 2021
-;; Modified: October 22, 2021
-;; Version: 0.0.1
-;; Keywords: abbrev bib c calendar comm convenience data docs emulations extensions faces files frames games hardware help hypermedia i18n internal languages lisp local maint mail matching mouse multimedia news outlines processes terminals tex tools unix vc wp
-;; Homepage: https://github.com/jsilve24/term
-;; Package-Requires: ((emacs "24.3"))
-;;
-;; This file is not part of GNU Emacs.
-;;
-;;; Commentary:
-;;
-;;  vterm setup
-;;
-;;; Code:
 
 ;; (straight-use-package 'vterm)
 ;; (use-package vterm
@@ -92,6 +73,25 @@
   "c" #'multi-vterm
   "h" #'multi-vterm-next
   "l" #'multi-vterm-prev)
+
+;;; autoloads ------------------------------------------------------------------
+
+;;;###autoload
+(defun jds/multi-vterm-same-window (&optional arg)
+    "Open multi-vterm in a new window (on EXWM) or new frame. Open new term if universal prefix passed. "
+  (interactive "P")
+  (if arg
+      (multi-vterm)
+    (multi-vterm-next)))
+
+
+;;;###autoload
+(defun jds/multi-vterm-new-window-or-frame (&optional arg)
+    "Open multi-vterm in a new window (on EXWM) or new frame. Open new term if universal prefix passed. "
+  (interactive "P")
+  (jds~new-frame-or-new-window)
+  (jds/multi-vterm-same-window arg))
+
 
 (provide 'term)
 ;;; term.el ends here

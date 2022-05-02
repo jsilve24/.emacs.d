@@ -15,7 +15,8 @@
 	ess-nuke-trailing-whitespace-p t
 	ess-style 'DEFAULT
 	;;ess-history-directory (expand-file-name "ess-history/" doom-cache-dir)
-	ess-indent-with-fancy-comments t
+	ess-indent-with-fancy-comments nil
+	ess-fancy-comments nil
 	ess-eval-visibly 'nowait)
 
   ;; most people say this is annoying -- I need to figure out what it is eventually

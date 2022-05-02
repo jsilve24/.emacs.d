@@ -279,6 +279,7 @@
   "i" #'org-insert-link
   ;; "t" #'vterm
   "t" #'multi-vterm-next
+  "T" #'jds/multi-vterm-new-window-or-frame
   "f" #'jds/org-agenda-show-custom-day
   "F" #'jds/open-custom-day-agenda-new-frame
   "p" #'org-agenda
