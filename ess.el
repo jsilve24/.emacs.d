@@ -11,12 +11,8 @@
   :init (require 'ess-site)
   :config
   (setq ess-offset-continued 'straight
-	;;ess-use-flymake (not (featurep! :checkers syntax))
 	ess-nuke-trailing-whitespace-p t
 	ess-style 'DEFAULT
-	;;ess-history-directory (expand-file-name "ess-history/" doom-cache-dir)
-	ess-indent-with-fancy-comments nil
-	ess-fancy-comments nil
 	ess-eval-visibly 'nowait)
 
   ;; most people say this is annoying -- I need to figure out what it is eventually
@@ -41,9 +37,12 @@
   (add-hook 'ess-mode-hook
 	    '(lambda ()
 	       (outline-minor-mode)
-	       (setq outline-regexp "^#.*----"))))
-
-
+	       (setq outline-regexp "^#.*----")))
+  ;; turn off fancy comments which are really annoying
+(defun dont-like-fancy ()
+  (setcdr (assoc 'ess-indent-with-fancy-comments (cdr (assoc 'DEFAULT ess-style-alist))) nil))
+ (add-hook 'ess-mode-hook 'dont-like-fancy)
+ (add-hook 'ess-r-mode-hook 'dont-like-fancy))
 
 ;;; setup polymode
 
