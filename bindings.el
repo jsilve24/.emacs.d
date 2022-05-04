@@ -278,7 +278,7 @@
   "l" #'org-store-link
   "i" #'org-insert-link
   ;; "t" #'vterm
-  "t" #'multi-vterm-next
+  "t" #'jds/multi-vterm-same-window
   "T" #'jds/multi-vterm-new-window-or-frame
   "f" #'jds/org-agenda-show-custom-day
   "F" #'jds/open-custom-day-agenda-new-frame
