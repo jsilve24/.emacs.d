@@ -90,6 +90,7 @@
     ("probibalistic" "probabilistic" nil :count 12)
     ("projet" "project" nil :count 0)
     ("qualtiites" "qualities" nil :count 0)
+    ("recieving" "receiving" nil :count 0)
     ("refered" "referred" nil :count 2)
     ("relationshiop" "relationship" nil :count 5)
     ("relgarding" "regarding" nil :count 0)

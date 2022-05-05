@@ -281,7 +281,7 @@ targets."
    )
 
   :init
-  (advice-add #'completing-read-multiple :override #'consult-completing-read-multiple)
+  ;; (advice-add #'completing-read-multiple :override #'consult-completing-read-multiple)
   (advice-add #'multi-occur :override #'consult-multi-occur)
 
   ;; Optionally configure the register formatting. This improves the register
