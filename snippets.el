@@ -83,6 +83,7 @@ escape."
 	      ";frac" (jds~yas-lambda-expand "\\frac\\{$1\\}\\{$2\\}")
 	      ";all" "\\forall"
 	      ";set" (jds~yas-lambda-expand "\\\\{$0\\\\}")
+	      ";sim" (jds~yas-lambda-expand "\\sim")
 	      ";pp" (jds~yas-lambda-expand "p($0)")
 	      ";pr" (jds~yas-lambda-expand "P($0)")
 	      ";pc" (jds~yas-lambda-expand "p($1 \\vert $2)")

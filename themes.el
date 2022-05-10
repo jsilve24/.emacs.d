@@ -34,8 +34,8 @@
                     :height jds/default-font-size)
 
 ;; Set the variable pitch face
-(set-face-attribute 'variable-pitch nil :font "Cantarell"
-                    :height jds/default-variable-font-size :weight 'regular)
+;; (set-face-attribute 'variable-pitch nil :font "Cantarell"
+;;                     :height jds/default-variable-font-size :weight 'regular)
 
 
 ;;; main themes

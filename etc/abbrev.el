@@ -24,6 +24,7 @@
     ("commitee" "committee" nil :count 8)
     ("commmon" "common" nil :count 0)
     ("confoudning" "confounding" nil :count 0)
+    ("congradulations" "congratulations" nil :count 1)
     ("consice" "concise" nil :count 1)
     ("contension" "contention" nil :count 0)
     ("crutially" "crucially" nil :count 0)
