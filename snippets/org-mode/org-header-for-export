@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: org-header-for-export
+# key: org-header
+# --
+
+#+TITLE: $1
+#+AUTHOR: $2
+#+OPTIONS: toc:${3:t||nil}$0
