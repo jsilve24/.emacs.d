@@ -87,20 +87,21 @@
 
 ;;; filesystem bindings
 (jds/leader-def
- "f" '(:ignore t :which-key "files")
- "ff" #'find-file
- "fr" #'consult-recent-file
- "fs" #'save-buffer
- "fa" #'jds/affe-find-files-home
- "fS" #'evil-write-all
- "fz" #'zoxide-find-file
- "fZ" #'zoxide-cd
- "fc" #'jds/open-config
- "fC" #'jds/find-file-config
- "fk" #'projectile-kill-buffers
- "fp" #'consult-projectile
- "fP" #'jds/find-file-other-project
- "fo" #'projectile-find-other-file)
+  "f" '(:ignore t :which-key "files")
+  "ff" #'find-file
+  "fr" #'consult-recent-file
+  "fs" #'save-buffer
+  "fa" #'jds/affe-find-files-home
+  "fS" #'evil-write-all
+  "fz" #'zoxide-find-file
+  "fZ" #'zoxide-cd
+  "fc" #'jds/open-config
+  "fC" #'jds/find-file-config
+  "fk" #'projectile-kill-buffers
+  "fp" #'consult-projectile
+  "fP" #'jds/find-file-other-project
+  "fo" #'projectile-find-other-file
+  "fi" #'projectile-find-tag)
 
 
 ;;; help bindings

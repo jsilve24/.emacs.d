@@ -83,6 +83,7 @@
     ("jyustin" "justin" nil :count 0)
     ("lihear" "linear" nil :count 0)
     ("loosers" "losers" nil :count 0)
+    ("mathemtically" "mathematically" nil :count 0)
     ("nusiance" "nuisance" nil :count 0)
     ("pertmutations" "permutations" nil :count 0)
     ("poterior" "posterior" nil :count 0)

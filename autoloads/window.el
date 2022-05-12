@@ -61,7 +61,7 @@ the only window, use evil-window-move-* (e.g. `evil-window-move-far-left')."
                               ('down 'below)
                               (_ direction))))
         (with-selected-window that-window
-          (switch-to-buffer (doom-fallback-buffer)))
+          (switch-to-buffer (get-buffer "*splash*")))
         (setq that-buffer (window-buffer that-window)))
       (with-selected-window this-window
         (switch-to-buffer that-buffer))
