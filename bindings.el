@@ -29,8 +29,9 @@
 (defun jds~kill-whole-line ()
   "Kill line, with prefix-arg kill entire line forwards and backwards to start of line."
   (interactive)
-  (beginning-of-line)
-  (kill-line))
+  ;; (beginning-of-line)
+  ;; (kill-line)
+  (evil-delete-back-to-indentation))
 
 (general-imap
   "C-k" #'jds~kill-whole-line

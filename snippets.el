@@ -183,6 +183,7 @@ escape."
   (aas-set-snippets 'org-mode
     ";lo" #'jds~org-agenda-link
     ";sq" (jds~yas-lambda-expand "#+BEGIN_QUOTE\n$0\n#+END_QUOTE")
+    ";sr" (jds~yas-lambda-expand "#+begin_src R\n$0\n#+end_src")
     ";header" (jds~yas-lambda-expand-snippet-by-key "org-header-for-export"))
 
   ;; elisp snippets

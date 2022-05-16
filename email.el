@@ -320,7 +320,7 @@ are optional."
   :after mu4e
   :config
   (setq
-  org-msg-options "html-postamble:nil num:nil ^:{} toc:nil author:nil email:nil \\n:t tex:dvipng"
+  org-msg-options "html-postamble:nil num:nil ^:{} toc:nil author:nil email:nil \\n:t tex:dvipng eval:nil"
   org-msg-startup "hidestars indent inlineimages"
   org-msg-default-alternatives '((new . (text html))
                                  (reply-to-html . (text html))

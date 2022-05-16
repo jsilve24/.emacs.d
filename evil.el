@@ -222,6 +222,16 @@
              evil-jump-out-args))
 
 
+(use-package posframe)
+
+(use-package evil-owl
+  :config
+  (setq evil-owl-display-method 'posframe
+        evil-owl-extra-posframe-args '(:width 70 :height 20)
+        evil-owl-max-string-length 50)
+  (evil-owl-mode))
+
+
 ;; (use-package evil-traces
 ;;   :straight t
 ;;   :after evil-ex
