@@ -55,9 +55,11 @@
 	nil
       (call-interactively #'company-dabbrev))))
 
+(global-set-key [remap dabbrev-expand] 'hippie-expand)
+
 ;;;###autoload
 (defun jds~blank-line-p ()
-    "Is point currently on blank line."
+  "Is point currently on blank line."
   (looking-at-p "^[[:space:]]*$"))
 
 ;;;###autoload
