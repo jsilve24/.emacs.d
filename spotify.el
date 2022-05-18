@@ -56,11 +56,11 @@ _c_: Current Track       _s_  : Shuffle           _q_: Quit
 	(while (not (get-buffer "Spotify"))
 	  (sit-for 1))
 	(bury-buffer)
-	(switch-to-buffer buf)
-	(smudge-api-transfer-player "5f71875fb87f5bec7a8281603f00a7ca858bbff8"
-			      (lambda (json)
-				(setq smudge-selected-device-id "5f71875fb87f5bec7a8281603f00a7ca858bbff8")
-				(message "Device '%s' selected" "lenovoGen4Sil")))))
+	(switch-to-buffer buf)))
+  (smudge-api-transfer-player "5f71875fb87f5bec7a8281603f00a7ca858bbff8"
+				  (lambda (json)
+				    (setq smudge-selected-device-id "5f71875fb87f5bec7a8281603f00a7ca858bbff8")
+				    (message "Device '%s' selected" "lenovoGen4Sil")))
   (hydra-spotify/body))
 
 
