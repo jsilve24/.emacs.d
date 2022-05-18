@@ -93,6 +93,7 @@
 
 ;;; "optional" applications
 (load-config "slack.el")
+(load-config "spotify.el")
 
 ;; Start Server if not already running
 (require 'server)

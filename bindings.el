@@ -327,6 +327,12 @@
   "gt" #'git-timemachine
   "gb" #'magit-blame)
 
+;;; apps
+
+(jds/leader-def
+  "o" '(:ignore t :which-key "other/apps")
+  "os" #'hydra-spotify/body)
+
 ;;; evil bindings
 
 ;; declare some motion commands to make jumping in visual mode go
@@ -450,6 +456,7 @@
  "a"  #'evil-outer-arg
  ;; "d"  #'evil-outer-delim
  )
+
 
 
 ;;; key-chord for evil
