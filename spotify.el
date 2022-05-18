@@ -12,9 +12,11 @@
   (global-smudge-remote-mode)
 
   (defun jds~smudge-status ()
-      "Show current smudge status, e.g., tract in echo area."
+    "Show current smudge status, e.g., tract in echo area."
     (interactive)
     (message smudge-controller-player-status))
+
+  
 
   ;; A hydra for controlling spotify.
   (defhydra hydra-spotify (:hint nil)
@@ -41,6 +43,24 @@ _c_: Current Track       _s_  : Shuffle           _q_: Quit
     ("-" smudge-controller-volume-down :exit nil)
     ("x" smudge-controller-volume-mute-unmute :exit nil)
     ("d" smudge-select-device :exit nil)
-    ("q" quit-window "quit" :color blue)))
+    ("q" hydra-keyboard-quit "quit" :color blue)))
+
+
+;;;###autoload
+(defun jds/hydra-spotify-wrapper ()
+  "Start Spotify app in background and set device if not already set."
+  (interactive)
+  (if (not (get-buffer "Spotify"))
+      (let* ((buf (current-buffer)))
+	(exwm-async-run "spotify")
+	(while (not (get-buffer "Spotify"))
+	  (sit-for 1))
+	(bury-buffer)
+	(switch-to-buffer buf)
+	(smudge-api-transfer-player "5f71875fb87f5bec7a8281603f00a7ca858bbff8"
+			      (lambda (json)
+				(setq smudge-selected-device-id "5f71875fb87f5bec7a8281603f00a7ca858bbff8")
+				(message "Device '%s' selected" "lenovoGen4Sil")))))
+  (hydra-spotify/body))
 
 

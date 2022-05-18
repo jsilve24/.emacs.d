@@ -331,7 +331,7 @@
 
 (jds/leader-def
   "o" '(:ignore t :which-key "other/apps")
-  "os" #'hydra-spotify/body)
+  "os" #'jds/hydra-spotify-wrapper)
 
 ;;; evil bindings
 

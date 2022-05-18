@@ -422,7 +422,7 @@ buffer (=minimizing in other WM/DE)"
       (add-to-list 'embark-keymap-alist '(application . embark-application-map))
       (define-key embark-application-map (kbd "o") (jds/embark-ace-action app-launcher-run-app))
       (define-key embark-application-map (kbd "v") (jds/embark-split-action app-launcher-run-app +evil/window-vsplit-and-follow))
-      (define-key embark-application-map (kbd "s") (jds/embark-split-action app-launcher-run-app	+evil/window-split-and-follow))
+      (define-key embark-application-map (kbd "s") (jds/embark-split-action app-launcher-run-app +evil/window-split-and-follow))
       )))
 
 

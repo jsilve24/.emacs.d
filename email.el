@@ -25,50 +25,53 @@
 (use-package mu4e
   :straight (:local-repo "/usr/share/emacs/site-lisp/mu4e"
 			 :pre-build ())
-  :commands mu4e mu4e-compose-new mu4e-headers-search-bookmark mu4e-get-bookmark-query mu4e~start  
+  :commands mu4e mu4e-compose-new mu4e-headers-search-bookmark mu4e-get-bookmark-query mu4e~start
   :init
   (provide 'html2text) ;; disable obsolete package
   :config
   (setq mu4e-get-mail-command "mbsync -a"
-        mu4e-change-file-names-when-moving t
-        mu4e-compose-context-policy 'ask ;; help separate accounts
-        mu4e-context-policy 'pick-first
-        ;; mu4e-compose-in-new-frame t
-        mu4e-sent-messages-behavior 'delete ;; servers take care of this
-        mu4e-update-interval 360
-        mu4e-headers-include-related nil
-        mu4e-confirm-quit nil
-        mu4e-view-show-images t
-        mu4e-view-show-addresses t
-        mu4e-use-maildirs-extension nil
-        mu4e-attachment-dir "~/Downloads"
-        mu4e-enable-async-operations t
-        message-kill-on-buffer-exit t ;; don't keep meesge buffers around
-        mu4e-compose-dont-reply-to-self t
-        mu4e-view-show-addresses t
-        mu4e-hide-index-message t
-        mu4e-view-show-images t	;; try to show images
-        mu4e-view-use-gnus t
-        message-send-mail-function #'smtpmail-send-it
-        smtpmail-stream-type 'starttls
-        mu4e-completing-read-function #'completing-read
-        mu4e-confirm-quit nil
+	mu4e-change-file-names-when-moving t
+	mu4e-compose-context-policy 'ask ;; help separate accounts
+	mu4e-context-policy 'pick-first
+	;; mu4e-compose-in-new-frame t
+	mu4e-sent-messages-behavior 'delete ;; servers take care of this
+	mu4e-update-interval 360
+	mu4e-headers-include-related nil
+	mu4e-confirm-quit nil
+	mu4e-view-show-images t
+	mu4e-view-show-addresses t
+	mu4e-use-maildirs-extension nil
+	mu4e-attachment-dir "~/Downloads"
+	mu4e-enable-async-operations t
+	message-kill-on-buffer-exit t ;; don't keep meesge buffers around
+	mu4e-compose-dont-reply-to-self t
+	mu4e-view-show-addresses t
+	mu4e-hide-index-message t
+	mu4e-view-show-images t ;; try to show images
+	mu4e-view-use-gnus t
+	message-send-mail-function #'smtpmail-send-it
+	smtpmail-stream-type 'starttls
+	mu4e-completing-read-function #'completing-read
+	mu4e-confirm-quit nil
 
-        ;; set user-agent
-        mail-user-agent 'mu4e-user-agent
-        message-mail-user-agent 'mu4e-user-agent
+	;; set user-agent
+	mail-user-agent 'mu4e-user-agent
+	message-mail-user-agent 'mu4e-user-agent
 
-        ;; visual niceties
-        mu4e-headers-thread-single-orphan-prefix '("─>" . "─▶")
-        mu4e-headers-thread-orphan-prefix '("┬>" . "┬▶ ")
-        mu4e-headers-thread-last-child-prefix '("└>" . "╰▶")
-        mu4e-headers-thread-child-prefix '("├>" . "├▶")
-        mu4e-headers-thread-connection-prefix '("│" . "│ "))
+	;; don't show mu4e-main buffer at the same time as messages
+	mu4e-split-view 'single-window
+
+	;; visual niceties
+	mu4e-headers-thread-single-orphan-prefix '("─>" . "─▶")
+	mu4e-headers-thread-orphan-prefix '("┬>" . "┬▶ ")
+	mu4e-headers-thread-last-child-prefix '("└>" . "╰▶")
+	mu4e-headers-thread-child-prefix '("├>" . "├▶")
+	mu4e-headers-thread-connection-prefix '("│" . "│ "))
 
   (setq mu4e-view-actions '(("capture message" . mu4e-action-capture-message)
-                            ("browser view" . mu4e-action-view-in-browser)
-                            ("pdf view" . mu4e-action-view-as-pdf)
-                            ("thread view" . mu4e-action-show-thread)))
+			    ("browser view" . mu4e-action-view-in-browser)
+			    ("pdf view" . mu4e-action-view-as-pdf)
+			    ("thread view" . mu4e-action-show-thread)))
 
 
   ;; nicer header view
@@ -79,19 +82,19 @@
 	  (:subject . 60)))
 
   (setq mu4e-bookmarks
-        '(( :name  "Unread messages"
-		   :query "flag:unread AND NOT flag:trashed AND (maildir:/gmail/INBOX OR maildir:/psu/INBOX)"
-		   :key ?u)
-          ( :name "Today's messages"
-		  :query "date:today..now AND NOT flag:trashed AND (maildir:/gmail/INBOX OR maildir:/psu/INBOX)"
-		  :key ?t)
-          ( :name "Last 7 days"
-		  :query "date:7d..now AND NOT flag:trashed AND (maildir:/gmail/INBOX OR maildir:/psu/INBOX)"
-		  :hide-unread t
-		  :key ?w)
-          ( :name "Messages with images"
-		  :query "mime:image/*"
-		  :key ?p)))
+	'((:name "Unread messages"
+		 :query "flag:unread AND NOT flag:trashed AND (maildir:/gmail/INBOX OR maildir:/psu/INBOX)"
+		 :key ?u)
+	  (:name "Today's messages"
+		 :query "date:today..now AND NOT flag:trashed AND (maildir:/gmail/INBOX OR maildir:/psu/INBOX)"
+		 :key ?t)
+	  (:name "Last 7 days"
+		 :query "date:7d..now AND NOT flag:trashed AND (maildir:/gmail/INBOX OR maildir:/psu/INBOX)"
+		 :hide-unread t
+		 :key ?w)
+	  (:name "Messages with images"
+		 :query "mime:image/*"
+		 :key ?p)))
 
   ;; stolen from doom
   ;; Detect empty subjects, and give users an opotunity to fill something in
@@ -102,42 +105,42 @@
       (search-forward "--text follows this line--")
       (re-search-backward "^Subject:")	; this should be present no matter what
       (let ((subject (string-trim (substring (thing-at-point 'line) 8))))
-        (when (string-empty-p subject)
-          (end-of-line)
-          (insert (read-string "Subject (optional): "))
-          (message "Sending...")))))
+	(when (string-empty-p subject)
+	  (end-of-line)
+	  (insert (read-string "Subject (optional): "))
+	  (message "Sending...")))))
   (add-hook 'message-send-hook #'+mu4e-check-for-subject)
 
 ;;; Add My Email Accounts
   (set-email-account! "gmail"
-                      `((mu4e-sent-folder . "/gmail/Gmail.Sent")
-                        (mu4e-drafts-folder . "/gmail/Gmail.Drafts")
-                        (mu4e-trash-folder . "/gmail/Gmail.Trash")
-                        (mu4e-refile-folder . "/gmail/Gmail.store")
-                        ;; Gmail expects me to change labels rather than move stuff?
-                        (smtpmail-smtp-server . "smtp.gmail.com")
-                        (smtpmail-smtp-service . 587)
-                        (smtpmail-stream-type . starttls)
-                        (mu4e-sent-messages-behavior . delete)
-                        (user-mail-address . "jsilve24@gmail.com")
-                        (user-full-name . "Justin Silverman")
-                        (smtpmail-smtp-user . "jsilve24@gmail.com")
-                        (smtpmail-debug-info t)))
+		      `((mu4e-sent-folder . "/gmail/Gmail.Sent")
+			(mu4e-drafts-folder . "/gmail/Gmail.Drafts")
+			(mu4e-trash-folder . "/gmail/Gmail.Trash")
+			(mu4e-refile-folder . "/gmail/Gmail.store")
+			;; Gmail expects me to change labels rather than move stuff?
+			(smtpmail-smtp-server . "smtp.gmail.com")
+			(smtpmail-smtp-service . 587)
+			(smtpmail-stream-type . starttls)
+			(mu4e-sent-messages-behavior . delete)
+			(user-mail-address . "jsilve24@gmail.com")
+			(user-full-name . "Justin Silverman")
+			(smtpmail-smtp-user . "jsilve24@gmail.com")
+			(smtpmail-debug-info t)))
 
 
   (set-email-account! "psu"
-                      `((mu4e-sent-folder . "/psu/Sent")
-                        (mu4e-drafts-folder . "/psu/Drafts")
-                        (mu4e-trash-folder . "/psu/Trash")
-                        (mu4e-refile-folder . "/psu/Archive")
-                        (user-mail-address . "jds6696@psu.edu")
-                        (user-full-name . "Justin Silverman")
-                        (smtpmail-smtp-user . "jds6696@psu.edu")
-                        (smtpmail-smtp-server . "localhost")
-                        (smtpmail-stream-type . plain)
-                        (smtpmail-smtp-service . 1025)
-                        (mu4e-sent-messages-behavior . delete)
-                        (smtpmail-debug-info t)))
+		      `((mu4e-sent-folder . "/psu/Sent")
+			(mu4e-drafts-folder . "/psu/Drafts")
+			(mu4e-trash-folder . "/psu/Trash")
+			(mu4e-refile-folder . "/psu/Archive")
+			(user-mail-address . "jds6696@psu.edu")
+			(user-full-name . "Justin Silverman")
+			(smtpmail-smtp-user . "jds6696@psu.edu")
+			(smtpmail-smtp-server . "localhost")
+			(smtpmail-stream-type . plain)
+			(smtpmail-smtp-service . 1025)
+			(mu4e-sent-messages-behavior . delete)
+			(smtpmail-debug-info t)))
 
 
   ;; turn off mu4e in doom modeline
@@ -155,7 +158,17 @@
   (evil-collection-define-key 'normal 'mu4e-headers-mode-map
     "F" 'link-hint-open-link)
 
-  ;; start mu4e in background 
+
+  ;; better html message handling, make it easier to view by converting to text
+  (require 'mu4e-contrib)
+  (setq mu4e-html2text-command 'mu4e-shr2text
+	shr-color-visible-luminance-min 60
+	shr-color-visible-distance-min 5
+	shr-use-fonts nil
+	shr-use-colors nil)
+  (advice-add #'shr-colorize-region :around (defun shr-no-colourise-region (&rest ignore)))
+
+  ;; start mu4e in background
   (mu4e 4))
 
 
@@ -180,7 +193,7 @@
 		'switch-to-buffer)
 	       buf)))
 
-  
+
 
   (cl-defun mu4e~compose-handler (compose-type &optional original-msg includes
 					       switch-function)
@@ -301,7 +314,7 @@ are optional."
       ;; make sure to close the frame when we're done with the message these are
       ;; all buffer-local;
       ;; JDS: Made this buffer local to be able to modify multiple messages without
-      ;;      record of what should happen 
+      ;;      record of what should happen
       (setq-local message-postpone-actions nil
 		  message-exit-actions nil
 		  message-kill-actions nil)
@@ -310,7 +323,7 @@ are optional."
 	(push 'delete-window message-exit-actions)
 	(push 'delete-window message-kill-actions)
 	(push 'delete-window message-postpone-actions)))
-    
+
     ;; buffer is not user-modified yet
     (set-buffer-modified-p nil)))
 
