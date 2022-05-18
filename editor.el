@@ -66,7 +66,8 @@
      wrap
      additional
      additional-insert
-     mark))
+     ;; mark
+     ))
   ;; hack to activate some commentary (and more) functions 
   (defun lispyville-activate-commentary-theme ()
     ;; override default comment

@@ -83,7 +83,8 @@
 
 ;; for some reason has to be at the end to ensure 
 ;; that company-active-map is defined
-(load-config "company.el")
+;; (load-config "company.el")
+(load-config "capf.el")
 
 
 ;;; languages
