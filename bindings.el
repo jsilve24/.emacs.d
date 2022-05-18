@@ -15,6 +15,7 @@
   "SPC" #'consult-buffer
   "C-SPC" #'consult-buffer)
 
+
 (general-define-key
  :keymaps 'override
  "C-'" #'popper-toggle-latest
@@ -45,15 +46,16 @@
 (general-nmap
   "C-e" #'move-end-of-line)
 
-;;; completion
+;; completion
 ;;;###autoload
-(defun jds/yas-or-company ()
+(defun jds/yas-or-capf-or-indent ()
   (interactive)
   (if (yas-expand)
       nil
-    (if (company-complete-common)
+    (if (completion-at-point)
 	nil
-      (call-interactively #'company-dabbrev))))
+      (indent-for-tab-command))))
+
 
 (global-set-key [remap dabbrev-expand] 'hippie-expand)
 
@@ -65,20 +67,15 @@
 ;;;###autoload
 (defun jds/tab-dwim ()
   (interactive)
+  ;; don't indent in texmathp
   (cond
-   ((jds~blank-line-p) (progn (indent-according-to-mode)
-			      (if (string= major-mode "org=mode")
-				  (org-beginning-of-line))))
-   ((and (texmathp) (or (bound-and-true-p cdlatex-mode)
-			org-cdlatex-mode))
+   ((and (texmathp) (or (bound-and-true-p cdlatex-mode) ord-cdlatex-mode))
     (cdlatex-tab))
    ((and (string= (string (char-before)) " ")
 	 (string= major-mode "org-mode"))
     (org-cycle))
-   ((message--in-tocc-p)
-    (completion-at-point))
-   (t
-    (jds/yas-or-company))))
+   (t (jds/yas-or-capf-or-indent))))
+
 
 (defun jds/completion-keys ()
   (evil-local-set-key 'insert (kbd "<tab>") #'jds/tab-dwim)
@@ -215,13 +212,23 @@
 (jds/leader-def
   "a"      '(:ignore t :wk "editing")
   "as"     #'synosaurus-choose-and-replace
-  "af"     '(:ignore t :wk "fill/unfill")
-  "afp"    #'fill-paragraph
-  "afr"    #'fill-region
-  "afP"    #'unfill-paragraph
-  "afR"    #'unfill-region
-  "af SPC" #'unfill-toggle)
-
+  "aq"     '(:ignore t :wk "fill/unfill")
+  "aqp"    #'fill-paragraph
+  "aqr"    #'fill-region
+  "aqP"    #'unfill-paragraph
+  "aqR"    #'unfill-region
+  "af SPC" #'unfill-toggle
+  "ac" #'completion-at-point
+  "at" #'complete-tag
+  "ad" #'cape-dabbrev
+  "af" #'cape-file
+  "ah" #'cape-history
+  "ak" #'cape-keyword
+  "as" #'cape-symbol
+  "ab" #'cape-abbrev
+  "al" #'cape-line
+  "aw" #'cape-dict
+  "a\\" #'cape-tex)
 
 ;;; repls and such
 (jds/leader-def

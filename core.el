@@ -127,7 +127,6 @@
 ;; associated with package.el, and you should not use it with straight.el.)
 (setq straight-use-package-by-default t)
 
-
 ;;; Keybinding Utilities
 (straight-use-package 'general)
 (use-package general
@@ -145,7 +144,7 @@
 
 
   (general-create-definer jds/leader-def
-    :states '(normal visual motion emacs)
+    :states '(normal visual motion emacs insert)
     :keymaps 'override
     :prefix "SPC"
     :global-prefix "C-SPC")
