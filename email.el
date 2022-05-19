@@ -25,7 +25,8 @@
 (use-package mu4e
   :straight (:local-repo "/usr/share/emacs/site-lisp/mu4e"
 			 :pre-build ())
-  :commands mu4e mu4e-compose-new mu4e-headers-search-bookmark mu4e-get-bookmark-query mu4e~start
+  ;; :commands mu4e mu4e-compose-new mu4e-headers-search-bookmark mu4e-get-bookmark-query mu4e~start
+  :ensure t
   :init
   (provide 'html2text) ;; disable obsolete package
   :config
@@ -158,7 +159,6 @@
   (evil-collection-define-key 'normal 'mu4e-headers-mode-map
     "F" 'link-hint-open-link)
 
-
   ;; better html message handling, make it easier to view by converting to text
   (require 'mu4e-contrib)
   (setq mu4e-html2text-command 'mu4e-shr2text
@@ -169,8 +169,9 @@
   (advice-add #'shr-colorize-region :around (defun shr-no-colourise-region (&rest ignore)))
 
   ;; start mu4e in background
-  (mu4e 4))
-
+  (mu4e~start)
+  ;; (mu4e 4)
+  )
 
 ;; create new mu4e-compose-in-new-window
 (with-eval-after-load 'mu4e
