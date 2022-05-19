@@ -184,6 +184,8 @@ i.e. change right window to bottom, or change bottom window to right."
       ?\M-x
       ?\M-`
       ?\s-\t
+      ?\s-u ;; username
+      ?\s-p ;; password
       ?\M-' ;; nothing at the moment, reserved though
       ?\M-&
       ?\M-:
@@ -459,5 +461,11 @@ buffer (=minimizing in other WM/DE)"
 (setq ediff-diff-options "-w"
       ediff-split-window-function 'split-window-horizontally
       ediff-window-setup-function 'ediff-setup-windows-plain)
+
+(with-eval-after-load 'bitwarden
+  (exwm-input-set-key (kbd  "s-u") #'bitwarden-kill-username)
+  (exwm-input-set-key (kbd  "s-p") #'bitwarden-kill-password))
+
+
 
 (provide 'wm)

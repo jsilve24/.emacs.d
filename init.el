@@ -95,6 +95,7 @@
 ;;; "optional" applications
 (load-config "slack.el")
 (load-config "spotify.el")
+(load-config "bitwarden.el")
 
 ;; Start Server if not already running
 (require 'server)
