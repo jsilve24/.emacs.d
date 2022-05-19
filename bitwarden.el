@@ -82,3 +82,16 @@ With prefix argument, repeat completin-read selection even if there was a recent
 
 
 
+;;; Password stuff but not bitwarden ------------------------------------------------------
+
+;;;###autoload
+(defun jds/kill-psu-pass ()
+  "Fast access to a commonly used password."
+  (interactive)
+  (kill-new
+   (funcall (plist-get (car (auth-source-search :host "localhost" :user "jds6696@psu.edu"))
+		       :secret)))
+  (message "password coppied to clipboard."))
+
+
+

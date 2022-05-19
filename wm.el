@@ -464,7 +464,8 @@ buffer (=minimizing in other WM/DE)"
 
 (with-eval-after-load 'bitwarden
   (exwm-input-set-key (kbd  "s-u") #'bitwarden-kill-username)
-  (exwm-input-set-key (kbd  "s-p") #'bitwarden-kill-password))
+  (exwm-input-set-key (kbd  "s-p") #'bitwarden-kill-password)
+  (exwm-input-set-key (kbd  "s-P") #'jds/kill-psu-pass))
 
 
 
