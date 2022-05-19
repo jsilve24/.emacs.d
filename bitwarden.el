@@ -20,7 +20,7 @@
   (bitwarden-unlock))
 
 
-(defvar bitwarden-time-to-store "5 min"
+(defvar bitwarden-time-to-store "2 min"
   "Length of time to store last selected username and password before deleting. String should be recognized by the command run-at-time.")
 
 ;;;###autoload
