@@ -97,6 +97,12 @@ line."
   (dired-registers-store ?o "~/Dropbox/org/"))
 
 
+;;; dired history
+(use-package dired-hist
+  :straight (dired-hist :type git :host github :repo "karthink/dired-hist")
+  :config
+  (dired-hist-mode 1))
+
 
 ;;;###autoload
 (defun jds/dired-copy-dirname-as-kill ()

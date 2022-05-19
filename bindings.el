@@ -239,6 +239,8 @@
 
 (jds/leader-def
   "j" '(:ignore t :which-key "jump")
+  "j f"   #'dired-hist-go-forward
+  "j b"   #'dired-hist-go-back
   "j RET" #'dired-registers-goto-completing-read
   "j m"   #'dired-registers-store
   "j j"   #'dired-registers-goto
