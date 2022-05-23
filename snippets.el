@@ -3,9 +3,7 @@
 ;;; setup consult-yassnippet
 
 (use-package yasnippet
-  :straight t
   :ensure t
-  :bind ("M-SPC" . yas-expand)
   :commands (yas-expand yas-expand-snippet)
   :config
   (setq yas-snippet-dirs

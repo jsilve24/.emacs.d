@@ -157,7 +157,7 @@ i.e. change right window to bottom, or change bottom window to right."
   
   ;; rebind caps lock
   ;; (start-process-shell-command "capslock" nil "~/bin/capslock.sh")
-  (start-process-shell-command "kmonad" nil "/usr/bin/kmonad ~/.config/kmonad/kinesis.kbd")
+  ;; (start-process-shell-command "kmonad" nil "/usr/bin/kmonad ~/.config/kmonad/kinesis.kbd")
 
   
   ;; Automatically send the mouse cursor to the selected workspace's display
@@ -374,7 +374,7 @@ buffer (=minimizing in other WM/DE)"
    "q" '((lambda () (interactive) (exwm-async-run "qutebrowser")) :wk "qutebrowser-new-window")
    "Q" '((lambda () (interactive) (progn (+evil/window-vsplit-and-follow) (exwm-async-run "qutebrowser"))) :wk "qutebrowser-new-window")
    "y" '((lambda () (interactive) (run-or-raise-or-dismiss "slack" "Slack")) :wk "slack")
-   "c" '((lambda () (interactive) (jds/quiet-async-shell-commands "~/bin/capslock.sh")) :wk "capslock.sh")
+   ;; "c" '((lambda () (interactive) (jds/quiet-async-shell-commands "~/bin/capslock.sh")) :wk "capslock.sh")
    "x" '((lambda () (interactive) (exwm-async-run "/home/jds6696/bin/writepswd.sh")) :wk "writepswd")
    "v" 'evil-window-vsplit
    "s" 'evil-window-split

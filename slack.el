@@ -3,7 +3,7 @@
 
 (use-package slack
   :straight (:type git :host github :repo "isamert/emacs-slack" :branch "fix-curl-downloader")
-  :commands slack-start 
+  :defer t
   :init
   (setq slack-buffer-emojify t
 	slack-prefer-current-team t
@@ -60,10 +60,11 @@ mention-count)) (channel . (has-unreads . mention-count)))))"
   ;; (setq slack-enable-wysiwyg t)
 
   ;; add company support
-  (add-to-list 'company-backends 'company-slack-backend)
+  ;; (add-to-list 'company-backends 'company-slack-backend)
   ;; setup tab command - bind over lui mode completion 
   ;; (add-hook 'slack-mode-hook 'jds/completion-keys)
-  (setq lui-completion-function 'company-complete))
+  ;; (setq lui-completion-function 'company-complete)
+  )
 
 (use-package ol-emacs-slack
   :straight (ol-emacs-slack :type git :host github :repo "ag91/ol-emacs-slack"))

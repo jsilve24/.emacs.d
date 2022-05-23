@@ -166,3 +166,4 @@
  '(aw-leading-char-face ((t (:inherit ace-jump-face-foreground :height 2.5 :foreground "red")))))
 (put 'narrow-to-region 'disabled nil)
 (put 'scroll-left 'disabled nil)
+(put 'list-timers 'disabled nil)

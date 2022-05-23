@@ -84,7 +84,9 @@
       (let* ((printer (completing-read "Choose a printer:" (ph--get-list-of-priters)))
 	    (pdf-misc-print-program-args
 	     ;; should this not have a space after P?
-	     (cons (concat "-P " printer) pdf-misc-print-program-args))) 
+	     ;; (add-to-list  'pdf-misc-print-program-args (concat "-P " printer))
+	     (append pdf-misc-print-program-args (list (concat "-P " printer)))
+	     ))
 	(pdf-misc-print-document
 	 (pdf-view-buffer-file-name)
 	 ;; dont' prompt for program to print with (nil)
@@ -95,6 +97,25 @@
      ;; dont' prompt for program to print with (nil)
      nil)))
 
+;;;###autoload
+(defun pdf-misc-print-document (filename &optional interactive-p)
+  "Print the PDF doc FILENAME.
+
+`pdf-misc-print-program' handles the print program, which see for
+definition of INTERACTIVE-P."
+  (interactive
+   (list (pdf-view-buffer-file-name) t))
+  (cl-check-type filename (and string (satisfies file-readable-p)))
+  (let* ((program pdf-misc-print-program-executable)
+        (args (string-join (append pdf-misc-print-program-args (list filename)) " "))
+	(cmd (string-join (list program args) " ")))
+    ;; (message args)
+    (unless program
+      (error "No print program available"))
+    (start-process-shell-command "printing" nil cmd)
+    ;; (apply #'start-process "printing" nil program args)
+    (message "Print job started: %s %s"
+             program args)))
 
 
 (jds/localleader-def
