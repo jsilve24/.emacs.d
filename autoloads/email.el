@@ -136,12 +136,6 @@ default/fallback account."
     (end-of-line)
     (insert " inlineimages")))
 
-;;;###autoload
-(defun jds/open-mu4e-new-frame ()
-  (interactive)
-  (jds~new-frame-or-new-window)
-  (mu4e))
-
 
 
 ;; below is stolen from doom

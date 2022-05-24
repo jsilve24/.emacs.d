@@ -373,7 +373,7 @@ buffer (=minimizing in other WM/DE)"
    ;; "q" '((lambda () (interactive) (run-or-raise-or-dismiss "qutebrowser" "qutebrowser")) :wk "qutebrowser")
    "q" '((lambda () (interactive) (exwm-async-run "qutebrowser")) :wk "qutebrowser-new-window")
    "Q" '((lambda () (interactive) (progn (+evil/window-vsplit-and-follow) (exwm-async-run "qutebrowser"))) :wk "qutebrowser-new-window")
-   "y" '((lambda () (interactive) (run-or-raise-or-dismiss "slack" "Slack")) :wk "slack")
+   ;; "y" '((lambda () (interactive) (run-or-raise-or-dismiss "slack" "Slack")) :wk "slack")
    ;; "c" '((lambda () (interactive) (jds/quiet-async-shell-commands "~/bin/capslock.sh")) :wk "capslock.sh")
    "x" '((lambda () (interactive) (exwm-async-run "/home/jds6696/bin/writepswd.sh")) :wk "writepswd")
    "v" 'evil-window-vsplit

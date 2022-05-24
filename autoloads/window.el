@@ -87,22 +87,30 @@ the only window, use evil-window-move-* (e.g. `evil-window-move-far-left')."
   (interactive) (+evil--window-swap 'down))
 
 ;;;###autoload
-(defun +evil/window-split-and-follow ()
+(defun +evil/window-split-and-follow (&optional arg)
   "Split current window horizontally, then focus new window.
-If `evil-split-window-below' is non-nil, the new window isn't focused."
-  (interactive)
+If `evil-split-window-below' is non-nil, the new window isn't focused.
+
+With optional arg, don't automatically balance windows."
+  (interactive "P")
   (split-window-below)
-  (sit-for .01) ; added for exwm buffers
-  (other-window 1))
+  (sit-for .01)				; added for exwm buffers
+  (other-window 1)
+  (unless arg
+    (balance-windows)))
 
 ;;;###autoload
-(defun +evil/window-vsplit-and-follow ()
+(defun +evil/window-vsplit-and-follow (&optional arg)
   "Split current window vertically, then focus new window.
-If `evil-vsplit-window-right' is non-nil, the new window isn't focused."
-  (interactive)
+If `evil-vsplit-window-right' is non-nil, the new window isn't focused.
+
+With optional arg, don't automatically balance windows."
+  (interactive "P")
   (split-window-right)
-  (sit-for .01) ; added for exwm buffers
-  (other-window 1))
+  (sit-for .01)				; added for exwm buffers
+  (other-window 1)
+  (unless arg
+    (balance-windows)))
 
 
 (provide 'window)

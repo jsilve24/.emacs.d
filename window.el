@@ -28,7 +28,7 @@
     (select-window window)))
 
 ;;;###autoload
-(defun split-window-sensibly-prefer-horizontal (&optional window)
+(defun split-window-sensibly-prefer-horizontal-internal (&optional window)
   "Based on split-window-sensibly, but designed to prefer a horizontal split,
 i.e. windows tiled side-by-side."
   (let ((window (or window (selected-window))))
@@ -60,17 +60,30 @@ i.e. windows tiled side-by-side."
 	 (let ((split-width-threshold 0))
 	   (when (window-splittable-p window t)
              (with-selected-window window
-               (split-window-right))))))))
+               (split-window-right)))))))))
 
 ;;;###autoload
-(defun jds~new-frame-or-new-window ()
-  "New Frame and Focus unless using EXWM then new window."
+(defun split-window-sensibly-prefer-horizontal (&optional window norebalance)
+"Based on split-window-sensibly, but designed to prefer a horizontal split,
+i.e. windows tiled side-by-side. If norebalance then don't automatically rebalance windows after splitting.
+This is a wrapper around split-window-sensibly-prefer-horizontal-internal that adds the rebalancing functionality."
+(let ((window (split-window-sensibly-prefer-horizontal-internal window)))
+  (if window
+      (unless norebalance
+	(balance-windows)))))
+
+;;;###autoload
+(defun jds~new-frame-or-new-window (&optional norebalance)
+  "New Frame and Focus unless using EXWM then new window.
+If norebalance then don't automatically rebalance windows after split."
   (if (frame-parameter (selected-frame) 'exwm-active)
       (progn
 	(let ((split-width-threshold 150)
 	      (split-height-threshold 20))
-	  (if (not (split-window-sensibly-prefer-horizontal))
-	      (split-window-right)))
+	  (if (not (split-window-sensibly-prefer-horizontal nil norebalance))
+	      (unless norebalance 
+		(split-window-right)
+		(balance-windows))))
 	(other-window 1))
     (select-frame (make-frame))))
 

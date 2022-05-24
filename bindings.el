@@ -285,8 +285,8 @@
   "m" #'(lambda () (interactive)
 	  (mu4e-headers-search-bookmark
 	   (mu4e-get-bookmark-query ?t)))
-  "M" #'(lambda () (interactive)
-	  (jds~new-frame-or-new-window)
+  "M" #'(lambda (&optional arg) (interactive "P")
+	  (jds~new-frame-or-new-window arg)
 	  (mu4e-headers-search-bookmark (mu4e-get-bookmark-query ?t)))
   "l" #'org-store-link
   "i" #'org-insert-link
