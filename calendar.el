@@ -22,9 +22,3 @@
     (jds/quiet-async-shell-commands "~/bin/get_gcal.sh")))
 (add-hook 'after-init-hook #'jds/async-google-calendar-fetch)
 
-
-
-
-
-(provide 'calendar)
-;;; calendar.el ends here

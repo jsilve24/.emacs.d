@@ -60,7 +60,7 @@ i.e. windows tiled side-by-side."
 	 (let ((split-width-threshold 0))
 	   (when (window-splittable-p window t)
              (with-selected-window window
-               (split-window-right)))))))))
+               (split-window-right))))))))
 
 ;;;###autoload
 (defun split-window-sensibly-prefer-horizontal (&optional window norebalance)

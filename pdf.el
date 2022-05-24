@@ -68,7 +68,8 @@ definition of INTERACTIVE-P."
 	(error "No print program available"))
       (start-process-shell-command "printing" nil cmd)
       ;; (apply #'start-process "printing" nil program args)
-      (message "Print job started: %s" cmd)))))
+      (message "Print job started: %s" cmd))))
+
 ;;; print-helper -- not enough to make a stand-alone package
 (require 'dash)
 ;;;###autoload
