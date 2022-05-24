@@ -61,17 +61,14 @@ definition of INTERACTIVE-P."
      (list (pdf-view-buffer-file-name) t))
     (cl-check-type filename (and string (satisfies file-readable-p)))
     (let* ((program pdf-misc-print-program-executable)
-	   (args (string-join (append pdf-misc-print-program-args (list filename)) " "))
+	   (args (string-join (append pdf-misc-print-program-args (list (shell-quote-argument filename))) " "))
 	   (cmd (string-join (list program args) " ")))
       ;; (message args)
       (unless program
 	(error "No print program available"))
       (start-process-shell-command "printing" nil cmd)
       ;; (apply #'start-process "printing" nil program args)
-      (message "Print job started: %s %s"
-	       program args))))
-
-
+      (message "Print job started: %s" cmd)))))
 ;;; print-helper -- not enough to make a stand-alone package
 (require 'dash)
 ;;;###autoload

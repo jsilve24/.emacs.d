@@ -11,13 +11,15 @@
 ;;;###autoload
 (defun jds/async-exchange-calendar-fetch ()
   (interactive)
-  (jds/quiet-async-shell-commands "~/bin/get_exchange_cal.sh"))
+  (let ((async-shell-command-buffer 'new-buffer))
+    (jds/quiet-async-shell-commands "~/bin/get_exchange_cal.sh")))
 (add-hook 'after-init-hook #'jds/async-exchange-calendar-fetch)
 
 ;;;###autoload
 (defun jds/async-google-calendar-fetch ()
   (interactive)
-  (jds/quiet-async-shell-commands "~/bin/get_gcal.sh"))
+  (let ((async-shell-command-buffer 'new-buffer))
+    (jds/quiet-async-shell-commands "~/bin/get_gcal.sh")))
 (add-hook 'after-init-hook #'jds/async-google-calendar-fetch)
 
 
