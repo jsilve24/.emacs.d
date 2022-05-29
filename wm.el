@@ -73,10 +73,12 @@ configuration was previously save, restore that configuration."
 
 ;; function to toggle vertical horizontal splits
 ;; from wiki: https://www.emacswiki.org/emacs/ToggleWindowSplit
-(defun window-toggle-split-direction ()
+;; modified by Justin Silverman to automatically rebalace
+(defun window-toggle-split-direction (&optional arg)
   "Switch window split from horizontally to vertically, or vice versa.
-i.e. change right window to bottom, or change bottom window to right."
-  (interactive)
+i.e. change right window to bottom, or change bottom window to right.
+With optional arg, don't automatically rebalance windows."
+  (interactive "P")
   (require 'windmove)
   (let ((done))
     (dolist (dirs '((right . down) (down . right)))
@@ -88,7 +90,7 @@ i.e. change right window to bottom, or change bottom window to right."
                (neighbour1 (windmove-find-other-window neighbour-dir win))
                (neighbour2 (if next-win (with-selected-window next-win
                                           (windmove-find-other-window neighbour-dir next-win)))))
-          ;;(message "win: %s\nnext-win: %s\nneighbour1: %s\nneighbour2:%s" win next-win neighbour1 neighbour2)
+          ;; (message "win: %s\nnext-win: %s\nneighbour1: %s\nneighbour2:%s" win next-win neighbour1 neighbour2)
           (setq done (and (eq neighbour1 neighbour2)
                           (not (eq (minibuffer-window) next-win))))
           (if done
@@ -97,7 +99,9 @@ i.e. change right window to bottom, or change bottom window to right."
                 (if (eq nextdir 'right)
                     (split-window-vertically)
                   (split-window-horizontally))
-                (set-window-buffer (windmove-find-other-window neighbour-dir) other-buf))))))))
+                (set-window-buffer (windmove-find-other-window neighbour-dir) other-buf))))))
+    (if (not arg)
+	(balance-windows))))
 
 
 
