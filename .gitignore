@@ -9,3 +9,5 @@
 /.cache/
 *.eln
 /eln-cache/
+/GPATH
+/GTAGS
