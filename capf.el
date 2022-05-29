@@ -1,12 +1,15 @@
 ;;; capf.el --- capf config -*- lexical-binding: t -*-
 
 (use-package corfu
-  :bind
-  (:map corfu-map
-	("TAB" . corfu-next)
-	([tab] . corfu-next)
-	("S-TAB" . corfu-previous)
-	([backtab] . corfu-previous))
+  :straight (corfu :files (:defaults "extensions/*")
+                   :includes (corfu-history
+			      corfu-quick))
+  ;; :bind
+  ;; (:map corfu-map
+  ;; 	("TAB" . corfu-next)
+  ;; 	([tab] . corfu-next)
+  ;; 	("S-TAB" . corfu-previous)
+  ;; 	([backtab] . corfu-previous))
   ;; Optional customizations
   :custom
   (corfu-cycle t) ;; Enable cycling for `corfu-next/previous'
@@ -36,7 +39,16 @@
     (let ((completion-extra-properties corfu--extra)
 	  completion-cycle-threshold completion-cycling)
       (apply #'consult-completion-in-region completion-in-region--data)))
-  (define-key corfu-map "\M-m" #'corfu-move-to-minibuffer))
+  (define-key corfu-map "\M-m" #'corfu-move-to-minibuffer)
+
+  ;; sort candidates by use
+  (corfu-history-mode 1)
+  (savehist-mode 1)
+  (add-to-list 'savehist-additional-variables 'corfu-history)
+
+  ;; setup corfu quick
+  (define-key corfu-map "\M-q" #'corfu-quick-complete)
+  (define-key corfu-map "\M-Q" #'corfu-quick-insert))
 
 ;; A few more useful configurations...
 (use-package emacs
@@ -61,6 +73,12 @@
   :config
   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 
+(use-package corfu-doc
+  :config
+  (add-hook 'corfu-mode-hook #'corfu-doc-mode)
+  (define-key corfu-map (kbd "M-d") #'corfu-doc-toggle)
+  (define-key corfu-map (kbd "M-p") #'corfu-doc-scroll-down) ;; corfu-next
+  (define-key corfu-map (kbd "M-n") #'corfu-doc-scroll-up)) ;; corfu-previous
 
 ;; Add extensions
 (use-package cape
@@ -96,4 +114,4 @@
   ;;(add-to-list 'completion-at-point-functions #'cape-dict)
   ;;(add-to-list 'completion-at-point-functions #'cape-symbol)
   ;;(add-to-list 'completion-at-point-functions #'cape-line)
-)
+  )
