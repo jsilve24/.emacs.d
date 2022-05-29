@@ -170,6 +170,15 @@ With prefix P, create local abbrev. Otherwise it will be global."
 
 
 
+(use-package dictionary
+  :straight t
+  :commands (dictionary-search)
+  :init
+  (global-set-key (kbd "C-c d") #'dictionary-search)
+  :config
+  (setq dictionary-server "dict.org"))
+
+
 
 (provide 'spelling)
 ;;; spelling.el ends here

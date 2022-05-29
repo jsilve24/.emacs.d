@@ -211,7 +211,8 @@
 ;;; text editing
 (jds/leader-def
   "a"      '(:ignore t :wk "editing")
-  "as"     #'synosaurus-choose-and-replace
+  "at"     #'synosaurus-choose-and-replace
+  "aT"     #'dictionary-search
   "aq"     '(:ignore t :wk "fill/unfill")
   "aqp"    #'fill-paragraph
   "aqr"    #'fill-region
@@ -224,7 +225,7 @@
   "af" #'cape-file
   "ah" #'cape-history
   "ak" #'cape-keyword
-  ;; "as" #'cape-symbol
+  "as" #'cape-symbol
   "ab" #'cape-abbrev
   "al" #'cape-line
   "aw" #'cape-dict

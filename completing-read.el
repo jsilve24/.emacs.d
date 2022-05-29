@@ -34,27 +34,53 @@
   :init
   (vertico-mode)
   (setq vertico-resize nil
-        vertico-count 17
-        vertico-cycle t
-        completion-in-region-function
-        (lambda (&rest args)
-          (apply (if vertico-mode
-                     #'consult-completion-in-region
-                   #'completion--in-region)
-                 args)))
+	vertico-count 17
+	vertico-cycle t
+	completion-in-region-function
+	(lambda (&rest args)
+	  (apply (if vertico-mode
+		     #'consult-completion-in-region
+		   #'completion--in-region)
+		 args)))
   :config
   ;; setup to allow resuming last vertico session (with vertico-repeat)
-  (add-hook 'minibuffer-setup-hook #'vertico-repeat-save))
+  (add-hook 'minibuffer-setup-hook #'vertico-repeat-save)
 
+  ;; setup vertico quick
+  (define-key vertico-map "\M-q" #'vertico-quick-exit)
+  (define-key vertico-map "\M-Q" #'vertico-quick-insert)
+
+  ;; setup vertico multiform
+  (vertico-multiform-mode)
+  (setq vertico-multiform-commands
+	'((consult-imenu buffer indexed)
+	  (consult-imenu-multi buffer indexed)
+	  (consult-outine buffer indexed)
+	  (consult-ripgrep buffer indexed)))
+  ;; give vertico-map precedence over evil maps
+  (evil-make-intercept-map vertico-map)
+  (general-define-key
+   :states '(e m i)
+   :keymaps 'vertico-map
+   "ESC" #'minibuffer-keyboard-quit)
+  ;; setup keys to temporarily toggle between display modes
+  (define-key vertico-map "\M-V" #'vertico-multiform-vertical)
+  (define-key vertico-map "\M-G" #'vertico-multiform-grid)
+  (define-key vertico-map "\M-F" #'vertico-multiform-flat)
+  (define-key vertico-map "\M-R" #'vertico-multiform-reverse)
+  (define-key vertico-map "\M-U" #'vertico-multiform-unobtrusive)
+
+  (define-key vertico-map "\C-f" #'vertico-scroll-up)
+  (define-key vertico-map "\C-b" #'vertico-scroll-down))
 ;; Configure directory extension.
 ;; NOTE: The file `vertico-directory.el' must be installed manually.
 (use-package vertico-directory
   ;; More convenient directory navigation commands
   :bind (:map vertico-map
-              ("RET" . vertico-directory-enter)
-              ("DEL" . vertico-directory-delete-char)
-              ("M-DEL" . vertico-directory-delete-word))
-  ;; Tidy shadowed file names
+	      ("RET" . vertico-directory-enter)
+	      ("DEL" . vertico-directory-delete-char)
+	      ("M-DEL" . vertico-directory-delete-word))
+  ;; tidy shadowed file names
   :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
 
 ;; Optionally use the `orderless' completion style. See

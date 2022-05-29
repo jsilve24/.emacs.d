@@ -1,33 +1,13 @@
 ;;; pdf.el --- pdf tools setup -*- lexical-binding: t; -*-
-;;
-;; Copyright (C) 2021 Justin Silverman
-;;
-;; Author: Justin Silverman <https://github.com/jsilve24>
-;; Maintainer: Justin Silverman <jsilve24@gmail.com>
-;; Created: October 23, 2021
-;; Modified: October 23, 2021
-;; Version: 0.0.1
-;; Keywords: abbrev bib c calendar comm convenience data docs emulations extensions faces files frames games hardware help hypermedia i18n internal languages lisp local maint mail matching mouse multimedia news outlines processes terminals tex tools unix vc wp
-;; Homepage: https://github.com/jsilve24/pdf
-;; Package-Requires: ((emacs "24.3"))
-;;
-;; This file is not part of GNU Emacs.
-;;
-;;; Commentary:
-;;
-;;  pdf tools setup
-;;
-;;; Code:
-;;;
-;;; Remember you have to call pdf-tools-install to make this work
 
 
 (use-package pdf-tools
   :mode ("\\.pdf\\'" . pdf-view-mode)
   :magic ("%PDF" . pdf-view-mode)
-  :after evil-collection
+  :after evil-collectionstin
   :config
-  (pdf-loader-install)
+  ;; install pdf-tools, don't ask for confirmation
+  (pdf-loader-install t)
   ;; open pdfs scaled to fit page
   (setq-default pdf-view-display-size 'fit-page)
   ;; automatically annotate highlights
@@ -120,9 +100,3 @@ definition of INTERACTIVE-P."
   ;; prefix-argument to select which printer to use
   "p" #'ph-pdf-misc-print-document
   "l" #'pdf-annot-list-annotations)
-
-
-
-
-(provide 'pdf)
-;;; pdf.el ends here
