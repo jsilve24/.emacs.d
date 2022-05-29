@@ -1,4 +1,9 @@
 ;;-*-coding: utf-8;-*-
+(define-abbrev-table 'captain-mode-abbrev-table
+  '(
+    ("i" "I" nil :count 10)
+   ))
+
 (define-abbrev-table 'global-abbrev-table
   '(
     ("abudnance" "abundance" nil :count 5)

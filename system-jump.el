@@ -36,7 +36,6 @@
   (zoxide-run t "add" path)))
 
 
-(straight-use-package 'affe)
 (use-package affe
   :commands (affe-find affe-grep)
   :config

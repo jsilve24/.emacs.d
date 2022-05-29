@@ -28,6 +28,7 @@
 (use-package undo-tree
   :ensure t
   :config
+  (setq undo-tree-auto-save-history nil)
   (global-undo-tree-mode))
 
 ;;; main evil config
