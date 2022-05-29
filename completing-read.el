@@ -164,8 +164,9 @@
 ;; C-.. These commands allow you to act on the object at point or in the minibuffer.
 ;; investigate embark-keymap-alist for finding correct embark-keymaps
 
-
 (use-package embark
+  :straight (embark :type git :host github :repo "oantolin/embark"
+		    :files ("embark.el" "embark.texi" "embark.info" "embark-org.el"))
   :ensure t
   :after which-key
   :init
@@ -173,6 +174,7 @@
   (setq prefix-help-command #'embark-prefix-help-command)
 
   :config
+  (require 'embark-org)
   ;; Hide the mode line of the Embark live/completions buffers
   (add-to-list 'display-buffer-alist
 	       '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
@@ -237,6 +239,9 @@ targets."
   (define-key embark-file-map (kbd "o") (jds/embark-ace-action find-file))
   (define-key embark-buffer-map (kbd "o") (jds/embark-ace-action switch-to-buffer))
   (define-key embark-bookmark-map (kbd "o") (jds/embark-ace-action bookmark-jump))
+  (define-key embark-org-link-map (kbd "o") (jds/embark-ace-action org-open-at-point))
+  (define-key embark-url-map (kbd "o") (jds/embark-ace-action browse-url))
+
 
 
   (eval-when-compile
@@ -249,13 +254,20 @@ targets."
 	 (funcall #',split-type)
 	 (call-interactively #',fn))))
 
-  (define-key embark-file-map (kbd "s") (jds/embark-split-action find-file split-window-below))
-  (define-key embark-buffer-map (kbd "s") (jds/embark-split-action switch-to-buffer split-window-below))
-  (define-key embark-bookmark-map (kbd "s") (jds/embark-split-action bookmark-jump split-window-below))
+  (define-key embark-file-map (kbd "s") (jds/embark-split-action find-file +evil/window-split-and-follow))
+  (define-key embark-buffer-map (kbd "s") (jds/embark-split-action switch-to-buffer +evil/window-split-and-follow))
+  (define-key embark-bookmark-map (kbd "s") (jds/embark-split-action bookmark-jump +evil/window-split-and-follow))
+  (define-key embark-org-link-map (kbd "s") (jds/embark-split-action org-open-at-point +evil/window-split-and-follow))
+  (define-key embark-url-map (kbd "s") (jds/embark-split-action browse-url +evil/window-split-and-follow))
 
-  (define-key embark-file-map (kbd "v") (jds/embark-split-action find-file split-window-right))
-  (define-key embark-buffer-map (kbd "v") (jds/embark-split-action switch-to-buffer split-window-right))
-  (define-key embark-bookmark-map (kbd "v") (jds/embark-split-action bookmark-jump split-window-right))
+
+
+  (define-key embark-file-map (kbd "v") (jds/embark-split-action find-file +evil/window-vsplit-and-follow))
+  (define-key embark-buffer-map (kbd "v") (jds/embark-split-action switch-to-buffer +evil/window-vsplit-and-follow))
+  (define-key embark-bookmark-map (kbd "v") (jds/embark-split-action bookmark-jump +evil/window-vsplit-and-follow))
+  (define-key embark-org-link-map (kbd "v") (jds/embark-split-action org-open-at-point +evil/window-vsplit-and-follow))
+  (define-key embark-url-map (kbd "v") (jds/embark-split-action browse-url +evil/window-vsplit-and-follow))
+
 
 
   ;; create new embark keymap for org-headings
@@ -267,7 +279,7 @@ targets."
   (define-key embark-consult-org-heading-map (kbd "v") (jds/embark-split-action consult-org-agenda split-window-right))
   (define-key embark-consult-org-heading-map (kbd "s") (jds/embark-split-action consult-org-agenda split-window-below))
 
-  
+
   ;; open file as sudo
   (defun sudo-find-file (file)
     "Open FILE as root."

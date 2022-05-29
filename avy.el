@@ -50,9 +50,7 @@
   (setf (alist-get ?\; avy-dispatch-alist) 'avy-action-embark))
 
 ;;; link-hint
-
 (use-package link-hint
-  :straight t
   :after avy
   :ensure t
   :config
