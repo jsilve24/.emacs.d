@@ -32,6 +32,7 @@
   (pcase exwm-class-name
     ;; ("Firefox" (exwm-workspace-move-window 2))
     ;; ("qutebrowser" (exwm-workspace-rename-buffer (format "Qutebrowser: %s" exwm-title)))
+    ("qutebrowser" (jds~set-window-dedicated))
     ;; ("Google-chrome" (hide-mode-line-mode))
     ;; ("mpv" (exwm-floating-toggle-floating)
     ;;        (exwm-layout-toggle-mode-line))
@@ -357,7 +358,7 @@ buffer (=minimizing in other WM/DE)"
 
 ;; largely templated off of the exwm cookbook (on the github wiki)
 ;;;###autoload
-(defun jds~set-window-dedicated (arg)
+(defun jds~set-window-dedicated (&optional arg)
   "Toggle loose window dedication.  If prefix ARG, set strong."
   (interactive "P")
   (let* ((dedicated (if arg t (if (window-dedicated-p) nil "loose"))))

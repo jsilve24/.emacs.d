@@ -123,8 +123,6 @@ definition of INTERACTIVE-P."
 
 
 
-;;; setup printing
-
 
 (provide 'pdf)
 ;;; pdf.el ends here

@@ -1,7 +1,7 @@
 ;;; spotify.el --- spotify configuration              -*- lexical-binding: t; -*-
 
 (use-package smudge
-  :commands jds/hydra-spotify-wrapper
+  :commands jds/hydra-spotify-wrapper smudge-api-transfer-player
   :init
   (setq smudge-status-location nil)
 
