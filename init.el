@@ -114,7 +114,11 @@
   :commands (comment-dwim-2 org-comment-dwim-2)
   :bind (("M-;" . comment-dwim-2)
          :map org-mode-map
-         ("M-;" . org-comment-dwim-2)))
+         ("M-;" . org-comment-dwim-2))
+  :config
+  ;; make sure to add a space after the comment charater in inline-comments
+  ;; I like the way this looks better
+  (advice-add 'comment-indent :after #'just-one-space))
 
 
 ;; easy way to try out packages

@@ -272,8 +272,8 @@
 					           (,fun))))
 
 (jds/sub-leader-def
-  "," #'org-capture		;; q "new"
-  "C-," #'org-capture		;; q "new"
+  "," #'org-capture   ;; q "new"
+  "C-," #'org-capture ;; q "new"
   ;; "<" #'org-capture-goto-target ;; new and follow
   ">" #'org-refile-goto-last-stored
   "<" #'org-capture-goto-last-stored
@@ -283,6 +283,7 @@
   "c" #'jds/mu4e-compose-goto-to
   ;; "M" #'jds/open-mu4e-new-frame
   ;; "m" #'mu4e
+  "g" #'magit-status
   "m" #'(lambda () (interactive)
 	  (mu4e-headers-search-bookmark
 	   (mu4e-get-bookmark-query ?t)))
@@ -317,17 +318,22 @@
  :keymaps 'override
  "K" #'delete-indentation)
 
+
+;;;###autoload
+(defun jds/consult-ripgrep-config ()
+  (interactive)
+  (consult-ripgrep "~/.emacs.d"))
+
 ;;; search
 (jds/leader-def
- "s" '(:ignore t :which-key "search")
- "ss" #'consult-line
- "sS" #'(lambda () (interactive) (consult-line-multi 'all-buffers))
- "sc" '((lambda () (interactive) (consult-ripgrep "~/.emacs.d")) :wk "ripgrep-config")
- "sm" #'consult-mark
- ;; "si" #'consult-outline
- ;; "sI" #'consult-imenu-multi
- "sy" #'consult-yank-from-kill-ring)
-
+  "s" '(:ignore t :which-key "search")
+  "ss" #'consult-line
+  "sS" #'(lambda () (interactive) (consult-line-multi 'all-buffers))
+  "sc" #'jds/consult-ripgrep-config
+  "sm" #'consult-mark
+  ;; "si" #'consult-outline
+  ;; "sI" #'consult-imenu-multi
+  "sy" #'consult-yank-from-kill-ring)
 
 ;;; git
 
@@ -355,6 +361,15 @@
   (evil-declare-motion 'jds/avy-goto-word-0-end))
 
 
+
+;;;###autoload
+(defun jds/smart-consult-outline-imenu ()
+    "Use consult-outline in org-buffers but consult-imenu otherwise."
+  (interactive)
+  (if (string= major-mode "org-mode")
+      (consult-outline)
+    (consult-imenu)))
+
 ;; don't touch
 ;; g-;  g-i   g-n
 (general-define-key
@@ -366,9 +381,9 @@
  "g;" #'goto-last-change
  "g/" #'avy-goto-char-timer
  "g," #'jds/evil-snipe-convert-avy-jump
- "gm" #'evil-next-match                ;; select prior search
+ "gm" #'evil-next-match	;; select prior search
  "gn" #'jds/evil-search-convert-avy-jump
- "gi" #'evil-insert-resume
+ ;; "gi" #'evil-insert-resume
  "gv" #'evil-visual-restore
  "gu"  #'evil-downcase
  "gU"  #'evil-upcase
@@ -399,7 +414,7 @@
  ;; "gt" #'XXX
  ;; "gT" #'XXX
  "gf" #'avy-goto-char
- "gi" #'consult-outline
+ "gi" #'jds/smart-consult-outline-imenu
  "gI" #'consult-imenu-multi)
 
 ;; make gh mode specific -- for headings or sections (can popup-imenu or something)

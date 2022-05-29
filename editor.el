@@ -168,6 +168,10 @@ Version 2017-01-11"
      (setq captain-predicate
 	   (lambda () (not (org-in-src-block-p)))))))
 
+;;; tags -----------------------------------------------------------------------
+
+(use-package ggtags)
+
 ;;; highlighting ---------------------------------------------------------------
 
 ;; (use-package hl-todo

@@ -75,6 +75,8 @@
 
 (use-package corfu-doc
   :config
+  (setq corfu-doc-auto t
+	corfu-doc-delay 0.75)
   (add-hook 'corfu-mode-hook #'corfu-doc-mode)
   (define-key corfu-map (kbd "M-d") #'corfu-doc-toggle)
   (define-key corfu-map (kbd "M-p") #'corfu-doc-scroll-down) ;; corfu-next
