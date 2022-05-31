@@ -4,7 +4,7 @@
 (use-package pdf-tools
   :mode ("\\.pdf\\'" . pdf-view-mode)
   :magic ("%PDF" . pdf-view-mode)
-  :after evil-collectionstin
+  :after evil-collection
   :config
   ;; install pdf-tools, don't ask for confirmation
   (pdf-loader-install t)
@@ -100,3 +100,9 @@ definition of INTERACTIVE-P."
   ;; prefix-argument to select which printer to use
   "p" #'ph-pdf-misc-print-document
   "l" #'pdf-annot-list-annotations)
+
+(general-define-key
+ :states '(normal)
+ :keymaps '(pdf-annot-list-mode-map)
+ "RET" #'pdf-annot-list-display-annotation-from-id
+ "M-RET" #'tablist-find-entry)
