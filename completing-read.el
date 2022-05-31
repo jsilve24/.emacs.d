@@ -229,7 +229,7 @@ targets."
 	 (with-demoted-errors "%s"
 	   (require 'ace-window)
 	   (let ((aw-dispatch-always t)
-		 (aw-dispatch-alist '((?= aw-split-window-fair "Split Fair Window")
+		 (aw-dispatch-alist '((?F aw-split-window-fair "Split Fair Window")
 				      (?s aw-split-window-vert "Split Vert Window")
 				      (?v aw-split-window-horz "Split Horz Window")
 				      (?o delete-other-windows "Delete Other Windows"))))

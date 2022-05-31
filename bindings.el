@@ -391,8 +391,9 @@
  "go" #'jds/evil-insert-line-below
  "gO" #'jds/evil-insert-line-above
  ;; avy and hinting
- "gl" #'link-hint-open-link
- "gL" #'link-hint-copy-link
+ "gl" (lambda (&optional arg) (interactive "P") (if arg (link-hint-copy-link) (link-hint-open-link)))
+ ;; "gL" #'link-hint-copy-link
+ "gL" #'link-hint-aw-select
  "gw" #'avy-goto-word-0
  "ge" #'jds/avy-goto-word-0-end
  "gd" #'jds/avy-goto-delim-start

@@ -95,15 +95,15 @@ If norebalance then don't automatically rebalance windows after split."
   :config
   ;; get more consistent bindings with my setup everywhere else
   ;; customize movement action
-
-
+  (setq aw-dispatch-always t
+	aw-minibuffer-flag nil)
   (setq aw-dispatch-alist
   '((?x aw-delete-window "Delete Window")
     (?m aw-swap-window "Swap Windows")
     (?p aw-move-window "Move Window")
     (?v aw-move-window-split-right "Move Window to right")
     (?s aw-move-window-split-below "Move Window below")
-    (?= aw-move-window-split-fair "Move Window fair split")
+    (?F aw-move-window-split-fair "Move Window fair split")
     (?c aw-copy-window "Copy Window")
     (?j aw-switch-buffer-in-window "Select Buffer")
     (?n aw-flip-window "Jump to previous window")
