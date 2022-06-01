@@ -90,19 +90,17 @@
   "Open multi-vterm in a new window (on EXWM) or new frame. Open new term if universal prefix passed.
 With two prefixes, disable window balancing, with three prefixes, disable window balancing and open new term."
   (interactive "p")
-  (if (not arg)
-      (progn
-	(jds~new-frame-or-new-window)
-	(jds/multi-vterm-same-window))
-    (cond
-     ((= arg 4) (progn (jds~new-frame-or-new-window)
-		       (jds/multi-vterm-same-window t)))
+  (cond
+   ((= arg 4) (progn (jds~new-frame-or-new-window)
+		     (jds/multi-vterm-same-window t)))
 
-     ((= arg 16) (progn (jds~new-frame-or-new-window t)
-			(jds/multi-vterm-same-window)))
+   ((= arg 16) (progn (jds~new-frame-or-new-window t)
+		      (jds/multi-vterm-same-window)))
 
-     ((= arg 64) (progn (jds~new-frame-or-new-window t)
-			(jds/multi-vterm-same-window t))))))
+   ((= arg 64) (progn (jds~new-frame-or-new-window t)
+		      (jds/multi-vterm-same-window t)))
+   (t (progn (jds~new-frame-or-new-window)
+	     (jds/multi-vterm-same-window)))))
 
 (provide 'term)
 ;;; term.el ends here
