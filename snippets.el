@@ -182,6 +182,7 @@ escape."
     ";lo" #'jds~org-agenda-link
     ";sq" (jds~yas-lambda-expand "#+BEGIN_QUOTE\n$0\n#+END_QUOTE")
     ";sr" (jds~yas-lambda-expand "#+begin_src R\n$0\n#+end_src")
+    ";sb" (jds~yas-lambda-expand "#+begin_src bibtex\n$0\n#+end_src")
     ";header" (jds~yas-lambda-expand-snippet-by-key "org-header-for-export"))
 
   ;; elisp snippets
@@ -189,6 +190,7 @@ escape."
     ";auto" ";;;###autoload"
     ";straight" (jds~yas-lambda-expand ":straight ($1 :type git :host github :repo \"$2\")")
     ";defun" (jds~yas-lambda-expand "(defun $1 ($2)\n\"$3\"${4:\n(interactive${5: \"$6\"})}\n$7)")
+    ";func" (jds~yas-lambda-expand "(defun $1 ($2)\n\"$3\"${4:\n(interactive${5: \"$6\"})}\n$7)")
     ";defmacro" (jds~yas-lambda-expand "(defmacro $1 ($2)\n\"$3\"\n\`($4))")
     ";defvar" (jds~yas-lambda-expand "(defvar ${1:symbol} ${2:initvalue} \"${3:docstring}\")")
     ";defcustom" (jds~yas-lambda-expand "(defcustom ${1:symbol} ${2:standard} \"${3:docstring}\"${4: args})")
@@ -207,7 +209,10 @@ escape."
     `(aas-set-snippets ,mode
        ";;" #'r/insert-assign
        ";in" "%in%"
-       ";m" #'r/insert-pipe))
+       ";*"  "%*%"
+       ";m" #'r/insert-pipe
+       ";func" (jds~yas-lambda-expand "$1 <- function($2) {\n $0 \n}")
+       ";for" (jds~yas-lambda-expand "for (${1:i} in ${2:1:$3}) {\n$0\n}")))
   (jds~aas-setup-ess 'ess-r-mode)
   (jds~aas-setup-ess 'inferior-ess-mode)
 

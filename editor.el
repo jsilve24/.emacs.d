@@ -148,6 +148,17 @@ Version 2017-01-11"
                (replace-match (aref $x 1) "FIXEDCASE" "LITERAL")))
            $strPairs))))))
 
+
+;;; customize imenu listings ---------------------------------------------------
+
+(with-eval-after-load 'imenu
+  (defun jds~add-to-imenu-hook-function ()
+    "Add this hook to major modes to customize imenu supported expressions"
+    (interactive)
+    (add-to-list 'imenu-generic-expression '("Sections" "^\\(.+\\)----$" )))
+  (add-hook 'text-mode-hook 'jds~add-to-imenu-hook-function)
+  (add-hook 'prog-mode-hook 'jds~add-to-imenu-hook-function))
+
 ;;; autocapitalize -------------------------------------------------------------
 
 (use-package captain
@@ -162,9 +173,9 @@ Version 2017-01-11"
             (lambda ()
               (setq captain-predicate (lambda () t))))
   ;; turn on in slack buffers
- ;; (add-hook 'text-mode-hook
- ;;            (lambda ()
- ;;              (setq captain-predicate (lambda () t))))
+  ;; (add-hook 'text-mode-hook
+  ;;            (lambda ()
+  ;;              (setq captain-predicate (lambda () t))))
   ;; Or don't work in source blocks in Org mode:
   (add-hook
    'org-mode-hook
@@ -175,6 +186,12 @@ Version 2017-01-11"
 ;;; tags -----------------------------------------------------------------------
 
 (use-package ggtags)
+
+;;; dumb jump ------------------------------------------------------------------
+
+(use-package dumb-jump
+  :config
+  (add-hook 'xref-backend-functions #'dumb-jump-xref-activate))
 
 ;;; highlighting ---------------------------------------------------------------
 

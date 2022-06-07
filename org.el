@@ -244,6 +244,17 @@
   (evil-org-agenda-set-keys))
 
 
+;;; org-bib for literate bibtex
+(use-package org-bib
+  :straight `(org-bib :type git :host github :repo "rougier/org-bib-mode")
+  :config
+  (setq org-bib-library-paths '("~/Dropbox/org")
+	org-bib-default-library "~/Dropbox/org/references.org"
+	org-bib-unsorted-header "Unsorted"))
+
+
+;;; local bindings
+
 ;;; undoing some messed up bindings from somewhere, not sure where these came from
 (general-define-key
  :states '(n v m i e)
@@ -256,8 +267,6 @@
  ;; "C-S-<return>" #'+org/insert-item-above
  )
 
-
-;;; local bindings
 
 (general-define-key
  :states '(n v m)

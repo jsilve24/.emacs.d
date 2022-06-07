@@ -34,15 +34,22 @@
 
 
   ;; this also makes heading section headers available in consult-outline
-  (add-hook 'ess-mode-hook
-	    '(lambda ()
-	       (outline-minor-mode)
-	       (setq outline-regexp "^#.*----")))
+  ;; (add-hook 'ess-mode-hook
+  ;; 	    '(lambda ()
+  ;; 	       (outline-minor-mode)
+  ;; 	       (setq outline-regexp ".*----$")))
   ;; turn off fancy comments which are really annoying
-(defun dont-like-fancy ()
-  (setcdr (assoc 'ess-indent-with-fancy-comments (cdr (assoc 'DEFAULT ess-style-alist))) nil))
- (add-hook 'ess-mode-hook 'dont-like-fancy)
- (add-hook 'ess-r-mode-hook 'dont-like-fancy))
+  (defun dont-like-fancy ()
+    (setcdr (assoc 'ess-indent-with-fancy-comments (cdr (assoc 'DEFAULT ess-style-alist))) nil))
+  (add-hook 'ess-mode-hook 'dont-like-fancy)
+  (add-hook 'ess-r-mode-hook 'dont-like-fancy)
+
+  ;; add dumb-jump as the default xref-backend
+  (with-eval-after-load 'dumb-jump
+    (add-hook 'ess-r-mode-hook
+	      (lambda ()
+		(add-hook 'xref-backend-functions #'dumb-jump-xref-activate -100 'local))))
+  )
 
 ;;; setup polymode
 

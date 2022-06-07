@@ -34,6 +34,7 @@
     ("consice" "concise" nil :count 1)
     ("contension" "contention" nil :count 0)
     ("crutially" "crucially" nil :count 0)
+    ("deffinetly" "definitely" nil :count 0)
     ("defintiions" "definitions" nil :count 0)
     ("defintion" "definition" nil :count 1)
     ("defintions" "definitions" nil :count 0)
