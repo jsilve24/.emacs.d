@@ -25,12 +25,21 @@
 
 (setq jds/default-font-size 90)
 (setq jds/default-variable-font-size 90)
+;; (setq jds/default-font-fixed-width "Hack")
+;; (setq jds/default-font-fixed-width "JetBrainsMono")
+(setq jds/default-font-fixed-width "DejaVuSansMono")
+;; (setq jds/default-font-fixed-width "Iosevka")
+;; (setq jds/default-font-fixed-width "Fira Code Retina") ; no italics
 
-(set-face-attribute 'default nil :font "Fira Code Retina"
+
+(set-face-attribute 'default nil :font jds/default-font-fixed-width
                     :height jds/default-font-size)
+;; (set-face-attribute 'default nil :font "DejaVuSansMono"
+;;                     :height jds/default-font-size)
+
 
 ;; Set the fixed pitch face
-(set-face-attribute 'fixed-pitch nil :font "Fira Code Retina"
+(set-face-attribute 'fixed-pitch nil :font jds/default-font-fixed-width
                     :height jds/default-font-size)
 
 ;; Set the variable pitch face

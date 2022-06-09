@@ -48,6 +48,7 @@
   :when (executable-find "aspell")
   :hook (text-mode . flyspell-mode)
   :hook (conf-toml-mode . flyspell-mode)
+  :hook (slack-message-buffer-mode . flyspell-mode)
   :config
   ;; performance suggestion from wiki
   (setq flyspell-issue-message-flag nil))
