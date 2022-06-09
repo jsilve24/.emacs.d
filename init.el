@@ -80,6 +80,7 @@
 (load-config "bindings.el")
 (load-config "debugging.el")
 (load-config "languages.el")
+(load-config "references.el")
 
 ;; for some reason has to be at the end to ensure 
 ;; that company-active-map is defined

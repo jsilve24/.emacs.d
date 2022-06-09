@@ -244,13 +244,13 @@
   (evil-org-agenda-set-keys))
 
 
-;;; org-bib for literate bibtex
-;; (use-package org-bib
-;;   :straight `(org-bib :type git :host github :repo "rougier/org-bib-mode")
-;;   :config
-;;   (setq org-bib-library-paths '("~/Dropbox/org")
-;; 	org-bib-default-library "~/Dropbox/org/references.org"
-;; 	org-bib-unsorted-header "Unsorted"))
+;; org-bib for literate bibtex
+(use-package org-bib
+  :straight `(org-bib :type git :host github :repo "rougier/org-bib-mode")
+  :config
+  (setq org-bib-library-paths '("~/Dropbox/org")
+	org-bib-default-library "~/Dropbox/org/references.org"
+	org-bib-unsorted-header "Unsorted"))
 
 
 ;;; local bindings
