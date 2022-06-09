@@ -91,7 +91,7 @@ If norebalance then don't automatically rebalance windows after split."
   :straight t
   :init
   (setq aw-background nil)
-  (setq aw-keys '(?a ?d ?f ?g ?h  ?k ?l ?y ?r ?q ?w ?b))
+  (setq aw-keys '(?a ?d ?g ?h  ?k ?l ?y ?r ?q ?w ?b ?c ?j ?n))
   :config
   ;; get more consistent bindings with my setup everywhere else
   ;; customize movement action
@@ -106,17 +106,18 @@ If norebalance then don't automatically rebalance windows after split."
     (?V aw-delete-and-move-window-split-right "Move Window to right and Delete")
     (?s aw-move-window-split-below "Move Window below")
     (?S aw-delete-and-move-window-split-below "Move Window below and Delete")
-    (?F aw-move-window-split-fair "Move Window fair split")
-    (?c aw-copy-window "Copy Window")
-    (?j aw-switch-buffer-in-window "Select Buffer")
-    (?n aw-flip-window "Jump to previous window")
+    (?f aw-move-window-split-fair "Move Window fair split")
+    (?F aw-delete-and-move-window-split-fair "Move Window fair split")
+    ;; (?c aw-copy-window "Copy Window")
+    ;; (?j aw-switch-buffer-in-window "Select Buffer")
+    ;; (?n aw-flip-window "Jump to previous window")
     (?u aw-switch-buffer-other-window "Switch Buffer Other Window")
     (?e aw-execute-command-other-window "Execute Command Other Window")
     ;; (?= aw-split-window-fair "Split Fair Window")
     ;; (?s aw-split-window-vert "Split Vert Window")
     ;; (?v aw-split-window-horz "Split Horz Window")
     (?o delete-other-windows "Delete Other Windows")
-    (?T aw-transpose-frame "Transpose Frame")
+    ;; (?T aw-transpose-frame "Transpose Frame")
     ;; ?i ?r ?t are used by hyperbole.el
     (?? aw-show-dispatch-help)))
   
@@ -139,6 +140,23 @@ Controlled by `aw-fair-aspect-ratio'."
       (aw-split-window-vert window))
     (call-interactively #'other-window)
     (switch-to-buffer buffer)))
+
+
+;;;###autoload
+(defun aw-delete-and-move-window-split-fair (window)
+  "Like the default aw-move-window but splits based on target window dimension.
+Controlled by `aw-fair-aspect-ratio'."
+  (let ((buffer (current-buffer))
+	(w (window-body-width window))
+	(h (window-body-height window)))
+    (delete-window)
+    (aw-switch-to-window window)
+    (if (< (* h aw-fair-aspect-ratio) w)
+	(aw-split-window-horz window)
+      (aw-split-window-vert window))
+    (call-interactively #'other-window)
+    (switch-to-buffer buffer)))
+
 
 ;;;###autoload
 (defun aw-delete-and-move-window (window)
