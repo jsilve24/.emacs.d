@@ -101,8 +101,11 @@ If norebalance then don't automatically rebalance windows after split."
   '((?x aw-delete-window "Delete Window")
     (?m aw-swap-window "Swap Windows")
     (?p aw-move-window "Move Window")
+    (?P aw-delete-and-move-window "Move Window and Delete")
     (?v aw-move-window-split-right "Move Window to right")
+    (?V aw-delete-and-move-window-split-right "Move Window to right and Delete")
     (?s aw-move-window-split-below "Move Window below")
+    (?S aw-delete-and-move-window-split-below "Move Window below and Delete")
     (?F aw-move-window-split-fair "Move Window fair split")
     (?c aw-copy-window "Copy Window")
     (?j aw-switch-buffer-in-window "Select Buffer")
@@ -138,6 +141,15 @@ Controlled by `aw-fair-aspect-ratio'."
     (switch-to-buffer buffer)))
 
 ;;;###autoload
+(defun aw-delete-and-move-window (window)
+  "Move the current buffer to WINDOW, deleting current window. 
+Switch the current window to the previous buffer."
+  (let ((buffer (current-buffer)))
+    (delete-window)
+    (aw-switch-to-window window)
+    (switch-to-buffer buffer)))
+
+;;;###autoload
 (defun aw-move-window-split-right (window)
   "Like the default aw-move-window but splits and puts on right."
   (let ((buffer (current-buffer)))
@@ -156,6 +168,28 @@ Controlled by `aw-fair-aspect-ratio'."
     (split-window-below)
     (call-interactively #'other-window)
     (switch-to-buffer buffer)))
+
+
+;;;###autoload
+(defun aw-delete-and-move-window-split-right (window)
+  "Like the default aw-move-window but splits and puts on right."
+  (let ((buffer (current-buffer)))
+    (delete-window)
+    (aw-switch-to-window window)
+    (split-window-right)
+    (call-interactively #'other-window)
+    (switch-to-buffer buffer)))
+
+;;;###autoload
+(defun aw-delete-and-move-window-split-below (window)
+  "Like the default aw-move-window but splits and puts on below."
+  (let ((buffer (current-buffer)))
+    (delete-window)
+    (aw-switch-to-window window)
+    (split-window-below)
+    (call-interactively #'other-window)
+    (switch-to-buffer buffer)))
+
 
 
 ;; from here https://github.com/abo-abo/ace-window/issues/125
