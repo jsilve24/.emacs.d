@@ -26,8 +26,8 @@
 (setq jds/default-font-size 90)
 (setq jds/default-variable-font-size 90)
 ;; (setq jds/default-font-fixed-width "Hack")
-;; (setq jds/default-font-fixed-width "JetBrainsMono")
-(setq jds/default-font-fixed-width "DejaVuSansMono")
+(setq jds/default-font-fixed-width "JetBrainsMono")
+;; (setq jds/default-font-fixed-width "DejaVuSansMono")
 ;; (setq jds/default-font-fixed-width "Iosevka")
 ;; (setq jds/default-font-fixed-width "Fira Code Retina") ; no italics
 
