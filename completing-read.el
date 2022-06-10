@@ -57,6 +57,7 @@
 	  (consult-imenu-multi buffer indexed)
 	  (consult-outline buffer indexed)
 	  (consult-ripgrep buffer indexed)
+	  (consult-org-agenda buffer indexed)
 	  (jds/smart-consult-outline-imenu buffer indexed)
 	  (jds/consult-ripgrep-config buffer indexed)))
   ;; give vertico-map precedence over evil maps
