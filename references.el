@@ -44,7 +44,10 @@
   :config
   (setq org-bib-library-paths '("~/Dropbox/org/papers/")
 	org-bib-default-library "~/Dropbox/org/references.org"
-	org-bib-unsorted-header "Unsorted"))
+	org-bib-unsorted-header "Unsorted"
+	org-bib-url-icon "|URL|"
+	org-bib-doi-icon "|DOI|"
+	org-bib-filename-icon "|FILE|"))
 
 ;;;###autoload
 (defun jds/literate-bib-tangle-and-refresh ()
@@ -59,6 +62,18 @@
   (interactive)
   (find-file jds/global-literate-bib))
 
+;;;###autoload
+(defun jds/literate-bib-search ()
+  "Open new org-buffer for the "
+  (interactive)
+  (if (get-file-buffer jds/global-literate-bib)
+      nil
+    (progn
+      (find-file jds/global-literate-bib)
+      (bury-buffer)))
+  (with-current-buffer (get-file-buffer jds/global-literate-bib)
+    (consult-outline)))
+
 
 (setq jds/citation-map (make-sparse-keymap))
 
@@ -67,6 +82,7 @@
  "c" #'citar-insert-citation
  "r" #'jds/literate-bib-tangle-and-refresh
  "o" #'jds/goto-global-org-bib
+ "i" #'jds/literate-bib-search
  "S" #'biblio-lookup
  "s" #'org-bib-new-from-doi)
 

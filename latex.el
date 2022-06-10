@@ -180,6 +180,8 @@
   "i" #'LaTeX-insert-item
   "t" #'reftex-toc)
 
+(if (not (boundp 'jds/citation-map))
+    (defvar jds/citation-map nil)) 
 (jds/localleader-def
   :keymaps '(LaTeX-mode-map)
   "c" jds/citation-map
