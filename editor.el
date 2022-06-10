@@ -161,27 +161,27 @@ Version 2017-01-11"
 
 ;;; autocapitalize -------------------------------------------------------------
 
-(use-package captain
-  :config
-  (global-captain-mode)
-  ;; only work in comments in programming modes
-  (add-hook 'prog-mode-hook
-	    (lambda ()
-	      (setq captain-predicate (lambda () (nth 8 (syntax-ppss (point)))))))
-  ;; Or for text modes, work all the time:
-  (add-hook 'text-mode-hook
-            (lambda ()
-              (setq captain-predicate (lambda () t))))
-  ;; turn on in slack buffers
-  ;; (add-hook 'text-mode-hook
-  ;;            (lambda ()
-  ;;              (setq captain-predicate (lambda () t))))
-  ;; Or don't work in source blocks in Org mode:
-  (add-hook
-   'org-mode-hook
-   (lambda ()
-     (setq captain-predicate
-	   (lambda () (not (org-in-src-block-p)))))))
+;; (use-package captain
+;;   :config
+;;   (global-captain-mode)
+;;   ;; only work in comments in programming modes
+;;   (add-hook 'prog-mode-hook
+;; 	    (lambda ()
+;; 	      (setq captain-predicate (lambda () (nth 8 (syntax-ppss (point)))))))
+;;   ;; Or for text modes, work all the time:
+;;   (add-hook 'text-mode-hook
+;;             (lambda ()
+;;               (setq captain-predicate (lambda () t))))
+;;   ;; turn on in slack buffers
+;;   ;; (add-hook 'text-mode-hook
+;;   ;;            (lambda ()
+;;   ;;              (setq captain-predicate (lambda () t))))
+;;   ;; Or don't work in source blocks in Org mode:
+;;   (add-hook
+;;    'org-mode-hook
+;;    (lambda ()
+;;      (setq captain-predicate
+;; 	   (lambda () (not (org-in-src-block-p)))))))
 
 ;;; tags -----------------------------------------------------------------------
 
