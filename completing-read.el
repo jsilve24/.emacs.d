@@ -371,6 +371,15 @@ targets."
 				 consult-projectile--source-projectile-project
 				 consult--source-recent-file))
 
+  ;; add annotation to consult-org-agenda
+  ;; (consult-customize
+  ;;  consult-org-agenda
+  ;;  :annotate (lambda (&optional foo)
+  ;; 	       (let ((end (save-excursion (outline-next-heading) (point))))
+  ;; 		 (if (or (re-search-forward org-ts-regexp end t)
+  ;; 			 (re-search-forward org-ts-regexp-both end t))
+  ;; 		     (match-string 0))) ))
+
 
 
 
