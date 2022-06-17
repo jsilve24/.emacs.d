@@ -287,8 +287,6 @@
  "q"  #'org-agenda-set-tags
  "r" #'(lambda () (interactive) (jds/save-excursion-and-min-point #'org-agenda-refile)))
 
-(if (not (boundp 'jds/citation-map))
-    (defvar jds/citation-map nil)) 
 (jds/localleader-def
   :keymaps '(org-capture-mode-map org-mode-map)
   "t"  #'org-todo
@@ -301,7 +299,8 @@
   "ds" #'org-schedule
   "dt" #'org-time-stamp
   "dT" #'org-time-stamp-inactive
-  "c"  jds/citation-map)
+  ;; "c"  jds/citation-map ; reserved
+  )
 
 (jds/localleader-def
   :keymaps 'org-capture-mode-map

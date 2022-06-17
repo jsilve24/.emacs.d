@@ -120,6 +120,45 @@
 	  (link-hint--one :aw-select))
       (message "No visible links")))
 
+  (defun lh-aw--split-right (window)
+    "like aw-move-window-split-right but returns window rather than buffer and does not move current buffer."
+    (let ((cur-window (selected-window)))
+      (aw-switch-to-window window)
+      (split-window-right)
+      (call-interactively #'other-window)
+      (let ((new-window (selected-window)))
+	(select-window cur-window)
+	new-window)))
+  
+  (defun lh-aw--split-below (window)
+    "like aw-move-window-split-below but returns window rather than buffer and does not move current buffer."
+    (let ((cur-window (selected-window)))
+      
+      (aw-switch-to-window window)
+      (split-window-below)
+      (call-interactively #'other-window)
+      (let ((new-window (selected-window)))
+	(select-window cur-window)
+	new-window)))
+
+  (defun lh-aw--split-fair (window)
+    "like aw-move-window-split-fair but returns window rather than buffer and does not move current buffer."
+    (let* ((cur-window (selected-window))
+	   (w (window-body-width window))
+	   (h (window-body-height window)))
+      (aw-switch-to-window window)
+      (if (< (* h aw-fair-aspect-ratio) w)
+	  (aw-split-window-horz window)
+	(aw-split-window-vert window))
+      (call-interactively #'other-window)
+      (let ((new-window (selected-window)))
+	(select-window cur-window)
+	new-window)))
+
+  (defun lh-aw--select (window)
+    "Just a placeholder, identify function"
+    window)
+
   (defmacro define-link-hint-aw-select (link-type fn)
     `(progn
        (link-hint-define-type ',link-type
@@ -129,9 +168,16 @@
 			       (symbol-name link-type))) (_link)
 	 (with-demoted-errors "%s"
 	   (if (> (length (aw-window-list)) 1)
-	       (let ((window (aw-select nil))
-		     (buffer (current-buffer))
-		     (new-buffer))
+	       (let* ((buffer (current-buffer))
+		      (aw-dispatch-alist
+		       '((?v lh-aw--split-right "Right")
+			 (?s lh-aw--split-below "Below")
+			 (?p lh-aw--select "Place")
+			 (?f lh-aw--split-fair "Fair")
+			 (?? aw-show-dispatch-help "Display Help")))
+		      (window (aw-select nil))
+		      ;; (new-buffer)
+		      )
 		 (,fn)
 		 (setq new-buffer (current-buffer))
 		 (switch-to-buffer buffer)

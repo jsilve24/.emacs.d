@@ -86,6 +86,10 @@
  "S" #'biblio-lookup
  "s" #'org-bib-new-from-doi)
 
+(jds/localleader-def
+  :keymaps '(org-mode-map LaTeX-mode-map)
+  "c" jds/citation-map)
+
 ;; (use-package citar-literate
 ;;   :straight (citar-literate :local-repo "~/.emacs.d/local-packages/citar-literate/")
 ;;   :config

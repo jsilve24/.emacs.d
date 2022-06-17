@@ -27,6 +27,8 @@
   :custom
   (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
   :config
+(transient-append-suffix 'magit-merge "-A"
+    '("-A" "Allow unrelated histories" "--allow-unrelated-histories"))
   (transient-append-suffix 'magit-pull "-A"
     '("-A" "Allow unrelated histories" "--allow-unrelated-histories"))
 
