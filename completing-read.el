@@ -53,13 +53,13 @@
   ;; setup vertico multiform
   (vertico-multiform-mode)
   (setq vertico-multiform-commands
-	'((consult-imenu buffer indexed)
-	  (consult-imenu-multi buffer indexed)
-	  (consult-outline buffer indexed)
-	  (consult-ripgrep buffer indexed)
-	  (consult-org-agenda buffer indexed)
-	  (jds/smart-consult-outline-imenu buffer indexed)
-	  (jds/consult-ripgrep-config buffer indexed)))
+	'((consult-imenu buffer)
+	  (consult-imenu-multi buffer)
+	  (consult-outline buffer)
+	  (consult-ripgrep buffer)
+	  (consult-org-agenda buffer)
+	  (jds/smart-consult-outline-imenu buffer)
+	  (jds/consult-ripgrep-config buffer)))
   ;; give vertico-map precedence over evil maps
   (evil-make-intercept-map vertico-map)
   (general-define-key

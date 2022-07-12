@@ -64,6 +64,26 @@
 
 (use-package modus-themes)
 
+;; (setq modus-themes-mode-line '(accented borderless)
+;;       modus-themes-bold-constructs t
+;;       modus-themes-italic-constructs t
+;;       modus-themes-fringes 'subtle
+;;       modus-themes-tabs-accented t
+;;       modus-themes-paren-match '(bold intense)
+;;       modus-themes-prompts '(bold intense)
+;;       modus-themes-completions 'opinionated
+;;       modus-themes-org-blocks 'tinted-background
+;;       modus-themes-scale-headings t
+;;       modus-themes-region '(bg-only)
+;;       modus-themes-headings
+;;       '((1 . (rainbow overline background 1.3))
+;;         (2 . (rainbow background 1.2))
+;;         (3 . (rainbow bold 1.1))
+;;         (t . (semilight 1.0))))
+
+;; ;; Load the dark theme by default
+;; (load-theme 'modus-operandi t)
+
 ;; (straight-use-package '(shanty-theme :host github :repo "qhga/shanty-theme"))
 ;; (use-package shanty-theme)
 
@@ -132,6 +152,16 @@
       ;; 					 (splash--setup)))
 
 
+;;; org-mode theme -------------------------------------------------------------
+
+(with-eval-after-load 'org
+  (custom-set-faces
+   '(org-level-1 ((t (:inherit outline-1 :height 1.25))))
+   '(org-level-2 ((t (:inherit outline-2 :height 1.1))))
+   '(org-level-3 ((t (:inherit outline-3 :height 1.0))))
+   '(org-level-4 ((t (:inherit outline-4 :height 1.0))))
+   '(org-level-5 ((t (:inherit outline-5 :height 1.0))))
+   '(org-agenda-structure ((t (:inherit outline-1 :height 1.10))))))
 
 ;; (straight-use-package 'dashboard)
 ;; (use-package dashboard

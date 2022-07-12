@@ -179,6 +179,7 @@
 		      ;; (new-buffer)
 		      )
 		 (,fn)
+		 (sit-for 0.1)		; for exwm buffers to load
 		 (setq new-buffer (current-buffer))
 		 (switch-to-buffer buffer)
 		 (aw-switch-to-window window)

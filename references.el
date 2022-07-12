@@ -8,9 +8,6 @@
   :config
   (setq citar-select-multiple t)
   
-  ;; watch for changes in bib files
-  (citar-filenotify-setup '(LaTeX-mode-hook org-mode-hook))
-
   ;; nice file icons
   (setq citar-symbols
 	`((file . (,(all-the-icons-icon-for-file "foo.pdf" :face 'all-the-icons-dred) .
@@ -40,6 +37,7 @@
 ;; org-bib for literate bibtex
 (use-package org-bib
   :straight `(org-bib :type git :host github :repo "jsilve24/org-bib-mode")
+  ;; :straight `(org-bib :type git :host github :repo "rougier/org-bib-mode" :branch "org-imenu")
   :after (:any latex org)
   :config
   (setq org-bib-library-paths '("~/Dropbox/org/papers/")
@@ -48,6 +46,9 @@
 	org-bib-url-icon "|URL|"
 	org-bib-doi-icon "|DOI|"
 	org-bib-filename-icon "|FILE|"))
+
+(use-package pdf-drop-mode
+  :straight (pdf-drop-mode :type git :host github :repo "rougier/pdf-drop-mode"))
 
 ;;;###autoload
 (defun jds/literate-bib-tangle-and-refresh ()

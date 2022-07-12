@@ -77,7 +77,7 @@ escape."
 	      ";perp" (jds~yas-lambda-expand "^\\{\\perp\\}")
 	      ";para" (jds~yas-lambda-expand "^\\{\\parallel\\}")
 	      ";text" (jds~yas-lambda-expand "\\text\\{$1\\}")
-	      ";cases" (jds~yas-lambda-expand "\\begin\\{cases\\}\n$0 \\\\\\n\\end\\{cases\\}")
+	      ";cases" (jds~yas-lambda-expand "\\begin\\{cases\\}\n$0 \n\\end\\{cases\\}")
 	      ";frac" (jds~yas-lambda-expand "\\frac\\{$1\\}\\{$2\\}")
 	      ";all" "\\forall"
 	      ";set" (jds~yas-lambda-expand "\\\\{$0\\\\}")

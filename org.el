@@ -143,48 +143,54 @@
   (add-hook 'org-capture-before-finalize-hook (lambda () (org-align-tags t)))
   (setq org-capture-templates
         `(("t" "todo")
-          ("ta" "todo with attachment" entry (file "~/Dropbox/org/inbox.org")
-           "* TODO %?\n %U\n %a")
-          ("te" "todo tweaks" entry (file+headline "~/Dropbox/org/tasks.org" "Emacs")
-           "* TODO %? :TWEAKS:\n %U")
-          ("tt" "plain todo" entry (file "~/Dropbox/org/inbox.org")
-           "* TODO %?\n %U")
-          ("m" "meetings")
-          ("ma" "meeting anarres" entry (file "~/Dropbox/org/meetings_anarres.org")
-           "* MEETING with %? :MEETING:\n %U"
-           :jump-to-captured t)
-          ("mp" "meeting psu" entry (file "~/Dropbox/org/meetings_psu.org")
-           "* MEETING with %? :MEETING:\n %U"
-           :jump-to-captured t)
-          ("mP" "meeting specific person")
-          ("mPm" "meeting Michelle" entry (file "~/Dropbox/org/meetings_psu.org")
-           ,(concat "* MEETING with Michelle :MEETING:w_michelle:\n"
-                    "  %U\n"
-                    "** TRAM :p_tram:\n"
-                    "** Bacteremia :p_bacteremia:\n"
-                    ;; "** ARL :p_arl:"
+	  ("ta" "todo with attachment" entry (file "~/Dropbox/org/inbox.org")
+	   "* TODO %?\n %U\n %a")
+	  ("te" "todo tweaks" entry (file+headline "~/Dropbox/org/tasks.org" "Emacs")
+	   "* TODO %? :TWEAKS:\n %U")
+	  ("tt" "plain todo" entry (file "~/Dropbox/org/inbox.org")
+	   "* TODO %?\n %U")
+	  ("m" "meetings")
+	  ("ma" "meeting anarres" entry (file "~/Dropbox/org/meetings_anarres.org")
+	   "* MEETING with %? :MEETING:\n %U"
+	   :jump-to-captured t)
+	  ("mp" "meeting psu" entry (file "~/Dropbox/org/meetings_psu.org")
+	   "* MEETING with %? :MEETING:\n %U"
+	   :jump-to-captured t)
+	  ("mP" "meeting specific person")
+	  ("mPm" "meeting Michelle" entry (file "~/Dropbox/org/meetings_psu.org")
+	   ,(concat "* MEETING with Michelle :MEETING:w_michelle:\n"
+		    "  %U\n"
+		    "** TRAM Manuscript :p_tram:\n"
+		    "** ALDEx2 Manuscript :p_tram:\n"
+		    "** Bacteremia :p_bacteremia:\n"
+		    "** Decision Theory :p_bdt:\n"
+		    ;; "** ARL :p_arl:"
 		    )
-           :jump-to-captured t)
-          ("mPd" "meeting DIHI" entry (file "~/Dropbox/org/meetings_psu.org")
-           ,(concat "* MEETING with DIHI :MEETING:w_michelle:p_bacteremia:\n"
-                    "  %U\n"
-                    "  %?")
-           :jump-to-captured t)
-          ("mPk" "meeting kyle" entry (file "~/Dropbox/org/meetings_psu.org")
-           ,(concat "* MEETING with Kyle :MEETING:w_kyle:\n"
-                    "  %U\n"
-                    "** cGSEA :p_cgsea:\n"
-                    "** Future Plans :p_cgsea:\n"
-                    "  %?")
-           :jump-to-captured t)
+	   :jump-to-captured t)
+	  ("mPa" "meeting Andrew" entry (file "~/Dropbox/org/meetings_psu.org")
+	   ,(concat "* MEETING with Andrew :MEETING:w_andrew:\n"
+		    "  %U\n")
+	   :jump-to-captured t)
+	  ("mPd" "meeting DIHI" entry (file "~/Dropbox/org/meetings_psu.org")
+	   ,(concat "* MEETING with DIHI :MEETING:w_michelle:p_bacteremia:\n"
+		    "  %U\n"
+		    "  %?")
+	   :jump-to-captured t)
+	  ("mPk" "meeting kyle" entry (file "~/Dropbox/org/meetings_psu.org")
+	   ,(concat "* MEETING with Kyle :MEETING:w_kyle:\n"
+		    "  %U\n"
+		    "** cGSEA :p_cgsea:\n"
+		    "** Future Plans :p_cgsea:\n"
+		    "  %?")
+	   :jump-to-captured t)
 
-          ("c" "calendar event")
-          ("cc" "plain event" entry (file+headline "~/Dropbox/org/calendar.org" "Calendar")
-           "* %? \n %^T")
-          ("ca" "event with attachment" entry (file+headline "~/Dropbox/org/calendar.org" "Calendar")
-           "* %? \n %^T\n %a")
-          ("n" "note" entry (file+headline "~/Dropbox/org/notes.org" "Notes")
-           "* NOTE %? :NOTE:\n %U")
+	  ("c" "calendar event")
+	  ("cc" "plain event" entry (file+headline "~/Dropbox/org/calendar.org" "Calendar")
+	   "* %? \n %^T")
+	  ("ca" "event with attachment" entry (file+headline "~/Dropbox/org/calendar.org" "Calendar")
+	   "* %? \n %^T\n %a")
+	  ("n" "note" entry (file+headline "~/Dropbox/org/notes.org" "Notes")
+	   "* NOTE %? :NOTE:\n %U")
 	  ;; ("e" "email" entry (file+headline "~/Dropbox/org/mail.org" "Email")
 	  ;;  "* TODO %:fromname: %a %?\nDEADLINE: %(org-insert-time-stamp (org-read-date nil t \"+2d\"))"
 	  ;;  :immediate-finish t)
