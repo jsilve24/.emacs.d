@@ -257,5 +257,15 @@ re-align the table if necessary. (Necessary because org-mode has a
   (org-table-insert-row 'below))
 
 
+;;;###autoload
+(defun jds/convert-zoom-url-to-org-link ()
+  "Convert a zoom url to a shorted org-link for agendas"
+  (interactive)
+  (save-excursion 
+    (goto-char 1)
+    (while (re-search-forward "https?://[a-z]+\.zoom\.us/[^\n\s]*" nil t)
+      (replace-match "[[\\&][(ZOOM)]]" nil nil))))
+
+
 (provide 'org)
 ;;; org.el ends here
