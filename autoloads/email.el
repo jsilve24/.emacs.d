@@ -177,7 +177,8 @@ is tomorrow.  With two prefixes, select the deadline."
                               "[[mu4e:msgid:"
                               (plist-get msg :message-id) "]["
                               (truncate-string-to-width
-                               (or (caar from) (cdar from)) 25 nil nil t)
+			       ;; following line was modified by JDS after upgrading mu4e
+                               (or (plist-get (car from) :name) (plist-get (car from) :email)) 25 nil nil t)
                               " - "
                               (truncate-string-to-width
                                (plist-get msg :subject) 40 nil nil t)
@@ -194,6 +195,11 @@ is tomorrow.  With two prefixes, select the deadline."
                     (org-up-heading-safe)
                     (hide-subtree))
                 (hide-entry))))))
+      ;; refile the message and update
+      ;; (cond ((eq major-mode 'mu4e-view-mode)
+      ;;        (mu4e-view-mark-for-refile))
+      ;;       ((eq major-mode 'mu4e-headers-mode)
+      ;;        (mu4e-headers-mark-for-refile)))
       (message "Refiled \"%s\" and added to the agenda for %s"
                (truncate-string-to-width
                 (plist-get msg :subject) 40 nil nil t)
