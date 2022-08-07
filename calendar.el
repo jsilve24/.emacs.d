@@ -20,7 +20,8 @@
        (save-excursion
 	 (find-file "~/Dropbox/org/cal-psu.org")
 	 (jds/convert-zoom-url-to-org-link)
-	 (save-buffer))))))
+	 (save-buffer)
+	 (jds/switch-to-splash))))))
 (add-hook 'after-init-hook #'jds/async-exchange-calendar-fetch)
 
 ;;;###autoload
@@ -34,6 +35,7 @@
        (save-excursion
 	 (find-file "~/Dropbox/org/cal-gmail.org")
 	 (jds/convert-zoom-url-to-org-link)
-	 (save-buffer))))))
+	 (save-buffer)
+	 (jds/switch-to-splash))))))
 (add-hook 'after-init-hook #'jds/async-google-calendar-fetch)
 

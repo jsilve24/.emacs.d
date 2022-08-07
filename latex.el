@@ -38,7 +38,9 @@
   (setq TeX-source-correlate-mode t
         ;; don't start the emacs server when correlating sources
         TeX-source-correlate-start-server nil
-        TeX-source-correlate-method 'synctex)
+        TeX-source-correlate-method 'synctex
+	;; support more electric pair braces, e.g., \{...\}
+	LaTeX-electric-left-right-brace t)
   ;; Use pdf-tools to open PDF files
   (setq TeX-view-program-selection '((output-pdf "PDF Tools"))
 	TeX-source-correlate-start-server t)
@@ -160,12 +162,24 @@
   :defer t)
 
 
+;;; setup reftex corfu interface
+(use-package company-reftex)
+
+
+(defun jds~setup-capf-latex ()
+  (make-local-variable 'completion-at-point-functions)
+  (add-to-list 'completion-at-point-functions
+	       (cape-company-to-capf #'company-reftex-labels)))
+
+(add-hook 'LaTeX-mode-hook 'jds~setup-capf-latex)
+
+
 ;; ;;; setup company-reftex
 ;; (use-package company-reftex
-;;   :hook (LaTeX-mode . evil-tex-mode)
-;;   :config
-;;   (add-to-list 'company-backends 'company-reftex-labels)
-;;   (add-to-list 'company-backends 'company-reftex-citations))
+;; :hook (LaTeX-mode . evil-tex-mode)
+;; :config
+;; (add-to-list 'company-backends 'company-reftex-labels)
+;; (add-to-list 'company-backends 'company-reftex-citations))
 
 ;;; keybindings
 

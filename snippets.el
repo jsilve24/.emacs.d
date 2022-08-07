@@ -76,6 +76,7 @@ escape."
 	      ";inset" (jds~yas-lambda-expand "\\in\\\\{$1\\\\}")
 	      ";perp" (jds~yas-lambda-expand "^\\{\\perp\\}")
 	      ";para" (jds~yas-lambda-expand "^\\{\\parallel\\}")
+	      ";dag" (jds~yas-lambda-expand "^\\{\\dagger\\}")
 	      ";text" (jds~yas-lambda-expand "\\text\\{$1\\}")
 	      ";cases" (jds~yas-lambda-expand "\\begin\\{cases\\}\n$0 \n\\end\\{cases\\}")
 	      ";frac" (jds~yas-lambda-expand "\\frac\\{$1\\}\\{$2\\}")
@@ -97,6 +98,7 @@ escape."
 	      "TT" "^{T}"
 	      ";tt" "_{t}"
 	      ">>" "\\gg"
+	      "<<" "\\ll"
 	      ">=" "\\geq"
 	      "<=" "\\leq"
 	      "!=" "\neq"
