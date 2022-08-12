@@ -96,8 +96,8 @@ definition of INTERACTIVE-P."
 
 ;;; try out lp-transient package -----------------------------------------------
 
-(use-package lp-transient
-  :straight (lp-transient :type git :host github :repo "haji-ali/lp-transient"))
+(use-package transient-extras
+  :straight (transient-extras :type git :host github :repo "haji-ali/transient-extras"))
 
 
 
@@ -105,7 +105,7 @@ definition of INTERACTIVE-P."
   :keymaps '(pdf-view-mode-map)
   ;; prefix-argument to select which printer to use
   "p" #'ph-pdf-misc-print-document
-  "P" #'lp-transient-menu
+  "P" #'transient-extras-lp-menu
   "l" #'pdf-annot-list-annotations)
 
 (general-define-key
