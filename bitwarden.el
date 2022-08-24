@@ -15,7 +15,7 @@
 					    :max 1))
 	       (entry (nth 0 matches)))
 	  (plist-get entry :secret)))
-  (bitwarden-auth-source-enable)
+  ;; (bitwarden-auth-source-enable)
   (bitwarden-login)
   (bitwarden-unlock))
 

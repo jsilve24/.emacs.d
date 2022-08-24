@@ -1,24 +1,4 @@
 ;;; evil.el --- Evil Bindings and Setup -*- lexical-binding: t; -*-
-;;
-;; Copyright (C) 2021 Justin Silverman
-;;
-;; Author: Justin Silverman <https://github.com/jsilve24>
-;; Maintainer: Justin Silverman <jds6696@psu.edu>
-;; Created: October 20, 2021
-;; Modified: October 20, 2021
-;; Version: 0.0.1
-;; Keywords: abbrev bib c calendar comm convenience data docs emulations extensions faces files frames games hardware help hypermedia i18n internal languages lisp local maint mail matching mouse multimedia news outlines processes terminals tex tools unix vc wp
-;; Homepage: https://github.com/jsilve24/evil
-;; Package-Requires: ((emacs "24.3"))
-;;
-;; This file is not part of GNU Emacs.
-;;
-;;; Commentary:
-;;
-;;
-
-;;
-;;; Code:
 
 ;;; simple undo system
 
@@ -241,6 +221,23 @@
 ;;             '(+evil:align . evil-traces-global)
 ;;             '(+evil:align-right . evil-traces-global))
 ;;   (evil-traces-mode))
+
+;;; tragets --------------------------------------------------------------------
+
+
+;; (use-package targets
+;;   :straight (targets :type git :host github :repo "noctuid/targets.el")
+;;   :init
+;;   ;; (setq targets-user-text-objects '((pipe "|" nil separator)
+;;   ;; 				    (paren "(" ")" pair :more-keys "b")
+;;   ;; 				    (bracket "[" "]" pair :more-keys "r")
+;;   ;; 				    (curly "{" "}" pair :more-keys "c")))
+;;   :config
+;;   (targets-define-to paren "(" ")" pair)
+;;   (targets-setup t
+;; 		 :inside-key nil
+;; 		 :around-key nil
+;; 		 :remote-key nil))
 
 
 (provide 'evil)

@@ -24,6 +24,8 @@
 
   ;; turn on cdlatex
   (add-hook 'org-mode-hook 'turn-on-org-cdlatex)
+  ;; don't have cdlatex take over the backtick symbol (funcationality done by aas snippets now)
+  (define-key org-cdlatex-mode-map (kbd "`") nil)
   ;; latex highlighting
   (setq org-highlight-latex-and-related '(latex entities))
   (set-face-attribute 'org-latex-and-related nil
@@ -164,6 +166,7 @@
 		    "** ALDEx2 Manuscript :p_tram:\n"
 		    "** Bacteremia :p_bacteremia:\n"
 		    "** Decision Theory :p_bdt:\n"
+		    "** Chicken Microbiome :p_chicken:\n"
 		    ;; "** ARL :p_arl:"
 		    )
 	   :jump-to-captured t)
@@ -180,10 +183,10 @@
 	   ,(concat "* MEETING with Kyle :MEETING:w_kyle:\n"
 		    "  %U\n"
 		    "** cGSEA :p_cgsea:\n"
+		    "** Effective Scale Models :p_effscalemod:\n"
 		    "** Future Plans :p_cgsea:\n"
 		    "  %?")
 	   :jump-to-captured t)
-
 	  ("c" "calendar event")
 	  ("cc" "plain event" entry (file+headline "~/Dropbox/org/calendar.org" "Calendar")
 	   "* %? \n %^T")

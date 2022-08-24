@@ -130,7 +130,8 @@
   "rr" #'r/rmd-render
   "\\" #'r/rmd-render
   "rd" #'r/draft-rmd
-  "re" #'polymode-eval-chunk)
+  "re" #'polymode-eval-chunk
+  "rn" #'polymode-next-chunk)
 
 (general-define-key
  :keymaps 'ess-mode-map

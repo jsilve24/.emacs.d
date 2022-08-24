@@ -96,8 +96,8 @@ definition of INTERACTIVE-P."
 
 ;;; try out lp-transient package -----------------------------------------------
 
-(use-package transient-extras
-  :straight (transient-extras :type git :host github :repo "haji-ali/transient-extras"))
+(use-package transient-extras-lp
+  :straight (transient-extras-lp :type git :host github :repo "haji-ali/transient-extras"))
 
 
 

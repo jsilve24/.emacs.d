@@ -69,6 +69,7 @@ escape."
 	      ";article" (jds~yas-lambda-expand-snippet-by-key "article-template"))
 	    (aas-set-snippets ,mode
 	      :cond #'texmathp
+	      "'" #'(lambda () (interactive) (cdlatex-math-modify nil))
 	      ";u" (jds~yas-lambda-expand "_\\{$1\\}")
 	      ";U" (jds~yas-lambda-expand "^\\{$1\\}")
 	      ";sdot" (jds~yas-lambda-expand "_\\{\\cdot $1\\}")
