@@ -78,6 +78,7 @@ escape."
 	      ";perp" (jds~yas-lambda-expand "^\\{\\perp\\}")
 	      ";para" (jds~yas-lambda-expand "^\\{\\parallel\\}")
 	      ";dag" (jds~yas-lambda-expand "^\\{\\dagger\\}")
+	      ";star" (jds~yas-lambda-expand "^\\{\*\\}")
 	      ";text" (jds~yas-lambda-expand "\\text\\{$1\\}")
 	      ";cases" (jds~yas-lambda-expand "\\begin\\{cases\\}\n$0 \n\\end\\{cases\\}")
 	      ";frac" (jds~yas-lambda-expand "\\frac\\{$1\\}\\{$2\\}")
