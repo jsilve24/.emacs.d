@@ -185,9 +185,14 @@ escape."
   (aas-set-snippets 'org-mode
     ";lo" #'jds~org-agenda-link
     ";sq" (jds~yas-lambda-expand "#+BEGIN_QUOTE\n$0\n#+END_QUOTE")
-    ";sr" (jds~yas-lambda-expand "#+begin_src R\n$0\n#+end_src")
+    ";sr" (jds~yas-lambda-expand "#+begin_src R :exports ${1:$$(yas-choose-value '(\"both\" \"code\" \"results\" \"none\"))} :session \"*R*\" \n$0\n#+end_src")
     ";sb" (jds~yas-lambda-expand "#+begin_src bibtex\n$0\n#+end_src")
-    ";header" (jds~yas-lambda-expand-snippet-by-key "org-header-for-export"))
+    ";header" (jds~yas-lambda-expand-snippet-by-key "org-header-for-export")
+    ";beamer" (jds~yas-lambda-expand-snippet-by-key "org-beamer-template")
+    ";pdf" (jds~yas-lambda-expand-snippet-by-key "org-beamer-include-pdf")
+    ";plot" (jds~yas-lambda-expand-snippet-by-key "org-beamer-r-plot")
+    ";pause" "#+BEAMER: \\pause")
+
 
   ;; elisp snippets
   (aas-set-snippets 'emacs-lisp-mode
@@ -259,28 +264,28 @@ escape."
     "; " (lambda () (interactive) (insert ", ") (completion-at-point)))
 
   ;; (aas-set-snippets 'text-mode
-  ;;   ;; expand unconditionally
-  ;;   "o-" "ō"
-  ;;   "i-" "ī"
-  ;;   "a-" "ā"
-  ;;   "u-" "ū"
-  ;;   "e-" "ē")
+  ;; ;; expand unconditionally
+  ;; "o-" "ō"
+  ;; "i-" "ī"
+  ;; "a-" "ā"
+  ;; "u-" "ū"
+  ;; "e-" "ē")
   ;; (aas-set-snippets 'latex-mode
-  ;;   ;; set condition!
-  ;;   :cond #'texmathp ; expand only while in math
-  ;;   "supp" "\\supp"
-  ;;   "On" "O(n)"
-  ;;   "O1" "O(1)"
-  ;;   "Olog" "O(\\log n)"
-  ;;   "Olon" "O(n \\log n)"
-  ;;   ;; bind to functions!
-  ;;   "//" (lambda () (interactive)
-  ;;          (yas-expand-snippet "\\frac{$1}{$2}$0"))
-  ;;   "Span" (lambda () (interactive)
-  ;;            (yas-expand-snippet "\\Span($1)$0")))
+  ;; ;; set condition!
+  ;; :cond #'texmathp ; expand only while in math
+  ;; "supp" "\\supp"
+  ;; "On" "O(n)"
+  ;; "O1" "O(1)"
+  ;; "Olog" "O(\\log n)"
+  ;; "Olon" "O(n \\log n)"
+  ;; ;; bind to functions!
+  ;; "//" (lambda () (interactive)
+  ;; (yas-expand-snippet "\\frac{$1}{$2}$0"))
+  ;; "Span" (lambda () (interactive)
+  ;; (yas-expand-snippet "\\Span($1)$0")))
   ;; disable snippets by redefining them with a nil expansion
   ;; (aas-set-snippets 'latex-mode
-  ;;   "supp" nil)
+  ;; "supp" nil)
   )
 
 

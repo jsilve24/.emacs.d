@@ -1,0 +1,11 @@
+# -*- mode: snippet -*-
+# name: org-beamer-include-pdf
+# key: org-beamer-include-pdf
+# --
+
+**     
+:PROPERTIES:
+:BEAMER_env: fullframe
+:BEAMER_OPT: noframenumbering
+:END:
+#+LATEX: \includepdf[pages={$1},width=\paperwidth, pagecommand=\thispagestyle{plain}]{$2}

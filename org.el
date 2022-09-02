@@ -54,8 +54,8 @@
   ;; hide blank lines in folded views
   (setq org-cycle-separator-lines 0)
   ;; Prevent creating blank lines before headings, allow list items to adapt to existing blank lines around the items:
-  (setq org-blank-before-new-entry (quote ((heading)
-                                           (plain-list-item . auto))))
+  (setq org-blank-before-new-entry '((heading)
+				     (plain-list-item . auto)))
 
   ;; (add-hook 'org-trigger-hook 'save-buffer)
 
@@ -65,18 +65,18 @@
 ;;; setup refile
 
   ;; Targets include this file and any file contributing to the agenda - up to 9 levels deep
-  (setq org-refile-targets (quote ((nil :maxlevel . 9)
-				   (org-agenda-files :maxlevel . 9))))
+  (setq org-refile-targets '((nil :maxlevel . 9)
+			     (org-agenda-files :maxlevel . 9)))
 
   ;; make it work nicely with vertico
   (setq org-refile-use-outline-path 'file
 	org-outline-path-complete-in-steps nil)
-  
+
 
   ;; Allow refile to create parent tasks with confirmation
-  (setq org-refile-allow-creating-parent-nodes (quote confirm))
+  (setq org-refile-allow-creating-parent-nodes 'confirm)
 
-  
+
   (defun bh/verify-refile-target ()
     "Exclude todo keywords with a done state from refile targets"
     (not (member (nth 2 (org-heading-components)) org-done-keywords)))
@@ -90,26 +90,26 @@
   (setq org-agenda-start-day "0d")
 
   (setq org-todo-keywords
-        '((sequence "TODO(t)" "NEXT(n)" "MAYBE(m)" "PROJ(p)" "|" "DONE(d)" "CANCELED(c)")
-          (sequence "WAITING(w)" "HOLD(h)" "|" "MEETING(M)")))
+	'((sequence "TODO(t)" "NEXT(n)" "MAYBE(m)" "PROJ(p)" "|" "DONE(d)" "CANCELED(c)")
+	  (sequence "WAITING(w)" "HOLD(h)" "|" "MEETING(M)")))
 
   (setq org-todo-keyword-faces
-        '(("TODO" :foreground "orange" :weight bold)
-          ("NEXT" :foreground "red" :weight bold)
-          ("DONE" :foreground "forest green" :weight bold)
+	'(("TODO" :foreground "orange" :weight bold)
+	  ("NEXT" :foreground "red" :weight bold)
+	  ("DONE" :foreground "forest green" :weight bold)
 	  ("PROJ" :foreground "light blue" :weight bold)
 	  ("MAYBE" :foreground "light orange" :weight bold)
-          ("WAITING" :foreground "orange" :weight bold)
-          ("CANCELED" :foreground "magenta" :weight bold)
-          ("HOLD" :foreground "magenta" :weight bold)
-          ("MEETING" :foreground "forest green" :weight bold)))
+	  ("WAITING" :foreground "orange" :weight bold)
+	  ("CANCELED" :foreground "magenta" :weight bold)
+	  ("HOLD" :foreground "magenta" :weight bold)
+	  ("MEETING" :foreground "forest green" :weight bold)))
 
   ;; setup stuck-projects definitions
   (setq org-stuck-projects
 	'("/PROJ"
 	  ("NEXT" "TODO")
-	  nil ; Tags that define a stuck project
-	  "SCHEDULED:" ; regex that denotes a not stuck project
+	  nil				; Tags that define a stuck project
+	  "SCHEDULED:"			; regex that denotes a not stuck project
 	  ))
 
 
@@ -121,18 +121,18 @@
   (setq org-agenda-skip-additional-timestamps-same-entry t)
 
   (setq org-agenda-custom-commands
-        `(("d" "Custom Day View"
-           ((agenda "" ((org-agenda-span 'day)
-                        ;; (org-agenda-overriding-header "Timestamped")
-                        (org-agenda-skip-function '(lambda () (interactive) (skip-tag "mail")))))
-            (todo "NEXT" ((org-agenda-sorting-strategy `(priority-down effort-down))
-                          (org-agenda-overriding-header "Next")
-                          (org-agenda-skip-function '(org-agenda-skip-entry-if 'timestamp))))
-            (agenda "" ((org-agenda-span 'day)
-                        (org-agenda-overriding-header "Mail")
-                        (org-agenda-format-date "")
-                        (org-agenda-skip-function '(lambda () (interactive) (skip-not-tag "mail")))))
-            (tags-todo "REFILE" ((org-agenda-overriding-header "To Refile")
+	`(("d" "Custom Day View"
+	   ((agenda "" ((org-agenda-span 'day)
+			;; (org-agenda-overriding-header "Timestamped")
+			(org-agenda-skip-function '(lambda () (interactive) (skip-tag "mail")))))
+	    (todo "NEXT" ((org-agenda-sorting-strategy `(priority-down effort-down))
+			  (org-agenda-overriding-header "Next")
+			  (org-agenda-skip-function '(org-agenda-skip-entry-if 'timestamp))))
+	    (agenda "" ((org-agenda-span 'day)
+			(org-agenda-overriding-header "Mail")
+			(org-agenda-format-date "")
+			(org-agenda-skip-function '(lambda () (interactive) (skip-not-tag "mail")))))
+	    (tags-todo "REFILE" ((org-agenda-overriding-header "To Refile")
 				 (org-tags-match-list-sublevels nil)))))))
 
 
@@ -144,7 +144,7 @@
 
   (add-hook 'org-capture-before-finalize-hook (lambda () (org-align-tags t)))
   (setq org-capture-templates
-        `(("t" "todo")
+	`(("t" "todo")
 	  ("ta" "todo with attachment" entry (file "~/Dropbox/org/inbox.org")
 	   "* TODO %?\n %U\n %a")
 	  ("te" "todo tweaks" entry (file+headline "~/Dropbox/org/tasks.org" "Emacs")
@@ -195,28 +195,64 @@
 	  ("n" "note" entry (file+headline "~/Dropbox/org/notes.org" "Notes")
 	   "* NOTE %? :NOTE:\n %U")
 	  ;; ("e" "email" entry (file+headline "~/Dropbox/org/mail.org" "Email")
-	  ;;  "* TODO %:fromname: %a %?\nDEADLINE: %(org-insert-time-stamp (org-read-date nil t \"+2d\"))"
-	  ;;  :immediate-finish t)
+	  ;; "* TODO %:fromname: %a %?\nDEADLINE: %(org-insert-time-stamp (org-read-date nil t \"+2d\"))"
+	  ;; :immediate-finish t)
 	  ))
 
   ;; make some templates only available in some modes
   ;; (setq org-capture-templates-contexts '(("e" ((in-mode . "message-mode")
-  ;; 					       (in-mode . "mu4e-headers-mode")
-  ;; 					       (in-mode . "mu4e-view-mode")))))
-  
+  ;; (in-mode . "mu4e-headers-mode")
+  ;; (in-mode . "mu4e-view-mode")))))
+
 ;;; appearnace customizatoins
   (setq org-ellipsis " ▾")
 
   ;; don't wrap lines in org-agenda
-  (add-hook 'org-agenda-mode-hook  (lambda ()
-                                     (visual-line-mode -1)))
+  (add-hook 'org-agenda-mode-hook (lambda ()
+				    (visual-line-mode -1)))
 
   ;; org-agenda window setup (don't always split frame)
   (setq org-agenda-window-setup 'current-window)
 
-  
+
+  ;; active Babel languages
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((R . t)
+     (emacs-lisp . t)
+     (latex . t)))
+
+  (setq org-src-fontify-natively t)
+
+  ;; get syntax highlighting working
+  ;; taken from here: http://joonro.github.io/blog/posts/org-mode-outputdir-minted-latex-export/
+  (require 'ox-latex)
+  (add-to-list 'org-latex-packages-alist '("" "minted"))
+  (setq org-latex-src-block-backend 'minted)
+  (setq org-latex-pdf-process
+	'("pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+	  "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+	  "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
+
+
+  ;; colorize code-blocks in org-export to latex
+  ;; (add-to-list 'org-latex-packages-alist '("" "color"))
+  ;; taken from here: https://stackoverflow.com/questions/46438516/how-to-encapsualte-code-blocks-into-a-frame-when-exporting-to-pdf/60396939#60396939
+  (setq org-latex-minted-options
+	'(("bgcolor" "bg") ("frame" "lines")))
+
+
+  ;; add R as a designation to link to ess-r-mode
+  ;; (add-to-list 'org-src-lang-modes '("R" . ess-r))
+
+  ;; stop asking for confirmation to run src blocks
+  (setq org-confirm-babel-evaluate nil)
+
+
   ;; for some reason this was needed when I first put this config together
   (org-reload))
+
+
 
 
 ;;; other packages -------------------------------------------------------------
@@ -233,14 +269,14 @@
   :init
 
   ;; hack-fix for https://github.com/Somelauw/evil-org-mode/issues/93
-  ;; (fset 'evil-redirect-digit-argument 'ignore) 
+  ;; (fset 'evil-redirect-digit-argument 'ignore)
   ;; (add-to-list 'evil-digit-bound-motions 'evil-org-beginning-of-line)
   (evil-define-key 'motion 'evil-org-mode
     (kbd "0") 'evil-org-beginning-of-line)
   (evil-define-key 'normal 'evil-org-mode
     (kbd "0") 'evil-org-beginning-of-line)
 
-  
+
   (defvar evil-org-retain-visual-state-on-shift t)
   (defvar evil-org-special-o/O '(table-row item))
   (defvar evil-org-use-additional-insert t)
@@ -248,7 +284,7 @@
   (setq org-special-ctrl-a/e t
 	evil-org-retain-visual-state-on-shift t)
   (add-hook 'evil-org-mode-hook #'evil-normalize-keymaps)
-  (evil-org-set-key-theme '(textobjects insert additional todo)) ;removed heading, navigation, and shift
+  (evil-org-set-key-theme '(textobjects insert additional todo)) ; removed heading, navigation, and shift
   (require 'evil-org-agenda)
   (evil-org-agenda-set-keys))
 
@@ -322,8 +358,21 @@
   "e"  #'org-export-dispatch
   "n"  #'org-narrow-to-subtree
   "N"  #'widen
-  "l"  #'org-latex-preview)
+  "l"  #'org-latex-preview
+  "p"  #'org-set-property
+  "b"  #'org-beamer-select-environment)
 
+(jds/localleader-def
+  :keymaps 'org-beamer-mode-map
+  "\\" #'org-beamer-export-to-pdf)
+
+(jds/leader-def
+  "oc" #'calendar)
+
+(general-define-key
+ :keymaps 'calendar-mode-map
+ :states '(nv)
+ "a" #'org-calendar-goto-agenda)
 
 ;;; autoloads
 ;;;###autoload
@@ -351,3 +400,4 @@
 
 (provide 'org)
 ;;; org.el ends here
+

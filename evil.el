@@ -117,7 +117,8 @@
 ;;; evil-collection
 
 (use-package evil-collection
-  :straight (evil-collection :local-repo "~/.emacs.d/local-packages/evil-collection")
+  :straight (evil-collection :type git :host github :repo "emacs-evil/evil-collection"
+			     :fork (:host github :repo "jsilve24/evil-collection"))
   :after evil
   :config
   ;; (setq evil-collection-mode-list

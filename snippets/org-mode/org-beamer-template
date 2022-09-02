@@ -1,0 +1,29 @@
+# -*- mode: snippet -*-
+# name: org-beamer-template
+# key: org-beamer
+# --
+
+#+TITLE:     $1
+#+AUTHOR:    Justin Silverman
+#+EMAIL:     JustinSilverman@psu.edu 
+#+BEAMER_HEADER: \institute[]{Penn State University} 
+#+DATE:      
+#+DESCRIPTION: 
+#+KEYWORDS: 
+#+LANGUAGE:  en
+#+BEAMER_THEME: Boadilla
+#+BEAMER_HEADER: 
+#+latex_class: beamer
+#+latex_class_options:
+#+latex_header: 
+#+latex_header_extra:
+#+latex_compiler: pdflatex
+#+OPTIONS: H:2 toc:nil
+#+BEAMER_HEADER: \AtBeginSection[]{\begin{frame}<beamer>\vfill\centering\usebeamerfont{title}\insertsectionhead\vfill\end{frame}}
+#+BEAMER_HEADER: \usepackage{pdfpages}
+#+BEAMER_HEADER: \setbeamercolor{background canvas}{bg=}
+#+BEAMER_HEADER: \makeatletter\beamer@ignorenonframefalse\makeatother
+#+BEAMER_HEADER: \usepackage{caption}
+#+BEAMER_HEADER: \usepackage{subcaption}
+#+BEAMER_HEADER: \usepackage{multicol}
+#+STARTUP: beamer
