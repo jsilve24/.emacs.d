@@ -152,16 +152,17 @@
 	  ("tt" "plain todo" entry (file "~/Dropbox/org/inbox.org")
 	   "* TODO %?\n %U")
 	  ("m" "meetings")
-	  ("ma" "meeting anarres" entry (file "~/Dropbox/org/meetings_anarres.org")
-	   "* MEETING with %? :MEETING:\n %U"
-	   :jump-to-captured t)
-	  ("mp" "meeting psu" entry (file "~/Dropbox/org/meetings_psu.org")
-	   "* MEETING with %? :MEETING:\n %U"
-	   :jump-to-captured t)
+	  ("ma" "meeting anarres" entry (file+datetree "~/Dropbox/org/meetings_anarres.org")
+	   "* MEETING with %? - %u :MEETING:\n %U"
+	   :jump-to-captured t
+	   :tree-type month)
+	  ("mp" "meeting psu" entry (file+datetree "~/Dropbox/org/meetings_psu.org")
+	   "* MEETING %u with %? :MEETING:\n  %?"
+	   :jump-to-captured t
+	   :tree-type month)
 	  ("mP" "meeting specific person")
-	  ("mPm" "meeting Michelle" entry (file "~/Dropbox/org/meetings_psu.org")
-	   ,(concat "* MEETING with Michelle :MEETING:w_michelle:\n"
-		    "  %U\n"
+	  ("mPm" "meeting Michelle" entry (file+datetree "~/Dropbox/org/meetings_psu.org")
+	   ,(concat "* MEETING %u with Michelle :MEETING:w_michelle:\n"
 		    "** TRAM Manuscript :p_tram:\n"
 		    "** ALDEx2 Manuscript :p_tram:\n"
 		    "** Bacteremia :p_bacteremia:\n"
@@ -169,24 +170,25 @@
 		    "** Chicken Microbiome :p_chicken:\n"
 		    ;; "** ARL :p_arl:"
 		    )
-	   :jump-to-captured t)
-	  ("mPa" "meeting Andrew" entry (file "~/Dropbox/org/meetings_psu.org")
-	   ,(concat "* MEETING with Andrew :MEETING:w_andrew:\n"
-		    "  %U\n")
-	   :jump-to-captured t)
-	  ("mPd" "meeting DIHI" entry (file "~/Dropbox/org/meetings_psu.org")
-	   ,(concat "* MEETING with DIHI :MEETING:w_michelle:p_bacteremia:\n"
-		    "  %U\n"
+	   :jump-to-captured t
+	   :tree-type month)
+	  ("mPa" "meeting Andrew" entry (file+datetree "~/Dropbox/org/meetings_psu.org")
+	   ,(concat "* MEETING %u with Andrew :MEETING:w_andrew:\n  %?")
+	   :jump-to-captured t
+	   :tree-type month)
+	  ("mPd" "meeting DIHI" entry (file+datetree "~/Dropbox/org/meetings_psu.org")
+	   ,(concat "* MEETING %u with DIHI :MEETING:w_michelle:p_bacteremia:\n"
 		    "  %?")
-	   :jump-to-captured t)
-	  ("mPk" "meeting kyle" entry (file "~/Dropbox/org/meetings_psu.org")
-	   ,(concat "* MEETING with Kyle :MEETING:w_kyle:\n"
-		    "  %U\n"
+	   :jump-to-captured t
+	   :tree-type month)
+	  ("mPk" "meeting kyle" entry (file+datetree "~/Dropbox/org/meetings_psu.org")
+	   ,(concat "* MEETING %u with Kyle :MEETING:w_kyle:\n"
 		    "** cGSEA :p_cgsea:\n"
 		    "** Effective Scale Models :p_effscalemod:\n"
 		    "** Future Plans :p_cgsea:\n"
 		    "  %?")
-	   :jump-to-captured t)
+	   :jump-to-captured t
+	   :tree-type month)
 	  ("c" "calendar event")
 	  ("cc" "plain event" entry (file+headline "~/Dropbox/org/calendar.org" "Calendar")
 	   "* %? \n %^T")
