@@ -194,7 +194,7 @@
   (define-link-hint-aw-select shr-url browse-url)
   (define-link-hint-aw-select markdown-link link-hint--open-markdown-link)
   (define-link-hint-aw-select org-agenda-item link-hint--open-org-agenda-item)
-  (define-link-hint-aw-select text-url browse-url)
+  (define-link-hint-aw-select text-url link-hint-open-link-at-point)
 
 
   (with-eval-after-load 'org
