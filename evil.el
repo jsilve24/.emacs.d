@@ -196,12 +196,12 @@
   (evil-lion-mode))
 
 
-(use-package evil-args
-  :demand t
-  :after evil
-  :commands (evil-inner-arg evil-outer-arg
-             evil-forward-arg evil-backward-arg
-             evil-jump-out-args))
+;; (use-package evil-args
+;;   :demand t
+;;   :after evil
+;;   :commands (evil-inner-arg evil-outer-arg
+;;              evil-forward-arg evil-backward-arg
+;;              evil-jump-out-args))
 
 
 (use-package posframe)
@@ -212,6 +212,8 @@
         evil-owl-extra-posframe-args '(:width 70 :height 20)
         evil-owl-max-string-length 50)
   (evil-owl-mode))
+
+
 
 
 ;; (use-package evil-traces

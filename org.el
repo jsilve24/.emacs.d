@@ -25,7 +25,9 @@
   ;; turn on cdlatex
   (add-hook 'org-mode-hook 'turn-on-org-cdlatex)
   ;; don't have cdlatex take over the backtick symbol (funcationality done by aas snippets now)
-  (define-key org-cdlatex-mode-map (kbd "`") nil)
+  (defun jds~org-cdlatex-hook ()
+    (define-key org-cdlatex-mode-map (kbd "`") nil))
+  (add-hook 'org-mode-hook 'jds~org-cdlatex-hook)
   ;; latex highlighting
   (setq org-highlight-latex-and-related '(latex entities))
   (set-face-attribute 'org-latex-and-related nil

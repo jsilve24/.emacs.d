@@ -100,8 +100,10 @@
   "fC" #'jds/find-file-config
   "fk" #'projectile-kill-buffers
   "fp" #'consult-projectile
+  "ft" #'projectile-run-vterm
   "fP" #'jds/find-file-other-project
-  "fo" #'projectile-find-other-file
+  "fo" #'ruled-switch-buffer
+  "fO" #'ruled-switch-buffer-other-window
   "fi" #'projectile-find-tag)
 
 
