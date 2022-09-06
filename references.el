@@ -35,45 +35,45 @@
   :after (:any latex org))
 
 ;; org-bib for literate bibtex
-(use-package org-bib
-  :straight `(org-bib :type git :host github :repo "jsilve24/org-bib-mode")
-  ;; :straight `(org-bib :type git :host github :repo "rougier/org-bib-mode" :branch "org-imenu")
-  :after (:any latex org)
-  :config
-  (setq org-bib-library-paths '("~/Dropbox/org/papers/")
-	org-bib-default-library "~/Dropbox/org/references.org"
-	org-bib-unsorted-header "Unsorted"
-	org-bib-url-icon "|URL|"
-	org-bib-doi-icon "|DOI|"
-	org-bib-filename-icon "|FILE|"))
+;; (use-package org-bib
+;;   :straight `(org-bib :type git :host github :repo "jsilve24/org-bib-mode")
+;;   ;; :straight `(org-bib :type git :host github :repo "rougier/org-bib-mode" :branch "org-imenu")
+;;   :after (:any latex org)
+;;   :config
+;;   (setq org-bib-library-paths '("~/Dropbox/org/papers/")
+;; 	org-bib-default-library "~/Dropbox/org/references.org"
+;; 	org-bib-unsorted-header "Unsorted"
+;; 	org-bib-url-icon "|URL|"
+;; 	org-bib-doi-icon "|DOI|"
+;; 	org-bib-filename-icon "|FILE|"))
 
-(use-package pdf-drop-mode
-  :straight (pdf-drop-mode :type git :host github :repo "rougier/pdf-drop-mode"))
+;; (use-package pdf-drop-mode
+;;   :straight (pdf-drop-mode :type git :host github :repo "rougier/pdf-drop-mode"))
 
-;;;###autoload
-(defun jds/literate-bib-tangle-and-refresh ()
-  "Tangle citarlit-global-literate-bib and refresh citar."
-  (interactive)
-  (org-babel-tangle-file jds/global-literate-bib)
-  (citar-refresh))
+;; ;;;###autoload
+;; (defun jds/literate-bib-tangle-and-refresh ()
+;;   "Tangle citarlit-global-literate-bib and refresh citar."
+;;   (interactive)
+;;   (org-babel-tangle-file jds/global-literate-bib)
+;;   (citar-refresh))
 
-;;;###autoload
-(defun jds/goto-global-org-bib ()
-  "Open new org-buffer for the "
-  (interactive)
-  (find-file jds/global-literate-bib))
+;; ;;;###autoload
+;; (defun jds/goto-global-org-bib ()
+;;   "Open new org-buffer for the "
+;;   (interactive)
+;;   (find-file jds/global-literate-bib))
 
-;;;###autoload
-(defun jds/literate-bib-search ()
-  "Open new org-buffer for the "
-  (interactive)
-  (if (get-file-buffer jds/global-literate-bib)
-      nil
-    (progn
-      (find-file jds/global-literate-bib)
-      (bury-buffer)))
-  (with-current-buffer (get-file-buffer jds/global-literate-bib)
-    (consult-outline)))
+;; ;;;###autoload
+;; (defun jds/literate-bib-search ()
+;;   "Open new org-buffer for the "
+;;   (interactive)
+;;   (if (get-file-buffer jds/global-literate-bib)
+;;       nil
+;;     (progn
+;;       (find-file jds/global-literate-bib)
+;;       (bury-buffer)))
+;;   (with-current-buffer (get-file-buffer jds/global-literate-bib)
+;;     (consult-outline)))
 
 
 (setq jds/citation-map (make-sparse-keymap))
@@ -81,11 +81,12 @@
 (general-define-key
  :keymaps 'jds/citation-map
  "c" #'citar-insert-citation
- "r" #'jds/literate-bib-tangle-and-refresh
- "o" #'jds/goto-global-org-bib
- "i" #'jds/literate-bib-search
- "S" #'biblio-lookup
- "s" #'org-bib-new-from-doi)
+ ;; "r" #'jds/literate-bib-tangle-and-refresh
+ ;; "o" #'jds/goto-global-org-bib
+ ;; "i" #'jds/literate-bib-search
+ "s" #'biblio-lookup
+ ;; "s" #'org-bib-new-from-doi
+ )
 
 (jds/localleader-def
   :keymaps '(org-mode-map LaTeX-mode-map)
