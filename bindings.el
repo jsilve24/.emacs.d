@@ -184,6 +184,20 @@
   (find-file
    (expand-file-name fn org-directory)))
 
+(setq jds~scratch-keymap (make-sparse-keymap))
+(defmacro jds~execute-in-scratch (body)
+    "Switch to scratch buffer and execute body."
+    `(lambda () (interactive) 
+	(progn (switch-to-buffer (get-buffer-create "*scratch*"))
+	       ,body)))
+
+(general-define-key
+ :keymaps 'jds~scratch-keymap
+ "x" (jds~execute-in-scratch (fundamental-mode))
+ "o" (jds~execute-in-scratch (org-mode))
+ "t" (jds~execute-in-scratch (LaTeX-mode))
+ "r" (jds~execute-in-scratch (ess-r-mode)))
+
 (jds/leader-def
   "b"  '(:ignore t :which-key "buffer/bookmark")
   "bb" #'consult-buffer
@@ -198,7 +212,8 @@
   "br" #'revert-buffer
   "bi" #'ibuffer-jump
   "bI" #'ibuffer-other-window
-  "bx" '((lambda () (interactive) (switch-to-buffer (get-buffer-create "*scratch*"))) :which-key "scratch")
+  ;; "bx" '((lambda () (interactive) (switch-to-buffer (get-buffer-create "*scratch*"))) :which-key "scratch")
+  "bx" jds~scratch-keymap
   "bz" '((lambda () (interactive) (switch-to-buffer (messages-buffer))) :which-key "messages")
   "bs" #'jds/switch-to-splash
   "bt" '((lambda () (interactive) (jds/switch-to-agenda-file "tasks.org")) :which-key "tasks")
