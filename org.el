@@ -159,7 +159,7 @@
 	   :jump-to-captured t
 	   :tree-type month)
 	  ("mp" "meeting psu" entry (file+datetree "~/Dropbox/org/meetings_psu.org")
-	   "* MEETING %u with %? :MEETING:\n  %?"
+	   "* MEETING %u with %? :MEETING:\n "
 	   :jump-to-captured t
 	   :tree-type month)
 	  ("mP" "meeting specific person")
