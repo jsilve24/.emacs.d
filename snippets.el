@@ -72,19 +72,20 @@ escape."
 	      "'" #'(lambda () (interactive) (cdlatex-math-modify nil))
 	      ";u" (jds~yas-lambda-expand "_\\{$1\\}")
 	      ";U" (jds~yas-lambda-expand "^\\{$1\\}")
-	      ";sdot" (jds~yas-lambda-expand "_\\{\\cdot $1\\}")
+	      ";s" (jds~yas-lambda-expand "^\\{$1\\}")
+	      ;; ";sdot" (jds~yas-lambda-expand "_\\{\\cdot $1\\}")
 	      ";inv" (jds~yas-lambda-expand "^\\{-1\\}")
 	      ";inset" (jds~yas-lambda-expand "\\in\\\\{$1\\\\}")
 	      ";perp" (jds~yas-lambda-expand "^\\{\\perp\\}")
 	      ";para" (jds~yas-lambda-expand "^\\{\\parallel\\}")
 	      ";dag" (jds~yas-lambda-expand "^\\{\\dagger\\}")
-	      ";star" (jds~yas-lambda-expand "^\\{\*\\}")
+	      ";conj" (jds~yas-lambda-expand "^\\{\*\\}")
 	      ";text" (jds~yas-lambda-expand "\\text\\{$1\\}")
 	      ";cases" (jds~yas-lambda-expand "\\begin\\{cases\\}\n$0 \n\\end\\{cases\\}")
 	      ";frac" (jds~yas-lambda-expand "\\frac\\{$1\\}\\{$2\\}")
 	      ";all" "\\forall"
-	      ";set" (jds~yas-lambda-expand "\\\\{$0\\\\}")
-	      ";sim" (jds~yas-lambda-expand "\\sim")
+	      "set" (jds~yas-lambda-expand "\\\\{$0\\\\}")
+	      "sim" (jds~yas-lambda-expand "\\sim")
 	      ";pp" (jds~yas-lambda-expand "p($0)")
 	      ";pr" (jds~yas-lambda-expand "P($0)")
 	      ";pc" (jds~yas-lambda-expand "p($1 \\vert $2)")
@@ -110,7 +111,7 @@ escape."
 	      ";geq" "\\geq"
 	      "..." "\\dots"
 	      "cc" "\\subset"
-	      "cceq" "\\subseteq"
+	      "ceq" "\\subseteq"
 	      "EE" #'(lambda () (interactive) (jds~string-just-one-space "="))
 	      "AE" #'(lambda () (interactive) (jds~string-just-one-space "&="))
 	      "AA" #'(lambda () (interactive) (jds~string-just-one-space "&"))
