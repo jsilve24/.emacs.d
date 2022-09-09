@@ -183,6 +183,13 @@
 ;; (add-to-list 'company-backends 'company-reftex-labels)
 ;; (add-to-list 'company-backends 'company-reftex-citations))
 
+;;;###autoload
+(defun latex-word-count ()
+  (interactive)
+  (shell-command (concat "/sbin/texcount "
+                         ; "uncomment then options go here "
+                         (buffer-file-name))))
+
 ;;; keybindings
 
 (jds/localleader-def
