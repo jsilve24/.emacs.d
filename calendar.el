@@ -13,29 +13,31 @@
 (defun jds/async-exchange-calendar-fetch ()
   (interactive)
   (let ((async-shell-command-buffer 'new-buffer)
-	(buf (current-buffer)))
+	(buf (current-buffer))
+	(auto-revert-use-notify nil))
     (set-process-sentinel
      (start-process-shell-command "get_exchange" "*exchange-output*" "~/bin/get_exchange_cal.sh")
      (lambda (_ _)
-       (save-excursion
+       (let* ((buffer (current-buffer)))
 	 (find-file "~/Dropbox/org/cal-psu.org")
 	 (jds/convert-zoom-url-to-org-link)
 	 (save-buffer)
-	 (jds/switch-to-splash))))))
+	 (switch-to-buffer buffer))))))
 (add-hook 'after-init-hook #'jds/async-exchange-calendar-fetch)
 
 ;;;###autoload
 (defun jds/async-google-calendar-fetch ()
   (interactive)
   (let ((async-shell-command-buffer 'new-buffer)
-	(buf (current-buffer)))
-(set-process-sentinel
+	(buf (current-buffer))
+	(auto-revert-use-notify nil))
+    (set-process-sentinel
      (start-process-shell-command "get_gcal" "*gcal-output*" "~/bin/get_gcal.sh")
      (lambda (_ _)
-       (save-excursion
+       (let* ((buffer (current-buffer)))
 	 (find-file "~/Dropbox/org/cal-gmail.org")
 	 (jds/convert-zoom-url-to-org-link)
 	 (save-buffer)
-	 (jds/switch-to-splash))))))
+	 (switch-to-buffer buffer))))))
 (add-hook 'after-init-hook #'jds/async-google-calendar-fetch)
 
