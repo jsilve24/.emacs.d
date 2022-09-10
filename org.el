@@ -201,6 +201,9 @@
 	  ;; ("e" "email" entry (file+headline "~/Dropbox/org/mail.org" "Email")
 	  ;; "* TODO %:fromname: %a %?\nDEADLINE: %(org-insert-time-stamp (org-read-date nil t \"+2d\"))"
 	  ;; :immediate-finish t)
+	  ("P" "Protocol")
+	  ("Pw" "Capture Website" entry (file "~/Dropbox/org/inbox.org")
+	  "* TODO %:annotation \n %i %?" )
 	  ))
 
   ;; make some templates only available in some modes
