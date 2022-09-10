@@ -125,23 +125,6 @@
     \\  / /______\\/ /
      \\/___________/")
   
-  ;; (setq kisses-banner
-;; 	"RRRRRRRRRRRRRRRRR                  AAA                      JJJJJJJJJJJIIIIIIIIII
-;; R::::::::::::::::R                A:::A                     J:::::::::JI::::::::I
-;; R::::::RRRRRR:::::R              A:::::A                    J:::::::::JI::::::::I
-;; RR:::::R     R:::::R            A:::::::A                   JJ:::::::JJII::::::II
-;;   R::::R     R:::::R           A:::::::::A                    J:::::J    I::::I
-;;   R::::R     R:::::R          A:::::A:::::A                   J:::::J    I::::I
-;;   R::::RRRRRR:::::R          A:::::A A:::::A                  J:::::J    I::::I
-;;   R:::::::::::::RR          A:::::A   A:::::A                 J:::::j    I::::I
-;;   R::::RRRRRR:::::R        A:::::A     A:::::A                J:::::J    I::::I
-;;   R::::R     R:::::R      A:::::AAAAAAAAA:::::A   JJJJJJJ     J:::::J    I::::I
-;;   R::::R     R:::::R     A:::::::::::::::::::::A  J:::::J     J:::::J    I::::I
-;;   R::::R     R:::::R    A:::::AAAAAAAAAAAAA:::::A J::::::J   J::::::J    I::::I
-;; RR:::::R     R:::::R   A:::::A             A:::::AJ:::::::JJJ:::::::J  II::::::II
-;; R::::::R     R:::::R  A:::::A               A:::::AJJ:::::::::::::JJ   I::::::::I
-;; R::::::R     R:::::R A:::::A                 A:::::A JJ:::::::::JJ     I::::::::I
-;; RRRRRRRR     RRRRRRRAAAAAAA                   AAAAAAA  JJJJJJJJJ       IIIIIIIIII")
   (put-text-property 0 (length kisses-banner) 'face 'outline-1
 		     kisses-banner)
   )
@@ -162,38 +145,6 @@
    '(org-level-4 ((t (:inherit outline-4 :height 1.0))))
    '(org-level-5 ((t (:inherit outline-5 :height 1.0))))
    '(org-agenda-structure ((t (:inherit outline-1 :height 1.10))))))
-
-;; (straight-use-package 'dashboard)
-;; (use-package dashboard
-;;   :ensure t
-;;   :config
-;;   ;; In addition to the above, configure initial-buffer-choice to show Dashboard in frames created
-;;   ;; with emacsclient -c as follows:
-;;   ;; (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
-
-
-;;   (dashboard-setup-startup-hook)
-
-;;   ;; Set the title
-;;   (setq dashboard-banner-logo-title "Welcome to Emacs Dashboard")
-;;   ;; Set the banner
-;;   (setq dashboard-startup-banner 'logo)
-;;   ;; Value can be
-;;   ;; 'official which displays the official emacs logo
-;;   ;; 'logo which displays an alternative emacs logo
-;;   ;; 1, 2 or 3 which displays one of the text banners
-;;   ;; "path/to/your/image.gif", "path/to/your/image.png" or "path/to/your/text.txt" which displays whatever gif/image/text you would prefer
-
-;;   ;; Content is not centered by default. To center, set
-;;   (setq dashboard-center-content t)
-
-;;   ;; To disable shortcut "jump" indicators for each section, set
-;;   (setq dashboard-show-shortcuts nil)
-
-
-;;   ;; To customize which widgets are displayed, you can use the following snippet
-;;   (setq dashboard-items '()))
-
 
 (provide 'themes)
 ;;; themes.el ends here

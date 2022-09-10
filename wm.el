@@ -123,7 +123,10 @@ With optional arg, don't automatically rebalance windows."
   (setq exwm-randr-workspace-monitor-plist '(1 "eDP-1" 2 "eDP-1" 3 "HDMI-1-0" 4  "HDMI-1-0" 5 "DP-1-2" 6 "DP-1-2"))
 
   (add-hook 'exwm-randr-screen-change-hook #'efs/update-displays)
+  (add-hook 'exwm-randr-screen-change-hook #'kisses-redraw)
   (efs/update-displays)
+  ;; TODO fix tihs super hacky solution 
+  (run-with-timer 8 nil 'kisses-recenter)
 
   ;; Load the system tray before exwm-init
   (require 'exwm-systemtray)
