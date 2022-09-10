@@ -34,6 +34,9 @@
 (use-package biblio
   :after (:any latex org))
 
+(use-package zotra
+  :straight (zotra :type git :host github :repo "mpedramfar/zotra"))
+
 ;; org-bib for literate bibtex
 ;; (use-package org-bib
 ;;   :straight `(org-bib :type git :host github :repo "jsilve24/org-bib-mode")
@@ -85,6 +88,8 @@
  ;; "o" #'jds/goto-global-org-bib
  ;; "i" #'jds/literate-bib-search
  "s" #'biblio-lookup
+ "u" #'zotra-add-entry-from-url
+ "S" #'zotra-add-entry-from-search
  ;; "s" #'org-bib-new-from-doi
  )
 
