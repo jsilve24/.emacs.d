@@ -49,11 +49,10 @@
 
 ;;; main themes
 
-(straight-use-package 'doom-themes)
-
 (use-package doom-themes
   :init (load-theme 'doom-vibrant t)
-  )
+  :config
+  (setq doom-themes-padded-modeline t))
 
 
 (use-package kaolin-themes
