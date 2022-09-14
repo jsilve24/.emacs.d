@@ -127,6 +127,10 @@ If norebalance then don't automatically rebalance windows after split."
    '(aw-leading-char-face
      ((t (:inherit ace-jump-face-foreground :height 2.5 :foreground "red"))))))
 
+;; (use-package ace-window-posframe
+;;   :straight (ace-window-posframe :type git :host github :repo "abo-abo/ace-window")
+;;   :config (ace-window-posframe-mode 1))
+
 ;;;###autoload
 (defun aw-move-window-split-fair (window)
   "Like the default aw-move-window but splits based on target window dimension.

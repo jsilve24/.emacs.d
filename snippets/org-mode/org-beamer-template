@@ -26,4 +26,5 @@
 #+BEAMER_HEADER: \usepackage{caption}
 #+BEAMER_HEADER: \usepackage{subcaption}
 #+BEAMER_HEADER: \usepackage{multicol}
+#+BEAMER_HEADER: \beamertemplatenavigationsymbolsempty
 #+STARTUP: beamer

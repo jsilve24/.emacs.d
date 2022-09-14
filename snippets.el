@@ -84,8 +84,6 @@ escape."
 	      ";cases" (jds~yas-lambda-expand "\\begin\\{cases\\}\n$0 \n\\end\\{cases\\}")
 	      ";frac" (jds~yas-lambda-expand "\\frac\\{$1\\}\\{$2\\}")
 	      ";all" "\\forall"
-	      "set" (jds~yas-lambda-expand "\\\\{$0\\\\}")
-	      "sim" (jds~yas-lambda-expand "\\sim")
 	      ";set" (jds~yas-lambda-expand "\\\\{$0\\\\}")
 	      ";sim" (jds~yas-lambda-expand "\\sim")
 	      ";pp" (jds~yas-lambda-expand "p($0)")
@@ -197,10 +195,12 @@ escape."
     ";sq" (jds~yas-lambda-expand "#+BEGIN_QUOTE\n$0\n#+END_QUOTE")
     ";sr" (jds~yas-lambda-expand "#+begin_src R :exports ${1:$$(yas-choose-value '(\"both\" \"code\" \"results\" \"none\"))} :session \"*R*\" \n$0\n#+end_src")
     ";sb" (jds~yas-lambda-expand "#+begin_src bibtex\n$0\n#+end_src")
+    ";center" (jds~yas-lambda-expand "#+begin_center\n$0\n#+end_center")
     ";header" (jds~yas-lambda-expand-snippet-by-key "org-header-for-export")
     ";beamer" (jds~yas-lambda-expand-snippet-by-key "org-beamer-template")
     ";pdf" (jds~yas-lambda-expand-snippet-by-key "org-beamer-include-pdf")
     ";plot" (jds~yas-lambda-expand-snippet-by-key "org-beamer-r-plot")
+    ";width" (jds~yas-lambda-expand "#+ATTR_LATEX: :width ${1:0.9\\linewidth}")
     ";pause" "#+BEAMER: \\pause")
 
 
