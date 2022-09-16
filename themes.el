@@ -50,9 +50,10 @@
 ;;; main themes
 
 (use-package doom-themes
-  :init (load-theme 'doom-vibrant t)
+  ;; :init (load-theme 'doom-vibrant t)
   :config
-  (setq doom-themes-padded-modeline t))
+  ;; (setq doom-themes-padded-modeline t)
+  )
 
 
 (use-package kaolin-themes
@@ -61,30 +62,51 @@
   ;; (kaolin-treemacs-theme)
   )
 
-(use-package modus-themes)
+(use-package emacs
+  :init
+  (setq modus-themes-mode-line '(accented borderless)
+	modus-themes-org-blocks 'tinted-background
+	modus-themes-deuteranopia nil
+	modus-themes-bold-constructs nil
+	modus-themes-italic-constructs nil
+	modus-themes-syntax '(yellow-comments green-strings alt-syntax faint)
+	modus-themes-mixed-fonts t
+	modus-themes-links '(neutral-underline)
+	;; modus-themes-links nil
+	;; modus-themes-box-buttons '(flat faint)
+	modus-themes-box-buttons nil
+	modus-themes-prompts nil
+	modus-themes-fringe nil
+	modus-themes-lang-checkers '(straight-underline)
+	modus-themes-hl-line nil
+	modus-themes-subtle-line-numbers t
+	modus-themes-markup nil
+	modus-themes-region '(no-extend)
+	;; modus-themes-org-agenda '((header-block . (1.5 variable-pitch))
+	;; 			  (header-date . (grayscale workaholic bold-today))
+	;; 			  (event . (accented varied))
+	;; 			  (scheduled . uniform)
+	;; 			  (habit . traffic-light))
+	modus-themes-scale-headings t
+	modus-themes-headings
+	'((1 . (variable-pitch 1.25))
+	  (2 . (rainbow 1.1))
+	  ;; (3 . (overline 1.1))
+	  (t . (monochrome))))
+  :config
+  (load-theme 'modus-vivendi)
+  :bind ("<f5>" . modus-themes-toggle))
 
-;; (setq modus-themes-mode-line '(accented borderless)
-;;       modus-themes-bold-constructs t
-;;       modus-themes-italic-constructs t
-;;       modus-themes-fringes 'subtle
-;;       modus-themes-tabs-accented t
-;;       modus-themes-paren-match '(bold intense)
-;;       modus-themes-prompts '(bold intense)
-;;       modus-themes-completions 'opinionated
-;;       modus-themes-org-blocks 'tinted-background
-;;       modus-themes-scale-headings t
-;;       modus-themes-region '(bg-only)
-;;       modus-themes-headings
-;;       '((1 . (rainbow overline background 1.3))
-;;         (2 . (rainbow background 1.2))
-;;         (3 . (rainbow bold 1.1))
-;;         (t . (semilight 1.0))))
+;;; hl-line-mode ---------------------------------------------------------------
 
-;; ;; Load the dark theme by default
-;; (load-theme 'modus-operandi t)
+(use-package emacs
+  :config
+  (add-hook 'dired-mode-hook #'hl-line-mode)
+  (add-hook 'org-agenda-mode-hook #'hl-line-mode)
+  (add-hook 'ibuffer-mode-hook #'hl-line-mode))
 
-;; (straight-use-package '(shanty-theme :host github :repo "qhga/shanty-theme"))
-;; (use-package shanty-theme)
+
+
 
 ;;; modline
 
@@ -124,8 +146,8 @@
     \\  / /______\\/ /
      \\/___________/")
   
-  (put-text-property 0 (length kisses-banner) 'face 'outline-1
-		     kisses-banner)
+  ;; (put-text-property 0 (length kisses-banner) 'face 'outline-1
+  ;; 		     kisses-banner)
   )
 
 (setq initial-buffer-choice 'kisses-initial-buffer)
@@ -136,14 +158,14 @@
 
 ;;; org-mode theme -------------------------------------------------------------
 
-(with-eval-after-load 'org
-  (custom-set-faces
-   '(org-level-1 ((t (:inherit outline-1 :height 1.25))))
-   '(org-level-2 ((t (:inherit outline-2 :height 1.1))))
-   '(org-level-3 ((t (:inherit outline-3 :height 1.0))))
-   '(org-level-4 ((t (:inherit outline-4 :height 1.0))))
-   '(org-level-5 ((t (:inherit outline-5 :height 1.0))))
-   '(org-agenda-structure ((t (:inherit outline-1 :height 1.10))))))
+;; (with-eval-after-load 'org
+;;   (custom-set-faces
+;;    '(org-level-1 ((t (:inherit outline-1 :height 1.25))))
+;;    '(org-level-2 ((t (:inherit outline-2 :height 1.1))))
+;;    '(org-level-3 ((t (:inherit outline-3 :height 1.0))))
+;;    '(org-level-4 ((t (:inherit outline-4 :height 1.0))))
+;;    '(org-level-5 ((t (:inherit outline-5 :height 1.0))))
+;;    '(org-agenda-structure ((t (:inherit outline-1 :height 1.10))))))
 
 (provide 'themes)
 ;;; themes.el ends here

@@ -47,6 +47,17 @@ the current state and point position."
   (dotimes (_ count) (save-excursion (evil-insert-newline-below))))
 
 
+;;;###autoload
+(defun jds/evil-ex-compress-outline ()
+  "Removes Justin's + PX: style outline format and makes text ready to insert into a plain-text document."
+  (interactive)
+  (let ((visual-state (evil-visual-state-p)))
+    (evil-ex "g/\\+ P/s/.*//g")
+    (if visual-state
+	(progn
+	  (evil-visual-restore)
+	  (evil-ex "s/\\+ //g"))
+      (evil-ex "%s/\\+ //g"))))
 
 
 (provide 'evil)

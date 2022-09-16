@@ -436,6 +436,15 @@ buffer (=minimizing in other WM/DE)"
       )))
 
 
+;;; quick setup for teaching
+
+(defun jds/setup-projector-and-wacom-E208 ()
+  "Quick setup screen mirroring and wacom to HEAD-0 for teaching in Westgate E208"
+  (interactive)
+  (jds/quiet-async-shell-commands " xrandr --output eDP-1 --primary --mode 1920x1200 --pos 1920x0 --rotate normal --output HDMI-1 --off --output DP-1 --off --output DP-2 --off --output DP-3 --off --output DP-4 --off --output DP-1-0 --off --output DP-1-1 --off --output DP-1-2 --off --output DP-1-3 --off --output HDMI-1-0 --mode 1920x1080 --pos 0x0 --rotate normal")
+  (jds/quiet-async-shell-commands "xrandr --output HDMI-1-0 --same-as eDP-1")
+  (jds/quiet-async-shell-commands "xsetwacom set "Wacom Intuos BT S Pen stylus" MapToOutput HEAD-0"))
+
 
 ;;; setup modeline
 (use-package exwm-modeline

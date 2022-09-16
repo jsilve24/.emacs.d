@@ -30,9 +30,9 @@
   (add-hook 'org-mode-hook 'jds~org-cdlatex-hook)
   ;; latex highlighting
   (setq org-highlight-latex-and-related '(latex entities))
-  (set-face-attribute 'org-latex-and-related nil
-		      :foreground "#51afef"
-		      :weight 'normal)
+  ;; (set-face-attribute 'org-latex-and-related nil
+  ;; 		      :foreground "#51afef"
+  ;; 		      :weight 'normal)
   
 ;;; make org-ret follow inks
   (setq org-return-follows-link t)
@@ -367,14 +367,13 @@
   "N"  #'widen
   "l"  #'org-latex-preview
   "p"  #'org-set-property
-  "b"  #'org-beamer-select-environment)
+  "b"  #'org-beamer-select-environment
+  "o"  #'jds/evil-ex-compress-outline)
 
 (jds/localleader-def
   :keymaps 'org-beamer-mode-map
   "\\" #'org-beamer-export-to-pdf)
 
-(jds/leader-def
-  "oc" #'calendar)
 
 (general-define-key
  :keymaps 'calendar-mode-map
