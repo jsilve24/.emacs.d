@@ -69,7 +69,7 @@
 	modus-themes-deuteranopia nil
 	modus-themes-bold-constructs nil
 	modus-themes-italic-constructs nil
-	modus-themes-syntax '(yellow-comments green-strings alt-syntax faint)
+	modus-themes-syntax '(yellow-comments green-strings alt-syntax)
 	modus-themes-mixed-fonts t
 	modus-themes-links '(neutral-underline)
 	;; modus-themes-links nil
@@ -88,11 +88,12 @@
 	;; 			  (scheduled . uniform)
 	;; 			  (habit . traffic-light))
 	modus-themes-scale-headings t
-	modus-themes-headings
-	'((1 . (variable-pitch 1.25))
-	  (2 . (rainbow 1.1))
-	  ;; (3 . (overline 1.1))
-	  (t . (monochrome))))
+	;; modus-themes-headings
+	;; '((1 . (variable-pitch 1.25))
+	;;   (2 . (rainbow 1.0))
+	;;   ;; (3 . (overline 1.1))
+	;;   (t . (monochrome)))
+	)
   :config
   (load-theme 'modus-vivendi)
   :bind ("<f5>" . modus-themes-toggle))

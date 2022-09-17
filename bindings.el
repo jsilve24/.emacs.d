@@ -309,7 +309,11 @@
 	  (jds~new-frame-or-new-window arg)
 	  (mu4e-headers-search-bookmark (mu4e-get-bookmark-query ?t)))
   "l" #'org-store-link
+  "L" #'org-super-links-store-link
   "i" #'org-insert-link
+  "I" #'org-super-links-insert-link
+  "o" #'jds/org-super-links-link-or-delete
+  "O" #'org-super-links-quick-insert-drawer-link
   ;; "t" #'vterm
   "t" #'jds/multi-vterm-same-window
   "T" #'jds/multi-vterm-new-window-or-frame

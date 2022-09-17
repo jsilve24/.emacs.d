@@ -296,6 +296,23 @@
   (evil-org-agenda-set-keys))
 
 
+;;; org-super-links ------------------------------------------------------------
+(use-package org-super-links
+  :straight (org-super-links :type git :host github :repo "toshism/org-super-links" :branch "develop"))
+
+;;;###autoload
+(defun jds/org-super-links-link-or-delete (&optional arg)
+  "Delete if prefixed otherwise insert link."
+  (interactive "P")
+  (if arg
+      (org-super-links-delete-link)
+    (org-super-links-link)))
+
+
+;; use org-ids for links
+(with-eval-after-load 'org
+  (require 'org-id)
+  (setq org-id-link-to-org-use-id 'create-if-interactive-and-no-custom-id))
 
 
 ;;; local bindings
@@ -386,22 +403,6 @@
   (interactive)
   (select-frame (make-frame))
   (org-agenda nil "d"))
-
-  ;; (map! :after (org evil-org)
-  ;;       :map org-capture-mode-map
-  ;;       :localleader
-  ;;                "\\" #'org-capture-finalize
-  ;;                "k"  #'org-capture-kill
-  ;;                "r"  #'org-capture-refile
-  ;;       (:prefix ("d" . "date")
-  ;;                "d"  #'org-deadline
-  ;;                "s"  #'org-schedule)
-  ;;                "a"  #'org-capture-attach
-  ;;                "t"  #'org-set-tags-command
-  ;;       (:prefix ("i" . "insert")
-  ;;                "l"  #'org-insert-link
-  ;;                "L"  #'org-insert-all-links))
-
 
 
 (provide 'org)
