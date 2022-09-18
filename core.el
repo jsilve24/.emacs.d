@@ -366,6 +366,16 @@
            ,@body)
        (advice-remove ,fn-orig fn-advice-var))))
 
+;; https://emacs.stackexchange.com/questions/3323/is-there-any-way-to-run-a-hook-function-only-once
+;;;###autoload
+(defmacro jds~add-hook-run-once (hook function &optional append local)
+  "Like add-hook, but remove the hook after it is called"
+  (let ((sym (make-symbol "#once")))
+    `(progn
+       (defun ,sym ()
+         (remove-hook ,hook ',sym ,local)
+         (funcall ,function))
+       (add-hook ,hook ',sym ,append ,local))))
 
 
 

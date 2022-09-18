@@ -266,6 +266,63 @@ re-align the table if necessary. (Necessary because org-mode has a
     (while (re-search-forward "https?://[a-z]+\.zoom\.us/[^\n\s]*" nil t)
       (replace-match "[[\\&][(ZOOM)]]" nil nil))))
 
+;;;###autoload
+;; from here: https://emacs.stackexchange.com/questions/10597/how-to-refile-into-a-datetree
+;; modified for month based date-tree rather than day
+(defun jds/org-refile-to-month-datetree (&optional file)
+  "Refile a subtree to a datetree corresponding to it's timestamp.
+
+The current time is used if the entry has no timestamp. If FILE
+is nil, refile in the current file."
+  (interactive "f")
+  (let* ((datetree-date (or (org-entry-get nil "TIMESTAMP_IA" t)
+			    (org-read-date t nil "now")))
+	 (date (org-date-to-gregorian datetree-date)))
+    (with-current-buffer (current-buffer)
+      (save-excursion
+	(org-cut-subtree)
+	(if file (find-file file))
+	(org-datetree-find-month-create date)
+	(org-narrow-to-subtree)
+	(show-subtree)
+	(org-end-of-subtree t)
+	(newline)
+	(goto-char (point-max))
+	(org-paste-subtree 4)
+	(widen))))
+  )
+
+;;;###autoload
+(defun org-super-links-quick-insert-via ()
+  (interactive)
+  (let ((org-super-links-link-prefix "\nvia: "))
+    (org-super-links-insert-link)))
+
+
+;;;###autoload
+(defun jds/super-link-at-point-capture ()
+  "Start Org Capture, Afterwords return to point where capture was started and insert org-super-link to last stored capture."
+  (interactive)
+  (let ((point (point))
+	(buffer (current-buffer)))
+    (org-capture)
+    (jds~add-hook-run-once 'org-capture-after-finalize-hook
+			   (lambda ()
+			     (org-capture-goto-last-stored)
+			     (org-super-links-store-link)
+			     (switch-to-buffer buffer)
+			     (goto-char point)
+			     (let ((org-super-links-backlink-into-drawer "VIA"))
+			       (org-super-links-insert-link))))))
+
+
+
+
+
+;; (defun jds/super-link-link-and-capture ()
+;;   ""
+;;   (interactive)
+;;   (jds~super-links-eval-add-via (progn  (org-capture) (org-capture-goto-last-stored))))
 
 (provide 'org)
 ;;; org.el ends here

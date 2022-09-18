@@ -163,7 +163,7 @@
 	   :jump-to-captured t
 	   :tree-type month)
 	  ("mP" "meeting specific person")
-	  ("mPm" "meeting Michelle" entry (file+datetree "~/Dropbox/org/meetings_psu.org")
+	  ("mPm" "meeting Michelle" entry (file+datetree "~/Dropbox/org/mtx-michelle.org")
 	   ,(concat "* MEETING %u with Michelle :MEETING:w_michelle:\n"
 		    "** TRAM Manuscript :p_tram:\n"
 		    "** ALDEx2 Manuscript :p_tram:\n"
@@ -174,20 +174,25 @@
 		    )
 	   :jump-to-captured t
 	   :tree-type month)
-	  ("mPa" "meeting Andrew" entry (file+datetree "~/Dropbox/org/meetings_psu.org")
+	  ("mPa" "meeting Andrew" entry (file+datetree "~/Dropbox/org/mtx-andrew.org")
 	   ,(concat "* MEETING %u with Andrew :MEETING:w_andrew:\n  %?")
 	   :jump-to-captured t
 	   :tree-type month)
-	  ("mPd" "meeting DIHI" entry (file+datetree "~/Dropbox/org/meetings_psu.org")
+	  ("mPd" "meeting DIHI" entry (file+datetree "~/Dropbox/org/mtx-michelle.org")
 	   ,(concat "* MEETING %u with DIHI :MEETING:w_michelle:p_bacteremia:\n"
 		    "  %?")
 	   :jump-to-captured t
 	   :tree-type month)
-	  ("mPk" "meeting kyle" entry (file+datetree "~/Dropbox/org/meetings_psu.org")
+	  ("mPk" "meeting Kyle" entry (file+datetree "~/Dropbox/org/mtx-kyle.org")
 	   ,(concat "* MEETING %u with Kyle :MEETING:w_kyle:\n"
 		    "** cGSEA :p_cgsea:\n"
 		    "** Effective Scale Models :p_effscalemod:\n"
 		    "** Future Plans :p_cgsea:\n"
+		    "  %?")
+	   :jump-to-captured t
+	   :tree-type month)
+	  ("mPz" "meeting Zhao Ma" entry (file+datetree "~/Dropbox/org/mtx-zhaoma.org")
+	   ,(concat "* MEETING %u with Zhao Ma :MEETING:w_zhaoma:\n"
 		    "  %?")
 	   :jump-to-captured t
 	   :tree-type month)
@@ -203,8 +208,7 @@
 	  ;; :immediate-finish t)
 	  ("P" "Protocol")
 	  ("Pw" "Capture Website" entry (file "~/Dropbox/org/inbox.org")
-	  "* TODO %:annotation \n %i %?" )
-	  ))
+	   "* TODO %:annotation \n %i %?")))
 
   ;; make some templates only available in some modes
   ;; (setq org-capture-templates-contexts '(("e" ((in-mode . "message-mode")
@@ -385,7 +389,8 @@
   "l"  #'org-latex-preview
   "p"  #'org-set-property
   "b"  #'org-beamer-select-environment
-  "o"  #'jds/evil-ex-compress-outline)
+  "o"  #'jds/evil-ex-compress-outline
+  ","  #'jds/super-link-at-point-capture)
 
 (jds/localleader-def
   :keymaps 'org-beamer-mode-map
