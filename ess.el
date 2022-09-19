@@ -35,9 +35,9 @@
 
   ;; this also makes heading section headers available in consult-outline
   ;; (add-hook 'ess-mode-hook
-  ;; 	    '(lambda ()
-  ;; 	       (outline-minor-mode)
-  ;; 	       (setq outline-regexp ".*----$")))
+  ;; '(lambda ()
+  ;; (outline-minor-mode)
+  ;; (setq outline-regexp ".*----$")))
   ;; turn off fancy comments which are really annoying
   (defun dont-like-fancy ()
     (setcdr (assoc 'ess-indent-with-fancy-comments (cdr (assoc 'DEFAULT ess-style-alist))) nil))
@@ -49,7 +49,35 @@
     (add-hook 'ess-r-mode-hook
 	      (lambda ()
 		(add-hook 'xref-backend-functions #'dumb-jump-xref-activate -100 'local))))
-  )
+
+
+  ;; better display-buffer defaulsts
+  (add-to-list 'display-buffer-alist '("^\\*R Dired"
+				       (display-buffer-reuse-window display-buffer-in-side-window)
+				       (side . right)
+				       (slot . -1)
+				       (window-width . 0.33)
+				       (reusable-frames . nil)))
+
+  (add-to-list 'display-buffer-alist '("^\\*R"
+				       (display-buffer-reuse-window display-buffer-at-bottom)
+				       (window-width . 0.5)
+				       (reusable-frames . nil)))
+
+  (add-to-list 'display-buffer-alist '("^\\*Help"
+				       (display-buffer-reuse-window display-buffer-in-side-window)
+				       (side . right)
+				       (slot . 1)
+				       (window-width . 0.33)
+				       (reusable-frames . nil)))
+
+  (add-to-list 'display-buffer-alist '("^R_x11"
+				       (display-buffer-reuse-window display-buffer-in-side-window)
+				       (side . right)
+				       (slot . -1)
+				       (window-width . 0.33)
+				       (reusable-frames . nil))))
+
 
 ;;; setup polymode
 

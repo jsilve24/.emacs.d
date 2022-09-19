@@ -196,12 +196,12 @@
   (evil-lion-mode))
 
 
-;; (use-package evil-args
-;;   :demand t
-;;   :after evil
-;;   :commands (evil-inner-arg evil-outer-arg
-;;              evil-forward-arg evil-backward-arg
-;;              evil-jump-out-args))
+(use-package evil-args
+  :demand t
+  :after evil
+  :commands (evil-inner-arg evil-outer-arg
+             evil-forward-arg evil-backward-arg
+             evil-jump-out-args))
 
 
 (use-package posframe)
