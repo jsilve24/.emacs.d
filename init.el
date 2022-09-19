@@ -172,12 +172,6 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(aw-leading-char-face ((t (:inherit ace-jump-face-foreground :height 2.5 :foreground "red"))))
- '(org-agenda-structure ((t (:inherit outline-1 :height 1.1))))
- '(org-level-1 ((t (:inherit outline-1 :height 1.25))))
- '(org-level-2 ((t (:inherit outline-2 :height 1.1))))
- '(org-level-3 ((t (:inherit outline-3 :height 1.0))))
- '(org-level-4 ((t (:inherit outline-4 :height 1.0))))
- '(org-level-5 ((t (:inherit outline-5 :height 1.0)))))
-(put 'narrow-to-region 'disabled nil)
+)(put 'narrow-to-region 'disabled nil)
 (put 'scroll-left 'disabled nil)
 (put 'list-timers 'disabled nil)
