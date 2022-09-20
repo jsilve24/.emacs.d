@@ -39,6 +39,11 @@
 (use-package zotra
   :straight (zotra :type git :host github :repo "mpedramfar/zotra"))
 
+
+;;; setup ebib -----------------------------------------------------------------
+;; (use-package ebib)
+
+
 ;; org-bib for literate bibtex
 ;; (use-package org-bib
 ;;   :straight `(org-bib :type git :host github :repo "jsilve24/org-bib-mode")

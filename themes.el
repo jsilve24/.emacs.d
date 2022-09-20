@@ -88,11 +88,12 @@
 	;; 			  (scheduled . uniform)
 	;; 			  (habit . traffic-light))
 	modus-themes-scale-headings t
-	;; modus-themes-headings
-	;; '((1 . (variable-pitch 1.25))
-	;;   (2 . (rainbow 1.0))
-	;;   ;; (3 . (overline 1.1))
-	;;   (t . (monochrome)))
+	modus-themes-headings
+	'((1 . (background rainbow overline bold  1.2))
+	  (2 . (rainbow overline bold 1.1))
+	  (3 . (overline rainbow bold 1.0))
+	  (4 . (rainbow bold))
+	  (t . (bold)))
 	)
   :config
   (load-theme 'modus-vivendi)
