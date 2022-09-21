@@ -163,6 +163,12 @@
   "re" #'polymode-eval-chunk
   "rn" #'polymode-next-chunk)
 
+(jds/localleader-def
+  :keymaps 'ess-mode-map
+  "'" #'org-edit-src-exit
+  "k" #'org-edit-src-abort)
+
+
 (general-define-key
  :keymaps 'ess-mode-map
  :states 'i

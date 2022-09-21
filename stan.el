@@ -67,4 +67,9 @@
 ;;   ;; No configuration options as of now.
 ;;   )
 
+;;; bindings -------------------------------------------------------------------
 
+(jds/localleader-def
+  :keymaps 'stan-mode-map
+  "'" #'org-edit-src-exit
+  "k" #'org-edit-src-abort)

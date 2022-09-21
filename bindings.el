@@ -70,7 +70,7 @@
   (interactive)
   ;; don't indent in texmathp
   (cond
-   ((and (texmathp) (or (bound-and-true-p cdlatex-mode) ord-cdlatex-mode))
+   ((and (texmathp) (or (bound-and-true-p cdlatex-mode) org-cdlatex-mode))
     (cdlatex-tab))
    ((and (string= (string (char-before)) " ")
 	 (string= major-mode "org-mode"))

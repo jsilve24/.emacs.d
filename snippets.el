@@ -195,12 +195,16 @@ escape."
     ";sq" (jds~yas-lambda-expand "#+BEGIN_QUOTE\n$0\n#+END_QUOTE")
     ";sr" (jds~yas-lambda-expand "#+begin_src R :exports ${1:$$(yas-choose-value '(\"both\" \"code\" \"results\" \"none\"))} :session \"*R*\" \n$0\n#+end_src")
     ";sb" (jds~yas-lambda-expand "#+begin_src bibtex\n$0\n#+end_src")
+    ;; https://orgmode.org/worg/org-contrib/babel/languages/ob-doc-stan.html
+    ";sstan" (jds~yas-lambda-expand "#+name: ${1:model-stan}\n#+begin_src stan :file ${2:model.stan}\n$0\n#+end_src\n\n #+RESULTS: $1\nfile:$2")
+    ";name" (jds~yas-lambda-expand "#+name: $0")
     ";center" (jds~yas-lambda-expand "#+begin_center\n$0\n#+end_center")
     ";header" (jds~yas-lambda-expand-snippet-by-key "org-header-for-export")
     ";beamer" (jds~yas-lambda-expand-snippet-by-key "org-beamer-template")
     ";pdf" (jds~yas-lambda-expand-snippet-by-key "org-beamer-include-pdf")
     ";plot" (jds~yas-lambda-expand-snippet-by-key "org-beamer-r-plot")
     ";width" (jds~yas-lambda-expand "#+ATTR_LATEX: :width ${1:0.9\\linewidth}")
+    ";alatex" (jds~yas-lambda-expand "#+ATTR_LATEX: $0")
     ";pause" "#+BEAMER: \\pause")
 
 

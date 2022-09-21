@@ -230,12 +230,13 @@
 
 
   ;; active Babel languages
-  (org-babel-do-load-languages
-   'org-babel-load-languages
-   '((R . t)
-     (emacs-lisp . t)
-     (latex . t)
-     (stan . t)))
+  (with-eval-after-load 'ob-stan
+    (org-babel-do-load-languages
+     'org-babel-load-languages
+     '((R . t)
+       (emacs-lisp . t)
+       (latex . t)
+       (stan . t))))
 
   (setq org-src-fontify-natively t)
 
@@ -368,6 +369,7 @@
 (jds/localleader-def
   :keymaps '(org-capture-mode-map org-mode-map)
   "t" #'org-todo
+  "b" #'org-beamer-select-environment
   "s" #'org-sparse-tree
   "S" #'org-screenshot-take
   "a" #'org-attach
