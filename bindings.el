@@ -164,7 +164,9 @@
 ;;; other
 (jds/leader-def
   "S" #'jds/screenshot-dragon-temp-file
-  "u" #'undo-tree-visualize)
+  "u" #'undo-tree-visualize
+  ;; "n" jds~org-roam-leader-map
+  )
 
 ;;; buffers
 

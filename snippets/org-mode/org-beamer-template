@@ -28,3 +28,4 @@
 #+BEAMER_HEADER: \usepackage{multicol}
 #+BEAMER_HEADER: \beamertemplatenavigationsymbolsempty
 #+STARTUP: beamer
+#+OPTIONS: d:(not "RELATED")

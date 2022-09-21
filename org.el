@@ -33,17 +33,20 @@
   ;; (set-face-attribute 'org-latex-and-related nil
   ;; 		      :foreground "#51afef"
   ;; 		      :weight 'normal)
-  
+
 ;;; make org-ret follow inks
   (setq org-return-follows-link t)
 
-  
+
+  ;; store link to files when attaching
+  (setq org-attach-store-link-p 'attached)
+
   ;; setup org-habit
   ;; (require 'org-habit)
   ;; (add-to-list 'org-modules 'org-habit)
 
   (setq org-complete-tags-always-offer-all-agenda-tags t
-        org-tags-column -100)
+	org-tags-column -100)
 
   (setq org-hide-leading-stars t)
 
@@ -192,7 +195,7 @@
 	   :jump-to-captured t
 	   :tree-type month)
 	  ("mPz" "meeting Zhao Ma" entry (file+datetree "~/Dropbox/org/mtx-zhaoma.org")
-	   ,(concat "* MEETING %u with Zhao Ma :MEETING:w_zhaoma:\n"
+	   ,(concat "* MEETING %u with Zhao Ma :MEETING:w_zhao:\n"
 		    "  %?")
 	   :jump-to-captured t
 	   :tree-type month)
@@ -231,7 +234,8 @@
    'org-babel-load-languages
    '((R . t)
      (emacs-lisp . t)
-     (latex . t)))
+     (latex . t)
+     (stan . t)))
 
   (setq org-src-fontify-natively t)
 
@@ -349,31 +353,39 @@
   "a" #'org-attach)
 
 
+
 ;; get q
 
 (jds/localleader-def
- :keymaps 'org-agenda-mode-map
- "d" '(ignore t :wk "date")
- "dd" #'org-agenda-deadline
- "ds" #'org-agenda-schedule
- "t"  #'org-agenda-todo
- "q"  #'org-agenda-set-tags
- "r" #'(lambda () (interactive) (jds/save-excursion-and-min-point #'org-agenda-refile)))
+  :keymaps 'org-agenda-mode-map
+  "d" '(ignore t :wk "date")
+  "dd" #'org-agenda-deadline
+  "ds" #'org-agenda-schedule
+  "t"  #'org-agenda-todo
+  "q"  #'org-agenda-set-tags
+  "r" #'(lambda () (interactive) (jds/save-excursion-and-min-point #'org-agenda-refile)))
 
 (jds/localleader-def
   :keymaps '(org-capture-mode-map org-mode-map)
-  "t"  #'org-todo
-  "s"  #'org-sparse-tree
-  "S"  #'org-screenshot-take
-  "a"  #'org-attach
-  "q"  #'org-set-tags-command
-  "d"  '(:ignore t :wk "date")
+  "t" #'org-todo
+  "s" #'org-sparse-tree
+  "S" #'org-screenshot-take
+  "a" #'org-attach
+  "q" #'org-set-tags-command
+  "d" '(:ignore t :wk "date")
   "dd" #'org-deadline
   "ds" #'org-schedule
   "dt" #'org-time-stamp
   "dT" #'org-time-stamp-inactive
   ;; "c"  jds/citation-map ; reserved
-  )
+  "'" #'org-edit-special)
+
+(jds/localleader-def
+  :keymaps 'org-src-mode-map
+  :states '(me)
+  "'" #'org-edit-src-exit
+  "k" #'org-edit-src-abort)
+
 
 (jds/localleader-def
   :keymaps 'org-capture-mode-map

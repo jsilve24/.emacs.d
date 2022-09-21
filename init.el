@@ -94,6 +94,7 @@
 (load-config "python.el")
 (load-config "ess.el")
 (load-config "autoloads/ess-autoloads.el")
+(load-config "stan.el")
 
 ;;; "optional" applications
 (load-config "slack.el")
@@ -162,8 +163,6 @@
  ;; If there is more than one, they won't work right.
  '(custom-safe-themes
    '("e87f48ec4aebdca07bb865b90088eb28ae4b286ee8473aadb39213d361d0c45f" "3c83b3676d796422704082049fc38b6966bcad960f896669dfc21a7a37a748fa" "c74e83f8aa4c78a121b52146eadb792c9facc5b1f02c917e3dbb454fca931223" "a27c00821ccfd5a78b01e4f35dc056706dd9ede09a8b90c6955ae6a390eb1c1e" default))
- '(org-agenda-files
-   '("/home/jds6696/Dropbox/org/cal-gmail.org" "/home/jds6696/Dropbox/org/cal-psu.org" "/home/jds6696/Dropbox/org/calendar.org" "/home/jds6696/Dropbox/org/inbox.org" "/home/jds6696/Dropbox/org/inbox_mobile.org" "/home/jds6696/Dropbox/org/mail.org" "/home/jds6696/Dropbox/org/meetings_anarres.org" "/home/jds6696/Dropbox/org/meetings_psu.org" "/home/jds6696/Dropbox/org/notes.org" "/home/jds6696/Dropbox/org/tasks.org"))
  '(warning-suppress-log-types '((org-babel) (comp)))
  '(warning-suppress-types '((comp))))
 (custom-set-faces
