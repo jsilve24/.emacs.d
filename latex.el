@@ -36,16 +36,19 @@
 
 (with-eval-after-load 'tex
   (setq TeX-source-correlate-mode t
-        ;; don't start the emacs server when correlating sources
-        TeX-source-correlate-start-server nil
-        TeX-source-correlate-method 'synctex
+	;; don't start the emacs server when correlating sources
+	TeX-source-correlate-start-server nil
+	TeX-source-correlate-method 'synctex
 	;; support more electric pair braces, e.g., \{...\}
 	LaTeX-electric-left-right-brace t)
   ;; Use pdf-tools to open PDF files
   (setq TeX-view-program-selection '((output-pdf "PDF Tools"))
 	TeX-source-correlate-start-server t)
   ;; Update PDF buffers after successful LaTeX runs
-  (add-hook 'TeX-after-compilation-finished-functions #'TeX-revert-document-buffer))
+  (add-hook 'TeX-after-compilation-finished-functions #'TeX-revert-document-buffer)
+
+  ;; texmathp should detect align(*) environments
+  (setq texmathp-tex-commands '(("align*" env-on) ("align" env-on))))
 
 ;;; setup cdlatex
 
@@ -59,25 +62,25 @@
   ;; also auctex already provides `LaTeX-insert-item' so C-ret not needed
   :bind
   (:map cdlatex-mode-map
-   ;; ("$" . nil)
-   ("(" . nil)
-   ("{" . nil)
-   ("[" . nil)
-   ("|" . nil)
-   ("<" . nil)
-   ("_" . nil)
-   ("^" . nil)
-   ;; ("TAB" . cdlatex-tab)
-   ;; ([(control return)] . nil)
-   )
- :config
- (setq cdlatex-math-symbol-alist
-        '((?< ("\\leftarrow" "\\Leftarrow" "\\longleftarrow" "\\Longleftarrow"))
-          (?> ("\\rightarrow" "\\Rightarrow" "\\longrightarrow" "\\Longrightarrow"))
-          (?\\ ("\\parallel"))
-          (?| ("\\perp"))))
- (setq cdlatex-math-modify-alist '((?\p "\\proc" nil t nil nil)))
- ;; Keep cdlatex from taking backtick key (this functionality is now done by aas snippets)
+	;; ("$" . nil)
+	("(" . nil)
+	("{" . nil)
+	("[" . nil)
+	("|" . nil)
+	("<" . nil)
+	("_" . nil)
+	("^" . nil)
+	;; ("TAB" . cdlatex-tab)
+	;; ([(control return)] . nil)
+	)
+  :config
+  (setq cdlatex-math-symbol-alist
+	'((?< ("\\leftarrow" "\\Leftarrow" "\\longleftarrow" "\\Longleftarrow"))
+	  (?> ("\\rightarrow" "\\Rightarrow" "\\longrightarrow" "\\Longrightarrow"))
+	  (?\\ ("\\parallel"))
+	  (?| ("\\perp"))))
+  (setq cdlatex-math-modify-alist '((?\p "\\proc" nil t nil nil)))
+  ;; Keep cdlatex from taking backtick key (this functionality is now done by aas snippets)
   (define-key cdlatex-mode-map (kbd "`") nil))
 
 ;;; setup latexmk
