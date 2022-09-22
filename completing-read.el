@@ -59,6 +59,7 @@
 	  (consult-ripgrep buffer)
 	  (consult-org-agenda buffer)
 	  (jds/smart-consult-outline-imenu buffer)
+	  (jds/consult-org-roam-and-agenda buffer)
 	  (jds/consult-ripgrep-config buffer)))
   ;; give vertico-map precedence over evil maps
   (evil-make-intercept-map vertico-map)

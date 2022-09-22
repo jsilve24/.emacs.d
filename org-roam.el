@@ -23,8 +23,24 @@
   (require 'consult-org-roam)
   (consult-org-roam-mode 1)
   :custom
-  (consult-org-roam-grep-func #'consult-ripgrep))
+  (consult-org-roam-grep-func #'consult-ripgrep)
+  )
 
+;;;###autoload
+(defun jds/consult-org-roam-and-agenda (&optional match)
+  "Like consult-org-agenda but also search org-roam directory."
+  (interactive)
+  (unless org-agenda-files
+    (user-error "No agenda files"))
+  (unless org-roam-directory
+    (user-error "org-roam-directory is not set"))
+  (let* ((files (org-agenda-files))
+	 (files (cl-union files
+			(mapcar (lambda (x) (file-name-concat org-roam-directory x))
+				(seq-remove (lambda (x) (string-match "^.#" x))
+					    (cl-remove-if (lambda (x) (member x '("." "..")))
+							  (directory-files org-roam-directory)))))))
+    (consult-org-heading match files)))
   
 
   (jds/localleader-def

@@ -310,6 +310,7 @@
 	  (jds~new-frame-or-new-window arg)
 	  (mu4e-headers-search-bookmark (mu4e-get-bookmark-query ?t)))
   "n" #'org-roam-node-find
+  "N" #'jds/consult-org-roam-and-agenda
   ";" #'org-roam-capture
   "l" #'org-store-link
   "L" #'org-super-links-store-link
@@ -379,7 +380,8 @@
 ;;; notes and org/org-roam stuff
 (jds/leader-def
   "n" '(:ignore t :which-key "notes")
-  "ns" #'consult-org-roam-search
+  "ns" #'jds/consult-org-roam-and-agenda
+  "nS" #'consult-org-roam-search
   "nf" #'consult-org-roam-file-find
   "nl" #'consult-org-roam-backlinks)
 
