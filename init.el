@@ -82,6 +82,8 @@
 ;; (load-config "languages.el")
 (load-config "references.el")
 (load-config "ssh.el")
+(load-config "org-roam.el")
+
 
 
 ;; for some reason has to be at the end to ensure 

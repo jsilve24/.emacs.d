@@ -31,8 +31,8 @@
   ;; latex highlighting
   (setq org-highlight-latex-and-related '(latex entities))
   ;; (set-face-attribute 'org-latex-and-related nil
-  ;; 		      :foreground "#51afef"
-  ;; 		      :weight 'normal)
+  ;; :foreground "#51afef"
+  ;; :weight 'normal)
 
 ;;; make org-ret follow inks
   (setq org-return-follows-link t)
@@ -40,6 +40,9 @@
 
   ;; store link to files when attaching
   (setq org-attach-store-link-p 'attached)
+
+  ;; setup org  attach directory so that I can easily refile
+  (setq org-attach-directory "~/Dropbox/org/.attach")
 
   ;; setup org-habit
   ;; (require 'org-habit)
@@ -205,7 +208,7 @@
 	  ("ca" "event with attachment" entry (file+headline "~/Dropbox/org/calendar.org" "Calendar")
 	   "* %? \n %^T\n %a")
 	  ("n" "note" entry (file+headline "~/Dropbox/org/notes.org" "Notes")
-	   "* NOTE %? :NOTE:\n %U")
+	   "* %? \n %U")
 	  ;; ("e" "email" entry (file+headline "~/Dropbox/org/mail.org" "Email")
 	  ;; "* TODO %:fromname: %a %?\nDEADLINE: %(org-insert-time-stamp (org-read-date nil t \"+2d\"))"
 	  ;; :immediate-finish t)

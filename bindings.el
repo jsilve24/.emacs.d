@@ -164,9 +164,7 @@
 ;;; other
 (jds/leader-def
   "S" #'jds/screenshot-dragon-temp-file
-  "u" #'undo-tree-visualize
-  ;; "n" jds~org-roam-leader-map
-  )
+  "u" #'undo-tree-visualize)
 
 ;;; buffers
 
@@ -267,6 +265,7 @@
   "j j"   #'dired-registers-goto
   "j d"   '((lambda () (interactive) (dired-registers-goto ?d)) :wk "downloads")
   "j o"   '((lambda () (interactive) (dired-registers-goto ?o)) :wk "org")
+  "j r"   '((lambda () (interactive) (dired-registers-goto ?r)) :wk "roam")
   "j h"   '((lambda () (interactive) (dired-registers-goto ?h)) :wk "home")
   "j c"   '((lambda () (interactive) (dired-registers-goto ?c)) :wk "config"))
 
@@ -310,6 +309,8 @@
   "M" #'(lambda (&optional arg) (interactive "P")
 	  (jds~new-frame-or-new-window arg)
 	  (mu4e-headers-search-bookmark (mu4e-get-bookmark-query ?t)))
+  "n" #'org-roam-node-find
+  ";" #'org-roam-capture
   "l" #'org-store-link
   "L" #'org-super-links-store-link
   "i" #'org-insert-link
@@ -374,6 +375,13 @@
   "os" #'jds/hydra-spotify-wrapper
   "oc" #'calendar
   "op" #'proced)
+
+;;; notes and org/org-roam stuff
+(jds/leader-def
+  "n" '(:ignore t :which-key "notes")
+  "ns" #'consult-org-roam-search
+  "nf" #'consult-org-roam-file-find
+  "nl" #'consult-org-roam-backlinks)
 
 ;;; evil bindings
 

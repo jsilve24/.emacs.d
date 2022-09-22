@@ -48,7 +48,8 @@
   (add-hook 'TeX-after-compilation-finished-functions #'TeX-revert-document-buffer)
 
   ;; texmathp should detect align(*) environments
-  (setq texmathp-tex-commands '(("align*" env-on) ("align" env-on))))
+  (setq texmathp-tex-commands '(("align*" env-on) ("align" env-on)))
+  (texmathp-compile))
 
 ;;; setup cdlatex
 

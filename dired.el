@@ -94,7 +94,8 @@ line."
   (dired-registers-store ?g "~/Dropbox/Faculty/Grants/")
   (dired-registers-store ?t "~/Dropbox/Faculty/Teaching/")
   (dired-registers-store ?p "~/Dropbox/Faculty/Presentations/")
-  (dired-registers-store ?o "~/Dropbox/org/"))
+  (dired-registers-store ?o "~/Dropbox/org/")
+  (dired-registers-store ?r "~/Dropbox/org/roam/"))
 
 
 ;;; dired history
