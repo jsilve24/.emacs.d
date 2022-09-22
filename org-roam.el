@@ -36,12 +36,10 @@
     (user-error "org-roam-directory is not set"))
   (let* ((files (org-agenda-files))
 	 (files (cl-union files
-			(mapcar (lambda (x) (file-name-concat org-roam-directory x))
-				(seq-remove (lambda (x) (string-match "^.#" x))
-					    (cl-remove-if (lambda (x) (member x '("." "..")))
-							  (directory-files org-roam-directory)))))))
+			  (directory-files-recursively org-roam-directory "\\.org$"))))
     (consult-org-heading match files)))
   
+
 
   (jds/localleader-def
     :keymaps 'org-mode-map
