@@ -23,11 +23,13 @@
     "Face for obscuring/dimming icons"
     :group 'all-the-icons-faces)
   :custom
-  (org-cite-global-bibliography '("~/Dropbox/org/references.bib"))
+  (org-cite-global-bibliography '("~/Dropbox/org/references/references.bib"))
   (org-cite-insert-processor 'citar)
   (org-cite-follow-processor 'citar)
   (org-cite-activate-processor 'citar)
-  (citar-bibliography org-cite-global-bibliography))
+  (citar-bibliography org-cite-global-bibliography)
+  :config
+  (setq citar-library-paths '("~/Dropbox/org/references/articles/")))
 
 (use-package citar-embark
   :after citar embark
@@ -49,7 +51,7 @@
   (setq ebib-preload-bib-files org-cite-global-bibliography)
   ;; don't take up full frame on startup
   (setq ebib-layout 'window
-	ebib-file-search-dirs '("~/Dropbox/org/articles/"))
+	ebib-file-search-dirs '("~/Dropbox/org/references/articles/"))
   ;; make emacs default pdf reader
   (setq ebib-file-associations
 	'(("pdf" . nil)
@@ -68,6 +70,25 @@
   :keymaps 'ebib-index-mode-map
   "N" 'jds/ebib-popup-note)
 
+
+;;; download papers ------------------------------------------------------------
+
+(use-package scihub
+  :straight (scihub :type git :host github :repo "emacs-pe/scihub.el")
+  :init
+  (setq scihub-download-directory "~/Dropbox/org/references/articles/"))
+
+;; ;;;###autoload
+;; (defun jds/download-from-scihub ()
+;;     "foo"
+;;   (interactive)
+;;   (let* ((key (ebib--get-key-at-point))
+;; 	 (doi (ebib-get-field-value "doi" key ebib--cur-db 'no-error 'unbraced)))
+;;     )
+;;   )
+
+;;; bindings -------------------------------------------------------------------
+
 (setq jds/citation-map (make-sparse-keymap))
 
 (general-define-key
@@ -85,10 +106,5 @@
 (jds/localleader-def
   :keymaps '(org-mode-map LaTeX-mode-map)
   "c" jds/citation-map)
-
-;; (use-package citar-literate
-;;   :straight (citar-literate :local-repo "~/.emacs.d/local-packages/citar-literate/")
-;;   :config
-;;   (setq citarlit-global-literate-bib "~/Dropbox/org/references.org"))
 
 

@@ -382,6 +382,7 @@
   "o" '(:ignore t :which-key "other/apps")
   "os" #'jds/hydra-spotify-wrapper
   "oc" #'calendar
+  "or" #'citar-open
   "op" #'proced
   "ob" #'ebib)
 
