@@ -53,7 +53,9 @@
   ;; make emacs default pdf reader
   (setq ebib-file-associations
 	'(("pdf" . nil)
-	  ("ps" . nil))))
+	  ("ps" . nil)))
+  ;; bigger index window at start
+  (setq ebib-index-window-size 20))
 
 ;; setup with org-roam notes
 ;;;###autoload
