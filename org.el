@@ -403,7 +403,6 @@
   "e"  #'org-export-dispatch
   "n"  #'org-narrow-to-subtree
   "N"  #'widen
-  "l"  #'org-latex-preview
   "p"  #'org-set-property
   "b"  #'org-beamer-select-environment
   "o"  #'jds/evil-ex-compress-outline

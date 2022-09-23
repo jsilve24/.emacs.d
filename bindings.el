@@ -367,7 +367,14 @@
   "g" '(:ignore t :which-key "git")
   "gg" #'magit-status
   "gt" #'git-timemachine
-  "gb" #'magit-blame)
+  "gb" #'magit-blame
+  "gB" #'magit-blame
+  "gf" #'magit-fetch
+  "gF" #'magit-pull
+  "gp" #'magit-push
+  "g@" #'forge-dispatch
+  "g%" #'magit-worktree
+  "gl" #'magit-log)
 
 ;;; apps
 
@@ -375,15 +382,16 @@
   "o" '(:ignore t :which-key "other/apps")
   "os" #'jds/hydra-spotify-wrapper
   "oc" #'calendar
-  "op" #'proced)
+  "op" #'proced
+  "ob" #'ebib)
 
 ;;; notes and org/org-roam stuff
 (jds/leader-def
-  "n" '(:ignore t :which-key "notes")
-  "ns" #'jds/consult-org-roam-and-agenda
-  "nS" #'consult-org-roam-search
-  "nf" #'consult-org-roam-file-find
-  "nl" #'consult-org-roam-backlinks)
+  "l" '(:ignore t :which-key "notes")
+  "ls" #'jds/consult-org-roam-and-agenda
+  "lS" #'consult-org-roam-search
+  "lf" #'consult-org-roam-file-find
+  "ll" #'consult-org-roam-backlinks)
 
 ;;; evil bindings
 

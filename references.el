@@ -2,9 +2,6 @@
 
 
 
-(setq jds/global-literate-bib "~/Dropbox/org/references.org")
-
-
 (use-package citar
   :after (:any latex org)
   :config
@@ -32,6 +29,11 @@
   (org-cite-activate-processor 'citar)
   (citar-bibliography org-cite-global-bibliography))
 
+(use-package citar-embark
+  :after citar embark
+  :no-require
+  :config (citar-embark-mode))
+
 ;;; setup biblio
 (use-package biblio
   :after (:any latex org))
@@ -41,50 +43,28 @@
 
 
 ;;; setup ebib -----------------------------------------------------------------
-;; (use-package ebib)
 
+(use-package ebib
+  :config
+  (setq ebib-preload-bib-files org-cite-global-bibliography)
+  ;; don't take up full frame on startup
+  (setq ebib-layout 'window
+	ebib-file-search-dirs '("~/Dropbox/org/articles/"))
+  ;; make emacs default pdf reader
+  (setq ebib-file-associations
+	'(("pdf" . nil)
+	  ("ps" . nil))))
 
-;; org-bib for literate bibtex
-;; (use-package org-bib
-;;   :straight `(org-bib :type git :host github :repo "jsilve24/org-bib-mode")
-;;   ;; :straight `(org-bib :type git :host github :repo "rougier/org-bib-mode" :branch "org-imenu")
-;;   :after (:any latex org)
-;;   :config
-;;   (setq org-bib-library-paths '("~/Dropbox/org/papers/")
-;; 	org-bib-default-library "~/Dropbox/org/references.org"
-;; 	org-bib-unsorted-header "Unsorted"
-;; 	org-bib-url-icon "|URL|"
-;; 	org-bib-doi-icon "|DOI|"
-;; 	org-bib-filename-icon "|FILE|"))
+;; setup with org-roam notes
+;;;###autoload
+(defun jds/ebib-popup-note (key)
+    (interactive (list (ebib--get-key-at-point)))
+    (orb-edit-note key))
 
-;; (use-package pdf-drop-mode
-;;   :straight (pdf-drop-mode :type git :host github :repo "rougier/pdf-drop-mode"))
-
-;; ;;;###autoload
-;; (defun jds/literate-bib-tangle-and-refresh ()
-;;   "Tangle citarlit-global-literate-bib and refresh citar."
-;;   (interactive)
-;;   (org-babel-tangle-file jds/global-literate-bib)
-;;   (citar-refresh))
-
-;; ;;;###autoload
-;; (defun jds/goto-global-org-bib ()
-;;   "Open new org-buffer for the "
-;;   (interactive)
-;;   (find-file jds/global-literate-bib))
-
-;; ;;;###autoload
-;; (defun jds/literate-bib-search ()
-;;   "Open new org-buffer for the "
-;;   (interactive)
-;;   (if (get-file-buffer jds/global-literate-bib)
-;;       nil
-;;     (progn
-;;       (find-file jds/global-literate-bib)
-;;       (bury-buffer)))
-;;   (with-current-buffer (get-file-buffer jds/global-literate-bib)
-;;     (consult-outline)))
-
+;; override ebib-popup-note to use org-roam-bibtex
+(general-def
+  :keymaps 'ebib-index-mode-map
+  "N" 'jds/ebib-popup-note)
 
 (setq jds/citation-map (make-sparse-keymap))
 

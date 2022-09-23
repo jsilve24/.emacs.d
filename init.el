@@ -97,6 +97,7 @@
 (load-config "ess.el")
 (load-config "autoloads/ess-autoloads.el")
 (load-config "stan.el")
+(load-config "ledger.el")
 
 ;;; "optional" applications
 (load-config "slack.el")

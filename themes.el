@@ -62,6 +62,8 @@
   ;; (kaolin-treemacs-theme)
   )
 
+(use-package gruvbox-theme)
+
 (use-package emacs
   :init
   (setq modus-themes-mode-line '(accented borderless)
