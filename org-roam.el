@@ -11,7 +11,7 @@
      ("r" "bibliography reference" plain "%?
 %^{author}, %^{date}"
       :target
-      (file+head "references/${citekey}.org" "#+title: ${title}\n#+date: %U\n")
+      (file+head "references/notes/${citekey}.org" "#+title: ${title}\n#+date: %U\n")
       :unnarrowed t)))
   ;; :bind (("C-c n l" . org-roam-buffer-toggle)
   ;; ("C-c n f" . org-roam-node-find)
@@ -48,12 +48,15 @@
   :after citar org-roam
   :no-require
   :config
-  (citar-org-roam-mode))
+  (citar-org-roam-mode)
+  (setq citar-org-roam-subdir "references/notes")
+  )
 
 (use-package org-roam-bibtex
   :after org-roam
   :config
-  (setq orb-roam-ref-format 'org-cite)
+  (setq orb-roam-ref-format 'org-cite
+	orb-process-file-keyword t)
   (org-roam-bibtex-mode))
 
 

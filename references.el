@@ -23,13 +23,13 @@
     "Face for obscuring/dimming icons"
     :group 'all-the-icons-faces)
   :custom
-  (org-cite-global-bibliography '("~/Dropbox/org/references/references.bib"))
+  (org-cite-global-bibliography '("~/Dropbox/org/roam/references/references.bib"))
   (org-cite-insert-processor 'citar)
   (org-cite-follow-processor 'citar)
   (org-cite-activate-processor 'citar)
   (citar-bibliography org-cite-global-bibliography)
   :config
-  (setq citar-library-paths '("~/Dropbox/org/references/articles/")))
+  (setq citar-library-paths '("~/Dropbox/org/roam/references/articles/")))
 
 (use-package citar-embark
   :after citar embark
@@ -51,7 +51,7 @@
   (setq ebib-preload-bib-files org-cite-global-bibliography)
   ;; don't take up full frame on startup
   (setq ebib-layout 'window
-	ebib-file-search-dirs '("~/Dropbox/org/references/articles/"))
+	ebib-file-search-dirs '("~/Dropbox/org/roam/references/articles/"))
   ;; make emacs default pdf reader
   (setq ebib-file-associations
 	'(("pdf" . nil)
@@ -63,7 +63,9 @@
 ;;;###autoload
 (defun jds/ebib-popup-note (key)
     (interactive (list (ebib--get-key-at-point)))
-    (orb-edit-note key))
+    (citar-org-roam--create-capture-note key key)
+    ;; (orb-edit-note key) ;; didn't like this template, gave terrible file names
+    )
 
 ;; override ebib-popup-note to use org-roam-bibtex
 (general-def
@@ -76,7 +78,7 @@
 (use-package scihub
   :straight (scihub :type git :host github :repo "emacs-pe/scihub.el")
   :init
-  (setq scihub-download-directory "~/Dropbox/org/references/articles/"))
+  (setq scihub-download-directory "~/Dropbox/org/roam/references/articles/"))
 
 ;; ;;;###autoload
 ;; (defun jds/download-from-scihub ()

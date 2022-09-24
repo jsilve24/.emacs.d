@@ -165,7 +165,9 @@
 
 (use-package bibtex-completion
   :straight t
-  :defer t)
+  :defer t
+  :config
+  (setq bibtex-completion-bibliography '("~/Dropbox/org/roam/references/references.bib")))
 
 
 ;;; setup reftex corfu interface
