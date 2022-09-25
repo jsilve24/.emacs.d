@@ -108,13 +108,19 @@
   (setq scihub-download-directory "~/Dropbox/org/roam/references/articles/"))
 
 ;; ;;;###autoload
-;; (defun jds/download-from-scihub ()
-;;     "foo"
-;;   (interactive)
-;;   (let* ((key (ebib--get-key-at-point))
-;; 	 (doi (ebib-get-field-value "doi" key ebib--cur-db 'no-error 'unbraced)))
-;;     )
-;;   )
+(defun jds/download-from-scihub ()
+    "foo"
+  (interactive)
+  (let* ((key (ebib--get-key-at-point))
+	 (doi (ebib-get-field-value "doi" key ebib--cur-db 'no-error 'unbraced))
+	 (filename (concat key ".pdf"))
+	 (filepath (concat scihub-download-directory filename)))
+    (scihub doi filepath)
+    (ebib-set-field-value "file" filename key ebib--cur-db)
+    (ebib--set-modified t ebib--cur-db t (seq-filter (lambda (dependent)
+                                                           (ebib-db-has-key key dependent))
+                                                     (ebib--list-dependents ebib--cur-db)))
+    (ebib--update-entry-buffer)))
 
 ;;; bindings -------------------------------------------------------------------
 

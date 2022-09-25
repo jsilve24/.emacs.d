@@ -300,8 +300,6 @@
   "z" #'zoxide-find-file
   "Z" #'zoxide-cd
   "c" #'jds/mu4e-compose-goto-to
-  ;; "M" #'jds/open-mu4e-new-frame
-  ;; "m" #'mu4e
   "g" #'magit-status
   "m" #'(lambda () (interactive)
 	  (mu4e-headers-search-bookmark
@@ -310,7 +308,7 @@
 	  (jds~new-frame-or-new-window arg)
 	  (mu4e-headers-search-bookmark (mu4e-get-bookmark-query ?t)))
   "n" #'org-roam-node-find
-  "N" #'jds/consult-org-roam-and-agenda
+  "N" #'jds/consult-org-roam-and-agenda-search-headlines
   ";" #'org-roam-capture
   "l" #'org-store-link
   "L" #'org-super-links-store-link
@@ -318,7 +316,6 @@
   "I" #'org-super-links-insert-link
   "o" #'jds/org-super-links-link-or-delete
   "O" #'org-super-links-quick-insert-drawer-link
-  ;; "t" #'vterm
   "t" #'jds/multi-vterm-same-window
   "T" #'jds/multi-vterm-new-window-or-frame
   "f" #'jds/org-agenda-show-custom-day
@@ -389,7 +386,7 @@
 ;;; notes and org/org-roam stuff
 (jds/leader-def
   "l" '(:ignore t :which-key "notes")
-  "ls" #'jds/consult-org-roam-and-agenda
+  "ls" #'jds/jds/consult-org-roam-and-agenda-search-headlines
   "lS" #'consult-org-roam-search
   "lf" #'consult-org-roam-file-find
   "ll" #'consult-org-roam-backlinks)

@@ -32,17 +32,28 @@
   (consult-org-roam-grep-func #'consult-ripgrep))
 
 ;;; ###autoload
-(defun jds/consult-org-roam-and-agenda (&optional match)
-  "Like consult-org-agenda but also search org-roam directory."
+;; (defun jds/consult-org-roam-and-agenda (&optional match)
+;;   "Like consult-org-agenda but also search org-roam directory."
+;;   (interactive)
+;;   (unless org-agenda-files
+;;     (user-error "No agenda files"))
+;;   (unless org-roam-directory
+;;     (user-error "org-roam-directory is not set"))
+;;   (let* ((files (org-agenda-files))
+;; 	 (files (cl-union files
+;; 			  (directory-files-recursively org-roam-directory "\\.org$"))))
+;;     (consult-org-heading match files)))
+
+;;;###autoload
+(defun jds/consult-org-roam-and-agenda-search-headlines (&optional initial)
+  "Run Ripgrep on agenda-files plus org-files in org-roam-directory but isolate search to headlines."
   (interactive)
-  (unless org-agenda-files
-    (user-error "No agenda files"))
-  (unless org-roam-directory
-    (user-error "org-roam-directory is not set"))
-  (let* ((files (org-agenda-files))
-	 (files (cl-union files
-			  (directory-files-recursively org-roam-directory "\\.org$"))))
-    (consult-org-heading match files)))
+  (let* ((heading-regexp "^*+\\  ")
+	 (consult-ripgrep-args "rg --null --line-buffered --color=never --max-columns=1000 --path-separator /   --smart-case --no-heading --line-number -g \"*.org\" .")
+	 )
+    (if initial
+	(funcall consult-org-roam-grep-func "~/Dropbox/org/" (format "%s" (concat heading-regexp initial)))
+      (funcall consult-org-roam-grep-func "~/Dropbox/org/"  (format "%s" heading-regexp)))))
 
 (use-package citar-org-roam
   :after citar org-roam
