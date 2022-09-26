@@ -475,6 +475,21 @@ targets."
   (embark-collect-mode . consult-preview-at-point-mode))
 
 
+(use-package consult-dir
+  :ensure t
+  :bind (;; ("C-x C-d" . consult-dir)
+         :map minibuffer-local-completion-map
+         ("C-x C-d" . consult-dir)
+         ;; ("C-x C-j" . consult-dir-jump-file)
+	 ))
+
+
+(use-package consult-dir
+  :ensure t
+  :config
+  (setq consult-dir-project-list-function #'consult-dir-projectile-dirs))
+
+
 (straight-use-package 'helpful)
 (use-package helpful
   ;; a better *help* buffer
