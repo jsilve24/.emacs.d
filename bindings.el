@@ -386,7 +386,8 @@
 ;;; notes and org/org-roam stuff
 (jds/leader-def
   "l" '(:ignore t :which-key "notes")
-  "ls" #'jds/jds/consult-org-roam-and-agenda-search-headlines
+  "ls" #'jds/consult-org-roam-and-agenda-search-headlines
+  "ln" #'org-roam-node-find
   "lS" #'consult-org-roam-search
   "lf" #'consult-org-roam-file-find
   "ll" #'consult-org-roam-backlinks)
