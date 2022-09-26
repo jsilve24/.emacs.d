@@ -41,7 +41,12 @@
   :after (:any latex org))
 
 (use-package zotra
-  :straight (zotra :type git :host github :repo "mpedramfar/zotra"))
+  :straight (zotra :type git :host github :repo "mpedramfar/zotra")
+  :config
+  (setq zotra-default-bibliography "/home/jds6696/Dropbox/org/roam/references/references.bib")
+  (add-hook 'zotra-after-add-entry-hook (lambda ()
+					  (bibtex-clean-entry t)
+					  (bibtex-sort-buffer))))
 
 
 ;;; setup ebib -----------------------------------------------------------------
@@ -98,6 +103,14 @@
 (general-def
   :keymaps 'ebib-index-mode-map
   "N" 'jds/ebib-popup-note)
+
+;; configure bibtex-generate-autokey
+(use-package emacs
+  :config
+  (setq bibtex-autokey-year-length 4
+	bibtex-autokey-titlewords 1
+	bibtex-autokey-titleword-separator ""
+	bibtex-autokey-year-title-separator ""))
 
 
 ;;; download papers ------------------------------------------------------------
