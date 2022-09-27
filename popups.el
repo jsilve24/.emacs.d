@@ -12,8 +12,8 @@
           "\\*Async Shell Command\\*"
 	  "\\*mu4e-update\\*"
 	  "\\*Warnings\\*"
-          help-mode
-	  helpful-mode
+          ;; help-mode
+	  ;; helpful-mode
           compilation-mode))
   (popper-mode +1)
   (popper-echo-mode +1)
