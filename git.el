@@ -54,7 +54,8 @@
   :keymaps 'forge-topic-mode-map
   "r" #'code-review-forge-pr-at-point)
 
-(use-package git-timemachine)
+(use-package git-timemachine
+  :straight (git-timemachine :repo "https://codeberg.org/pidu/git-timemachine.git"))
 
 
 (provide 'git)
