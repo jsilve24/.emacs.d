@@ -205,7 +205,8 @@ escape."
     ";plot" (jds~yas-lambda-expand-snippet-by-key "org-beamer-r-plot")
     ";width" (jds~yas-lambda-expand "#+ATTR_LATEX: :width ${1:0.9\\linewidth}")
     ";alatex" (jds~yas-lambda-expand "#+ATTR_LATEX: $0")
-    ";pause" "#+BEAMER: \\pause")
+    ";pause" "#+BEAMER: \\pause"
+    ";overlay" "#+ATTR_BEAMER: :overlay <+->")
 
 
   ;; elisp snippets
