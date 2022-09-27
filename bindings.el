@@ -371,7 +371,8 @@
   "gp" #'magit-push
   "g@" #'forge-dispatch
   "g%" #'magit-worktree
-  "gl" #'magit-log)
+  "gl" #'magit-log
+  "gr" #'browse-at-remote)
 
 ;;; apps
 

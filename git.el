@@ -45,6 +45,8 @@
 ;; for easier handling of pull-requests on github
 (use-package code-review)
 
+(use-package browse-at-remote)
+
 (general-define-key
  :keymaps 'code-review-mode-map
  :states 'n
