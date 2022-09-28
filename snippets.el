@@ -55,8 +55,8 @@ escape."
   (defmacro jds~aas-setup-insert-math (mode)
     `(progn (aas-set-snippets ,mode
 	      :cond #'(lambda () (not (texmathp)))
-	      ";m" (jds~yas-lambda-expand "\\\\($1\\\\)")
-	      ";M" (jds~yas-lambda-expand "\\\[$1\\\]")
+	      ";m" (jds~yas-lambda-expand "\\\\( $1 \\\\)")
+	      ";M" (jds~yas-lambda-expand "\\\[ $1 \\\]")
 	      ";begin" (jds~yas-lambda-expand "\\begin\\{$1\\}\n$0\n\\end\\{$1\\}")
 	      ";align" (jds~yas-lambda-expand "\\begin\\{align\\}\n$0\n\\end\\{align\\}")
 	      ";cite" (jds~yas-lambda-expand  "\\cite\\{$0\\}")
@@ -197,6 +197,7 @@ escape."
     ";sb" (jds~yas-lambda-expand "#+begin_src bibtex\n$0\n#+end_src")
     ;; https://orgmode.org/worg/org-contrib/babel/languages/ob-doc-stan.html
     ";sstan" (jds~yas-lambda-expand "#+name: ${1:model-stan}\n#+begin_src stan :file ${2:model.stan}\n$0\n#+end_src\n\n #+RESULTS: $1\nfile:$2")
+    ";scode" (jds~yas-lambda-expand "#+begin_src ${1:R} :eval none\n $0\n#+end_src")
     ";name" (jds~yas-lambda-expand "#+name: $0")
     ";center" (jds~yas-lambda-expand "#+begin_center\n$0\n#+end_center")
     ";header" (jds~yas-lambda-expand-snippet-by-key "org-header-for-export")
