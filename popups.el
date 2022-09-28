@@ -12,14 +12,15 @@
           "\\*Async Shell Command\\*"
 	  "\\*mu4e-update\\*"
 	  "\\*Warnings\\*"
-          ;; help-mode
-	  ;; helpful-mode
+          help-mode
+	  helpful-mode
           compilation-mode))
   (popper-mode +1)
   (popper-echo-mode +1)
   :config
   (setq popper-display-control t) ; default is t
-  (setq popper-display-function #'display-buffer-below-selected)
+  ;; (setq popper-display-function #'display-buffer-below-selected)
+  (setq popper-display-function #'popper-select-popup-at-bottom)
   (setq popper-window-height 22))         
 
 (provide 'popups)
