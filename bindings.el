@@ -308,7 +308,7 @@
 	  (jds~new-frame-or-new-window arg)
 	  (mu4e-headers-search-bookmark (mu4e-get-bookmark-query ?t)))
   "n" #'org-roam-node-find
-  "N" #'jds/consult-org-roam-and-agenda-search-headlines
+  ;; "N" #'jds/consult-org-roam-and-agenda-search-headlines
   ";" #'org-roam-capture
   "l" #'org-store-link
   "L" #'org-super-links-store-link
@@ -321,8 +321,10 @@
   "f" #'jds/org-agenda-show-custom-day
   "F" #'jds/open-custom-day-agenda-new-frame
   "p" #'org-agenda
-  "s" #'consult-org-agenda
-  "S" #'org-search-view
+  ;; "s" #'consult-org-agenda
+  ;; "S" #'org-search-view
+  "s" #'jds/consult-ripgrep-all-org-headlines 
+  "S" #'jds/consult-ripgrep-all-org
   "y" (jds~start-slack-function slack-select-rooms)
   "Y" (jds~start-slack-function slack-select-unread-rooms)
   "k" #'jds/help-thing-at-point
@@ -330,8 +332,7 @@
   "D" #'dired-jump-other-window
   ;; "d" #'jds/dired-jump-reuse-dired
   ;; "d" #'dired-sidebar-toggle-sidebar
-  ;; "D" #'jds/dired-jump-and-kill-buffer
-  )
+  ) ;; "D" #'jds/dired-jump-and-kill-buffer
 
 ;;; faster editing in text buffers
 

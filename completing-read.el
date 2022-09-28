@@ -511,6 +511,27 @@ targets."
   :commands wgrep-change-to-wgrep-mode
   :config (setq wgrep-auto-save-buffer t))
 
+;;; functions to search all org
+
+;;;###autoload
+(defun jds/consult-ripgrep-all-org (&optional initial)
+    "Run consult ripgrep on all org files in ~/Dropbox/org/"
+  (interactive)
+  (let ((dir "~/Dropbox/org/")
+	(consult-ripgrep-args "rg --null --line-buffered --color=never --max-columns=1000 --path-separator /   --smart-case --no-heading --line-number -g \"*.org\" ."))
+    (if initial
+	(funcall consult-org-roam-grep-func dir (format "%s" initial))
+      (funcall consult-org-roam-grep-func dir))))
+
+;;;###autoload
+(defun jds/consult-ripgrep-all-org-headlines (&optional initial)
+  "Run Ripgrep on agenda-files plus org-files in org-roam-directory but isolate search to headlines."
+  (interactive)
+  (let* ((heading-regexp "^*+\\  "))
+    (if initial
+	(jds/consult-ripgrep-all-org (format "%s" (concat heading-regexp initial)))
+      (jds/consult-ripgrep-all-org (format "%s" heading-regexp)))))
+
 
 ;;; fluff
 (straight-use-package 'all-the-icons-completion)
