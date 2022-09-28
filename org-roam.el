@@ -4,23 +4,25 @@
   :custom
   (org-roam-directory "~/Dropbox/org/roam")
   ;; (org-roam-complete-everywhere t)
-  (setq org-roam-capture-templates
-   '(("d" "default" plain "%?"
-      :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+date: %U\n")
-      :unnarrowed t)
-     ("r" "bibliography reference" plain "%?
-%^{author}, %^{date}"
-      :target
-      (file+head "references/notes/${citekey}.org" "#+title: ${title}\n#+date: %U\n")
-      :unnarrowed t)))
   ;; :bind (("C-c n l" . org-roam-buffer-toggle)
   ;; ("C-c n f" . org-roam-node-find)
   ;; ("C-c n i" . org-roam-node-insert))
   :init
   (setq org-roam-v2-ack t)
   :config
+  (setq org-roam-capture-templates
+	'(("d" "default" plain "%?"
+	   :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+date: %U\n")
+	   :unnarrowed t)
+	  ("l" "lecturenotes" plain "%?"
+	   :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: %u ${title}\n#+date: %U\n#+filetags: :lecturenotes:\n")
+	   :unnarrowed t)
+	  ("r" "bibliography reference" plain "%?
+%^{author}, %^{date}"
+	   :target
+	   (file+head "references/notes/${citekey}.org" "#+title: ${title}\n#+date: %U\n")
+	   :unnarrowed t)))
   (org-roam-setup))
-
 
 
 (use-package consult-org-roam
