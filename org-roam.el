@@ -16,7 +16,8 @@
 	   :unnarrowed t)
 	  ("l" "lecturenotes" plain "%?"
 	   :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: %u ${title}\n#+date: %U\n#+filetags: :lecturenotes:\n")
-	   :unnarrowed t)
+	   :unnarrowed t
+	   :jump-to-captured t)
 	  ("r" "bibliography reference" plain "%?
 %^{author}, %^{date}"
 	   :target
