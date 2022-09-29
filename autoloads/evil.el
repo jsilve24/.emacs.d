@@ -56,7 +56,7 @@ the current state and point position."
     (if visual-state
 	(progn
 	  (evil-visual-restore)
-	  (evil-ex "s/\\+ //g"))
+	  (evil-ex "'<,'>s/\\+ //g"))
       (evil-ex "%s/\\+ //g"))))
 
 
