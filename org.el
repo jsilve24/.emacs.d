@@ -406,7 +406,8 @@
   "p"  #'org-set-property
   "b"  #'org-beamer-select-environment
   "o"  #'jds/evil-ex-compress-outline
-  ","  #'jds/super-link-at-point-capture)
+  ","  #'jds/super-link-at-point-capture
+  "i"  #'org-insert-structure-template)
 
 (jds/localleader-def
   :keymaps 'org-beamer-mode-map
