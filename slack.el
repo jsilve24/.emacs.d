@@ -66,6 +66,18 @@ mention-count)) (channel . (has-unreads . mention-count)))))"
   ;; (setq lui-completion-function 'company-complete)
   )
 
+;; quick reactions with thumbs up
+
+;;;###autoload
+(defun jds/slack-message-add-thumbsup ()
+  (interactive)
+  (slack-if-let* ((buf slack-current-buffer)
+                  ;; (team (slack-buffer-team buf))
+                  (reaction "+1"))
+      (slack-buffer-add-reaction-to-message buf
+                                            reaction
+                                            (slack-get-ts))))
+
 (use-package ol-emacs-slack
   :straight (ol-emacs-slack :type git :host github :repo "ag91/ol-emacs-slack"))
 
@@ -78,6 +90,7 @@ mention-count)) (channel . (has-unreads . mention-count)))))"
   :keymaps 'slack-mode-map
   :state 'normal
   "d" 'slack-buffer-kill
+  "+"  'jds/slack-message-add-thumbsup
   "rr" 'slack-message-add-reaction
   "rR" 'slack-message-remove-reaction
   "rs" 'slack-message-show-reaction-users
