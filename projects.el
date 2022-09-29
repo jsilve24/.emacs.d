@@ -27,6 +27,9 @@
   :config
   (projectile-mode +1)
 
+  (setq projectile-indexing-method 'hybrid
+	projectile-globally-ignored-file-suffixes '("pygtex" "pygstyle" "fls" "aux" "synctex.gz" "fdb_latexmk" "bbl"))
+  
   ;; (setq projectile-other-file-alist
   ;; 	(append projectile-other-file-alist
   ;; 		'(("Rmd" "pdf" "html")
