@@ -1,8 +1,8 @@
 ;;; ess.el ---  R setup -*- lexical-binding: t; -*-
 
 ;; setup projectile
-(with-eval-after-load 'projectile
-  (add-to-list 'projectile-project-root-files "DESCRIPTION"))
+;; (with-eval-after-load 'projectile
+;;   (add-to-list 'projectile-project-root-files "DESCRIPTION"))
 
 ;;; main ess setup
 (use-package ess

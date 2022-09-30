@@ -24,7 +24,7 @@
   :straight (zoxide :type git :host gitlab :repo "Vonfry/zoxide.el" :branch "master")
   :hook
   ((find-file . zoxide-add)
-   (projectile-after-switch-project . zoxide-add)
+   ;; (projectile-after-switch-project . zoxide-add)
    (dired-after-readin . zoxide-add))
   :config
   ;; Needed to add the expand-file-name to below to get it working well 
@@ -80,7 +80,9 @@
   "Recursive search for file in personal config directory."
   (interactive)
   (let ((default-directory user-emacs-directory))
-    (projectile-find-file)))
+    (project-find-file)
+    ;; (projectile-find-file)
+    ))
 
 
 ;; ;;;###autoload

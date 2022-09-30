@@ -5,6 +5,7 @@
 
 (use-package ibuffer-projectile
   :after ibuffer
+  :disabled t
   :ensure t
   :config
   (add-hook 'ibuffer-hook

@@ -28,6 +28,7 @@
   :config
   (add-to-list 'project-find-functions #'project-rootfile-try-detect t)
   (setq project-rootfile-list `(,@project-rootfile-list
+				"DESCRIPTION"
 				".projectile")))
 
 ;;;###autoload
