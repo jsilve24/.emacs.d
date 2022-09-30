@@ -398,7 +398,7 @@
   "er" #'eglot-rename
   "ef" #'eglot-format
   "ea" #'eglot-code-actions
-  "ee" #'consult-eglot
+  "ee" #'consult-eglot-symbols
   "eh" #'eldoc
   "em" #'consult-flymake)
 
@@ -501,7 +501,9 @@
  "zD"  #'xref-find-definitions-other-frame
  "zs"  #'xref-find-references
  "zl"  #'evil-lion-left
- "zL"  #'evil-lion-right)
+ "zL"  #'evil-lion-right
+ "zn"  #'flymake-goto-next-error
+ "zN"  #'flymake-goto-prev-error)
 
 (general-define-key
  :keymaps 'org-mode-map
