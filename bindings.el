@@ -9,7 +9,7 @@
   "/" #'consult-ripgrep
   "?" #'affe-grep
   ";" #'pp-eval-expression
-  "." #'consult-projectile
+  "." #'consult-project-extra-find
   "\`" #'evil-switch-to-windows-last-buffer
   "-"  #'vertico-repeat-last
   "SPC" #'consult-buffer
@@ -98,14 +98,11 @@
   "fZ" #'zoxide-cd
   "fc" #'jds/open-config
   "fC" #'jds/find-file-config
-  "fk" #'projectile-kill-buffers
-  "fp" #'consult-projectile
-  "ft" #'projectile-run-vterm
-  "fP" #'jds/find-file-other-project
+  "fk" #'project-kill-buffers
+  "fp" #'consult-project-extra-find
+  "fP" #'consult-project-extra-find-other-window
   "fo" #'ruled-switch-buffer
-  "fO" #'ruled-switch-buffer-other-window
-  "fi" #'projectile-find-tag)
-
+  "fO" #'ruled-switch-buffer-other-window)
 
 ;;; help bindings
 (jds/leader-def
@@ -393,6 +390,17 @@
   "lS" #'consult-org-roam-search
   "lf" #'consult-org-roam-file-find
   "ll" #'consult-org-roam-backlinks)
+
+
+;; eglot/lsp bindings
+(jds/leader-def
+  "e" '(:ignore t :which-key "LSP")
+  "er" #'eglot-rename
+  "ef" #'eglot-format
+  "ea" #'eglot-code-actions
+  "ee" #'consult-eglot
+  "eh" #'eldoc
+  "em" #'consult-flymake)
 
 ;;; evil bindings
 

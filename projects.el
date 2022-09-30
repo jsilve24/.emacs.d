@@ -1,28 +1,7 @@
 ;;; projects.el --- projectile related config -*- lexical-binding: t; -*-
-;;
-;; Copyright (C) 2021 Justin Silverman
-;;
-;; Author: Justin Silverman <https://github.com/jsilve24>
-;; Maintainer: Justin Silverman <jsilve24@gmail.com>
-;; Created: October 22, 2021
-;; Modified: October 22, 2021
-;; Version: 0.0.1
-;; Keywords: abbrev bib c calendar comm convenience data docs emulations extensions faces files frames games hardware help hypermedia i18n internal languages lisp local maint mail matching mouse multimedia news outlines processes terminals tex tools unix vc wp
-;; Homepage: https://github.com/jsilve24/projects
-;; Package-Requires: ((emacs "24.3"))
-;;
-;; This file is not part of GNU Emacs.
-;;
-;;; Commentary:
-;;
-;;  projectile related config
-;;
-;;; Code:
 
-;;; setup consult-projectile
-
-(straight-use-package 'projectile)
 (use-package projectile
+  :disabled t
   :diminish projectile-mode
   :config
   (projectile-mode +1)
@@ -38,8 +17,26 @@
 
 
 (use-package consult-projectile
+  :disabled t
   :straight (consult-projectile :type git :host gitlab :repo "OlMon/consult-projectile" :branch "master"))
 
+(use-package project)
+
+(use-package consult-project-extra)
+
+(use-package project-rootfile
+  :config
+  (add-to-list 'project-find-functions #'project-rootfile-try-detect t)
+  (setq project-rootfile-list `(,@project-rootfile-list
+				".projectile")))
+
+;;;###autoload
+(defun jds/remember-project ()
+    "Add current project to known projects list."
+  (interactive)
+  (if (not (project-current))
+      (message "Not in recognized project.")
+    (project-remember-project (project-current))))
 
 ;;; better switch to other file (simpler at least) -----------------------------
 

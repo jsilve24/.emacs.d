@@ -83,13 +83,13 @@
     (projectile-find-file)))
 
 
-;;;###autoload
-(defun jds/find-file-other-project ()
-  "Recursive search for file in a different project."
-  (interactive)
-  (let ((default-directory (completing-read "Project to search:"
-                    (projectile-relevant-known-projects))))
-    (projectile-find-file)))
+;; ;;;###autoload
+;; (defun jds/find-file-other-project ()
+;;   "Recursive search for file in a different project."
+;;   (interactive)
+;;   (let ((default-directory (completing-read "Project to search:"
+;;                     (projectile-relevant-known-projects))))
+;;     (projectile-find-file)))
 
 
 

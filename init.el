@@ -83,6 +83,7 @@
 (load-config "references.el")
 (load-config "ssh.el")
 (load-config "org-roam.el")
+(load-config "lsp.el")
 
 
 
