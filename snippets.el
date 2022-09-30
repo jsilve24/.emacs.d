@@ -196,9 +196,10 @@ escape."
     ";sr" (jds~yas-lambda-expand "#+begin_src R :exports ${1:$$(yas-choose-value '(\"both\" \"code\" \"results\" \"none\"))} :session \"*R*\" \n$0\n#+end_src")
     ";sb" (jds~yas-lambda-expand "#+begin_src bibtex\n$0\n#+end_src")
     ;; https://orgmode.org/worg/org-contrib/babel/languages/ob-doc-stan.html
-    ";sstan" (jds~yas-lambda-expand "#+name: ${1:model-stan}\n#+begin_src stan :file ${2:model.stan}\n$0\n#+end_src\n\n #+RESULTS: $1\nfile:$2")
+    ";sstan" (jds~yas-lambda-expand "#+name: ${1:model-stan}\n#+begin_src stan :file ${2:model.stan}\n$0\n#+end_src\n\n #+RESULTS: $1")
     ";scode" (jds~yas-lambda-expand "#+begin_src ${1:R} :eval none\n $0\n#+end_src")
     ";name" (jds~yas-lambda-expand "#+name: $0")
+    ";results" (jds~yas-lambda-expand "#+RESULTS: $0")
     ";center" (jds~yas-lambda-expand "#+begin_center\n$0\n#+end_center")
     ";header" (jds~yas-lambda-expand-snippet-by-key "org-header-for-export")
     ";beamer" (jds~yas-lambda-expand-snippet-by-key "org-beamer-template")
