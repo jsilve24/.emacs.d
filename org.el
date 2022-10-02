@@ -375,7 +375,8 @@
   "b" #'org-beamer-select-environment
   "s" #'org-sparse-tree
   "S" #'org-screenshot-take
-  "a" #'org-attach
+  ;; "a" #'org-attach
+  "a" (jds~roam-exclude-dwim (org-attach))
   "q" #'org-set-tags-command
   "d" '(:ignore t :wk "date")
   "dd" #'org-deadline

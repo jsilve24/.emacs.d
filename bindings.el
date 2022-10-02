@@ -307,12 +307,13 @@
   "n" #'org-roam-node-find
   ;; "N" #'jds/consult-org-roam-and-agenda-search-headlines
   ";" #'org-roam-capture
-  "l" #'org-store-link
-  "L" #'org-super-links-store-link
+  ;; "l" #'org-store-link
+  "l" (jds~roam-exclude-dwim (org-store-link nil t))
+  ;; "L" #'org-super-links-store-link
   "i" #'org-insert-link
-  "I" #'org-super-links-insert-link
-  "o" #'jds/org-super-links-link-or-delete
-  "O" #'org-super-links-quick-insert-drawer-link
+  ;; "I" #'org-super-links-insert-link
+  ;; "o" #'jds/org-super-links-link-or-delete
+  ;; "O" #'org-super-links-quick-insert-drawer-link
   "t" #'jds/multi-vterm-same-window
   "T" #'jds/multi-vterm-new-window-or-frame
   "f" #'jds/org-agenda-show-custom-day
