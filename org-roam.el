@@ -21,10 +21,33 @@
 	  ("r" "bibliography reference" plain "%?
 %^{author}, %^{date}"
 	   :target
-	   (file+head "references/notes/${citekey}.org" "#+title: ${title}\n#+date: %U\n")
+	   (file+head "references/notes/${citekey}.org" "#+title: ${title}\n")
 	   :unnarrowed t)))
   (org-roam-setup))
 
+;;;###autoload
+(defun jds~org-move-beyond-header ()
+    "Move point down a line until at a line that doesn't start with \"#+\"."
+    (while (string-match "^#\+" (thing-at-point 'line))
+      (next-line)))
+
+;; the follow is heavily inspired by org-super-links-insert-relatedlink
+;;;###autoload
+(defun jds/org-roam-insert-quick-link (&optional filter-fn &key templates info)
+    "Insert org-roam-node Link into RELATED drawer. See org-roam-node-insert for optional argument documentation."
+    (interactive)
+    (save-excursion
+      (let* ((node (org-roam-node-at-point 'assert)))
+	(goto-char (org-roam-node-point node))
+	(org-roam-end-of-meta-data)
+	(jds~org-move-beyond-header)
+	(org-insert-drawer nil "RELATED")
+	(insert "- ")
+	(org-roam-node-insert filter-fn :templates templates  :info info))))
+
+;; tools
+;; org-roam-end-of-meta-data
+;; org-roam-up-heading-or-point-min
 
 (use-package consult-org-roam
   :ensure t
@@ -53,8 +76,7 @@
   :no-require
   :config
   (citar-org-roam-mode)
-  (setq citar-org-roam-subdir "references/notes")
-  )
+  (setq citar-org-roam-subdir "references/notes"))
 
 (use-package org-roam-bibtex
   :after org-roam
@@ -69,6 +91,7 @@
   "ll" #'org-roam-buffer-toggle
   "lf" #'org-roam-node-find
   "li" #'org-roam-node-insert
+  "lI" #'jds/org-roam-insert-quick-link
   "l," #'org-roam-capture
   "lr" #'org-roam-refile
   "lR" #'org-roam-link-replace-all
