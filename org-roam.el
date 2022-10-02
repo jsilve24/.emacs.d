@@ -24,6 +24,10 @@
 	   (file+head "references/notes/${citekey}.org" "#+title: ${title}\n")
 	   :unnarrowed t)))
 
+  ;; get tags when searching
+  ;; If you're using a vertical completion framework, you might want a more informative completion interface
+  (setq org-roam-node-display-template (concat "${title:*} " (propertize "${tags:30}" 'face 'org-tag)))
+
   ;; exclude from database all headlines with tag "ROAM_EXCLUDE"
   (setq org-roam-db-node-include-function
 	(lambda ()
@@ -43,16 +47,16 @@
 	       inroam
 	       include
 	       (not nodep))
-	  (progn 
+	  (progn
 	    (org-roam-tag-add '("ROAM_EXCLUDE"))))))
 
   (advice-add 'org-store-link :around 'jds~org-store-link-advice)
 
-  ;; keep this advice from applying to 
+  ;; keep this advice from applying to
   (defun jds~org-roam-node-insert-advice (orig-func &rest args)
-      "Don't apply store-link advice above when purposefullly creating nodes."
-      (let ((org-roam-add-exclude-tag-on-store-link nil))
-	(apply orig-func args)))
+    "Don't apply store-link advice above when purposefullly creating nodes."
+    (let ((org-roam-add-exclude-tag-on-store-link nil))
+      (apply orig-func args)))
   (advice-add 'org-roam-node-insert :around 'jds~org-roam-node-insert-advice)
 
   (org-roam-setup))
@@ -77,6 +81,11 @@
 	(insert "- ")
 	(org-roam-node-insert filter-fn :templates templates  :info info))))
 
+;;;###autoload
+(defun jds/org-roam-exclude-node ()
+  "Add tag ROAM_EXCLUDE to node."
+  (interactive)
+  (org-roam-tag-add '("ROAM_EXCLUDE")))
 
 
 ;; tools
@@ -132,6 +141,7 @@
   "la" #'org-roam-alias-add
   "lA" #'org-roam-alias-remove
   "lt" #'org-roam-tag-add
+  "le" #'jds/org-roam-exclude-node
   "lT" #'org-roam-tag-remove
   "lo" #'org-roam-ref-add
   "lO" #'org-roam-ref-remove)
