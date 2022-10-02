@@ -303,8 +303,17 @@
 		    (not nodep))
 	       (org-roam-tag-add '("ROAM_EXCLUDE")))))))
 
+
+;;;###autoload
+(defun jds/consult-org-agenda-or-ripgrep-all-headlines (&optional arg)
+  "Run consult-org-agenda or with prefix, run jds/consult-org-agenda-or-ripgrep-all-headlines."
+  (interactive "P")
+  (if arg
+      (jds/consult-ripgrep-all-org-headlines)
+    (consult-org-agenda)))
+
 (jds/sub-leader-def
-  "," #'org-capture  ;; q "new"
+  "," #'org-capture   ;; q "new"
   "C-," #'org-capture ;; q "new"
   ;; "<" #'org-capture-goto-target ;; new and follow
   ">" #'org-refile-goto-last-stored
@@ -333,10 +342,7 @@
   "f" #'jds/org-agenda-show-custom-day
   "F" #'jds/open-custom-day-agenda-new-frame
   "p" #'org-agenda
-  "s" (lambda (&optional arg) (interactive "P")
-	(if arg
-	    (jds/consult-ripgrep-all-org-headlines)
-	  (consult-org-agenda)))
+  "s" #'jds/consult-org-agenda-or-ripgrep-all-headlines
   ;; "s" #'consult-org-agenda
   ;; "S" #'org-search-view
   ;; "s" #'jds/consult-ripgrep-all-org-headlines
