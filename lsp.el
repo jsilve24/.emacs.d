@@ -2,7 +2,7 @@
 
 
 (use-package eglot
-  :hook ((latex-mode . eglot-ensure)))
+  :hook (latex-mode . eglot-ensure))
 
 
 (use-package consult-eglot)
