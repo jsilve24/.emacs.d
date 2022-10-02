@@ -1,25 +1,4 @@
 ;;; completing-read.el --- vertico and co -*- lexical-binding: t; -*-
-;;
-;; Copyright (C) 2021 Justin Silverman
-;;
-;; Author: Justin Silverman <https://github.com/jsilve24>
-;; Maintainer: Justin Silverman <jds6696@psu.edu>
-;; Created: October 21, 2021
-;; Modified: October 21, 2021
-;; Version: 0.0.1
-;; Keywords: abbrev bib c calendar comm convenience data docs emulations extensions faces files frames games hardware help hypermedia i18n internal languages lisp local maint mail matching mouse multimedia news outlines processes terminals tex tools unix vc wp
-;; Homepage: https://github.com/jsilve24/completing-read
-;; Package-Requires: ((emacs "24.3"))
-;;
-;; This file is not part of GNU Emacs.
-;;
-;;; Commentary:
-;;
-;;
-;;
-;;; Code:
-
-;;; vertico orderless and savehist
 
 (straight-use-package '(vertico :files (:defaults "extensions/*")
                                 :includes (vertico-buffer

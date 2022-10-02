@@ -287,8 +287,24 @@
 				          (slack-start)
 					           (,fun))))
 
+(defmacro jds~roam-exclude-dwim (body)
+    "Create new lambda function that wraps functions like org-store-link to smarly add ROAM_EXCLUDE tag."
+    `(lambda (&optional arg)
+       (interactive "P")
+       (let ((nodep (org-roam-db-node-p))
+	     (inorg (string= major-mode "org-mode"))
+	     (inroam (string-prefix-p (expand-file-name org-roam-directory) (buffer-file-name)))
+	     (include (not (member "ROAM_EXCLUDE" (org-get-tags)))))
+	 ,body
+	 (unless arg
+	   (if (and inorg
+		    inroam
+		    include
+		    (not nodep))
+	       (org-roam-tag-add '("ROAM_EXCLUDE")))))))
+
 (jds/sub-leader-def
-  "," #'org-capture   ;; q "new"
+  "," #'org-capture  ;; q "new"
   "C-," #'org-capture ;; q "new"
   ;; "<" #'org-capture-goto-target ;; new and follow
   ">" #'org-refile-goto-last-stored
@@ -305,9 +321,7 @@
 	  (jds~new-frame-or-new-window arg)
 	  (mu4e-headers-search-bookmark (mu4e-get-bookmark-query ?t)))
   "n" #'org-roam-node-find
-  ;; "N" #'jds/consult-org-roam-and-agenda-search-headlines
   ";" #'org-roam-capture
-  ;; "l" #'org-store-link
   "l" (jds~roam-exclude-dwim (org-store-link nil t))
   ;; "L" #'org-super-links-store-link
   "i" #'org-insert-link
@@ -319,9 +333,13 @@
   "f" #'jds/org-agenda-show-custom-day
   "F" #'jds/open-custom-day-agenda-new-frame
   "p" #'org-agenda
+  "s" (lambda (&optional arg) (interactive "P")
+	(if arg
+	    (jds/consult-ripgrep-all-org-headlines)
+	  (consult-org-agenda)))
   ;; "s" #'consult-org-agenda
   ;; "S" #'org-search-view
-  "s" #'jds/consult-ripgrep-all-org-headlines 
+  ;; "s" #'jds/consult-ripgrep-all-org-headlines
   "S" #'jds/consult-ripgrep-all-org
   "y" (jds~start-slack-function slack-select-rooms)
   "Y" (jds~start-slack-function slack-select-unread-rooms)

@@ -375,8 +375,7 @@
   "b" #'org-beamer-select-environment
   "s" #'org-sparse-tree
   "S" #'org-screenshot-take
-  ;; "a" #'org-attach
-  "a" (jds~roam-exclude-dwim (org-attach))
+  "a" #'org-attach
   "q" #'org-set-tags-command
   "d" '(:ignore t :wk "date")
   "dd" #'org-deadline
@@ -385,6 +384,11 @@
   "dT" #'org-time-stamp-inactive
   ;; "c"  jds/citation-map ; reserved
   "'" #'org-edit-special)
+
+;;(with-eval-after-load 'org-roam
+;;      (jds/localleader-def
+;;	:keymaps '(org-capture-mode-map org-mode-map)
+;;	"a" (jds~roam-exclude-dwim (org-attach))))
 
 (jds/localleader-def
   :keymaps 'org-src-mode-map
