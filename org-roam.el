@@ -23,6 +23,38 @@
 	   :target
 	   (file+head "references/notes/${citekey}.org" "#+title: ${title}\n")
 	   :unnarrowed t)))
+
+  ;; exclude from database all headlines with tag "ROAM_EXCLUDE"
+  (setq org-roam-db-node-include-function
+	(lambda ()
+	  (not (member "ROAM_EXCLUDE" (org-get-tags)))))
+
+  (setq org-roam-add-exclude-tag-on-store-link t)
+  ;; advise org-store-link to add ROAM_EXCLUDE unless already a org-roam-node
+  (defun jds~org-store-link-advice (orig-func &rest args)
+    "Advice to be added around org-store-link and advice to include ROAM_EXCLUDE when not already a node."
+    (let ((nodep (org-roam-db-node-p))
+	  (inorg (string= major-mode "org-mode"))
+	  (inroam (string-prefix-p (expand-file-name org-roam-directory) (buffer-file-name)))
+	  (include (not (member "ROAM_EXCLUDE" (org-get-tags)))))
+      (apply orig-func args)
+      (if (and org-roam-add-exclude-tag-on-store-link
+	       inorg
+	       inroam
+	       include
+	       (not nodep))
+	  (progn 
+	    (org-roam-tag-add '("ROAM_EXCLUDE"))))))
+
+  (advice-add 'org-store-link :around 'jds~org-store-link-advice)
+
+  ;; keep this advice from applying to 
+  (defun jds~org-roam-node-insert-advice (orig-func &rest args)
+      "Don't apply store-link advice above when purposefullly creating nodes."
+      (let ((org-roam-add-exclude-tag-on-store-link nil))
+	(apply orig-func args)))
+  (advice-add 'org-roam-node-insert :around 'jds~org-roam-node-insert-advice)
+
   (org-roam-setup))
 
 ;;;###autoload
@@ -44,6 +76,8 @@
 	(org-insert-drawer nil "RELATED")
 	(insert "- ")
 	(org-roam-node-insert filter-fn :templates templates  :info info))))
+
+
 
 ;; tools
 ;; org-roam-end-of-meta-data
