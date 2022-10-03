@@ -82,7 +82,16 @@
 	  (?| ("\\perp"))))
   (setq cdlatex-math-modify-alist '((?\p "\\proc" nil t nil nil)))
   ;; Keep cdlatex from taking backtick key (this functionality is now done by aas snippets)
-  (define-key cdlatex-mode-map (kbd "`") nil))
+  (define-key cdlatex-mode-map (kbd "`") nil)
+
+  ;;  give me back my ' key
+  (defun jds/cdlatex-math-modify (&optional arg)
+      "Just wraps cdlatex-math-modify and really makes sure its only active in texmathp"
+    (interactive "P")
+    (if (texmathp)
+	(cdlatex-math-modify arg)
+      (self-insert-command 1)))
+  (define-key cdlatex-mode-map (kbd "'") 'jds/cdlatex-math-modify))
 
 ;;; setup latexmk
 (use-package auctex-latexmk
