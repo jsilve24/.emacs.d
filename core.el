@@ -110,6 +110,9 @@
       (eval-print-last-sexp)))
   (load bootstrap-file nil 'nomessage))
 
+(setq straight-host-usernames
+      '((github . "jsilve24")))
+
 
 ;; Install use-package through straight 
 ;; Now use-package will use straight.el to automatically install
