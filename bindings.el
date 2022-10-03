@@ -192,6 +192,7 @@
  :keymaps 'jds~scratch-keymap
  "x" (jds~execute-in-scratch (fundamental-mode))
  "o" (jds~execute-in-scratch (org-mode))
+ "e" (jds~execute-in-scratch (emacs-lisp-mode))
  "t" (jds~execute-in-scratch (LaTeX-mode))
  "r" (jds~execute-in-scratch (ess-r-mode)))
 
