@@ -460,10 +460,7 @@ targets."
 (use-package consult-dir
   :ensure t
   :bind (:map vertico-map
-         ("C-x C-d" . consult-dir))
-  :config
-  (setq consult-dir-project-list-function #'consult-dir-projectile-dirs))
-
+         ("C-x C-d" . consult-dir)))
 
 (straight-use-package 'helpful)
 (use-package helpful
