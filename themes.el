@@ -84,6 +84,7 @@
 	modus-themes-subtle-line-numbers t
 	modus-themes-markup nil
 	modus-themes-region '(no-extend)
+	modus-themes-org-agenda '((scheduled . uniform))
 	;; modus-themes-org-agenda '((header-block . (1.5 variable-pitch))
 	;; 			  (header-date . (grayscale workaholic bold-today))
 	;; 			  (event . (accented varied))
