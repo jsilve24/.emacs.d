@@ -39,6 +39,15 @@
       (message "Not in recognized project.")
     (project-remember-project (project-current))))
 
+
+;; setup project ibuffer integration
+(use-package ibuffer-project
+  :config
+   (add-hook 'ibuffer-hook
+             (lambda ()
+               (setq ibuffer-filter-groups (ibuffer-project-generate-filter-groups)))))
+
+
 ;;; better switch to other file (simpler at least) -----------------------------
 
 (use-package ruled-switch-buffer
