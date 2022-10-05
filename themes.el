@@ -120,12 +120,45 @@
 
 ;; NOTE: The first time you load your configuration on a new machine, you’ll need to run `M-x
 ;; all-the-icons-install-fonts` so that mode line icons display correctly.
-(use-package doom-modeline
-  :init (doom-modeline-mode 1)
-  :custom ((doom-modeline-height 15))
-  :config 
-  (doom-themes-visual-bell-config))
+;; (use-package doom-modeline
+;;   :init (doom-modeline-mode 1)
+;;   :custom ((doom-modeline-height 15))
+;;   :config
+;;   (doom-themes-visual-bell-config)
+;;   ;; (setq doom-modeline-modal-icon nil)
+;;   )
 
+(use-package smart-mode-line
+  :config
+  (sml/setup))
+
+(use-package diminish
+  :config
+  (mapc 'diminish
+	'(yas-minor-mode
+	  citar-embark-mode
+	  citar-org-roam-mode
+	  org-roam-bibtex-mode
+	  evil-snipe-mode
+	  evil-snipe-override-mode
+	  evil-snipe-local-mode
+	  undo-tree-mode
+	  eldoc-mode
+	  abbrev-mode
+	  which-key-mode
+	  lispyville-mode
+	  evil-owl-mode
+	  evil-collection-unimpaired-mode
+	  desktop-environment-mode
+	  consult-org-roam-mode
+	  lispy-mode
+	  synosaurus-mode
+	  org-indent-mode
+	  evil-org-mode
+	  org-cdlatex-mode
+	  cdlatex-mode
+	  reftex-mode
+	  visual-line-mode)))
 
 ;;; dashboard
 

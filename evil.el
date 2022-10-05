@@ -23,11 +23,7 @@
 	evil-want-C-d-scroll nil
 	evil-want-keybinding nil
 	evil-want-integration t)
-  ;; from doom
-  (defun +evil-default-cursor-fn ()
-    (evil-set-cursor-color (get 'cursor 'evil-normal-color)))
-  (defun +evil-emacs-cursor-fn ()
-    (evil-set-cursor-color (get 'cursor 'evil-emacs-color)))
+  ;; from doom 
 
   (setq evil-ex-search-vim-style-regexp t
 	evil-ex-visual-char-range t
@@ -35,11 +31,14 @@
 	evil-symbol-word-search t
 	;; if the current state is obvious from the cursor's color/shape, then
 	;; we won't need superfluous indicators to do it instead.
-	evil-default-cursor '+evil-default-cursor-fn
+	;; evil-default-cursor '+evil-default-cursor-fn
 	evil-normal-state-cursor 'box
-	evil-emacs-state-cursor '(box +evil-emacs-cursor-fn)
+	evil-emacs-state-cursor  '(hbar . 6) 
 	evil-insert-state-cursor 'bar
 	evil-visual-state-cursor 'hollow
+	evil-replace-state-cursor 'hbar
+	;; with the above, dont need modeline indicator
+	evil-mode-line-format nil
 	;; Only do highlighting in selected window so that Emacs has less work
 	;; to do highlighting them all.
 	evil-ex-interactive-search-highlight 'selected-window
@@ -48,6 +47,7 @@
 	evil-kbd-macro-suppress-motion-error t
 	;; evil-undo-system 'undo-fu
 	evil-undo-system 'undo-tree)
+
   :config
   (evil-mode 1)
 
