@@ -30,4 +30,4 @@
 #+BEAMER_HEADER: \definecolor{links}{HTML}{4167E1}
 #+BEAMER_HEADER: \hypersetup{colorlinks,linkcolor=,urlcolor=links}
 #+STARTUP: beamer
-#+OPTIONS: d:(not "RELATED")
+#+OPTIONS: d:(not "RELATED") ^:nil

@@ -59,6 +59,7 @@ escape."
 	      ";M" (jds~yas-lambda-expand "\\\[ $1 \\\]")
 	      ";begin" (jds~yas-lambda-expand "\\begin\\{$1\\}\n$0\n\\end\\{$1\\}")
 	      ";align" (jds~yas-lambda-expand "\\begin\\{align\\}\n$0\n\\end\\{align\\}")
+	      ";Align" (jds~yas-lambda-expand "\\begin\\{align*\\}\n$0\n\\end\\{align*\\}")
 	      ";cite" (jds~yas-lambda-expand  "\\cite\\{$0\\}")
 	      ";fig" (jds~yas-lambda-expand "\\begin\\{figure\\}[ht]
   \\\centering
@@ -203,8 +204,9 @@ escape."
     ";center" (jds~yas-lambda-expand "#+begin_center\n$0\n#+end_center")
     ";header" (jds~yas-lambda-expand-snippet-by-key "org-header-for-export")
     ";beamer" (jds~yas-lambda-expand-snippet-by-key "org-beamer-template")
+    ";cols"   (jds~yas-lambda-expand-snippet-by-key "org-beamer-cols")
     ";pdf" (jds~yas-lambda-expand-snippet-by-key "org-beamer-include-pdf")
-    ";plot" (jds~yas-lambda-expand-snippet-by-key "org-beamer-r-plot")
+    ";rplot" (jds~yas-lambda-expand-snippet-by-key "org-beamer-r-plot")
     ";width" (jds~yas-lambda-expand "#+ATTR_LATEX: :width ${1:0.9\\linewidth}")
     ";alatex" (jds~yas-lambda-expand "#+ATTR_LATEX: $0")
     ";pause" "#+BEAMER: \\pause"
