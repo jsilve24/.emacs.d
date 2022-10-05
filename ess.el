@@ -66,12 +66,12 @@
 				       (window-width . 0.5)
 				       (reusable-frames . nil)))
 
-  (add-to-list 'display-buffer-alist '("^\\*Help"
-				       (display-buffer-reuse-window display-buffer-in-side-window)
-				       (side . right)
-				       (slot . 1)
-				       (window-width . 0.33)
-				       (reusable-frames . nil)))
+  ;; (add-to-list 'display-buffer-alist '("^\\*Help"
+  ;; 				       (display-buffer-reuse-window display-buffer-in-side-window)
+  ;; 				       (side . right)
+  ;; 				       (slot . 1)
+  ;; 				       (window-width . 0.33)
+  ;; 				       (reusable-frames . nil)))
 
   (add-to-list 'display-buffer-alist '("^R_x11"
 				       (display-buffer-reuse-window display-buffer-in-side-window)
