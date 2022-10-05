@@ -1,0 +1,15 @@
+# -*- mode: snippet -*-
+# name: org-beamer-cols
+# key: org-beamer-cols
+# --
+*** XXX                                                                                    :BMCOL:
+:PROPERTIES:
+:BEAMER_col: 0.5
+:END:
+$0
+
+*** XXX                                                                                    :BMCOL:
+:PROPERTIES:
+:BEAMER_col: 0.5
+:END:
+
