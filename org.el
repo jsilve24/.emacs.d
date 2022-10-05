@@ -307,6 +307,29 @@
   (require 'evil-org-agenda)
   (evil-org-agenda-set-keys))
 
+;; make it easier to edit fontified/hidden text (I mostly just use this for org-links)
+(use-package org-appear
+  :after org
+  :config
+  ;; (setq org-hide-emphasis-markers t)
+
+  ;; The manual option is useful for, e.g., integrating org-appear with evil-mode. Below is an
+  ;; example configuration for toggling elements in Insert mode only. Note that org-appear expects
+  ;; to be enabled in Org mode buffers only, which is why the example attaches evil-mode hooks to
+  ;; the Org mode startup hook.
+  (setq org-appear-trigger 'manual)
+  (add-hook 'org-mode-hook (lambda ()
+			     (add-hook 'evil-insert-state-entry-hook
+				       #'org-appear-manual-start
+				       nil
+				       t)
+			     (add-hook 'evil-insert-state-exit-hook
+				       #'org-appear-manual-stop
+				       nil
+				       t)))
+  (setq org-appear-autolinks t)
+  (add-hook 'org-mode-hook 'org-appear-mode))
+
 
 ;;; org-super-links ------------------------------------------------------------
 (use-package org-super-links
