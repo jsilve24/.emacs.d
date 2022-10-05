@@ -6,7 +6,13 @@
 	 (LaTeX-mode . eglot-ensure))
   :config
   (setq eldoc-echo-area-use-multiline-p 1)
-  (setq eglot-ignored-server-capabilites nil))
+  (setq eglot-ignored-server-capabilites nil)
+  (defun jds~latex-eglot-hook ()
+      "Hook run on eglot start in latex-mode"
+      (setq-local eglot-stay-out-of '("imenu")))
+  ;; add hook at front (before eglot) and make it local
+  (add-hook 'LaTeX-mode-hook 'jds~latex-eglot-hook -100)
+  (add-hook 'latex-mode-hook 'jds~latex-eglot-hook -100))
 
 
 (use-package consult-eglot)
