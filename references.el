@@ -48,6 +48,13 @@
 					  (bibtex-clean-entry t)
 					  (bibtex-sort-buffer))))
 
+(use-package pdf-drop-mode
+  :straight (pdf-drop-mode :type git :host github :repo "rougier/pdf-drop-mode")
+  :config
+  ;; this function zotra-get-json signals error if nothing found, need to handle these errors before trying to then merge pdf
+  (defun jds/pdf-drop-mode-call-zotra (file doi)
+    (zotra-add-entry-from-search doi))
+  (setq pdf-drop-search-hook #'jds/pdf-drop-mode-call-zotra))
 
 ;;; setup ebib -----------------------------------------------------------------
 
