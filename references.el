@@ -29,7 +29,8 @@
   (org-cite-activate-processor 'citar)
   (citar-bibliography org-cite-global-bibliography)
   :config
-  (setq citar-library-paths '("~/Dropbox/org/roam/references/articles/")))
+  (setq citar-library-paths '("~/Dropbox/org/roam/references/articles/")
+	citar-file-additional-files-separator "-"))
 
 
 (use-package citar-embark

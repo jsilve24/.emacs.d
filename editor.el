@@ -41,7 +41,7 @@
 (use-package lispy
   :config
   (lispy-set-key-theme '(lispy c-digits))
-  (add-hook 'emacs-lisp-mode-hook (lambda () (lispy-mode 1)))
+  (add-hook 'emacs-lisp-mode-hook (lambda () (progn (lispy-mode 1) (diminish 'lispy-mode))))
 
   ;; use lispy in minibuffer eval-expression
   ;; (defun conditionally-enable-lispy ()
