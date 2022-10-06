@@ -5,6 +5,7 @@
 (use-package yasnippet
   :ensure t
   :commands (yas-expand yas-expand-snippet)
+  :diminish yas-minor-mode
   :config
   (setq yas-snippet-dirs
 	'("~/.emacs.d/snippets"))
