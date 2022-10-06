@@ -133,6 +133,7 @@
   (sml/setup))
 
 (use-package diminish
+  :delay t
   :config
   (mapc 'diminish
 	'(yas-minor-mode
@@ -154,6 +155,7 @@
 	  lispy-mode
 	  synosaurus-mode
 	  org-indent-mode
+	  flyspell-mode
 	  evil-org-mode
 	  org-cdlatex-mode
 	  cdlatex-mode
