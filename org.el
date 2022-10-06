@@ -234,13 +234,13 @@
 
 
   ;; active Babel languages
-  (with-eval-after-load 'ob-stan
-    (org-babel-do-load-languages
-     'org-babel-load-languages
-     '((R . t)
-       (emacs-lisp . t)
-       (latex . t)
-       (stan . t))))
+  ;; (with-eval-after-load 'ob-stan
+  ;;   (org-babel-do-load-languages
+  ;;    'org-babel-load-languages
+  ;;    '((R . t)
+  ;;      (emacs-lisp . t)
+  ;;      (latex . t)
+  ;;      (stan . t))))
 
   (setq org-src-fontify-natively t)
 
