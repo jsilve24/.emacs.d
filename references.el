@@ -34,6 +34,7 @@
 
 (use-package citar-embark
   :after citar embark
+  :diminish citar-embark-mode
   :no-require
   :config (citar-embark-mode))
 

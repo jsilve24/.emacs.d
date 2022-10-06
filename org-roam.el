@@ -91,6 +91,7 @@
 
 (use-package consult-org-roam
   :ensure t
+  :diminish consult-org-roam-mode
   :init
   (require 'consult-org-roam)
   (consult-org-roam-mode 1)
@@ -113,6 +114,7 @@
 
 (use-package citar-org-roam
   :after citar org-roam
+  :diminish citar-org-roam-mode
   :no-require
   :config
   (citar-org-roam-mode)
@@ -120,6 +122,7 @@
 
 (use-package org-roam-bibtex
   :after org-roam
+  :diminish org-roam-bibtex-mode
   :config
   (setq orb-roam-ref-format 'org-cite
 	orb-process-file-keyword t)

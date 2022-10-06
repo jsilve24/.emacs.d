@@ -52,6 +52,7 @@
 
 (use-package lispyville
   :after lispy
+  :diminish lispyville-mode
   :hook (lispy-mode . lispyville-mode)
   :config
   ;; choose key-themes I want

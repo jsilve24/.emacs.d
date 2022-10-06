@@ -133,7 +133,7 @@
   (sml/setup))
 
 (use-package diminish
-  :delay t
+  :defer t
   :config
   (mapc 'diminish
 	'(yas-minor-mode

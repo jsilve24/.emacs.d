@@ -7,8 +7,9 @@
 (straight-use-package '(org-contrib :type git :host github :repo "emacsmirror/org-contrib"))
 
 (use-package org
+  :diminish org-indent-mode
+  :diminish org-cdlatex-mode
   :config
-  
   ;; don't include files in .attach
   (setq org-agenda-files
 	(seq-filter
@@ -281,6 +282,7 @@
 ;;; lazyness -- use evil-org
 (use-package evil-org
   :straight (evil-org :local-repo "~/.myvanilla.d/local-packages/evil-org-mode")
+  :diminish evil-org-mode
   :after evil
   :hook (org-mode . evil-org-mode)
   :hook (org-capture-mode . evil-insert-state)
