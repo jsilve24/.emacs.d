@@ -31,6 +31,7 @@
   :config
   (setq citar-library-paths '("~/Dropbox/org/roam/references/articles/")))
 
+
 (use-package citar-embark
   :after citar embark
   :no-require
@@ -148,7 +149,7 @@
 
 (general-define-key
  :keymaps 'jds/citation-map
- "c" #'citar-insert-citation
+ "c" #'jds/citar-insert-cite-prioritize-local-bib
  ;; "r" #'jds/literate-bib-tangle-and-refresh
  ;; "o" #'jds/goto-global-org-bib
  ;; "i" #'jds/literate-bib-search

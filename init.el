@@ -81,6 +81,7 @@
 (load-config "debugging.el")
 ;; (load-config "languages.el")
 (load-config "references.el")
+(load-config "autoloads/references.el")
 (load-config "ssh.el")
 (load-config "org-roam.el")
 (load-config "lsp.el")

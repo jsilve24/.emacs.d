@@ -404,7 +404,7 @@
   "o" '(:ignore t :which-key "other/apps")
   "os" #'jds/hydra-spotify-wrapper
   "oc" #'calendar
-  "or" #'citar-open
+  "or" #'jds/citar-open-prioritize-global-bib
   "op" #'proced
   "ob" #'ebib)
 
