@@ -207,6 +207,7 @@
 (use-package posframe)
 
 (use-package evil-owl
+  :disabled 
   :config
   (setq evil-owl-display-method 'posframe
         evil-owl-extra-posframe-args '(:width 70 :height 20)
