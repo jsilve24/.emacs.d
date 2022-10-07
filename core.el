@@ -160,7 +160,8 @@
     :states '(normal visual motion emacs)
     :keymaps 'override
     :prefix "m"
-    :global-prefix "C-m")
+    ;; :global-prefix "C-m"
+    )
   (general-create-definer jds/sub-localleader-def
     :states '(normal visual motion emacs)
     :keymaps 'override

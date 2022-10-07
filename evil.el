@@ -123,9 +123,14 @@
   :straight (evil-collection :type git :host github :repo "emacs-evil/evil-collection"
 			     :fork (:host github :repo "jsilve24/evil-collection"))
   :after evil
+  :init 
+  (setq evil-collection-key-blacklist '("m"))
   :config
-  ;; (setq evil-collection-mode-list
-  ;;       (delq 'pdf evil-collection-mode-list))
+
+  ;; move "m" bindings
+  (evil-collection-define-key 'normal 'mu4e-headers-mode-map "M" #'mu4e-headers-mark-for-move)
+  (evil-collection-define-key 'normal 'dired-mode-map "M" #'dired-mark)
+
   (evil-collection-init))
 
 
