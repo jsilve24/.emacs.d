@@ -375,7 +375,7 @@
 
 (jds/localleader-def
   :keymaps 'org-capture-mode-map
-  "\\" #'org-capture-finalize
+  "m" #'org-capture-finalize
   "C-\\" #'org-capture-finalize
   "k" #'org-capture-kill
   "r" #'org-capture-refile
@@ -441,7 +441,7 @@
 
 (jds/localleader-def
   :keymaps 'org-beamer-mode-map
-  "\\" #'org-beamer-export-to-pdf)
+  "m" #'org-beamer-export-to-pdf)
 
 
 (general-define-key

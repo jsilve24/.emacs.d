@@ -119,7 +119,7 @@ mention-count)) (channel . (has-unreads . mention-count)))))"
   :keymaps 'slack-edit-message-mode-map
   :state 'normal
   "k" 'slack-message-cancel-edit
-  "\\" 'slack-message-send-from-buffer
+  "m" 'slack-message-send-from-buffer
   "M" 'slack-message-embed-mention
   "C" 'slack-message-embed-channel)
 

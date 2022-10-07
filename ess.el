@@ -158,7 +158,7 @@
   :keymaps '(polymode-mode-map markdown-mode-map)
   "rc" #'r/rmd-insert-chunk
   "rr" #'r/rmd-render
-  "\\" #'r/rmd-render
+  "m" #'r/rmd-render
   "rd" #'r/draft-rmd
   "re" #'polymode-eval-chunk
   "rn" #'polymode-next-chunk)

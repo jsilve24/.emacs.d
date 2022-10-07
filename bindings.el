@@ -582,5 +582,6 @@
 
 (general-vmap
   :keymap 'global
-  "m" #'er/expand-region
-  "M" #'er/contract-region)
+  "\\" #'er/expand-region
+  "|" #'er/contract-region)
+

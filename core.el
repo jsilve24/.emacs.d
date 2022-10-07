@@ -159,12 +159,13 @@
   (general-create-definer jds/localleader-def
     :states '(normal visual motion emacs)
     :keymaps 'override
-    :prefix "\\"
-    :global-prefix "C-\\")
+    :prefix "m"
+    :global-prefix "C-m")
   (general-create-definer jds/sub-localleader-def
     :states '(normal visual motion emacs)
     :keymaps 'override
-    :prefix "<backspace>"))
+    :prefix "\\"
+    :global-prefix "C-\\"))
 
 
 

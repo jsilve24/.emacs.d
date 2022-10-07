@@ -53,20 +53,23 @@
 
 
 
-  ;; leader key
-  ;; set leader in all states
-  (evil-set-leader nil (kbd "M-SPC"))
-  ;; set leader in normal state
-  (evil-set-leader 'motion (kbd "SPC"))
-  ;; set leader in normal state
-  (evil-set-leader 'operator (kbd "SPC"))
-  ;; set leader in normal state
-  (evil-set-leader 'normal (kbd "SPC"))
-  ;; set local leader
-  (evil-set-leader 'normal "\\" t)
-  (evil-set-leader 'motion "\\" t)
-  (evil-set-leader 'operator "\\" t)
+  ;; done in core.el
+  ;; ;; leader key
+  ;; ;; set leader in all states
+  ;; (evil-set-leader nil (kbd "M-SPC"))
+  ;; ;; set leader in normal state
+  ;; (evil-set-leader 'motion (kbd "SPC"))
+  ;; ;; set leader in normal state
+  ;; (evil-set-leader 'operator (kbd "SPC"))
+  ;; ;; set leader in normal state
+  ;; (evil-set-leader 'normal (kbd "SPC"))
+  ;; ;; set local leader
+  ;; (evil-set-leader 'normal "\\" t)
+  ;; (evil-set-leader 'motion "\\" t)
+  ;; (evil-set-leader 'operator "\\" t)
 
+  ;; since using m as prefix
+  (general-def 'normal "M" #'evil-set-marker)
 
   ;; remove ret binding as its pretty much useless but blocks some modes
   (define-key evil-motion-state-map (kbd "RET") nil)

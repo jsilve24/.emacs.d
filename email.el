@@ -221,7 +221,7 @@ are place there, otherwise you are prompted for a message buffer."
 
 (jds/localleader-def
  :keymaps '(mu4e-compose-mode-map)
- "\\"     '(org-ctrl-c-ctrl-c :which-key "send-message")
+ "m"     '(org-ctrl-c-ctrl-c :which-key "send-message")
  "gs"     '(message-goto-subject :which-key "goto subject")
  "gc"     '(message-goto-cc :which-key "goto cc")
  "gt"     '(message-goto-to :which-key "goto to")
@@ -230,7 +230,7 @@ are place there, otherwise you are prompted for a message buffer."
 
 (jds/localleader-def
   :keymaps '(org-msg-edit-mode-map)
-  "\\" '(org-ctrl-c-ctrl-c :which-key "send-message")
+  "m" '(org-ctrl-c-ctrl-c :which-key "send-message")
   "C-\\" '(org-ctrl-c-ctrl-c :which-key "send-message")
   "gs" '(message-goto-subject :which-key "goto subject")
   "gc" '(message-goto-cc :which-key "goto cc")

@@ -150,7 +150,16 @@
 
 (use-package evil-tex
   :hook (LaTeX-mode . evil-tex-mode)
-  :hook (org-mode . evil-tex-mode))
+  :hook (org-mode . evil-tex-mode)
+  :init
+  (setq evil-tex-toggle-override-m nil
+	evil-tex-toggle-override-t nil)
+  :config
+  ;; place evil tex toggles on <localleader>z for relevant modes
+  (jds/localleader-def
+    :keymap '(LaTeX-mode-map org-mode-map)
+    "z" evil-tex-toggle-map))
+
 
 ;;; setup company-auctex and company-reftex (and perhaps company-math)
 
@@ -209,7 +218,7 @@
 
 (jds/localleader-def
   :keymaps 'LaTeX-mode-map
-  "\\" #'TeX-command-run-all
+  "m" #'TeX-command-run-all
   "e" #'LaTeX-environment
   "s" #'LaTeX-section
   "C" #'LaTeX-close-environment
