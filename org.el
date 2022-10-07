@@ -281,7 +281,8 @@
 
 ;;; lazyness -- use evil-org
 (use-package evil-org
-  :straight (evil-org :local-repo "~/.myvanilla.d/local-packages/evil-org-mode")
+  :straight (evil-org :type git :host github :repo "Somelauw/evil-org-mode"
+		      :fork t)
   :diminish evil-org-mode
   :after evil
   :hook (org-mode . evil-org-mode)
@@ -376,7 +377,7 @@
 (jds/localleader-def
   :keymaps 'org-capture-mode-map
   "m" #'org-capture-finalize
-  "C-\\" #'org-capture-finalize
+  "C-m" #'org-capture-finalize
   "k" #'org-capture-kill
   "r" #'org-capture-refile
   "a" #'org-attach)

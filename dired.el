@@ -126,6 +126,7 @@ line."
      ";d" #'dired-copy-paste-do-cut
      "y" '(:ignore t :wk "yank")
      "yd" #'jds/dired-copy-dirname-as-kill
+     "M"  #'dired-mark
      ;; copy filename 
      "yf" #'dired-copy-filename-as-kill
      ;; copy absolute filepath

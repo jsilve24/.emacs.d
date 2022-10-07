@@ -157,7 +157,7 @@
   :config
   ;; place evil tex toggles on <localleader>z for relevant modes
   (jds/localleader-def
-    :keymap '(LaTeX-mode-map org-mode-map)
+    :keymaps '(LaTeX-mode-map org-mode-map)
     "z" evil-tex-toggle-map))
 
 
