@@ -56,8 +56,23 @@
   :config
   ;; this function zotra-get-json signals error if nothing found, need to handle these errors before trying to then merge pdf
   (defun jds/pdf-drop-mode-call-zotra (file doi)
-    (zotra-add-entry-from-search doi))
+    (let ((doi-string (if (listp doi)
+			  (cdr doi)
+			doi)))
+      (zotra-add-entry-from-search doi-string)))
   (setq pdf-drop-search-hook #'jds/pdf-drop-mode-call-zotra))
+
+;;;###autoload
+(defun jds/pdf-drop-process ()
+    "Call pdf-drop--process at point."
+  (interactive)
+  (let  ((filename (dired-copy-filename-as-kill 0)))
+    (message filename)
+    (pdf-drop--process filename)))
+
+(jds/localleader-def
+  :keymaps 'dired-mode-map
+  "r" #'jds/pdf-drop-process)
 
 ;;; setup ebib -----------------------------------------------------------------
 
