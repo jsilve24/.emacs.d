@@ -231,7 +231,7 @@ are place there, otherwise you are prompted for a message buffer."
 (jds/localleader-def
   :keymaps '(org-msg-edit-mode-map)
   "m" '(org-ctrl-c-ctrl-c :which-key "send-message")
-  "C-\\" '(org-ctrl-c-ctrl-c :which-key "send-message")
+  "C-m" '(org-ctrl-c-ctrl-c :which-key "send-message")
   "gs" '(message-goto-subject :which-key "goto subject")
   "gc" '(message-goto-cc :which-key "goto cc")
   "gt" '(message-goto-to :which-key "goto to")
@@ -241,7 +241,8 @@ are place there, otherwise you are prompted for a message buffer."
   "v" 'org-msg-preview
   "t" '(:ignore t :which-key "toggle")
   "i" '(jds/org-msg-add-inlineimages :which-key "inlineimages")
-  "m" '(jds/org-msg-add-text2png :which-key "tex2png"))
+  ;; "m" '(jds/org-msg-add-text2png :which-key "tex2png")
+  )
 
 (jds/localleader-def
  :keymaps '(mu4e-view-mode-map mu4e-headers-mode-map)
