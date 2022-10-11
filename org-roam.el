@@ -15,13 +15,13 @@
 	   :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+date: %U\n")
 	   :unnarrowed t)
 	  ("l" "lecturenotes" plain "%?"
-	   :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: %u ${title}\n#+date: %U\n#+filetags: :lecturenotes:\n")
+	   :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: %u ${title}\n#+date: %U\n#+filetags: :lecture:\n")
 	   :unnarrowed t
 	   :jump-to-captured t)
 	  ("r" "bibliography reference" plain "%?
 %^{author}, %^{date}"
 	   :target
-	   (file+head "references/notes/${citekey}.org" "#+title: ${title}\n")
+	   (file+head "references/notes/${citekey}.org" "#+title: ${title}\n#+filetags: :reference:")
 	   :unnarrowed t)))
 
   ;; get tags when searching

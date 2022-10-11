@@ -45,11 +45,17 @@
 
 (use-package zotra
   :straight (zotra :type git :host github :repo "mpedramfar/zotra")
+  :commands (zotra-add-entry-from-search)
   :config
   (setq zotra-default-bibliography "/home/jds6696/Dropbox/org/roam/references/references.bib")
   (add-hook 'zotra-after-add-entry-hook (lambda ()
 					  (bibtex-clean-entry t)
-					  (bibtex-sort-buffer))))
+					  (bibtex-sort-buffer)))
+  (defvar jds~bibtex-clean-latest-stored-key nil)
+  (defun jds~bibtex-store-latest-key-hook-function ()
+    "Function to be added to bibtex-clean-entry-hook and run after cleaning in the cleaned entry."
+    (setq jds~bibtex-clean-latest-stored-key (bibtex-completion-get-key-bibtex)))
+  (add-hook 'bibtex-clean-entry-hook 'jds~bibtex-store-latest-key-hook-function))
 
 (use-package pdf-drop-mode
   :straight (pdf-drop-mode :type git :host github :repo "rougier/pdf-drop-mode")
@@ -66,13 +72,32 @@
 (defun jds/pdf-drop-process ()
     "Call pdf-drop--process at point."
   (interactive)
-  (let  ((filename (dired-copy-filename-as-kill 0)))
-    (message filename)
-    (pdf-drop--process filename)))
+  (let ((filename (dired-copy-filename-as-kill 0)))
+    ;; with tmp hook on bibtex-clean-entry move current file and add as field 
+    (pdf-drop--process filename)
+    (jds/dired-add-file-to-bib jds~bibtex-clean-latest-stored-key filename)))
+
+;;;###autoload
+(defun jds/dired-add-file-to-bib (key file)
+    "Attach file to bibtex entry with KEY located in global
+bibliography. Moves file into global file library. FILE should be
+a string specifying full filepath."
+    (interactive (list  (car (citar-select-refs :multiple nil))
+			(dired-get-filename)))
+    (let* ((destname (concat (car citar-library-paths) key (file-name-extension file t)))
+	   (destfile (file-name-nondirectory destname)))
+      (rename-file file destname)
+      (save-excursion
+	(citar-open-entry key)
+	(bibtex-make-field `("file" "File to Attach" ,destfile) t))))
+
+;;bibtex-clean-entry-hook cleaned after clea
+;; (bibtex-completion-get-key-bibtex)
 
 (jds/localleader-def
   :keymaps 'dired-mode-map
-  "r" #'jds/pdf-drop-process)
+  "r" #'jds/pdf-drop-process
+  "f" #'jds/dired-add-file-to-bib)
 
 ;;; setup ebib -----------------------------------------------------------------
 
