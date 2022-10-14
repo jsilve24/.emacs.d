@@ -289,8 +289,8 @@
   :after evil
   :config
   (recentf-mode 1)
-  (setq recentf-max-menu-items 100
-        recentf-max-saved-items 200
+  (setq recentf-max-menu-items 300
+        recentf-max-saved-items 500
         recentf-auto-cleanup 'mode)
   (run-at-time nil (* 5 60) 'recentf-save-list)
 
