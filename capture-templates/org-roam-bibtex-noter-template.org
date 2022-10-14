@@ -1,0 +1,5 @@
+
+* Notes
+:PROPERTIES:
+:NOTER_DOCUMENT: ../articles/%^{file}  
+:END:

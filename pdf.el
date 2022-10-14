@@ -11,7 +11,7 @@
   ;; open pdfs scaled to fit page
   (setq-default pdf-view-display-size 'fit-page)
   ;; automatically annotate highlights
-  (setq pdf-annot-activate-created-annotations t)
+  ;; (setq pdf-annot-activate-created-annotations t)
 
   ;; setup printing
   ;; (setq lpr-command "gtklp")

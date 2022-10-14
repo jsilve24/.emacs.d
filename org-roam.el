@@ -18,11 +18,11 @@
 	   :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: %u ${title}\n#+date: %U\n#+filetags: :lecture:\n")
 	   :unnarrowed t
 	   :jump-to-captured t)
-	  ("r" "bibliography reference" plain "%?
-%^{author}, %^{date}"
+	  ("r" "bibliography reference" plain
+	   (file "~/.emacs.d/capture-templates/org-roam-bibtex-noter-template.org")
 	   :target
-	   (file+head "references/notes/${citekey}.org" "#+title: ${title}\n#+filetags: :reference:")
-	   :unnarrowed t)))
+	   (file+head "references/notes/${citekey}.org" "#+title: ${author-abbrev} :: ${title}\n#+filetags: :reference:")
+	   :unnarrowed t))	  )
 
   ;; get tags when searching
   ;; If you're using a vertical completion framework, you might want a more informative completion interface
@@ -113,21 +113,84 @@
 
 
 (use-package citar-org-roam
-  :after citar org-roam
+  :after citar org-roam org-roam-bibtex
   :diminish citar-org-roam-mode
   :no-require
   :config
   (citar-org-roam-mode)
-  (setq citar-org-roam-subdir "references/notes"))
+  (setq citar-org-roam-subdir "references/notes")
+
+  (require 'citar-org-roam)
+  (citar-register-notes-source
+   'orb-citar-source (list :name "Org-Roam Notes"
+			   :category 'org-roam-node
+			   :items #'citar-org-roam--get-candidates
+			   :hasitems #'citar-org-roam-has-notes
+			   :open #'citar-org-roam-open-note
+			   :create #'orb-citar-edit-note
+			   :annotate #'citar-org-roam--annotate))
+
+  (setq citar-notes-source 'orb-citar-source))
 
 (use-package org-roam-bibtex
   :after org-roam
+  :after citar
   :diminish org-roam-bibtex-mode
   :config
-  (setq orb-roam-ref-format 'org-cite
-	orb-process-file-keyword t)
+
+  (setq orb-preformat-keywords
+	'("citekey" "title" "url" "author-or-editor" "keywords" "file" "keywords" "date" "note?" "author" "editor" "author-abbrev")
+	orb-process-file-keyword nil
+	orb-attached-file-extensions '("pdf" "epub" "html")
+	orb-roam-ref-format 'org-cite)
+
   (org-roam-bibtex-mode))
 
+(use-package org-noter
+  :config
+  (setq org-noter-notes-search-path '("~/Dropbox/org/roam/references/notes/")
+	org-noter-always-create-frame nil
+	org-noter-kill-frame-at-session-end nil))
+(use-package org-pdftools
+  :hook (org-mode . org-pdftools-setup-link))
+
+(use-package org-noter-pdftools
+  :after org-noter
+  :config
+  ;; Add a function to ensure precise note is inserted
+  (defun org-noter-pdftools-insert-precise-note (&optional toggle-no-questions)
+    (interactive "P")
+    (org-noter--with-valid-session
+     (let ((org-noter-insert-note-no-questions (if toggle-no-questions
+                                                   (not org-noter-insert-note-no-questions)
+                                                 org-noter-insert-note-no-questions))
+           (org-pdftools-use-isearch-link t)
+           (org-pdftools-use-freepointer-annot t))
+       (org-noter-insert-note (org-noter--get-precise-info)))))
+
+  ;; fix https://github.com/weirdNox/org-noter/pull/93/commits/f8349ae7575e599f375de1be6be2d0d5de4e6cbf
+  (defun org-noter-set-start-location (&optional arg)
+    "When opening a session with this document, go to the current location.
+With a prefix ARG, remove start location."
+    (interactive "P")
+    (org-noter--with-valid-session
+     (let ((inhibit-read-only t)
+           (ast (org-noter--parse-root))
+           (location (org-noter--doc-approx-location (when (called-interactively-p 'any) 'interactive))))
+       (with-current-buffer (org-noter--session-notes-buffer session)
+         (org-with-wide-buffer
+          (goto-char (org-element-property :begin ast))
+          (if arg
+              (org-entry-delete nil org-noter-property-note-location)
+            (org-entry-put nil org-noter-property-note-location
+                           (org-noter--pretty-print-location location))))))))
+  (with-eval-after-load 'pdf-annot
+    (add-hook 'pdf-annot-activate-handler-functions #'org-noter-pdftools-jump-to-note)))
+
+(general-def
+  :keymaps 'org-noter-doc-mode-map
+  "M-i" #'org-noter-insert-note
+  "M-I" #'org-noter-pdftools-insert-precise-note)
 
 (jds/localleader-def
   :keymaps 'org-mode-map
