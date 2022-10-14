@@ -67,10 +67,16 @@
       (switch-to-buffer buffer)
       (other-window 1)))
 
+  ;; pdf
+  (ruled-switch-buffer-define org-to
+    :matcher (lambda (fn) (string-match ".pdf$" fn))
+    :mappers ((lambda (fn) (replace-regexp-in-string "\\.pdf$" ".org" fn))
+	      (lambda (fn) (replace-regexp-in-string "\\.pdf$" ".tex" fn))))
+
   ;; latex
   (ruled-switch-buffer-define tex-to-pdf
     :matcher (lambda (fn) (string-match ".tex$" fn))
-    :mappers (lambda (fn) (replace-regex-in-string "\\.tex$" ".pdf" fn)))
+    :mappers (lambda (fn) (replace-regexp-in-string "\\.tex$" ".pdf" fn)))
 
   ;; rmd
   (ruled-switch-buffer-define rmd-to
