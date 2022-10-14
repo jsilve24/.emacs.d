@@ -242,10 +242,11 @@
   "ah" #'cape-history
   "ak" #'cape-keyword
   "as" #'cape-symbol
-  "ab" #'cape-abbrev
+  ;; "ab" #'cape-abbrev
   "al" #'cape-line
   "aw" #'cape-dict
-  "a\\" #'cape-tex)
+  "a\\" #'cape-tex
+  "ab" #'delete-blank-lines)
 
 ;;; repls and such
 (jds/leader-def
