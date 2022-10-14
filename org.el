@@ -275,7 +275,13 @@
   ;; for some reason this was needed when I first put this config together
   (org-reload))
 
-
+;;;###autoload
+(defun jds/org-refile-current-buffer ()
+    "Run org-refile but only suggest headings in the currently visited buffer"
+  (interactive)
+  (let ((org-refile-targets '((nil :maxlevel . 9)))
+	(org-refile-use-outline-path t))
+    (org-refile)))
 
 
 ;;; other packages -------------------------------------------------------------
@@ -434,6 +440,7 @@
   :keymaps 'org-mode-map
   "A"  #'org-archive-subtree
   "r"  #'org-refile
+  "R" #'jds/org-refile-current-buffer
   "e"  #'org-export-dispatch
   "n"  #'org-narrow-to-subtree
   "N"  #'widen
