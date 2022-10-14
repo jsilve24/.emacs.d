@@ -3,6 +3,7 @@
 # key: org-beamer
 # --
 
+# -*- eval: (setq-local ess-startup-directory default-directory) -*-
 #+TITLE:     $1
 #+AUTHOR:    Justin Silverman
 #+EMAIL:     JustinSilverman@psu.edu 

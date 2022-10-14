@@ -3,6 +3,6 @@
 # key: org-beamer-r-plot
 # --
 
-#+begin_src R :exports results :session "*R*" :results graphics file :file figures/$1.pdf
+#+begin_src R :exports results :session "*R*" :results graphics file :file $1.pdf
 $0
 #+end_src

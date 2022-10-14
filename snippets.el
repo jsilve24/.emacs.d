@@ -56,8 +56,8 @@ escape."
   (defmacro jds~aas-setup-insert-math (mode)
     `(progn (aas-set-snippets ,mode
 	      :cond #'(lambda () (not (texmathp)))
-	      ";m" (jds~yas-lambda-expand "\\\\( $1 \\\\)")
-	      ";M" (jds~yas-lambda-expand "\\\[ $1 \\\]")
+	      ";m" (jds~yas-lambda-expand "\\\\($1\\\\)")
+	      ";M" (jds~yas-lambda-expand "\\\[$1\\\]")
 	      ";begin" (jds~yas-lambda-expand "\\begin\\{$1\\}\n$0\n\\end\\{$1\\}")
 	      ";align" (jds~yas-lambda-expand "\\begin\\{align\\}\n$0\n\\end\\{align\\}")
 	      ";Align" (jds~yas-lambda-expand "\\begin\\{align*\\}\n$0\n\\end\\{align*\\}")
@@ -85,6 +85,7 @@ escape."
 	      ";text" (jds~yas-lambda-expand "\\text\\{$1\\}")
 	      ";cases" (jds~yas-lambda-expand "\\begin\\{cases\\}\n$0 \n\\end\\{cases\\}")
 	      ";frac" (jds~yas-lambda-expand "\\frac\\{$1\\}\\{$2\\}")
+	      ";sum" (jds~yas-lambda-expand  "\\sum_{$1}${2:^{$3\\}}$0")
 	      ";all" "\\forall"
 	      ";set" (jds~yas-lambda-expand "\\\\{$0\\\\}")
 	      ";sim" (jds~yas-lambda-expand "\\sim")
@@ -112,6 +113,9 @@ escape."
 	      ";leq" "\\leq"
 	      ";geq" "\\geq"
 	      "..." "\\dots"
+	      "v..." "\\vdots"
+	      "c..." "\\cdots"
+	      "d..." "\\ddots"
 	      "cc" "\\subset"
 	      "ceq" "\\subseteq"
 	      "EE" #'(lambda () (interactive) (jds~string-just-one-space "="))
@@ -195,7 +199,7 @@ escape."
   (aas-set-snippets 'org-mode
     ";lo" #'jds~org-agenda-link
     ";sq" (jds~yas-lambda-expand "#+BEGIN_QUOTE\n$0\n#+END_QUOTE")
-    ";sr" (jds~yas-lambda-expand "#+begin_src R :exports ${1:$$(yas-choose-value '(\"both\" \"code\" \"results\" \"none\"))} :session \"*R*\" \n$0\n#+end_src")
+    ";sr" (jds~yas-lambda-expand "#+begin_src R :exports ${1:$$(yas-choose-value '(\"both\" \"code\" \"results\" \"none\"))} :session \"*R*\" :results output \n$0\n#+end_src")
     ";sb" (jds~yas-lambda-expand "#+begin_src bibtex\n$0\n#+end_src")
     ;; https://orgmode.org/worg/org-contrib/babel/languages/ob-doc-stan.html
     ";sstan" (jds~yas-lambda-expand "#+name: ${1:model-stan}\n#+begin_src stan :file ${2:model.stan}\n$0\n#+end_src\n\n #+RESULTS: $1")
@@ -211,7 +215,7 @@ escape."
     ";width" (jds~yas-lambda-expand "#+ATTR_LATEX: :width ${1:0.9\\linewidth}")
     ";alatex" (jds~yas-lambda-expand "#+ATTR_LATEX: $0")
     ";pause" "#+BEAMER: \\pause"
-    ";overlay" "#+ATTR_BEAMER: :overlay <+->")
+    ";overlay" (jds~yas-lambda-expand "#+ATTR_BEAMER: :overlay <$0>"))
 
 
   ;; elisp snippets
