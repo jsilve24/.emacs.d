@@ -234,13 +234,14 @@
 
 
   ;; active Babel languages
-  ;; (with-eval-after-load 'ob-stan
-  ;;   (org-babel-do-load-languages
-  ;;    'org-babel-load-languages
-  ;;    '((R . t)
-  ;;      (emacs-lisp . t)
-  ;;      (latex . t)
-  ;;      (stan . t))))
+  (with-eval-after-load 'ob-stan
+    (org-babel-do-load-languages
+     'org-babel-load-languages
+     '((R . t)
+       (emacs-lisp . t)
+       (latex . t)
+       (org . t )
+       (stan . t))))
 
   (setq org-src-fontify-natively t)
 
@@ -261,6 +262,8 @@
   (setq org-latex-minted-options
 	'(("bgcolor" "bg") ("frame" "lines")))
 
+  ;; avoid this bug: https://www.reddit.com/r/emacs/comments/u0lk2w/orgbabelexecutesrcblock_with_results_value_giving/
+  (add-to-list 'org-export-backends 'org t)
 
   ;; add R as a designation to link to ess-r-mode
   ;; (add-to-list 'org-src-lang-modes '("R" . ess-r))
@@ -353,7 +356,7 @@
   (setq org-id-link-to-org-use-id 'create-if-interactive-and-no-custom-id))
 
 
-;;; local bindings
+;;; local bindings -------------------------------------------------------------
 
 ;;; undoing some messed up bindings from somewhere, not sure where these came from
 (general-define-key
