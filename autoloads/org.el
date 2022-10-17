@@ -56,26 +56,26 @@ Should pass FUN quoted e.g., #'org-agenda-refile."
 
 ;; custom agenda filtering
 ;; https://emacs.stackexchange.com/questions/19664/hide-items-with-a-certain-tag-in-agenda-based-on-time-of-day
+;; how to get day of week to use in this function in the future: (calendar-day-of-week (calendar-current-date))
 ;;;###autoload
 (defun skip-tag (tag)
   (let* ((next-headline (save-excursion
                           (or (outline-next-heading) (point-max))))
         (current-headline (or (and (org-at-heading-p)
                                    (point))
-                              (save-excursion (org-back-to-heading))))
-        )
+                              (save-excursion (org-back-to-heading)))))
     (if (member tag (org-get-tags-at current-headline))
             next-headline
             nil)))
+
 ;;;###autoload
 (defun skip-not-tag (tag)
   (let* ((next-headline (save-excursion
                           (or (outline-next-heading) (point-max))))
         (current-headline (or (and (org-at-heading-p)
                                    (point))
-                              (save-excursion (org-back-to-heading))))
-        )
-    (if (not (member tag (org-get-tags-at current-headline)))
+                              (save-excursion (org-back-to-heading)))))
+    (if (not (member tag (org-get-tags-at  current-headline)))
             next-headline
             nil)))
 

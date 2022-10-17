@@ -152,13 +152,13 @@ Version 2017-01-11"
 
 ;;; customize imenu listings ---------------------------------------------------
 
-(with-eval-after-load 'imenu
-  (defun jds~add-to-imenu-hook-function ()
-    "Add this hook to major modes to customize imenu supported expressions"
-    (interactive)
-    (add-to-list 'imenu-generic-expression '("Sections" "^\\(.+\\)----$" )))
-  (add-hook 'text-mode-hook 'jds~add-to-imenu-hook-function)
-  (add-hook 'prog-mode-hook 'jds~add-to-imenu-hook-function))
+;; (with-eval-after-load 'imenu
+;;   (defun jds~add-to-imenu-hook-function ()
+;;     "Add this hook to major modes to customize imenu supported expressions"
+;;     (interactive)
+;;     (add-to-list 'imenu-generic-expression '("Sections" "^\\(.+\\)----$" )))
+;;   (add-hook 'text-mode-hook 'jds~add-to-imenu-hook-function)
+;;   (add-hook 'prog-mode-hook 'jds~add-to-imenu-hook-function))
 
 ;;; autocapitalize -------------------------------------------------------------
 

@@ -68,7 +68,7 @@
       (other-window 1)))
 
   ;; pdf
-  (ruled-switch-buffer-define org-to
+  (ruled-switch-buffer-define pdf-to
     :matcher (lambda (fn) (string-match ".pdf$" fn))
     :mappers ((lambda (fn) (replace-regexp-in-string "\\.pdf$" ".org" fn))
 	      (lambda (fn) (replace-regexp-in-string "\\.pdf$" ".tex" fn))))
