@@ -9,7 +9,8 @@
   "/" #'consult-ripgrep
   "?" #'affe-grep
   ";" #'pp-eval-expression
-  "." #'consult-project-extra-find
+  ;; "." #'consult-project-extra-find
+  "." #'consult-projectile
   "\`" #'evil-switch-to-windows-last-buffer
   "-"  #'vertico-repeat-last
   "SPC" #'consult-buffer
