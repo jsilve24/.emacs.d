@@ -69,8 +69,8 @@
   (setq modus-themes-mode-line '(accented borderless)
 	modus-themes-org-blocks 'tinted-background
 	modus-themes-deuteranopia nil
-	modus-themes-bold-constructs nil
-	modus-themes-italic-constructs nil
+	modus-themes-bold-constructs t
+	modus-themes-italic-constructs t
 	modus-themes-syntax '(yellow-comments green-strings alt-syntax)
 	modus-themes-mixed-fonts t
 	modus-themes-links '(neutral-underline)
