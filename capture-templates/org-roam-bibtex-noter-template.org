@@ -1,5 +1,5 @@
 
-* Notes
+* Notes                                                                               :ROAM_EXCLUDE:
 :PROPERTIES:
 :NOTER_DOCUMENT: ../articles/%^{file}  
 :END:
