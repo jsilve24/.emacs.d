@@ -348,10 +348,10 @@ targets."
   ;; combine sources for consult-buffer
   (setq consult-buffer-sources '(consult--source-buffer
 				 consult--source-bookmark
-				 consult-project-extra--source-file
-				 consult-project-extra--source-project
-				 ;; consult-projectile--source-projectile-file
-				 ;; consult-projectile--source-projectile-project
+				 ;; consult-project-extra--source-file
+				 ;; consult-project-extra--source-project
+				 consult-projectile--source-projectile-file
+				 consult-projectile--source-projectile-project
 				 consult--source-recent-file))
 
   ;; add annotation to consult-org-agenda
@@ -415,13 +415,13 @@ targets."
   ;; Optionally configure a function which returns the project root directory.
   ;; There are multiple reasonable alternatives to chose from.
 ;;;; 1. project.el (project-roots)
-  (setq consult-project-root-function
-	(lambda ()
-	  (when-let (project (project-current))
-	    (car (project-roots project)))))
+  ;; (setq consult-project-root-function
+  ;; 	(lambda ()
+  ;; 	  (when-let (project (project-current))
+  ;; 	    (car (project-roots project)))))
 ;;;; 2. projectile.el (projectile-project-root)
-  ;; (autoload 'projectile-project-root "projectile")
-  ;; (setq consult-project-root-function #'projectile-project-root)
+  (autoload 'projectile-project-root "projectile")
+  (setq consult-project-root-function #'projectile-project-root)
 ;;;; 3. vc.el (vc-root-dir)
   ;; (setq consult-project-root-function #'vc-root-dir)
 ;;;; 4. locate-dominating-file
@@ -460,7 +460,9 @@ targets."
 (use-package consult-dir
   :ensure t
   :bind (:map vertico-map
-         ("C-x C-d" . consult-dir)))
+              ("C-x C-d" . consult-dir))
+  :config
+   (setq consult-dir-project-list-function #'consult-dir-projectile-dirs))
 
 (straight-use-package 'helpful)
 (use-package helpful
