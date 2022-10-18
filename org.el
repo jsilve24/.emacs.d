@@ -271,6 +271,9 @@
   ;; stop asking for confirmation to run src blocks
   (setq org-confirm-babel-evaluate nil)
 
+  ;; better org-src buffer window placement
+  (setq org-src-window-setup 'plain)
+
 
   ;; for some reason this was needed when I first put this config together
   (org-reload))
