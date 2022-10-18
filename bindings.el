@@ -98,9 +98,13 @@
   "fZ" #'zoxide-cd
   "fc" #'jds/open-config
   "fC" #'jds/find-file-config
-  "fk" #'project-kill-buffers
-  "fp" #'consult-project-extra-find
-  "fP" #'consult-project-extra-find-other-window
+  ;; "fk" #'project-kill-buffers
+  "fk" #'projectile-kill-buffers
+  "fp" #'consult-projectile
+  "fP" #'jds/find-file-other-project
+  "ft" #'projectile-run-vterm
+  ;; "fp" #'consult-project-extra-find
+  ;; "fP" #'consult-project-extra-find-other-window
   "fo" #'ruled-switch-buffer
   "fO" #'ruled-switch-buffer-other-window)
 

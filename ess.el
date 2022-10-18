@@ -1,8 +1,8 @@
 ;;; ess.el ---  R setup -*- lexical-binding: t; -*-
 
 ;; setup projectile
-;; (with-eval-after-load 'projectile
-;;   (add-to-list 'projectile-project-root-files "DESCRIPTION"))
+(with-eval-after-load 'projectile
+  (add-to-list 'projectile-project-root-files "DESCRIPTION"))
 
 ;;; main ess setup
 (use-package ess
@@ -78,7 +78,13 @@
 				       (side . right)
 				       (slot . 1)
 				       (window-width . 0.33)
-				       (reusable-frames . nil))))
+				       (reusable-frames . nil)))
+
+
+  ;; dont ask for startup directory just starup in wherever the script is.
+  ;; (setq  ess-startup-directory nil
+  ;; 	 ess-ask-for-ess-directory nil)
+  )
 
 
 ;;; setup polymode

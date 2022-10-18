@@ -1,7 +1,7 @@
 ;;; projects.el --- projectile related config -*- lexical-binding: t; -*-
 
 (use-package projectile
-  :disabled t
+  ;; :disabled t
   :diminish projectile-mode
   :config
   (projectile-mode +1)
@@ -17,14 +17,17 @@
 
 
 (use-package consult-projectile
-  :disabled t
+  ;; :disabled t
   :straight (consult-projectile :type git :host gitlab :repo "OlMon/consult-projectile" :branch "master"))
 
-(use-package project)
+(use-package project
+  :disabled t)
 
-(use-package consult-project-extra)
+(use-package consult-project-extra
+  :disabled t)
 
 (use-package project-rootfile
+  :disabled t
   :config
   (add-to-list 'project-find-functions #'project-rootfile-try-detect t)
   (setq project-rootfile-list `(,@project-rootfile-list
@@ -32,16 +35,17 @@
 				".projectile")))
 
 ;;;###autoload
-(defun jds/remember-project ()
-    "Add current project to known projects list."
-  (interactive)
-  (if (not (project-current))
-      (message "Not in recognized project.")
-    (project-remember-project (project-current))))
+;; (defun jds/remember-project ()
+;;     "Add current project to known projects list."
+;;   (interactive)
+;;   (if (not (project-current))
+;;       (message "Not in recognized project.")
+;;     (project-remember-project (project-current))))
 
 
 ;; setup project ibuffer integration
 (use-package ibuffer-project
+  :disabled t
   :config
    (add-hook 'ibuffer-hook
              (lambda ()
