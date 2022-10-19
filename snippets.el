@@ -107,14 +107,12 @@ escape."
 	      ";;T" "^{T}"
 	      ";tt" "_{t}"
 	      ";xx" "\\times"
-	      ">>" "\\gg"
-	      "<<" "\\ll"
-	      ">=" "\\geq"
-	      "<=" "\\leq"
-	      "!=" "\\neq"
-	      ";neq" "\\neq"
-	      ";leq" "\\leq"
-	      ";geq" "\\geq"
+	      ";times" "\\times"
+	      ";gg" "\\gg"
+	      ";ll" "\\ll"
+	      ";ge" "\\geq"
+	      ";le" "\\leq"
+	      ";ne" "\\neq"
 	      "..." "\\dots"
 	      "v..." "\\vdots"
 	      "c..." "\\cdots"
@@ -127,7 +125,7 @@ escape."
 	      "inn" "\\in"
 	      "AS" #'(lambda () (interactive) (jds~string-just-one-space "&\\sim"))
 	      "SS" #'(lambda () (interactive) (jds~string-just-one-space "\\sim"))
-	      "//" (jds~yas-lambda-expand "\\frac\\{$1\\}\\{$2\\}"))
+	      ";nl" #'(lambda () (interactive) (progn (jds~string-just-one-space "\\\\") (newline))))
 	    (aas-set-snippets ,mode
 	      ";;a" (jds~aas-insert-math-symbol "alpha")
 	      ";;b" (jds~aas-insert-math-symbol "beta")
