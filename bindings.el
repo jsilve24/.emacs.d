@@ -59,7 +59,7 @@
 
 
 ;; ultimately I found this annoying and it screwed with balanced parentheses in lisp code
-;; (global-set-key [remap dabbrev-expand] 'hippie-expand)
+(global-set-key [remap dabbrev-expand] 'hippie-expand)
 
 ;;;###autoload
 (defun jds~blank-line-p ()
