@@ -61,7 +61,9 @@ escape."
 	      ";begin" (jds~yas-lambda-expand "\\begin\\{$1\\}\n$0\n\\end\\{$1\\}")
 	      ";align" (jds~yas-lambda-expand "\\begin\\{align\\}\n$0\n\\end\\{align\\}")
 	      ";Align" (jds~yas-lambda-expand "\\begin\\{align*\\}\n$0\n\\end\\{align*\\}")
-	      ";cite" (jds~yas-lambda-expand  "\\cite\\{$0\\}")
+	      ";cite" 'citar-insert-citation
+	      ";it" (jds~yas-lambda-expand "\\textit\\{$0\\}")
+	      ";bf" (jds~yas-lambda-expand "\\textbf\\{$0\\}")
 	      ";fig" (jds~yas-lambda-expand "\\begin\\{figure\\}[ht]
   \\\centering
   \\\includegraphics[${1:options}]\\{figures/${2:path.pdf}\\}
@@ -84,7 +86,8 @@ escape."
 	      ";star" (jds~yas-lambda-expand "^\\{\*\\}")
 	      ";text" (jds~yas-lambda-expand "\\text\\{$1\\}")
 	      ";cases" (jds~yas-lambda-expand "\\begin\\{cases\\}\n$0 \n\\end\\{cases\\}")
-	      ";frac" (jds~yas-lambda-expand "\\frac\\{$1\\}\\{$2\\}")
+	      ";frac" (jds~yas-lambda-expand "\\frac\\{$1\\}\\{$2\\}$0")
+	      "//" (jds~yas-lambda-expand "\\frac\\{$1\\}\\{$2\\}$0")
 	      ";sum" (jds~yas-lambda-expand  "\\sum_{$1}${2:^{$3\\}}$0")
 	      ";all" "\\forall"
 	      ";set" (jds~yas-lambda-expand "\\\\{$0\\\\}")
@@ -180,9 +183,6 @@ escape."
   (jds~aas-setup-insert-math 'markdown-mode)
 
 
-  ;; latex mode citations
-  (aas-set-snippets 'latex-mode
-    ";cite" 'citar-insert-citation)
 
   ;; org mode links
   (defun jds~org-agenda-link ()
@@ -198,6 +198,7 @@ escape."
 
   (aas-set-snippets 'org-mode
     ";lo" #'jds~org-agenda-link
+    ";lr" #'org-roam-node-insert
     ";sq" (jds~yas-lambda-expand "#+BEGIN_QUOTE\n$0\n#+END_QUOTE")
     ";sr" (jds~yas-lambda-expand "#+begin_src R :exports ${1:$$(yas-choose-value '(\"both\" \"code\" \"results\" \"none\"))} :session \"*R*\" :results output \n$0\n#+end_src")
     ";sb" (jds~yas-lambda-expand "#+begin_src bibtex\n$0\n#+end_src")
@@ -285,35 +286,7 @@ escape."
 
   (aas-set-snippets 'org-msg-edit-mode
     :cond #'message--in-tocc-p
-    "; " (lambda () (interactive) (insert ", ") (completion-at-point)))
-
-  ;; (aas-set-snippets 'text-mode
-  ;; ;; expand unconditionally
-  ;; "o-" "ō"
-  ;; "i-" "ī"
-  ;; "a-" "ā"
-  ;; "u-" "ū"
-  ;; "e-" "ē")
-  ;; (aas-set-snippets 'latex-mode
-  ;; ;; set condition!
-  ;; :cond #'texmathp ; expand only while in math
-  ;; "supp" "\\supp"
-  ;; "On" "O(n)"
-  ;; "O1" "O(1)"
-  ;; "Olog" "O(\\log n)"
-  ;; "Olon" "O(n \\log n)"
-  ;; ;; bind to functions!
-  ;; "//" (lambda () (interactive)
-  ;; (yas-expand-snippet "\\frac{$1}{$2}$0"))
-  ;; "Span" (lambda () (interactive)
-  ;; (yas-expand-snippet "\\Span($1)$0")))
-  ;; disable snippets by redefining them with a nil expansion
-  ;; (aas-set-snippets 'latex-mode
-  ;; "supp" nil)
-  )
-
-
-
+    "; " (lambda () (interactive) (insert ", ") (completion-at-point))))
 
 ;; latex autoactivating snippets
 
