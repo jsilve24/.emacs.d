@@ -226,48 +226,48 @@
 ;;; custom evil objects --------------------------------------------------------
 
 ;; from here; http://blog.binchen.org/posts/code-faster-by-extending-emacs-evil-text-object/
-(defun jds~evil-paren-range (count beg end type inclusive)
-  "Get minimum range of paren text object.
-COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive."
-  (let* ((point (point))
-	 ;; (parens '("\(\)" "\[\]" "{}" "<>"))
-	 (parens '((?\( . ?\))
-		   (?\[ . ?\])
-		   (?{ . ?})
-		   (?< . ?>)))
-	 range
-         found-range)
-    (dolist (p parens)
-      (condition-case nil
-	  (if (characterp (cdr p))
-	      (setq range (evil-select-paren (car p) (cdr p) beg end type count inclusive))
-	    (setq range (evil-select-block #'(lambda (&optional cnt) (evil-up-block (car p) (cdr p) cnt))
-					   beg end type count inclusive)))
-	(error nil))
-      (when range
-	;; (message (format "%s, %s" (nth 0 range) (nth 1 range)))
-        (cond
-         (found-range
-          (when (< (abs (- (car range) point))
-		   (abs (- (car found-range) point)))
-            (setf (nth 0 found-range) (nth 0 range))
-            (setf (nth 1 found-range) (nth 1 range))))
-         (t
-          (setq found-range range)))))
-    found-range))
+;; (defun jds~evil-paren-range (count beg end type inclusive)
+;;   "Get minimum range of paren text object.
+;; COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive."
+;;   (let* ((point (point))
+;; 	 ;; (parens '("\(\)" "\[\]" "{}" "<>"))
+;; 	 (parens '((?\( . ?\))
+;; 		   (?\[ . ?\])
+;; 		   (?{ . ?})
+;; 		   (?< . ?>)))
+;; 	 range
+;;          found-range)
+;;     (dolist (p parens)
+;;       (condition-case nil
+;; 	  (if (characterp (cdr p))
+;; 	      (setq range (evil-select-paren (car p) (cdr p) beg end type count inclusive))
+;; 	    (setq range (evil-select-block #'(lambda (&optional cnt) (evil-up-block (car p) (cdr p) cnt))
+;; 					   beg end type count inclusive)))
+;; 	(error nil))
+;;       (when range
+;; 	;; (message (format "%s, %s" (nth 0 range) (nth 1 range)))
+;;         (cond
+;;          (found-range
+;;           (when (< (abs (- (car range) point))
+;; 		   (abs (- (car found-range) point)))
+;;             (setf (nth 0 found-range) (nth 0 range))
+;;             (setf (nth 1 found-range) (nth 1 range))))
+;;          (t
+;;           (setq found-range range)))))
+;;     found-range))
 
-(evil-define-text-object jds~evil-a-paren (count &optional beg end type)
-  "Select a paren."
-  :extend-selection t
-  (jds~evil-paren-range count beg end type t))
+;; (evil-define-text-object jds~evil-a-paren (count &optional beg end type)
+;;   "Select a paren."
+;;   :extend-selection t
+;;   (jds~evil-paren-range count beg end type t))
 
-(evil-define-text-object jds~evil-inner-paren (count &optional beg end type)
-  "Select 'inner' paren."
-  :extend-selection nil
-  (jds~evil-paren-range count beg end type nil))
+;; (evil-define-text-object jds~evil-inner-paren (count &optional beg end type)
+;;   "Select 'inner' paren."
+;;   :extend-selection nil
+;;   (jds~evil-paren-range count beg end type nil))
 
-(define-key evil-inner-text-objects-map "d" #'jds~evil-inner-paren)
-(define-key evil-outer-text-objects-map "d" #'jds~evil-a-paren)
+;; (define-key evil-inner-text-objects-map "d" #'jds~evil-inner-paren)
+;; (define-key evil-outer-text-objects-map "d" #'jds~evil-a-paren)
 
 
 
@@ -283,6 +283,21 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
 ;;; tragets --------------------------------------------------------------------
 
 
+(use-package targets
+  :straight (targets :type git :host github :repo "noctuid/targets.el")
+
+  :config
+  (targets-setup)
+  (targets-define-composite-to pair-delimiter
+    (("(" ")" pair)
+     ("[" "]" pair)
+     ("{" "}" pair)
+     ("<" ">" pair))
+    :bind t
+    :next-key "N"
+    :last-key "L"
+    :remote-key "r"
+    :keys "d"))
 ;; (use-package targets
 ;;   :straight (targets :type git :host github :repo "noctuid/targets.el")
 ;;   :init
