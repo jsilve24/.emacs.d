@@ -149,7 +149,8 @@ line."
 
 ;;; fluff
 (use-package all-the-icons-dired
-  :hook (dired-mode . all-the-icons-dired-mode))
+  :hook (dired-mode . all-the-icons-dired-mode)
+  :diminish all-the-icons-dired-mode)
 
 
 ;;; mode specific bindings

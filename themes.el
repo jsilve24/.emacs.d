@@ -144,6 +144,8 @@
 	  evil-snipe-override-mode
 	  evil-snipe-local-mode
 	  undo-tree-mode
+	  auto-revert-mode
+	  dired-hide-dotfiles-mode
 	  eldoc-mode
 	  abbrev-mode
 	  which-key-mode
