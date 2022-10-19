@@ -224,6 +224,7 @@
 
 
 ;;; custom evil objects --------------------------------------------------------
+
 ;; from here; http://blog.binchen.org/posts/code-faster-by-extending-emacs-evil-text-object/
 (defun jds~evil-paren-range (count beg end type inclusive)
   "Get minimum range of paren text object.
@@ -244,13 +245,11 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
 					   beg end type count inclusive)))
 	(error nil))
       (when range
-	(message (format "%s, %s" (nth 0 range) (nth 1 range)))
+	;; (message (format "%s, %s" (nth 0 range) (nth 1 range)))
         (cond
          (found-range
           (when (< (abs (- (car range) point))
 		   (abs (- (car found-range) point)))
-	      ;; (< (- (nth 1 range) (nth 0 range))
-              ;;      (- (nth 1 found-range) (nth 0 found-range)))
             (setf (nth 0 found-range) (nth 0 range))
             (setf (nth 1 found-range) (nth 1 range))))
          (t
