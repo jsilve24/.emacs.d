@@ -228,18 +228,29 @@
 (defun jds~evil-paren-range (count beg end type inclusive)
   "Get minimum range of paren text object.
 COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive."
-  (let* ((parens '("()" "[]" "{}" "<>"))
-         range
+  (let* ((point (point))
+	 ;; (parens '("\(\)" "\[\]" "{}" "<>"))
+	 (parens '((?\( . ?\))
+		   (?\[ . ?\])
+		   (?{ . ?})
+		   (?< . ?>)))
+	 range
          found-range)
     (dolist (p parens)
       (condition-case nil
-          (setq range (evil-select-paren (aref p 0) (aref p 1) beg end type count inclusive))
-        (error nil))
+	  (if (characterp (cdr p))
+	      (setq range (evil-select-paren (car p) (cdr p) beg end type count inclusive))
+	    (setq range (evil-select-block #'(lambda (&optional cnt) (evil-up-block (car p) (cdr p) cnt))
+					   beg end type count inclusive)))
+	(error nil))
       (when range
+	(message (format "%s, %s" (nth 0 range) (nth 1 range)))
         (cond
          (found-range
-          (when (< (- (nth 1 range) (nth 0 range))
-                   (- (nth 1 found-range) (nth 0 found-range)))
+          (when (< (abs (- (car range) point))
+		   (abs (- (car found-range) point)))
+	      ;; (< (- (nth 1 range) (nth 0 range))
+              ;;      (- (nth 1 found-range) (nth 0 found-range)))
             (setf (nth 0 found-range) (nth 0 range))
             (setf (nth 1 found-range) (nth 1 range))))
          (t
@@ -258,7 +269,6 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
 
 (define-key evil-inner-text-objects-map "d" #'jds~evil-inner-paren)
 (define-key evil-outer-text-objects-map "d" #'jds~evil-a-paren)
-
 
 
 
