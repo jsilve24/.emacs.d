@@ -110,6 +110,7 @@
     ("mansucript" "manuscript" nil :count 3)
     ("mathemtically" "mathematically" nil :count 0)
     ("miniscule" "minuscule" nil :count 0)
+    ("mneumonic" "mnemonic" nil :count 0)
     ("nusiance" "nuisance" nil :count 0)
     ("perscribing" "prescribing" nil :count 0)
     ("pertmutations" "permutations" nil :count 0)

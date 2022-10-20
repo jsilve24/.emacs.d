@@ -80,7 +80,9 @@
 	  (?> ("\\rightarrow" "\\Rightarrow" "\\longrightarrow" "\\Longrightarrow"))
 	  (?\\ ("\\parallel"))
 	  (?| ("\\perp"))))
-  (setq cdlatex-math-modify-alist '((?\p "\\proc" nil t nil nil)))
+  (setq cdlatex-math-modify-alist '((?\p "\\proc" nil t nil nil)
+				    ;; mathbb requires the amssymb library in latex
+				    (?\B "\\mathbb" nil t nil nil)))
   ;; Keep cdlatex from taking backtick key (this functionality is now done by aas snippets)
   (define-key cdlatex-mode-map (kbd "`") nil)
 

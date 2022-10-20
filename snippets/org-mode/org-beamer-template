@@ -28,6 +28,7 @@
 #+BEAMER_HEADER: \usepackage{subcaption}
 #+BEAMER_HEADER: \usepackage{multicol}
 #+BEAMER_HEADER: \beamertemplatenavigationsymbolsempty
+#+BEAMER_HEADER: \usepackage{amssymb}
 #+BEAMER_HEADER: \definecolor{links}{HTML}{4167E1}
 #+BEAMER_HEADER: \hypersetup{colorlinks,linkcolor=,urlcolor=links}
 #+STARTUP: beamer
