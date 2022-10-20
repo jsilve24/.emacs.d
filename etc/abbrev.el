@@ -92,6 +92,7 @@
     ("jstinp" "justin" nil :count 0)
     ("jujstin" "justin" nil :count 0)
     ("jusitin" "justin" nil :count 0)
+    ("jusitn" "justin" nil :count 0)
     ("jusitni" "justin" nil :count 0)
     ("justikn" "justin" nil :count 0)
     ("justing" "justin" nil :count 0)

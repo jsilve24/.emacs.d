@@ -164,6 +164,20 @@
 	  reftex-mode
 	  visual-line-mode)))
 
+;; hide mode-line in a number of modes
+(defun jds~hide-mode-line-hook-fxn ()
+  (hide-mode-line-mode +1))
+(dolist (hook '(org-agenda-mode-hook
+		mu4e-view-mode-hook
+		mu4e-headers-mode-hook
+		magit-mode-hook
+		magit-status-mode-hook
+		inferior-ess-r-mode
+		pdf-view-mode-hook
+		vterm-mode-hook
+		dired-mode-hook))
+  (add-hook hook #'jds~hide-mode-line-hook-fxn))
+
 ;;; dashboard
 
 
