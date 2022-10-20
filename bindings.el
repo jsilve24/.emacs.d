@@ -463,6 +463,7 @@
  "gr" #'eval-region
  "gR" #'quickrun-shell
  "gc" #'evilnc-comment-operator
+ "gC" #'evilnc-copy-and-comment-operator
  "g;" #'goto-last-change
  "g/" #'avy-goto-char-timer
  "g," #'jds/evil-snipe-convert-avy-jump
