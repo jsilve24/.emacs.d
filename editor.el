@@ -167,8 +167,8 @@ Version 2017-01-11"
 ;; https://github.com/jdtsmith/outli
 (use-package outli
   :straight (outli :type git :host github :repo "jdtsmith/outli")
-  :hook (text-mode . outli-mode)
-  :hook (prog-mode . outli-mode)
+  :hook (emacs-lisp-mode . outli-mode)
+  :hook (ess-r-mode . outli-mode)
   :config
   (add-to-list 'outli-heading-config '(ess-r-mode "##" ?# t)))
 
