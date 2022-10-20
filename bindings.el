@@ -330,12 +330,10 @@
   "Z" #'zoxide-cd
   "c" #'jds/mu4e-compose-goto-to
   "g" #'magit-status
-  "m" #'(lambda () (interactive)
-	  (mu4e-headers-search-bookmark
-	   (mu4e-get-bookmark-query ?t)))
+  "m" #'jds/mu4e-goto-todays-headers
   "M" #'(lambda (&optional arg) (interactive "P")
 	  (jds~new-frame-or-new-window arg)
-	  (mu4e-headers-search-bookmark (mu4e-get-bookmark-query ?t)))
+	  (jds/mu4e-goto-todays-headers))
   "n" #'org-roam-node-find
   ";" #'org-roam-capture
   "l" (jds~roam-exclude-dwim (org-store-link nil t))
@@ -358,10 +356,7 @@
   "Y" (jds~start-slack-function slack-select-unread-rooms)
   "k" #'jds/help-thing-at-point
   "d" #'jds/dired-jump-and-kill-buffer
-  "D" #'dired-jump-other-window
-  ;; "d" #'jds/dired-jump-reuse-dired
-  ;; "d" #'dired-sidebar-toggle-sidebar
-  ) ;; "D" #'jds/dired-jump-and-kill-buffer
+  "D" #'dired-jump-other-window) 
 
 ;;; faster editing in text buffers
 
