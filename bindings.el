@@ -586,8 +586,9 @@
   (key-chord-define-local "wq" #'org-save-all-org-buffers))
 (add-hook 'org-agenda-mode-hook 'jds~org-agenda-local-bindings)
 
+;; Idea for this binding came from regardtoo evil configuration
 (general-vmap
   :keymap 'global
-  "\\" #'er/expand-region
-  "|" #'er/contract-region)
+  "v" #'er/expand-region
+  "V" #'er/contract-region)
 
