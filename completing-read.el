@@ -515,5 +515,32 @@ targets."
   (all-the-icons-completion-mode)
   (add-hook 'marginalia-mode-hook #'all-the-icons-completion-marginalia-setup))
 
+
+;;; open some files with external application by default 
+;; (use-package openwith
+;;   :straight (openwith :type git :host github :repo "thisirs/openwith")
+;;   :config
+;;   (setq openwith-associations
+;; 	'(("\\.docx" "libreoffice" (file)
+;; 	   "\\.xlsx'" "libreoffice" (file)))))
+
+;; from here: https://emacs.stackexchange.com/questions/3105/how-to-use-an-external-program-as-the-default-way-to-open-pdfs-from-emacs
+(defun jds~xdg-open (filename)
+  (interactive "fFilename: ")
+  (let ((process-connection-type))
+    (start-process "" nil "xdg-open" (expand-file-name filename))))
+
+
+(defun jds~find-file-advice (orig-fun &rest args)
+ (let ((filename (car args)))
+   (if (cl-find-if
+        (lambda (regexp) (string-match regexp filename))
+        '("\\.xlsx?\\'" "\\.docx?\\'"))
+       (jds~xdg-open filename)
+     (apply orig-fun args))))
+
+(advice-add 'find-file :around 'jds~find-file-advice)
+
+
 (provide 'completing-read)
 ;;; completing-read.el ends here
