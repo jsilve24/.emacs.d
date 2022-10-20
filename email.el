@@ -198,9 +198,9 @@
     "Simply function to jump to my ?t (todays messages) headers view."
     (interactive)
     (if (get-buffer "*mu4e-headers*")
-	(switch-to-buffer "*mu4e-headers*")
-      (mu4e-headers-search-bookmark
-       (mu4e-get-bookmark-query ?t))))
+	(switch-to-buffer "*mu4e-headers*"))
+    (mu4e-headers-search-bookmark
+     (mu4e-get-bookmark-query ?t)))
 
 
 ;;; dired - embark -- attach files to messages
