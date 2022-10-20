@@ -6,13 +6,14 @@
 
 (define-abbrev-table 'global-abbrev-table
   '(
+    ("abou" "about" nil :count 0)
     ("abudnance" "abundance" nil :count 9)
     ("abudnant" "abundant" nil :count 0)
     ("acctually" "actually" nil :count 8)
     ("acknowledgement" "acknowledgment" nil :count 0)
     ("acounting" "accounting" nil :count 0)
     ("adress" "address" nil :count 0)
-    ("ahve" "have" nil :count 12)
+    ("ahve" "have" nil :count 13)
     ("allso" "also" nil :count 0)
     ("alot" "a lot" nil :count 4)
     ("alterantive" "alternative" nil :count 1)
@@ -144,6 +145,7 @@
     ("teh" "the" nil :count 53)
     ("thsi" "this" nil :count 5)
     ("truely" "truly" nil :count 4)
+    ("tthe" "the" nil :count 0)
     ("unacknoledged" "unacknowledged" nil :count 2)
     ("unacknolwedged" "unacknowledged" nil :count 18)
     ("uncertaint" "uncertainty" nil :count 0)

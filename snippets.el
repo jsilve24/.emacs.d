@@ -1,7 +1,5 @@
 ;;; snippets.el --- setup yasnippets and such -*- lexical-binding: t; -*-
 
-;;; setup consult-yassnippet
-
 (use-package yasnippet
   :ensure t
   :commands (yas-expand yas-expand-snippet)
