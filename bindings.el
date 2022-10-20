@@ -358,7 +358,7 @@
   "d" #'jds/dired-jump-and-kill-buffer
   "D" #'dired-jump-other-window) 
 
-;;; faster editing in text buffers
+;;; faster editing in text buffers ------
 
 
 (general-define-key

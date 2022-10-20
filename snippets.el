@@ -262,7 +262,7 @@ escape."
       (forward-line))
     (let ((nchar (if (string= major-mode "emacs-lisp-mode")
 		     3
-		   1)))
+		   3)))
       (insert-char (string-to-char comment-start) nchar))
     (just-one-space)
     (insert string)

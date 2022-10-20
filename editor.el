@@ -152,37 +152,53 @@ Version 2017-01-11"
 
 ;;; customize imenu listings ---------------------------------------------------
 
-(with-eval-after-load 'imenu
-  (defun jds~add-to-imenu-hook-function ()
-    "Add this hook to major modes to customize imenu supported expressions"
-    (interactive)
-    (add-to-list 'imenu-generic-expression '("Sections" "^\\(.+\\)----$" 1)))
-  (add-hook 'text-mode-hook 'jds~add-to-imenu-hook-function)
-  (add-hook 'prog-mode-hook 'jds~add-to-imenu-hook-function))
+;; no longer needed with outli (below) 
+;; 
+;; (with-eval-after-load 'imenu
+;;   (defun jds~add-to-imenu-hook-function ()
+;;     "Add this hook to major modes to customize imenu supported expressions"
+;;     (interactive)
+;;     (add-to-list 'imenu-generic-expression '("Sections" "^\\(.+\\)----$" 1)))
+;;   (add-hook 'text-mode-hook 'jds~add-to-imenu-hook-function)
+;;   (add-hook 'prog-mode-hook 'jds~add-to-imenu-hook-function))
+
+;;; outli mode -----------------------------------------------------------------
+
+;; https://github.com/jdtsmith/outli
+(use-package outli
+  :straight (outli :type git :host github :repo "jdtsmith/outli")
+  :hook (text-mode . outli-mode)
+  :hook (prog-mode . outli-mode)
+  :config
+  (add-to-list 'outli-heading-config '(ess-r-mode "##" ?# t)))
+
+(jds/localleader-def
+  :keymaps '(text-mode-map prog-mode-map)
+  "n" #'outli-toggle-narrow-to-subtree)
 
 ;;; autocapitalize -------------------------------------------------------------
 
 ;; (use-package captain
-;;   :config
-;;   (global-captain-mode)
-;;   ;; only work in comments in programming modes
-;;   (add-hook 'prog-mode-hook
-;; 	    (lambda ()
-;; 	      (setq captain-predicate (lambda () (nth 8 (syntax-ppss (point)))))))
-;;   ;; Or for text modes, work all the time:
-;;   (add-hook 'text-mode-hook
-;;             (lambda ()
-;;               (setq captain-predicate (lambda () t))))
-;;   ;; turn on in slack buffers
-;;   ;; (add-hook 'text-mode-hook
-;;   ;;            (lambda ()
-;;   ;;              (setq captain-predicate (lambda () t))))
-;;   ;; Or don't work in source blocks in Org mode:
-;;   (add-hook
-;;    'org-mode-hook
-;;    (lambda ()
-;;      (setq captain-predicate
-;; 	   (lambda () (not (org-in-src-block-p)))))))
+;; :config
+;; (global-captain-mode)
+;; ;; only work in comments in programming modes
+;; (add-hook 'prog-mode-hook
+;; (lambda ()
+;; (setq captain-predicate (lambda () (nth 8 (syntax-ppss (point)))))))
+;; ;; Or for text modes, work all the time:
+;; (add-hook 'text-mode-hook
+;; (lambda ()
+;; (setq captain-predicate (lambda () t))))
+;; ;; turn on in slack buffers
+;; ;; (add-hook 'text-mode-hook
+;; ;;            (lambda ()
+;; ;;              (setq captain-predicate (lambda () t))))
+;; ;; Or don't work in source blocks in Org mode:
+;; (add-hook
+;; 'org-mode-hook
+;; (lambda ()
+;; (setq captain-predicate
+;; (lambda () (not (org-in-src-block-p)))))))
 
 ;;; tags -----------------------------------------------------------------------
 
