@@ -407,6 +407,7 @@
   "oc" #'calendar
   "or" #'jds/citar-open-prioritize-global-bib
   "op" #'proced
+  "od" #'hydra-edebug/body
   "ob" #'ebib)
 
 ;;; notes and org/org-roam stuff
@@ -456,7 +457,8 @@
  :states '(normal visual motion)
  :keymaps 'override
  "gr" #'eval-region
- "gR" #'quickrun-shell
+ "gR" #'(lambda () (interactive) (let ((edebug-all-forms t))
+				   (call-interactively #'eval-region)))
  "gc" #'evilnc-comment-operator
  "gC" #'evilnc-copy-and-comment-operator
  "g;" #'goto-last-change
