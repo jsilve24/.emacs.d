@@ -47,6 +47,15 @@
        (cdr (ring-ref avy-ring 0))))
     t)
 
+  (defun avy-action-kill-whole-line (pt)
+    (save-excursion
+      (goto-char pt)
+      (kill-whole-line))
+    (select-window
+     (cdr
+      (ring-ref avy-ring 0)))
+    t)
+
   (defun avy-action-teleport-whole-line (pt)
     (avy-action-kill-whole-line pt)
     (save-excursion (yank)) t)
@@ -54,7 +63,7 @@
   (setq avy-dispatch-alist
 	'((?\; . avy-action-embark)
 	  (?T . avy-action-teleport)
-	  (?W . avy-action-teleport-whole-line) 
+	  (?W . avy-action-teleport-whole-line)
 	  (?Y . avy-action-yank)
 	  (?L . avy-action-yank-line)))
   ;; (setf (alist-get ?\; avy-dispatch-alist) 'avy-action-embark)
