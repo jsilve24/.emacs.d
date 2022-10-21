@@ -151,6 +151,8 @@
 ;;; setup evil-tex
 
 (use-package evil-tex
+  :straight (evil-tex :type git :host github :repo "iyefrat/evil-tex"
+		      :fork t)
   :hook (LaTeX-mode . evil-tex-mode)
   :hook (org-mode . evil-tex-mode)
   :init
