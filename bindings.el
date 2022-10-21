@@ -526,9 +526,9 @@
  :states '(normal visual)
  ;; note a bunch taken by evil fold
  "zf"  #'find-file-at-point
- "zF"  #'find-file-other-frame
+ "zF"  #'find-file-other-window
  "zd"  #'xref-find-definitions
- "zD"  #'xref-find-definitions-other-frame
+ "zD"  #'xref-find-definitions-other-window
  "zs"  #'xref-find-references
  "zl"  #'evil-lion-left
  "zL"  #'evil-lion-right
