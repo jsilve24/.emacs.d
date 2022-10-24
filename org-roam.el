@@ -21,7 +21,7 @@
 	  ("r" "bibliography reference" plain
 	   (file "~/.emacs.d/capture-templates/org-roam-bibtex-noter-template.org")
 	   :target
-	   (file+head "references/notes/${citekey}.org" "#+title: ${author-abbrev} :: ${title}\n#+filetags: :reference:")
+	   (file+head "references/notes/${citekey}.org" "#+title: ${author-abbrev} :: ${title}\n#+filetags: :reference:\n")
 	   :unnarrowed t))	  )
 
   ;; get tags when searching
