@@ -130,9 +130,20 @@
 
 (use-package smart-mode-line
   :config
+  ;; give a bit extra space to battery indicator 
+  (setq	sml/battery-format " %p ")
+
+  ;; setup 
   (sml/setup)
-  (line-number-mode 0)
-  (setq display-time-default-load-average nil))
+
+  ;; seem to need to toggle display-time-mode to make system load not show up
+  ;; this is very hacky but it seems to work. 
+  (display-time-mode 0)
+  (setq display-time-default-load-average nil)
+  (display-time-mode 1)
+
+  ;; don't show line number in mode-line (already show line-numbers when needed with fringe)
+  (line-number-mode 0))
 
 (use-package diminish
   :defer t
