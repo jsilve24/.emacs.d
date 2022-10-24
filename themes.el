@@ -131,7 +131,8 @@
 (use-package smart-mode-line
   :config
   (sml/setup)
-  (line-number-mode 0))
+  (line-number-mode 0)
+  (setq display-time-default-load-average nil))
 
 (use-package diminish
   :defer t
