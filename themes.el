@@ -130,7 +130,8 @@
 
 (use-package smart-mode-line
   :config
-  (sml/setup))
+  (sml/setup)
+  (line-number-mode 0))
 
 (use-package diminish
   :defer t
