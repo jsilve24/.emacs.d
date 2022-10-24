@@ -408,7 +408,8 @@
   "or" #'jds/citar-open-prioritize-global-bib
   "op" #'proced
   "od" #'hydra-edebug/body
-  "ob" #'ebib)
+  "ob" #'ebib
+  "oz" #'(lambda () (interactive) (jds~launch-zoom-by-conference-number 3697254414)))
 
 ;;; notes and org/org-roam stuff
 (jds/leader-def

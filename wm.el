@@ -445,6 +445,12 @@ buffer (=minimizing in other WM/DE)"
   (jds/quiet-async-shell-commands "xrandr --output HDMI-1-0 --same-as eDP-1")
   (jds/quiet-async-shell-commands "xsetwacom set "Wacom Intuos BT S Pen stylus" MapToOutput HEAD-0"))
 
+;; also for quickly launching my personal zoom room
+(defun jds~launch-zoom-by-conference-number (conf)
+  "Use xdg-open to zoom opening CONF meeting ID. CONF should be a string."
+  (jds/quiet-async-shell-commands
+   (format "xdg-open 'zoommtg://zoom.us/join?action=join&confno=%s'" conf)))
+
 
 ;;; setup modeline
 (use-package exwm-modeline
