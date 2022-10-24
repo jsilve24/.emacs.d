@@ -56,6 +56,8 @@ escape."
 	      :cond #'(lambda () (not (texmathp)))
 	      ";m" (jds~yas-lambda-expand "\\\\($1\\\\)")
 	      ";M" (jds~yas-lambda-expand "\\\[$1\\\]")
+	      "mdim" (jds~yas-lambda-expand "\\\\($1 \\times $2\\\\) matrix $0")
+	      "vdim" (jds~yas-lambda-expand "\\\\($1\\\\)-vector $0")
 	      ";begin" (jds~yas-lambda-expand "\\begin\\{$1\\}\n$0\n\\end\\{$1\\}")
 	      ";align" (jds~yas-lambda-expand "\\begin\\{align\\}\n$0\n\\end\\{align\\}")
 	      ";Align" (jds~yas-lambda-expand "\\begin\\{align*\\}\n$0\n\\end\\{align*\\}")
@@ -97,6 +99,7 @@ escape."
 	      ";norm" (jds~yas-lambda-expand "N($1,$2)")
 	      ";cov" (jds~yas-lambda-expand "\\text{Cov}($0)")
 	      ";var" (jds~yas-lambda-expand "\\text{Var}($0)")
+	      "lg" "\\log "
 	      ";ii" "_{ii}"
 	      ";ij" "_{ij}"
 	      ";jj" "_{jj}"
@@ -104,23 +107,23 @@ escape."
 	      ";;3" "^{3}"
 	      ";;T" "^{T}"
 	      ";tt" "_{t}"
-	      ";xx" "\\times"
-	      ";times" "\\times"
-	      ";gg" "\\gg"
-	      ";ll" "\\ll"
-	      ";ge" "\\geq"
-	      ";le" "\\leq"
-	      ";ne" "\\neq"
-	      "..." "\\dots"
-	      "v..." "\\vdots"
-	      "c..." "\\cdots"
-	      "d..." "\\ddots"
-	      "cc" "\\subset"
-	      "ceq" "\\subseteq"
+	      ";xx" "\\times "
+	      ";times" "\\times "
+	      ";gg" "\\gg "
+	      ";ll" "\\ll "
+	      ";ge" "\\geq "
+	      ";le" "\\leq "
+	      ";ne" "\\neq "
+	      "..." "\\dots "
+	      "v..." "\\vdots "
+	      "c..." "\\cdots "
+	      "d..." "\\ddots "
+	      "cc" "\\subset "
+	      "ceq" "\\subseteq "
 	      "EE" #'(lambda () (interactive) (jds~string-just-one-space "="))
 	      "AE" #'(lambda () (interactive) (jds~string-just-one-space "&="))
 	      "AA" #'(lambda () (interactive) (jds~string-just-one-space "&"))
-	      "inn" "\\in"
+	      "inn" "\\in "
 	      "AS" #'(lambda () (interactive) (jds~string-just-one-space "&\\sim"))
 	      "SS" #'(lambda () (interactive) (jds~string-just-one-space "\\sim"))
 	      ";nl" #'(lambda () (interactive) (progn (jds~string-just-one-space "\\\\") (newline))))
@@ -156,7 +159,7 @@ escape."
 	      ";;t" (jds~aas-insert-math-symbol "tau")
 	      ";;u" (jds~aas-insert-math-symbol "upsilon")
 	      ";;U" (jds~aas-insert-math-symbol "Upsilon")
-	      ";;v" "\\vert"
+	      ";;v" "\\vert "
 	      ";;x" (jds~aas-insert-math-symbol "xi")
 	      ";;X" (jds~aas-insert-math-symbol "Xi")
 	      ";;y" (jds~aas-insert-math-symbol "psi")
