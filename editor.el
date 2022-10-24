@@ -169,6 +169,7 @@ Version 2017-01-11"
   :straight (outli :type git :host github :repo "jdtsmith/outli")
   :hook (emacs-lisp-mode . outli-mode)
   :hook (ess-r-mode . outli-mode)
+  :diminish outline-minor-mode
   :config
   (add-to-list 'outli-heading-config '(ess-r-mode "##" ?# t)))
 
