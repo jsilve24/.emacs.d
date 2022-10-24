@@ -45,7 +45,7 @@ mention-count)) (channel . (has-unreads . mention-count)))))"
 					   channel-has-unreads))
 			  (thread-mention-count (cdr thread))
 			  (channel-mention-count (cdr channel)))
-		     (format " [%s]"
+		     (format " S:%s "
 			     (if (or channel-has-unreads (< 0 channel-mention-count))
 				 (propertize (number-to-string channel-mention-count)
 					     'face 'slack-modeline-channel-has-unreads-face)
