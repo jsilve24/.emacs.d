@@ -62,6 +62,7 @@ escape."
 	      ";align" (jds~yas-lambda-expand "\\begin\\{align\\}\n$0\n\\end\\{align\\}")
 	      ";Align" (jds~yas-lambda-expand "\\begin\\{align*\\}\n$0\n\\end\\{align*\\}")
 	      ";cite" 'citar-insert-citation
+	      ";ref"  (jds~yas-lambda-expand "\\ref\\{$0\\}")
 	      ";it" (jds~yas-lambda-expand "\\textit\\{$0\\}")
 	      ";bf" (jds~yas-lambda-expand "\\textbf\\{$0\\}")
 	      ";fig" (jds~yas-lambda-expand "\\begin\\{figure\\}[ht]
@@ -99,7 +100,7 @@ escape."
 	      ";norm" (jds~yas-lambda-expand "N($1,$2)")
 	      ";cov" (jds~yas-lambda-expand "\\text{Cov}($0)")
 	      ";var" (jds~yas-lambda-expand "\\text{Var}($0)")
-	      "lg" "\\log "
+	      "lg" "\\log"
 	      ";ii" "_{ii}"
 	      ";ij" "_{ij}"
 	      ";jj" "_{jj}"
@@ -107,19 +108,19 @@ escape."
 	      ";;3" "^{3}"
 	      ";;T" "^{T}"
 	      ";tt" "_{t}"
-	      ";xx" "\\times "
-	      ";times" "\\times "
-	      ";gg" "\\gg "
-	      ";ll" "\\ll "
-	      ";ge" "\\geq "
-	      ";le" "\\leq "
-	      ";ne" "\\neq "
-	      "..." "\\dots "
-	      "v..." "\\vdots "
-	      "c..." "\\cdots "
-	      "d..." "\\ddots "
-	      "cc" "\\subset "
-	      "ceq" "\\subseteq "
+	      ";xx" "\\times"
+	      ";times" "\\times"
+	      ";gg" "\\gg"
+	      ";ll" "\\ll"
+	      ";ge" "\\geq"
+	      ";le" "\\leq"
+	      ";ne" "\\neq"
+	      "..." "\\dots"
+	      "v..." "\\vdots"
+	      "c..." "\\cdots"
+	      "d..." "\\ddots"
+	      "cc" "\\subset"
+	      "ceq" "\\subseteq"
 	      "EE" #'(lambda () (interactive) (jds~string-just-one-space "="))
 	      "AE" #'(lambda () (interactive) (jds~string-just-one-space "&="))
 	      "AA" #'(lambda () (interactive) (jds~string-just-one-space "&"))
