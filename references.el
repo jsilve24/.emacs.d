@@ -171,8 +171,8 @@ a string specifying full filepath."
   (setq scihub-download-directory "~/Dropbox/org/roam/references/articles/"))
 
 ;; ;;;###autoload
-(defun jds/download-from-scihub ()
-    "foo"
+(defun jds/ebib-download-from-scihub ()
+    "From ebib, download paper. Entry must have DOI or DOI URL field."
   (interactive)
   (let* ((key (ebib--get-key-at-point))
 	 (doi (ebib-get-field-value "doi" key ebib--cur-db 'no-error 'unbraced))
