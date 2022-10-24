@@ -168,10 +168,19 @@
 	shr-use-colors nil)
   (advice-add #'shr-colorize-region :around (defun shr-no-colourise-region (&rest ignore)))
 
+  ;; clean up modeline
+  ;; (defun jds~turn-off-mu4e-modeline ()
+  ;; (setq mu4e-context-in-modeline nil
+  ;; mu4e~headers-mode-line-label ""))
+  ;; (add-hook 'mu4e-headers-mode-hook 'jds~turn-off-mu4e-modeline)
+
+  ;; completely disable mu4e-specific mode-line components
+  (defun mu4e~headers-update-mode-line ())
+  (defun mu4e-context-in-modeline ())
+
   ;; start mu4e in background
   ;; (mu4e)
-  (mu4e 4)
-  )
+  (mu4e 4))
 
 ;;; setup org-msg
 (use-package org-msg
