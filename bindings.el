@@ -25,7 +25,8 @@
  "C-;" #'embark-act
  "C-:" #'embark-dwim
  "C-<" #'lispyville-barf
- "C->" #'lispyville-slurp)
+ "C->" #'lispyville-slurp
+ "C-<tab>" #'completion-at-point)
 
 ;;;###autoload
 (defun jds~kill-whole-line ()
@@ -35,15 +36,22 @@
   ;; (kill-line)
   (evil-delete-back-to-indentation))
 
+;;;###autoload
+(defun jds/evil-paste-from-clipboard ()
+  (interactive)
+  (evil-paste-from-register ?\"))
+
 (general-imap
   "C-k" #'jds~kill-whole-line
   "C-a" #'move-beginning-of-line
   "C-e" #'move-end-of-line
+  "C-p" #'jds/evil-paste-from-clipboard
   "M-w" #'kill-word)
 ;;  Note Defaults
 ;; C-w kill word back
 ;; "C-M-e" move to end of defun
 ;; "C-M-a" move to start of defun
+
 (general-nmap
   "C-e" #'move-end-of-line)
 
