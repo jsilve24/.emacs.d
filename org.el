@@ -243,7 +243,8 @@
        (org . t )
        (stan . t))))
 
-  (setq org-src-fontify-natively t)
+  (setq org-src-fontify-natively t
+	org-export-with-smart-quotes t)
 
   ;; get syntax highlighting working
   ;; taken from here: http://joonro.github.io/blog/posts/org-mode-outputdir-minted-latex-export/
