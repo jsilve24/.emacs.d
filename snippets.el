@@ -54,8 +54,8 @@ escape."
   (defmacro jds~aas-setup-insert-math (mode)
     `(progn (aas-set-snippets ,mode
 	      :cond #'(lambda () (not (texmathp)))
-	      ";m" (jds~yas-lambda-expand "\\\\($1\\\\)")
-	      ";M" (jds~yas-lambda-expand "\\\[$1\\\]")
+	      ";m" (jds~yas-lambda-expand "\\\\($0\\\\)")
+	      ";M" (jds~yas-lambda-expand "\\\[$0\\\]")
 	      "mdim" (jds~yas-lambda-expand "\\\\($1 \\times $2\\\\) matrix $0")
 	      "vdim" (jds~yas-lambda-expand "\\\\($1\\\\)-vector $0")
 	      ";begin" (jds~yas-lambda-expand "\\begin\\{$1\\}\n$0\n\\end\\{$1\\}")
@@ -92,7 +92,6 @@ escape."
 	      ";sum" (jds~yas-lambda-expand  "\\sum_{$1}${2:^{$3\\}}$0")
 	      ";all" "\\forall"
 	      ";set" (jds~yas-lambda-expand "\\\\{$0\\\\}")
-	      ";sim" (jds~yas-lambda-expand "\\sim")
 	      ";pp" (jds~yas-lambda-expand "p($0)")
 	      ";pr" (jds~yas-lambda-expand "P($0)")
 	      ";pc" (jds~yas-lambda-expand "p($1 \\vert $2)")
@@ -100,6 +99,10 @@ escape."
 	      ";norm" (jds~yas-lambda-expand "N($1,$2)")
 	      ";cov" (jds~yas-lambda-expand "\\text{Cov}($0)")
 	      ";var" (jds~yas-lambda-expand "\\text{Var}($0)")
+	      ";angle" (jds~yas-lambda-expand "\\langle $0 \\rangle")
+	      ";real" (jds~aas-insert-math-symbol "\\mathbb\\{R\\}")
+	      ";bmat" (jds~aas-insert-math-symbol "\\begin\\{bmatrix\\} $0 \\end\\{bmatrix\\}")
+	      ";simplex" (jds~aas-insert-math-symbol "\\mathbb\\{S\\}")
 	      "lg" "\\log"
 	      ";ii" "_{ii}"
 	      ";ij" "_{ij}"
@@ -176,6 +179,7 @@ escape."
 	      ";;^" (jds~aas-insert-math-symbol "uparrow")
 	      ";;_" (jds~aas-insert-math-symbol "downarrow")
 	      ";;8" (jds~aas-insert-math-symbol "infty")
+	      ";;*" (jds~aas-insert-math-symbol "odot")
 	      ";;+" (jds~aas-insert-math-symbol "oplus")
 	      ";;-" (jds~aas-insert-math-symbol "ominus"))))
   (jds~aas-setup-insert-math 'org-mode)
@@ -214,9 +218,12 @@ escape."
     ";pdf" (jds~yas-lambda-expand-snippet-by-key "org-beamer-include-pdf")
     ";rplot" (jds~yas-lambda-expand-snippet-by-key "org-beamer-r-plot")
     ";width" (jds~yas-lambda-expand "#+ATTR_LATEX: :width ${1:0.9\\linewidth}")
+    ";atex" (jds~yas-lambda-expand "#+ATTR_LATEX: $0")
     ";alatex" (jds~yas-lambda-expand "#+ATTR_LATEX: $0")
+    ";caption" (jds~yas-lambda-expand "#+CAPTION:$0")
+    ";ofig" (jds~yas-lambda-expand "[[./$0]]")
     ";pause" "#+BEAMER: \\pause"
-    ";overlay" (jds~yas-lambda-expand "#+ATTR_BEAMER: :overlay <$0>"))
+    ";overlay" (jds~yas-lambda-expand "#+ATTR_BEAMER: :overlay <${1:+-}>"))
 
 
   ;; elisp snippets
@@ -236,7 +243,7 @@ escape."
     ";lambda" (jds~yas-lambda-expand "(lambda ($1) ${2:(interactive)} $0)")
     ";let" (jds~yas-lambda-expand "(let${1:*} (${2:args})\n$0)")
     ";not" (jds~yas-lambda-expand "(not $0)")
-    ";or" (jds~yas-lambda-expand "(org $0)")
+    ";or" (jds~yas-lambda-expand "(or $0)")
     ";header" (jds~yas-lambda-expand-snippet-by-key "package-header"))
 
   (defmacro jds~aas-setup-ess (mode)
