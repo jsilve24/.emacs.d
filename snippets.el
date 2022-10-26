@@ -62,9 +62,9 @@ escape."
 	      ";align" (jds~yas-lambda-expand "\\begin\\{align\\}\n$0\n\\end\\{align\\}")
 	      ";Align" (jds~yas-lambda-expand "\\begin\\{align*\\}\n$0\n\\end\\{align*\\}")
 	      ";cite" 'citar-insert-citation
-	      ";ref"  (jds~yas-lambda-expand "\\ref\\{$0\\}")
-	      ";it" (jds~yas-lambda-expand "\\textit\\{$0\\}")
-	      ";bf" (jds~yas-lambda-expand "\\textbf\\{$0\\}")
+	      ";ref"  (jds~yas-lambda-expand "\\ref\\{$1\\}$0")
+	      ";it" (jds~yas-lambda-expand "\\textit\\{$1\\}$0")
+	      ";bf" (jds~yas-lambda-expand "\\textbf\\{$1\\}$0")
 	      ";fig" (jds~yas-lambda-expand "\\begin\\{figure\\}[ht]
   \\\centering
   \\\includegraphics[${1:options}]\\{figures/${2:path.pdf}\\}
@@ -111,7 +111,7 @@ escape."
 	      ";;3" "^{3}"
 	      ";;T" "^{T}"
 	      ";tt" "_{t}"
-	      ";xx" "\\times"
+	      "xx" "\\times"
 	      ";times" "\\times"
 	      ";gg" "\\gg"
 	      ";ll" "\\ll"
@@ -140,7 +140,9 @@ escape."
 	      ";;D" (jds~aas-insert-math-symbol "Delta")
 	      ";;e" (jds~aas-insert-math-symbol "epsilon")
 	      ";;E" (jds~aas-insert-math-symbol "Epsilon")
+	      ";;;e" (jds~aas-insert-math-symbol "varepsilon")
 	      ";;f" (jds~aas-insert-math-symbol "phi")
+	      ";;;f" (jds~aas-insert-math-symbol "varphi")
 	      ";;F" (jds~aas-insert-math-symbol "Phi")
 	      ";;g" (jds~aas-insert-math-symbol "gamma")
 	      ";;G" (jds~aas-insert-math-symbol "Gamma")
