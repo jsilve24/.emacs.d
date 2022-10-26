@@ -412,7 +412,8 @@
   :keymaps '(org-capture-mode-map org-mode-map)
   "t" #'org-todo
   "b" #'org-beamer-select-environment
-  "s" #'org-sparse-tree
+  "F" #'org-sparse-tree
+  "s" org-babel-map
   "S" #'org-screenshot-take
   "a" #'org-attach
   "q" #'org-set-tags-command
