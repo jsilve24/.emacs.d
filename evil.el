@@ -317,7 +317,9 @@
 
 ;;; evil-numbers ---------------------------------------------------------------
 
-(use-package evil-numbers)
+(use-package evil-numbers
+  :config
+  (setq evil-numbers-use-cursor-at-end-of-number t))
 
 (provide 'evil)
 ;;; evil.el ends here
