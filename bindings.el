@@ -31,7 +31,10 @@
 (general-define-key
  :keymaps '(insert normal)
  "C-<backspace>" #'jds/hungry-delete-or-kill-sexp
- "C-n" #'grugru)
+ "C-n" #'grugru
+ "C-t" #'evil-numbers/inc-at-pt-incremental
+ "C-S-t" #'evil-numbers/dec-at-pt-incremental)
+
 
 ;;;###autoload
 (defun jds~kill-whole-line ()

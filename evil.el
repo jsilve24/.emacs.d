@@ -315,6 +315,9 @@
 ;; 		 :around-key nil
 ;; 		 :remote-key nil))
 
+;;; evil-numbers ---------------------------------------------------------------
+
+(use-package evil-numbers)
 
 (provide 'evil)
 ;;; evil.el ends here
