@@ -131,6 +131,9 @@
   (evil-collection-define-key 'normal 'mu4e-headers-mode-map "M" #'mu4e-headers-mark-for-move)
   (evil-collection-define-key 'normal 'dired-mode-map "M" #'dired-mark)
 
+  ;; don't use in hungry-delete
+  (setq evil-collection-mode-list (remove 'hungry-delete evil-collection-mode-list))
+
   (evil-collection-init))
 
 

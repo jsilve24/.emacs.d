@@ -247,5 +247,25 @@ Version 2017-01-11"
   "]t" #'hl-todo-next
   "[t" #'hl-todo-previous)
 
+;;; better deleting ------------------------------------------------------------
+
+(use-package hungry-delete
+  :config
+  (global-hungry-delete-mode 1))
+
+;;;###autoload
+(defun jds/hungry-delete-or-kill-sexp (&optional arg)
+    "Hungry delete if point is on whitespace, otherwise kill-sexp. Delete forwards with ARG"
+  (interactive "P")
+  (cond
+   ((looking-back (rx (char blank)) 1)
+    (if arg
+	(hungry-delete-forward 1)
+      (hungry-delete-backward 1)))
+   (t
+    (if arg
+	(kill-sexp)
+      (backward-kill-sexp)))))
+
 (provide 'editor)
 ;;; editor.el ends here

@@ -28,6 +28,10 @@
  "C->" #'lispyville-slurp
  "C-<tab>" #'completion-at-point)
 
+(general-define-key
+ :keymaps '(insert normal)
+ "C-<backspace>" #'jds/hungry-delete-or-kill-sexp)
+
 ;;;###autoload
 (defun jds~kill-whole-line ()
   "Kill line, with prefix-arg kill entire line forwards and backwards to start of line."
