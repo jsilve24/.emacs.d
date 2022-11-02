@@ -259,7 +259,7 @@ Version 2017-01-11"
     "Hungry delete if point is on whitespace, otherwise kill-sexp. Delete forwards with ARG"
   (interactive "P")
   (cond
-   ((looking-back (rx (char blank)) 1)
+   ((looking-back (rx (>= 2 (char blank))) 1)
     (if arg
 	(hungry-delete-forward 1)
       (hungry-delete-backward 1)))
