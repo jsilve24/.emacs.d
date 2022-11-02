@@ -251,6 +251,7 @@ Version 2017-01-11"
 ;;; better deleting ------------------------------------------------------------
 
 (use-package hungry-delete
+  :diminish hungry-delete-mode
   :config
   (global-hungry-delete-mode 1))
 
