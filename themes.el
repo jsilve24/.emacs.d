@@ -82,6 +82,49 @@
   (load-theme 'modus-vivendi)
   :bind ("<f5>" . modus-themes-toggle))
 
+(use-package ef-themes
+  :commands (ef-themes-toggle)
+  :bind ("<f6>" . ef-themes-toggle)
+  :config
+  (setq ef-themes-mixed-fonts t
+	ef-themes-variable-pitch-ui nil
+	ef-themes-headings
+	'((1 . (background rainbow overline bold 1.2))
+	  (2 . (rainbow overline bold 1.1))
+	  (3 . (overline rainbow bold 1.0))
+	  (4 . (rainbow bold))
+	  (t . (bold))))
+
+  (mapc #'disable-theme custom-enabled-themes)
+
+  ;; fix up hl-todo(defun my-ef-themes-hl-todo-faces ()
+  "Configure `hl-todo-keyword-faces' with Ef themes colors.
+The exact color values are taken from the active Ef theme."
+  ;; (ef-themes-with-colors
+  ;;   (setq hl-todo-keyword-faces
+  ;; 	  `(("HOLD" . ,yellow)
+  ;; 	    ("TODO" . ,red)
+  ;; 	    ("NEXT" . ,blue)
+  ;; 	    ("THEM" . ,magenta)
+  ;; 	    ("PROG" . ,cyan-warmer)
+  ;; 	    ("OKAY" . ,green-warmer)
+  ;; 	    ("DONT" . ,yellow-warmer)
+  ;; 	    ("FAIL" . ,red-warmer)
+  ;; 	    ("BUG" . ,red-warmer)
+  ;; 	    ("DONE" . ,green)
+  ;; 	    ("NOTE" . ,blue-warmer)
+  ;; 	    ("KLUDGE" . ,cyan)
+  ;; 	    ("HACK" . ,cyan)
+  ;; 	    ("TEMP" . ,red)
+  ;; 	    ("FIXME" . ,red-warmer)
+  ;; 	    ("XXX+" . ,red-warmer)
+  ;; 	    ("REVIEW" . ,red)
+  ;; 	    ("DEPRECATED" . ,yellow))))
+
+  ;; (add-hook 'ef-themes-post-load-hook #'my-ef-themes-hl-todo-faces)
+  )
+
+
 ;;; hl-line-mode ---------------------------------------------------------------
 
 (use-package emacs
