@@ -174,6 +174,31 @@
   :general ([remap comment-line] #'evilnc-comment-or-uncomment-lines))
 
 
+(use-package evil-numbers
+  :config
+  (setq evil-numbers-use-cursor-at-end-of-number t))
+
+
+(use-package evil-goggles
+  :diminish evil-goggles-mode
+  :ensure t
+  :config
+
+  ;; add lispyville operators
+  (add-to-list 'evil-goggles--commands '(lispyville-yank :face evil-goggles-yank-face :switch evil-goggles-enable-yank :advice evil-goggles--generic-async-advice))
+  (add-to-list 'evil-goggles--commands '(lispyville-delete :face evil-goggles-delete-face :switch evil-goggles-enable-delete :advice evil-goggles--generic-blocking-advice))
+  (add-to-list 'evil-goggles--commands '(lispyville-change :face evil-goggles-change-face :switch evil-goggles-enable-change :advice evil-goggles--generic-blocking-advice))
+
+  (evil-goggles-mode)
+
+  ;; optionally use diff-mode's faces; as a result, deleted text
+  ;; will be highlighed with `diff-removed` face which is typically
+  ;; some red color (as defined by the color theme)
+  ;; other faces such as `diff-added` will be used for other actions
+  ;; (evil-goggles-use-diff-faces)
+
+  ;; default is 0.2
+  (setq evil-goggles-duration 0.3))
 
 ;;; evil-suround and evil-embrace
 (use-package evil-surround
@@ -315,11 +340,11 @@
 ;; 		 :around-key nil
 ;; 		 :remote-key nil))
 
-;;; evil-numbers ---------------------------------------------------------------
 
-(use-package evil-numbers
-  :config
-  (setq evil-numbers-use-cursor-at-end-of-number t))
+
+
+
+
 
 (provide 'evil)
 ;;; evil.el ends here
