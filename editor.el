@@ -239,7 +239,8 @@ Version 2017-01-11"
 
 (jds/localleader-def
   :keymaps '(LaTeX-mode-map emacs-lisp-mode-map ess-r-mode-map)
-  "f" #'hl-todo-occur)
+  "f" #'hl-todo-occur
+  "i" #'hl-todo-insert)
 
 (general-def
   :states 'n
