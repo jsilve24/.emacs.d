@@ -221,6 +221,8 @@
 (defun jds~setup-capf-latex ()
   (make-local-variable 'completion-at-point-functions)
   (add-to-list 'completion-at-point-functions
+	       (cape-company-to-capf #'company-reftex-citations))
+  (add-to-list 'completion-at-point-functions
 	       (cape-company-to-capf #'company-reftex-labels)))
 
 (add-hook 'LaTeX-mode-hook 'jds~setup-capf-latex)
@@ -250,7 +252,7 @@
   "C" #'LaTeX-close-environment
   "n" #'TeX-next-error
   "N" #'TeX-previous-error
-  "i" #'LaTeX-insert-item
+  ;; "i" #'LaTeX-insert-item
   "t" #'reftex-toc)
 
 (jds/localleader-def
