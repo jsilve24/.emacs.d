@@ -30,7 +30,8 @@
 
 (general-define-key
  :keymaps '(insert normal)
- "C-<backspace>" #'jds/hungry-delete-or-kill-sexp)
+ "C-<backspace>" #'jds/hungry-delete-or-kill-sexp
+ "C-n" #'grugru)
 
 ;;;###autoload
 (defun jds~kill-whole-line ()
