@@ -159,7 +159,7 @@
   (evil-define-key 'visual evil-snipe-local-mode-map "X" 'evil-snipe-X)
 
   ;; To map [ to any opening parentheses or bracket in all modes:
-  (push '(?\[ "[[{(]") evil-snipe-aliases)
+  (push '(?\( "[[{(]") evil-snipe-aliases)
 
   ;; It seems evil-snipe-override-mode causes problems in Magit buffers, to fix this:
   (add-hook 'magit-mode-hook 'turn-off-evil-snipe-override-mode)
