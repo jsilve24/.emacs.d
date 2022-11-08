@@ -3,8 +3,8 @@
 
 ;;; Font stuff
 
-(setq jds/default-font-size 90)
-(setq jds/default-variable-font-size 90)
+(setq jds/default-font-size 95)
+(setq jds/default-variable-font-size 95)
 ;; (setq jds/default-font-fixed-width "Hack")
 (setq jds/default-font-fixed-width "JetBrainsMono")
 ;; (setq jds/default-font-fixed-width "DejaVuSansMono")
