@@ -6,7 +6,7 @@
   :after (:any latex org)
   :config
   (setq citar-select-multiple t)
-  
+
   ;; nice file icons
   (setq citar-symbols
 	`((file . (,(all-the-icons-icon-for-file "foo.pdf" :face 'all-the-icons-dred) .
@@ -28,7 +28,13 @@
   (org-cite-follow-processor 'citar)
   (org-cite-activate-processor 'citar)
   (citar-bibliography org-cite-global-bibliography)
+  (org-cite-export-processors
+   '((latex  biblatex)				      
+     (t  csl))) ; Fallback
   :config
+  (require 'oc)
+  (require 'oc-biblatex)
+  (require 'oc-csl)
   (setq citar-library-paths '("~/Dropbox/org/roam/references/articles/")
 	citar-file-additional-files-separator "-"))
 
