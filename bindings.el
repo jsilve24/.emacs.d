@@ -89,6 +89,7 @@
   (cond
    ((and (texmathp) (or (bound-and-true-p cdlatex-mode) org-cdlatex-mode))
     (cdlatex-tab))
+   ((org-table-p) (org-table-next-field))
    ((and (string= (string (char-before)) " ")
 	 (string= major-mode "org-mode"))
     (org-cycle))
