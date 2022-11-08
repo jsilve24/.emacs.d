@@ -232,6 +232,8 @@
   ;; org-agenda window setup (don't always split frame)
   (setq org-agenda-window-setup 'current-window)
 
+  ;; setup org latex export
+  (setq org-latex-pdf-process (list "latexmk -shell-escape -f -pdf %f"))
 
   ;; active Babel languages
   (with-eval-after-load 'ob-stan
@@ -275,9 +277,14 @@
   ;; better org-src buffer window placement
   (setq org-src-window-setup 'plain)
 
+  ;; allow binding in oeg export 
+  ;; https://tex.stackexchange.com/questions/637386/org-mode-export-bold-text-to-beamer
+  (setq org-export-allow-bind-keywords t)
 
   ;; for some reason this was needed when I first put this config together
   (org-reload))
+
+
 
 ;;;###autoload
 (defun jds/org-refile-current-buffer ()
