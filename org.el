@@ -50,7 +50,7 @@
   ;; (add-to-list 'org-modules 'org-habit)
 
   (setq org-complete-tags-always-offer-all-agenda-tags t
-	org-tags-column -100)
+	org-tags-column -77)
 
   (setq org-hide-leading-stars t)
 
