@@ -6,5 +6,15 @@
 ;;   (require 'ein-notebook)
 ;;   (require 'ein-subpackages))
 
-(provide 'python)
-;;; python.el ends here
+(use-package eval-in-repl
+  :config
+  (setq eir-repl-placement 'right)
+  (require 'eval-in-repl-python))
+
+(general-define-key
+ :keymaps 'python-mode-map
+ :states '(n m i)
+ [C-return] #'eir-eval-in-python)
+
+
+#'python-shell-switch-to-shell
