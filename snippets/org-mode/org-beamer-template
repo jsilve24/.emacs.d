@@ -5,6 +5,7 @@
 
 # -*- eval: (setq-local ess-startup-directory default-directory) -*-
 #+TITLE:     $1
+#+SUBTITLE:  $2
 #+AUTHOR:    Justin Silverman
 #+EMAIL:     JustinSilverman@psu.edu 
 #+BEAMER_HEADER: \institute[]{Penn State University} 
@@ -31,5 +32,21 @@
 #+BEAMER_HEADER: \usepackage{amssymb}
 #+BEAMER_HEADER: \definecolor{links}{HTML}{4167E1}
 #+BEAMER_HEADER: \hypersetup{colorlinks,linkcolor=,urlcolor=links}
+#+BEAMER_HEADER: \usepackage{lmodern}
+#+BEAMER_HEADER: \usefonttheme{professionalfonts}
 #+STARTUP: beamer
 #+OPTIONS: d:(not "RELATED") ^:nil
+#+cite_export: biblatex authoryear authoryear
+#+BIND: org-export-filter-bold-functions (org-beamer-bold-as-textbf)
+#+BEGIN_SRC emacs-lisp :exports results :results none
+  (defun org-beamer-bold-as-textbf (s backend info)
+    (replace-regexp-in-string "\\\\alert" "\\\\textbf" s))
+#+END_SRC
+
+
+
+* References                                                        :B_frame:
+:PROPERTIES:
+:BEAMER_env: frame
+:END:
+#+print_bibliography:
