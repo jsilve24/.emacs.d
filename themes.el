@@ -190,10 +190,12 @@ The exact color values are taken from the active Ef theme."
 	  consult-org-roam-mode
 	  lispy-mode
 	  synosaurus-mode
+	  evil-goggles-mode
 	  org-indent-mode
 	  flyspell-mode
 	  evil-org-mode
 	  org-cdlatex-mode
+	  org-indent-mode
 	  cdlatex-mode
 	  reftex-mode
 	  visual-line-mode)))
