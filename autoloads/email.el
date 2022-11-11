@@ -149,8 +149,8 @@ Requires a \"* Email\" heading be present in the file.")
 ;;;###autoload
 (defun +mu4e/capture-msg-to-agenda (arg)
   "Refile a message and add a entry in `+org-capture-emails-file' with a
-deadline.  Default deadline is today.  With one prefix, deadline
-is tomorrow.  With two prefixes, select the deadline."
+Scheduled timestamp.  Default schedule is today.  With one prefix, schedule for
+for tomorrow.  With two prefixes, select the schedule date."
   (interactive "p")
   (let ((sec "^* Email")
         (msg (mu4e-message-at-point)))
@@ -183,7 +183,8 @@ is tomorrow.  With two prefixes, select the deadline."
                               (truncate-string-to-width
                                (plist-get msg :subject) 40 nil nil t)
                               "]] "))
-              (org-deadline nil
+	      ;; can just change this to org-deadline to change to deadline from scheduled
+              (org-schedule nil
                             (cond ((= arg 1) (format-time-string "%Y-%m-%d"))
                                   ((= arg 4) "+1d")))
 
