@@ -36,6 +36,7 @@
 #+BEAMER_HEADER: \usefonttheme{professionalfonts}
 #+STARTUP: beamer
 #+OPTIONS: d:(not "RELATED") ^:nil
+#+BEAMER_HEADER: \usepackage[doi=false,isbn=false,url=false,eprint=false]{biblatex}
 #+cite_export: biblatex authoryear authoryear
 #+BIND: org-export-filter-bold-functions (org-beamer-bold-as-textbf)
 #+BEGIN_SRC emacs-lisp :exports results :results none
