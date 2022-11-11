@@ -222,7 +222,7 @@
   ;; (in-mode . "mu4e-headers-mode")
   ;; (in-mode . "mu4e-view-mode")))))
 
-;;; appearnace customizatoins
+;;; appearance customizations
   (setq org-ellipsis " ▾")
 
   ;; don't wrap lines in org-agenda
@@ -295,7 +295,42 @@
     (org-refile)))
 
 
-;;; other packages -------------------------------------------------------------
+;;; Setup Appointment / Calendar Notifications ---------------------------------
+
+;; make sure I get alerted to events
+;; (use-package org-notify
+;;   :ensure t
+;;   :config
+;;   (org-notify-start)
+
+;;   ;; remove defaults
+;;   (setq org-notify-map nil)
+;;   (org-notify-add 'appt
+;; 		  '(:time "15m" po))
+;;   )
+
+;; (use-package org-wild-notifier
+;;   :custom
+;;   (org-wild-notifier-tags-whitelist '("appt"))
+;;   (org-wild-notifier-keyword-whitelist nil)
+;;   (org-wild-notifier-alert-time '(1 2 3 4 5 6 7 8))
+;;   :config
+;;   (org-wild-notifier-mode 1)
+;;   (setq alert-default-style 'notifications))
+
+(require 'appt)
+(appt-activate t)
+
+(defun fw/org-agenda-to-appt ()
+  "Rebuild all appt reminders using org."
+  (interactive)
+  (setq appt-time-msg-list nil)
+  (org-agenda-to-appt))
+
+(fw/org-agenda-to-appt)
+(add-hook 'org-agenda-finalize-hook 'fw/org-agenda-to-appt)
+
+
 
 
 
