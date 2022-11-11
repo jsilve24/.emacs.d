@@ -26,7 +26,7 @@
 
   ;; get tags when searching
   ;; If you're using a vertical completion framework, you might want a more informative completion interface
-  (setq org-roam-node-display-template (concat "${title:*} " (propertize "${tags:30}" 'face 'org-tag)))
+  (setq org-roam-node-display-template (concat "${title:200} " (propertize "${tags:30}" 'face 'org-tag)))
 
   ;; exclude from database all headlines with tag "ROAM_EXCLUDE"
   (setq org-roam-db-node-include-function
