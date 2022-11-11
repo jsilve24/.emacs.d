@@ -553,7 +553,7 @@ This only works with orderless and for the first component of the search."
  (let ((filename (car args)))
    (if (cl-find-if
         (lambda (regexp) (string-match regexp filename))
-        '("\\.xlsx?\\'" "\\.docx?\\'"))
+        '("\\.xlsx?\\'" "\\.docx?\\'" "\\.odt?\\'" "\\.odp?\\'"))
        (jds~xdg-open filename)
      (apply orig-fun args))))
 
