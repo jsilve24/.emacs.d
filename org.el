@@ -51,7 +51,7 @@
   ;; (add-to-list 'org-modules 'org-habit)
 
   (setq org-complete-tags-always-offer-all-agenda-tags t
-	org-tags-column -77)
+	org-tags-column -70)
 
   (setq org-hide-leading-stars t)
 
@@ -64,7 +64,7 @@
   ;; hide blank lines in folded views
   (setq org-cycle-separator-lines 0)
   ;; Prevent creating blank lines before headings, allow list items to adapt to existing blank lines around the items:
-  (setq org-blank-before-new-entry '((heading)
+  (setq org-blank-before-new-entry '((heading . auto)
 				     (plain-list-item . auto)))
 
   ;; (add-hook 'org-trigger-hook 'save-buffer)
@@ -243,7 +243,8 @@
      '((R . t)
        (emacs-lisp . t)
        (latex . t)
-       (org . t )
+       (org . t)
+       (shell . t)
        (stan . t))))
 
   (setq org-src-fontify-natively t
@@ -282,6 +283,11 @@
   ;; https://tex.stackexchange.com/questions/637386/org-mode-export-bold-text-to-beamer
   (setq org-export-allow-bind-keywords t)
 
+  ;; org-mode allow resizing inline previews
+  ;; from here: https://emacs.stackexchange.com/questions/30559/org-mode-inline-image-display-size
+  ;; with this you can use #+ATTR_ORG: :width 400 to resize inline previews
+  (setq org-image-actual-width nil)
+
   ;; for some reason this was needed when I first put this config together
   (org-reload))
 
@@ -294,6 +300,10 @@
   (let ((org-refile-targets '((nil :maxlevel . 9)))
 	(org-refile-use-outline-path t))
     (org-refile)))
+
+;;; Better latex org previews 
+(use-package org-fragtog
+  :hook (org-mode . org-fragtog-mode))
 
 
 ;;; Setup Appointment / Calendar Notifications ---------------------------------
