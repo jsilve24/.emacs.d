@@ -55,8 +55,6 @@
 
 (use-package cdlatex
   :hook (LaTeX-mode . turn-on-cdlatex)
-  ;; :hook (org-mode . turn-on-cdlatex)
-  :defer t
   ;; smartparens takes care of inserting closing delimiters, and if you
   ;; don't use smartparens you probably won't want these also.
   ;; also auctex takes care of inserting _ and ^
