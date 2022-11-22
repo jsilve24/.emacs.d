@@ -24,7 +24,8 @@
   (setq org-default-notes-file "~/Dropbox/org/inbox.org")
 
   ;; turn on cdlatex
-  (add-hook 'org-mode-hook 'turn-on-org-cdlatex)
+  (with-eval-after-load 'cdlatex
+	  (add-hook 'org-mode-hook 'turn-on-org-cdlatex))
   ;; don't have cdlatex take over the backtick symbol (funcationality done by aas snippets now)
   (defun jds~org-cdlatex-hook-function ()
     (define-key org-cdlatex-mode-map (kbd "`") nil))
