@@ -227,7 +227,8 @@ Switch the current window to the previous buffer."
 (use-package transpose-frame)
 
 ;; save and restore window and frame configurations
-(use-package burly)
+;; seems to not be working with all the icons lately. 
+;; (use-package burly)
 
 ;; delete-frame when delete-window called and window is last one
 ;; just loading this package advises the function delete-window
