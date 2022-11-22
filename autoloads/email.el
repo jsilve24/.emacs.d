@@ -181,7 +181,7 @@ for tomorrow.  With two prefixes, select the schedule date."
                                (or (plist-get (car from) :name) (plist-get (car from) :email)) 25 nil nil t)
                               " - "
                               (truncate-string-to-width
-                               (plist-get msg :subject) 40 nil nil t)
+                               (plist-get msg :subject) 38 nil nil t)
                               "]] "))
 	      ;; can just change this to org-deadline to change to deadline from scheduled
               (org-schedule nil
