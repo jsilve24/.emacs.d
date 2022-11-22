@@ -45,6 +45,7 @@
 	mu4e-attachment-dir "~/Downloads"
 	mu4e-enable-async-operations t
 	message-kill-on-buffer-exit t ;; don't keep meesge buffers around
+	message-kill-buffer-on-exit t
 	mu4e-compose-dont-reply-to-self t
 	mu4e-view-show-addresses t
 	mu4e-hide-index-message t
