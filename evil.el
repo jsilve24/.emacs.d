@@ -137,7 +137,7 @@
   (evil-collection-init))
 
 
-;;; Additional Evil packages
+;;;; Additional Evil packages
 
 
 
@@ -198,7 +198,7 @@
   ;; (evil-goggles-use-diff-faces)
 
   ;; default is 0.2
-  (setq evil-goggles-duration 0.3))
+  (setq evil-goggles-duration 0.2))
 
 ;;; evil-suround and evil-embrace
 (use-package evil-surround
