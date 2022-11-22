@@ -145,13 +145,33 @@ With optional arg, don't automatically rebalance windows."
 
   (setq exwm-workspace-minibuffer-postion 'bottom)
   ;; (exwm-workspace-display-echo-area-timeout 1)
-  
-  
+
+
   (efs/run-in-background "nm-applet")
   (efs/run-in-background "davmail -server")
   (efs/run-in-background "~/bin/i3-battery-popup")
   (efs/run-in-background "caffeine")
   (efs/run-in-background "dropbox start")
+
+  ;; Notifications
+  ;; (efs/run-in-background "dunst")
+
+  ;; (defun efs/dunstctl (command)
+  ;;   (start-process-shell-command "dunstctl" nil (concat "dunstctl " command)))
+
+  ;; (exwm-input-set-key (kbd "s-n") (lambda () (interactive) (efs/dunstctl "history-pop")))
+  ;; (exwm-input-set-key (kbd "s-N") (lambda () (interactive) (efs/dunstctl "close-all")))
+  ;; (defun efs/disable-desktop-notifications ()
+  ;;   (interactive)
+  ;;   (start-process-shell-command "notify-send" nil "notify-send \"DUNST_COMMAND_PAUSE\""))
+
+  ;; (defun efs/enable-desktop-notifications ()
+  ;;   (interactive)
+  ;;   (start-process-shell-command "notify-send" nil "notify-send \"DUNST_COMMAND_RESUME\""))
+
+  ;; (defun efs/toggle-desktop-notifications ()
+  ;;   (interactive)
+  ;;   (start-process-shell-command "notify-send" nil "notify-send \"DUNST_COMMAND_TOGGLE\""))
 
 
   ;; When window "class" updates, use it to set the buffer name
