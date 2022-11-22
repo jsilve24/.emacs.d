@@ -12,16 +12,16 @@
   :config
   (setq org-roam-capture-templates
 	'(("d" "default" plain "%?"
-	   :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+date: %U\n")
+	   :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+date: %U\n#+STARTUP: latexpreview\n")
 	   :unnarrowed t)
 	  ("l" "lecturenotes" plain "%?"
-	   :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: %u ${title}\n#+date: %U\n#+filetags: :lecture:\n")
+	   :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: %u ${title}\n#+date: %U\n#+filetags: :lecture:\n#+STARTUP: latexpreview\n")
 	   :unnarrowed t
 	   :jump-to-captured t)
 	  ("r" "bibliography reference" plain
 	   (file "~/.emacs.d/capture-templates/org-roam-bibtex-noter-template.org")
 	   :target
-	   (file+head "references/notes/${citekey}.org" "#+title: ${author-abbrev} :: ${title}\n#+filetags: :reference:\n")
+	   (file+head "references/notes/${citekey}.org" "#+title: ${author-abbrev} :: ${title}\n#+filetags: :reference:\n#+STARTUP: latexpreview\n")
 	   :unnarrowed t))	  )
 
   ;; get tags when searching
@@ -98,18 +98,34 @@
   :custom
   (consult-org-roam-grep-func #'consult-ripgrep))
 
+(use-package org-roam-ui
+  :diminish org-roam-ui-mode
+  :diminish org-roam-ui-follow-mode
+  :straight
+    (:host github :repo "org-roam/org-roam-ui" :branch "main" :files ("*.el" "out"))
+    :after org-roam
+;;         normally we'd recommend hooking orui after org-roam, but since org-roam does not have
+;;         a hookable mode anymore, you're advised to pick something yourself
+;;         if you don't care about startup time, use
+;;  :hook (after-init . org-roam-ui-mode)
+    :config
+    (setq org-roam-ui-sync-theme t
+          org-roam-ui-follow t
+          org-roam-ui-update-on-save t
+          org-roam-ui-open-on-start t))
+
 ;;; ###autoload
 ;; (defun jds/consult-org-roam-and-agenda (&optional match)
-;;   "Like consult-org-agenda but also search org-roam directory."
-;;   (interactive)
-;;   (unless org-agenda-files
-;;     (user-error "No agenda files"))
-;;   (unless org-roam-directory
-;;     (user-error "org-roam-directory is not set"))
-;;   (let* ((files (org-agenda-files))
-;; 	 (files (cl-union files
-;; 			  (directory-files-recursively org-roam-directory "\\.org$"))))
-;;     (consult-org-heading match files)))
+;; "Like consult-org-agenda but also search org-roam directory."
+;; (interactive)
+;; (unless org-agenda-files
+;; (user-error "No agenda files"))
+;; (unless org-roam-directory
+;; (user-error "org-roam-directory is not set"))
+;; (let* ((files (org-agenda-files))
+;; (files (cl-union files
+;; (directory-files-recursively org-roam-directory "\\.org$"))))
+;; (consult-org-heading match files)))
 
 
 (use-package citar-org-roam
@@ -148,9 +164,20 @@
 
 (use-package org-noter
   :config
+  ;; (evil-collection-define-key 'normal 'org-noter-notes-mode-map
+  ;;   (kbd "C-.") #'org-noter-sync-current-note)
+  (defun jds~org-noter-bindings ()
+    (evil-local-set-key 'normal (kbd "C-.") #'org-noter-sync-current-note))
+  (add-hook 'org-noter-notes-mode-hook #'jds~org-noter-bindings)
   (setq org-noter-notes-search-path '("~/Dropbox/org/roam/references/notes/")
 	org-noter-always-create-frame nil
 	org-noter-kill-frame-at-session-end nil))
+
+;; (general-define-key
+;;  :keymaps 'org-noter-notes-mode-map
+;;  :states '(n m v e)
+;;  "C-." #'org-noter-sync-current-note)
+
 (use-package org-pdftools
   :hook (org-mode . org-pdftools-setup-link))
 
