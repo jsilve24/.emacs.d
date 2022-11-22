@@ -126,11 +126,11 @@ With optional arg, don't automatically rebalance windows."
   (add-hook 'exwm-randr-screen-change-hook #'kisses-redraw)
   (efs/update-displays)
   ;; TODO fix tihs super hacky solution 
-  (run-with-timer 8 nil 'kisses-recenter)
+  (run-with-timer 10 nil 'kisses-recenter)
 
   ;; Load the system tray before exwm-init
   (require 'exwm-systemtray)
-  (setq exwm-systemtray-height 15)
+  ;; (setq exwm-systemtray-height 15)
   (exwm-systemtray-enable)
 
   ;; make window divisions clear
