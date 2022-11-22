@@ -52,33 +52,33 @@
 
 
   ;; better display-buffer defaulsts
-  (add-to-list 'display-buffer-alist '("^\\*R Dired"
-				       (display-buffer-reuse-window display-buffer-in-side-window)
-				       (side . right)
-				       (slot . -1)
-				       (window-width . 0.33)
-				       (reusable-frames . nil)))
+  ;; (add-to-list 'display-buffer-alist '("^\\*R Dired"
+  ;; 				       (display-buffer-reuse-window display-buffer-in-side-window)
+  ;; 				       (side . right)
+  ;; 				       (slot . -1)
+  ;; 				       (window-width . 0.33)
+  ;; 				       (reusable-frames . nil)))
 
-  (add-to-list 'display-buffer-alist '("^\\*R"
-				       (display-buffer-reuse-window display-buffer-in-side-window)
-				       (side . right)
-				       (slot . -1)
-				       (window-width . 0.5)
-				       (reusable-frames . nil)))
+  ;; (add-to-list 'display-buffer-alist '("^\\*R"
+  ;; 				       (display-buffer-reuse-window display-buffer-in-side-window)
+  ;; 				       (side . right)
+  ;; 				       (slot . -1)
+  ;; 				       (window-width . 0.5)
+  ;; 				       (reusable-frames . nil)))
 
-  ;; (add-to-list 'display-buffer-alist '("^\\*Help"
+  ;; ;; (add-to-list 'display-buffer-alist '("^\\*Help"
+  ;; ;; 				       (display-buffer-reuse-window display-buffer-in-side-window)
+  ;; ;; 				       (side . right)
+  ;; ;; 				       (slot . 1)
+  ;; ;; 				       (window-width . 0.33)
+  ;; ;; 				       (reusable-frames . nil)))
+
+  ;; (add-to-list 'display-buffer-alist '("^R_x11"
   ;; 				       (display-buffer-reuse-window display-buffer-in-side-window)
   ;; 				       (side . right)
   ;; 				       (slot . 1)
   ;; 				       (window-width . 0.33)
   ;; 				       (reusable-frames . nil)))
-
-  (add-to-list 'display-buffer-alist '("^R_x11"
-				       (display-buffer-reuse-window display-buffer-in-side-window)
-				       (side . right)
-				       (slot . 1)
-				       (window-width . 0.33)
-				       (reusable-frames . nil)))
 
 
   ;; dont ask for startup directory just starup in wherever the script is.
@@ -131,17 +131,6 @@
  :keymaps 'inferior-ess-mode-map
  "C-l" #'comint-clear-buffer)
 
-(general-define-key
- :keymaps '(ess-mode-map inferior-ess-mode-map)
- "C-<" #'r/insert-assign
- "C->" #'r/insert-pipe)
-
-;; ;;;###autoload
-;; (defun jds~setup-ess-bindings ()
-;;   (evil-local-set-key '(override normal) ",k" #'ess-display-help-on-object))
-;; (add-hook 'ess-mode-hook 'jds~setup-ess-bindings)
-;; (add-hook 'inferior-ess-mode-hook 'jds~setup-ess-bindings)
-
 
 (jds/localleader-def
   :keymaps '(ess-mode-map inferior-ess-mode-map)
@@ -154,6 +143,13 @@
   "x" 'ess-extra-map
   "p" 'ess-r-package-dev-map
   "q" 'ess-dev-map
+  "oo" #'ess-roxy-update-entry
+  "oc" #'ess-roxy-toggle-roxy-region
+  "ot" #'ess-roxy-preview-text
+  "ow" #'ess-roxy-preview-HTML
+  "on" #'ess-roxy-next-entry
+  "op" #'ess-roxy-previous-entry
+  "oh" #'ess-roxy-hide-all
   "cc" #'r/clear-environment)
 
 (general-define-key
