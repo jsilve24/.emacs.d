@@ -3,7 +3,9 @@
 (use-package corfu
   :straight (corfu :files (:defaults "extensions/*")
                    :includes (corfu-history
-			      corfu-quick))
+			      corfu-quick
+			      corfu-popupinfo))
+
   ;; :bind
   ;; (:map corfu-map
   ;; 	("TAB" . corfu-next)
@@ -46,6 +48,16 @@
   (savehist-mode 1)
   (add-to-list 'savehist-additional-variables 'corfu-history)
 
+  ;; setup corfu popup (used to be corfu-doc)
+  (setq corfu-popupinfo-auto t
+	corfu-popupinfo-delay 0.75)
+  (add-hook 'corfu-mode-hook #'corfu-popupinfo-mode)
+  (define-key corfu-map (kbd "M-d") #'corfu-popupinfo-toggle)
+  (define-key corfu-map (kbd "M-p") #'corfu-popupinfo-scroll-down) ;; corfu-next
+  (define-key corfu-map (kbd "M-n") #'corfu-popupinfo-scroll-up) ;; corfu-previous
+  
+
+
   ;; setup corfu quick
   (define-key corfu-map "\M-q" #'corfu-quick-complete)
   (define-key corfu-map "\M-Q" #'corfu-quick-insert))
@@ -73,14 +85,6 @@
   :config
   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 
-(use-package corfu-doc
-  :config
-  (setq corfu-doc-auto t
-	corfu-doc-delay 0.75)
-  (add-hook 'corfu-mode-hook #'corfu-doc-mode)
-  (define-key corfu-map (kbd "M-d") #'corfu-doc-toggle)
-  (define-key corfu-map (kbd "M-p") #'corfu-doc-scroll-down) ;; corfu-next
-  (define-key corfu-map (kbd "M-n") #'corfu-doc-scroll-up)) ;; corfu-previous
 
 ;; Add extensions
 (use-package cape
