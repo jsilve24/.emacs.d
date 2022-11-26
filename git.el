@@ -56,9 +56,10 @@
   :keymaps 'forge-topic-mode-map
   "r" #'code-review-forge-pr-at-point)
 
+;; TODO: reinstate
 (use-package git-timemachine
-  :straight (git-timemachine :repo "https://codeberg.org/pidu/git-timemachine.git"))
-
+  :straight (git-timemachine :type git :host github :repo "emacsmirror/git-timemachine")
+)
 
 (provide 'git)
 ;;; git.el ends here
