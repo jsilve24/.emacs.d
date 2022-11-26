@@ -226,7 +226,7 @@
   ;; "bx" '((lambda () (interactive) (switch-to-buffer (get-buffer-create "*scratch*"))) :which-key "scratch")
   "bx" jds~scratch-keymap
   "bz" '((lambda () (interactive) (switch-to-buffer (messages-buffer))) :which-key "messages")
-  "bs" #'jds/switch-to-splash
+  "bs" #'(lambda () (interactive) (switch-to-buffer (get-buffer-create "*scratch*")))
   "bt" '((lambda () (interactive) (jds/switch-to-agenda-file "tasks.org")) :which-key "tasks")
   "bp" '((lambda () (interactive) (jds/switch-to-agenda-file "meetings_psu.org")) :which-key "meetings-psu")
   "bp" '((lambda () (interactive) (jds/switch-to-agenda-file "notes.org")) :which-key "notes"))

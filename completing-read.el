@@ -343,7 +343,6 @@ targets."
   (add-to-list 'consult-buffer-filter "\\*zoxide\\*")
   (add-to-list 'consult-buffer-filter "\\*trace*")
   (add-to-list 'consult-buffer-filter "\\*sent draft\\*")
-  ;; (add-to-list 'consult-buffer-filter "\\*splash\\*")
 
   ;; combine sources for consult-buffer
   (setq consult-buffer-sources '(consult--source-buffer
