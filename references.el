@@ -107,20 +107,20 @@ a string specifying full filepath."
 
 ;;; setup ebib -----------------------------------------------------------------
 
-(straight-use-package '(ebib :includes (ebib org-ebib)))
-(use-package ebib
-  :config
-  (setq ebib-preload-bib-files org-cite-global-bibliography)
-  ;; don't take up full frame on startup
-  (setq ebib-layout 'window
-	ebib-file-search-dirs '("~/Dropbox/org/roam/references/articles/"))
-  ;; make emacs default pdf reader
-  (setq ebib-file-associations
-	'(("pdf" . nil)
-	  ("ps" . nil)))
-  ;; bigger index window at start
-  (setq ebib-index-window-size 20)
-  (require 'org-ebib))
+;; (straight-use-package '(ebib :includes (ebib org-ebib)))
+;; (use-package ebib
+;;   :config
+;;   (setq ebib-preload-bib-files org-cite-global-bibliography)
+;;   ;; don't take up full frame on startup
+;;   (setq ebib-layout 'window
+;; 	ebib-file-search-dirs '("~/Dropbox/org/roam/references/articles/"))
+;;   ;; make emacs default pdf reader
+;;   (setq ebib-file-associations
+;; 	'(("pdf" . nil)
+;; 	  ("ps" . nil)))
+;;   ;; bigger index window at start
+;;   (setq ebib-index-window-size 20)
+;;   (require 'org-ebib))
 
 ;;;###autoload
 (defun jds/citar-org-roam--create-capture-note (citekey entry)
@@ -146,19 +146,19 @@ a string specifying full filepath."
 ;;   (setq citar-org-roam-notes-config (plist-put citar-org-roam-notes-config :create #'jds/citar-org-roam--create-capture-note)))
 
 ;; setup with org-roam notes
-;;;###autoload
-(defun jds/ebib-popup-note (key)
-  (interactive (list (ebib--get-key-at-point)))
-  (org-ebib-store-link)
-  (jds/citar-org-roam--create-capture-note key key)
-  (org-ebib-insert-link)
-  ;; (orb-edit-note key) ;; didn't like this template, gave terrible file names
-  )
+;; ###autoload
+;; (defun jds/ebib-popup-note (key)
+;;   (interactive (list (ebib--get-key-at-point)))
+;;   (org-ebib-store-link)
+;;   (jds/citar-org-roam--create-capture-note key key)
+;;   (org-ebib-insert-link)
+;;   ;; (orb-edit-note key) ;; didn't like this template, gave terrible file names
+;;   )
 
 ;; override ebib-popup-note to use org-roam-bibtex
-(general-def
-  :keymaps 'ebib-index-mode-map
-  "N" 'jds/ebib-popup-note)
+;; (general-def
+;;   :keymaps 'ebib-index-mode-map
+;;   "N" 'jds/ebib-popup-note)
 
 ;; configure bibtex-generate-autokey
 (use-package emacs
@@ -176,20 +176,20 @@ a string specifying full filepath."
   :init
   (setq scihub-download-directory "~/Dropbox/org/roam/references/articles/"))
 
-;; ;;;###autoload
-(defun jds/ebib-download-from-scihub ()
-    "From ebib, download paper. Entry must have DOI or DOI URL field."
-  (interactive)
-  (let* ((key (ebib--get-key-at-point))
-	 (doi (ebib-get-field-value "doi" key ebib--cur-db 'no-error 'unbraced))
-	 (filename (concat key ".pdf"))
-	 (filepath (concat scihub-download-directory filename)))
-    (scihub doi filepath)
-    (ebib-set-field-value "file" filename key ebib--cur-db)
-    (ebib--set-modified t ebib--cur-db t (seq-filter (lambda (dependent)
-                                                           (ebib-db-has-key key dependent))
-                                                     (ebib--list-dependents ebib--cur-db)))
-    (ebib--update-entry-buffer)))
+;; ###autoload
+;; (defun jds/ebib-download-from-scihub ()
+;;     "From ebib, download paper. Entry must have DOI or DOI URL field."
+;;   (interactive)
+;;   (let* ((key (ebib--get-key-at-point))
+;; 	 (doi (ebib-get-field-value "doi" key ebib--cur-db 'no-error 'unbraced))
+;; 	 (filename (concat key ".pdf"))
+;; 	 (filepath (concat scihub-download-directory filename)))
+;;     (scihub doi filepath)
+;;     (ebib-set-field-value "file" filename key ebib--cur-db)
+;;     (ebib--set-modified t ebib--cur-db t (seq-filter (lambda (dependent)
+;;                                                            (ebib-db-has-key key dependent))
+;;                                                      (ebib--list-dependents ebib--cur-db)))
+;;     (ebib--update-entry-buffer)))
 
 ;;; bindings -------------------------------------------------------------------
 
