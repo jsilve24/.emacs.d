@@ -91,6 +91,7 @@ escape."
 	      ";frac" (jds~yas-lambda-expand "\\frac\\{$1\\}\\{$2\\}$0")
 	      "//" (jds~yas-lambda-expand "\\frac\\{$1\\}\\{$2\\}$0")
 	      ";sum" (jds~yas-lambda-expand  "\\sum_{$1}${2:^{$3\\}}$0")
+	      ";int" (jds~yas-lambda-expand  "\\int${1:_{$2}}${3:^{$4\\}}$0")
 	      ";all" "\\forall"
 	      ";set" (jds~yas-lambda-expand "\\\\{$0\\\\}")
 	      ";pp" (jds~yas-lambda-expand "p($0)")
@@ -105,7 +106,6 @@ escape."
 	      ";real" (jds~aas-insert-math-symbol "\\mathbb\\{R\\}")
 	      ";simplex" (jds~aas-insert-math-symbol "\\mathbb\\{S\\}")
 	      ";natural" (jds~aas-insert-math-symbol "\\mathbb\\{N\\}")
-	      ";ints" (jds~aas-insert-math-symbol "\\mathbb\\{Z\\}")
 	      ";bmat" (jds~aas-insert-math-symbol "\\begin\\{bmatrix\\} $0 \\end\\{bmatrix\\}")
 	      "lg" "\\log"
 	      ";ii" "_{ii}"
