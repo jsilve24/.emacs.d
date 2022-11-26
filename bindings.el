@@ -188,15 +188,6 @@
 ;;; buffers
 
 ;;;###autoload
-(defun jds/switch-to-splash ()
-  "Switch to splash buffer if it exists, otherwise call kisses-redraw."
-  (interactive)
-  (let ((buf (get-buffer "*splash*")))
-    (if buf
-	(switch-to-buffer buf)
-      (kisses-redraw))))
-
-;;;###autoload
 (defun jds/switch-to-agenda-file (fn)
     "Display file listed org-directory."
   (interactive)

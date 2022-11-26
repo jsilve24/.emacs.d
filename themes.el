@@ -200,53 +200,6 @@ The exact color values are taken from the active Ef theme."
 	  reftex-mode
 	  visual-line-mode)))
 
-;; hide mode-line in a number of modes
-;; (defun jds~hide-mode-line-hook-fxn ()
-;;   (hide-mode-line-mode +1))
-;; (dolist (hook '(org-agenda-mode-hook
-;; 		mu4e-view-mode-hook
-;; 		mu4e-headers-mode-hook
-;; 		magit-mode-hook
-;; 		magit-status-mode-hook
-;; 		inferior-ess-r-mode
-;; 		pdf-view-mode-hook
-;; 		vterm-mode-hook
-;; 		dired-mode-hook))
-;;   (add-hook hook #'jds~hide-mode-line-hook-fxn))
-
-;;; dashboard
-
-
-
-;; use kisses mode to make things nice on startup
-(use-package kisses
-  :straight (kisses :local-repo "~/.emacs.d/local-packages/kisses/")
-  :ensure t
-  :config 
-
-  (setq kisses-banner "      ____________
-     /\\  ________ \\
-    /  \\ \\______/\\ \\
-   / /\\ \\ \\  / /\\ \\ \\
-  / / /\\ \\ \\/ / /\\ \\ \\
- / / /__\\_\\/ / /__\\_\\ \\
-/ /_/_______/ /________\\
-\\ \\ \\______ \\ \\______  /
- \\ \\ \\  / /\\ \\ \\  / / /
-  \\ \\ \\/ / /\\ \\ \\/ / /
-   \\ \\/ / /__\\_\\/ / /
-    \\  / /______\\/ /
-     \\/___________/")
-  
-  ;; (put-text-property 0 (length kisses-banner) 'face 'outline-1
-  ;; 		     kisses-banner)
-  )
-
-(setq initial-buffer-choice 'kisses-initial-buffer)
-;; initial-buffer-choice (lambda () (progn
-      ;; 					 (switch-to-buffer (get-buffer-create "*splash*"))
-      ;; 					 (splash--setup)))
-
 
 ;;; org-mode theme -------------------------------------------------------------
 
