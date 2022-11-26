@@ -130,17 +130,6 @@
   (advice-add 'comment-indent :after #'just-one-space))
 
 
-;; easy way to try out packages
-;; M-x try RET package-name
-;; (use-package try
-;;   :straight t)
-
-;; Was not playihng nice with highlighting in qutebrowser
-;; (use-package beacon
-;;   :config
-;;   ;(add-to-list 'beacon-dont-blink-major-modes 'kisses-mode)
-;;   (beacon-mode 1))
-
 
 (use-package epa
   :config
