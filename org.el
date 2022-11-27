@@ -519,6 +519,14 @@
  :states '(nv)
  "a" #'org-calendar-goto-agenda)
 
+;; get better latex math pairs in org
+(general-define-key
+ :keymaps '(org-mode-map org-capture-mode-map)
+ :states 'insert
+ "(" #'LaTeX-insert-left-brace
+ "[" #'LaTeX-insert-left-brace
+ "{" #'LaTeX-insert-left-brace)
+
 ;;; autoloads
 ;;;###autoload
 (defun jds/open-custom-day-agenda-new-frame ()
