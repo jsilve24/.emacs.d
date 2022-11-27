@@ -561,7 +561,7 @@
 (general-itomap
  :state 'o
  "g"  #'+evil:whole-buffer-txtobj
- "f"  #'+evil:defun-textobj
+ ;; "f"  #'+evil:defun-textobj
  "c"  #'evilnc-inner-comment
  "a"  #'evil-inner-arg
  ;; "d"  #'evil-inner-delim
@@ -571,7 +571,7 @@
 (general-otomap
  :state 'o
  "g"  #'+evil:whole-buffer-txtobj
- "f"  #'+evil:defun-textobj
+ ;; "f"  #'+evil:defun-textobj
  "c"  #'evilnc-outer-comment
  "a"  #'evil-outer-arg
  ;; "d"  #'evil-outer-delim

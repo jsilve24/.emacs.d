@@ -313,9 +313,10 @@
 
 (use-package targets
   :straight (targets :type git :host github :repo "noctuid/targets.el")
-
   :config
   (targets-setup)
+
+  ;; If i am correct, this acts as a fall-back and only defines it when evil-tex or lispyville are not binding "d"
   (targets-define-composite-to pair-delimiter
     (("(" ")" pair)
      ("[" "]" pair)
@@ -326,19 +327,6 @@
     :last-key "L"
     :remote-key "r"
     :keys "d"))
-;; (use-package targets
-;;   :straight (targets :type git :host github :repo "noctuid/targets.el")
-;;   :init
-;;   ;; (setq targets-user-text-objects '((pipe "|" nil separator)
-;;   ;; 				    (paren "(" ")" pair :more-keys "b")
-;;   ;; 				    (bracket "[" "]" pair :more-keys "r")
-;;   ;; 				    (curly "{" "}" pair :more-keys "c")))
-;;   :config
-;;   (targets-define-to paren "(" ")" pair)
-;;   (targets-setup t
-;; 		 :inside-key nil
-;; 		 :around-key nil
-;; 		 :remote-key nil))
 
 
 

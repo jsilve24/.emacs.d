@@ -160,8 +160,8 @@
 
   ;; redefine evil-tex-a-delim to fall back to jds~evil-a/inner-paren
 
-  (define-key evil-tex-inner-text-objects-map "d" nil)
-  (define-key evil-tex-outer-text-objects-map "d" nil)
+  ;; (define-key evil-tex-inner-text-objects-map "d" nil)
+  ;; (define-key evil-tex-outer-text-objects-map "d" nil)
   
   ;; (evil-define-text-object evil-tex-a-delim (count &optional beg end type)
   ;;   "Select a delimiter, e.g. (foo), \\left[bar\\right] or \\bigl\\=\\{baz\\bigr\\}."
