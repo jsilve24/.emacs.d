@@ -58,7 +58,7 @@
   ;; choose key-themes I want
   (lispyville-set-key-theme
    '(operators
-     text-objects
+     ;; text-objects modify to be buffer local
      atom-motions
      ;; additional-motions ;; these are just weird I just bind these myself
      prettify 
@@ -84,7 +84,43 @@
     (evil-define-key '(motion) 'local (kbd "(") 'lispyville-backward-up-list)
     (evil-define-key '(motion) 'local (kbd ")") 'lispyville-up-list)
     (evil-define-key '(insert) 'local (kbd "C-w") 'lispyville-delete-backward-word))
-  (add-hook 'lispyville-mode-hook #'lispyville-activate-commentary-theme))
+  (add-hook 'lispyville-mode-hook #'lispyville-activate-commentary-theme)
+
+  ;; hack baed on evil-surround approach to define buffer local text objects
+  (defun lispyville-activate-text-objects-theme ()
+    "override default text objects activation and make bindings buffer local"
+    (define-key evil-visual-state-local-map "ia" #'lispyville-inner-atom)
+    (define-key evil-visual-state-local-map "il" #'lispyville-inner-list)
+    (define-key evil-visual-state-local-map "ix" #'lispyville-inner-sexp)
+    (define-key evil-visual-state-local-map "if" #'lispyville-inner-function)
+    (define-key evil-visual-state-local-map "ic" #'lispyville-inner-comment)
+    (define-key evil-visual-state-local-map "iS" #'lispyville-inner-string)
+
+
+    (define-key evil-visual-state-local-map "aa" #'lispyville-inner-atom)
+    (define-key evil-visual-state-local-map "al" #'lispyville-inner-list)
+    (define-key evil-visual-state-local-map "ax" #'lispyville-inner-sexp)
+    (define-key evil-visual-state-local-map "af" #'lispyville-inner-function)
+    (define-key evil-visual-state-local-map "ac" #'lispyville-inner-comment)
+    (define-key evil-visual-state-local-map "aS" #'lispyville-inner-string)
+
+
+    (define-key evil-operator-state-local-map "ia" #'lispyville-inner-atom)
+    (define-key evil-operator-state-local-map "il" #'lispyville-inner-list)
+    (define-key evil-operator-state-local-map "ix" #'lispyville-inner-sexp)
+    (define-key evil-operator-state-local-map "if" #'lispyville-inner-function)
+    (define-key evil-operator-state-local-map "ic" #'lispyville-inner-comment)
+    (define-key evil-operator-state-local-map "iS" #'lispyville-inner-string)
+
+
+    (define-key evil-operator-state-local-map "aa" #'lispyville-inner-atom)
+    (define-key evil-operator-state-local-map "al" #'lispyville-inner-list)
+    (define-key evil-operator-state-local-map "ax" #'lispyville-inner-sexp)
+    (define-key evil-operator-state-local-map "af" #'lispyville-inner-function)
+    (define-key evil-operator-state-local-map "ac" #'lispyville-inner-comment)
+    (define-key evil-operator-state-local-map "aS" #'lispyville-inner-string))
+
+  (add-hook 'lispyville-mode-hook 'lispyville-activate-text-objects-theme))
 
 
 

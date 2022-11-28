@@ -85,7 +85,7 @@
 (load-config "ssh.el")
 (load-config "org-roam.el")
 (load-config "lsp.el")
-
+(load-config "treesitter.el")
 
 
 ;; for some reason has to be at the end to ensure 

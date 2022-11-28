@@ -124,7 +124,8 @@
 			     :fork (:host github :repo "jsilve24/evil-collection"))
   :after evil
   :init 
-  (setq evil-collection-key-blacklist '("m"))
+  (setq evil-collection-key-blacklist '("m")
+	evil-collection-want-unimpaired-p nil)
   :config
 
   ;; move "m" bindings
