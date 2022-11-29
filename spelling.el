@@ -167,9 +167,12 @@ With prefix P, create local abbrev. Otherwise it will be global."
 (use-package synosaurus
   :hook (text-mode . synosaurus-mode)
   :diminish synosaurus-mode
+  :disabled t
   :config
   (setq  synosaurus-choose-method 'default))
 
+
+(use-package powerthesaurus)
 
 
 (use-package dictionary
