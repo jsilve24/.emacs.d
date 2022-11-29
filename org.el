@@ -144,7 +144,10 @@
 			(org-agenda-format-date "")
 			(org-agenda-skip-function '(lambda () (interactive) (skip-not-tag "mail")))))
 	    (tags-todo "REFILE" ((org-agenda-overriding-header "To Refile")
-				 (org-tags-match-list-sublevels nil)))))))
+				 (org-tags-match-list-sublevels nil)))))
+	  ("n" "Next Items"
+	   ((todo "NEXT" ((org-agenda-sorting-strategy `(priority-down effort-down))
+			  (org-agenda-overriding-header "Next")))))))
 
 
   ;; Remove completed deadline and scheduled tasks from the agenda view
