@@ -240,7 +240,8 @@
 ;;; text editing
 (jds/leader-def
   "a"      '(:ignore t :wk "editing")
-  "at"     #'synosaurus-choose-and-replace
+  ;; "at"     #'synosaurus-choose-and-replace
+  "at"     #'powerthesaurus-lookup-dwim
   "aT"     #'dictionary-search
   "aq"     '(:ignore t :wk "fill/unfill")
   "aqp"    #'fill-paragraph
@@ -334,6 +335,7 @@
   ">" #'org-refile-goto-last-stored
   "<" #'org-capture-goto-last-stored
   "a" #'jds/affe-find-files-home
+  "A" #'consult-locate
   "z" #'zoxide-find-file
   "Z" #'zoxide-cd
   "c" #'jds/mu4e-compose-goto-to
