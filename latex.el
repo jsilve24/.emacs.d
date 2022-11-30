@@ -55,6 +55,7 @@
 
 (use-package cdlatex
   :hook (LaTeX-mode . turn-on-cdlatex)
+  :hook (org-mode . turn-on-org-cdlatex)
   ;; smartparens takes care of inserting closing delimiters, and if you
   ;; don't use smartparens you probably won't want these also.
   ;; also auctex takes care of inserting _ and ^
@@ -73,6 +74,9 @@
 	;; ([(control return)] . nil)
 	)
   :config
+  ;; I think there might be a bug in my config such that I need the following line: 
+  (defalias 'cdlatex--texmathp 'texmathp)
+
   (setq cdlatex-math-symbol-alist
 	'((?< ("\\leftarrow" "\\Leftarrow" "\\longleftarrow" "\\Longleftarrow"))
 	  (?> ("\\rightarrow" "\\Rightarrow" "\\longrightarrow" "\\Longrightarrow"))
@@ -84,9 +88,16 @@
   ;; Keep cdlatex from taking backtick key (this functionality is now done by aas snippets)
   (define-key cdlatex-mode-map (kbd "`") nil)
 
+  ;; also turn off backtick from org mode 
+  ;; don't have cdlatex take over the backtick symbol (funcationality done by aas snippets now)
+  (defun jds~org-cdlatex-hook-function ()
+    (define-key org-cdlatex-mode-map (kbd "`") nil))
+  (add-hook 'org-mode-hook 'jds~org-cdlatex-hook-function)
+
+
   ;;  give me back my ' key
   (defun jds/cdlatex-math-modify (&optional arg)
-      "Just wraps cdlatex-math-modify and really makes sure its only active in texmathp"
+    "Just wraps cdlatex-math-modify and really makes sure its only active in texmathp"
     (interactive "P")
     (if (texmathp)
 	(cdlatex-math-modify arg)

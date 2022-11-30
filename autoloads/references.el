@@ -14,7 +14,7 @@
 
 ;;;###autoload
 (defun jds~citar-prioritize-global-bib (fun)
-  "Run command FUN interactively setting citardybibliography to local-bibliography if present. C-u passed to fun."
+  "Run command FUN interactively setting citar-bibliography to local-bibliography if present. C-u passed to fun."
   ;; use temp-buffer to ensure citar-bibliography does not include local bibs.
   (let ((global-bib (with-temp-buffer citar-bibliography)))
     (if global-bib
