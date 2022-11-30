@@ -126,9 +126,9 @@ With optional arg, don't automatically rebalance windows."
   (efs/update-displays)
 
   ;; Load the system tray before exwm-init
-  (require 'exwm-systemtray)
+  ;; (require 'exwm-systemtray)
   ;; (setq exwm-systemtray-height 15)
-  (exwm-systemtray-enable)
+  ;; (exwm-systemtray-enable)
 
   ;; make window divisions clear
   (setq window-divider-default-bottom-width 1)
@@ -144,10 +144,10 @@ With optional arg, don't automatically rebalance windows."
   ;; (exwm-workspace-display-echo-area-timeout 1)
 
 
-  (efs/run-in-background "nm-applet")
+  ;; (efs/run-in-background "nm-applet")
   (efs/run-in-background "davmail -server")
   (efs/run-in-background "~/bin/i3-battery-popup")
-  (efs/run-in-background "caffeine")
+  ;; (efs/run-in-background "caffeine")
   (efs/run-in-background "dropbox start")
 
   ;; Notifications
@@ -353,7 +353,9 @@ With optional arg, don't automatically rebalance windows."
 	  (list
            (cons
             "\\*Async Shell Command\\*.*"
-            (cons #'display-buffer-no-window nil)))))
+            (cons #'display-buffer-no-window nil))))
+	 ;; don't ask for confirmation before running in new buffer
+	 (async-shell-command-buffer 'new-buffer))
       (async-shell-command
        (concat cmd " " (string-join cmds " ")))))
 
@@ -506,6 +508,29 @@ buffer (=minimizing in other WM/DE)"
   (exwm-input-set-key (kbd  "s-u") #'bitwarden-kill-username)
   (exwm-input-set-key (kbd  "s-p") #'bitwarden-kill-password)
   (exwm-input-set-key (kbd  "s-P") #'jds/kill-psu-pass))
+
+
+;;; Quick bindings to replace systemtray
+
+;; replace nmicon
+
+;; replace caffeine
+(defun jds/toggle-caffeine ()
+  (interactive)
+  (let* ((running (shell-command-to-string "pidof caffeine-ng")))
+    (if (string= running "")
+	(progn 
+	  (jds/quiet-async-shell-commands "caffeine start &")
+	  (message "Caffeine Started"))
+      (jds/quiet-async-shell-commands "caffeine kill &"))))
+(exwm-input-set-key (kbd "s-c") #'jds/toggle-caffeine)
+
+(defun jds/nm-status ()
+  (interactive)
+  (async-shell-command "nmcli"))
+(exwm-input-set-key (kbd "s-n") #'jds/nm-status)
+
+;;; Don't ask for confirmation about starting new buffers 
 
 
 
