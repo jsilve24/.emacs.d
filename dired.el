@@ -8,7 +8,10 @@
   :config
   ;; tell emacs to revert each Dired buffer automatically when revisiting buffer
   (setq dired-auto-revert-buffer t
-	dired-kill-when-opening-new-dired-buffer t)
+	dired-kill-when-opening-new-dired-buffer t
+	;; Disable the prompt about whether I want to kill the Dired buffer for a
+	;; deleted directory. Of course I do!
+	dired-clean-confirm-killing-deleted-buffers nil)
   ;; Auto-refresh dired on filesystem change
   (add-hook 'dired-mode-hook 'auto-revert-mode)
   (evil-collection-define-key 'normal 'dired-mode-map
