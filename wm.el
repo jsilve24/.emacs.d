@@ -515,14 +515,23 @@ buffer (=minimizing in other WM/DE)"
 ;; replace nmicon
 
 ;; replace caffeine
+;; (defun jds/toggle-caffeine ()
+;;   (interactive)
+;;   (let* ((running (shell-command-to-string "pidof caffeine-ng")))
+;;     (if (string= running "")
+;; 	(progn
+;; 	  (jds/quiet-async-shell-commands "caffeine &")
+;; 	  (message "Caffeine Started"))
+;;       (jds/quiet-async-shell-commands "caffeine &"))))
 (defun jds/toggle-caffeine ()
   (interactive)
-  (let* ((running (shell-command-to-string "pidof caffeine-ng")))
+  (let* ((running (shell-command-to-string "pgrep caffeine")))
     (if (string= running "")
 	(progn 
-	  (jds/quiet-async-shell-commands "caffeine start &")
+	  (jds/quiet-async-shell-commands "caffeine &")
 	  (message "Caffeine Started"))
-      (jds/quiet-async-shell-commands "caffeine kill &"))))
+      (jds/quiet-async-shell-commands "pkill caffeine &")
+      (message "Caffeine Stopped"))))
 (exwm-input-set-key (kbd "s-c") #'jds/toggle-caffeine)
 
 (defun jds/nm-status ()
