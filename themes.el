@@ -201,6 +201,12 @@ The exact color values are taken from the active Ef theme."
 	  visual-line-mode)))
 
 
+;;; Olivetti Mode
+
+(use-package olivetti)
+
+
+
 ;;; org-mode theme -------------------------------------------------------------
 
 ;; (with-eval-after-load 'org

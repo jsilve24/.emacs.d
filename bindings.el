@@ -178,7 +178,8 @@
 ;;; toggle
 (jds/leader-def
   "t" '(:ignore t :wk "toggles")
-  "tm" #'hide-mode-line-mode)
+  "tm" #'hide-mode-line-mode
+  "to" #'olivetti-mode)
 
 ;;; other
 (jds/leader-def
