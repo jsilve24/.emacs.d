@@ -3,7 +3,6 @@
 
 (use-package slack
   :straight (:type git :host github :repo "isamert/emacs-slack" :branch "fix-curl-downloader")
-  :defer t
   :init
   (setq slack-buffer-emojify t
 	slack-prefer-current-team t
@@ -67,8 +66,10 @@ mention-count)) (channel . (has-unreads . mention-count)))))"
 
   ;; auto-start slack if connected to the internet and not already started
   (if (and (jds~internet-up-p)
-	   (not (fboundp 'slack-select-rooms)))
-      (slack-start)))
+	   ;; (not (fboundp 'slack-select-rooms))
+	   )
+      (slack-start))
+  )
 
 ;; quick reactions with thumbs up
 
