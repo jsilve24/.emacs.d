@@ -537,7 +537,10 @@ buffer (=minimizing in other WM/DE)"
 (defun jds/nm-status ()
   (interactive)
   (async-shell-command "nmcli"))
-(exwm-input-set-key (kbd "s-n") #'jds/nm-status)
+(exwm-input-set-key (kbd "s-n") (lambda () (interactive)
+				  (if popper-open-popup-alist
+				      (popper-toggle-latest)
+				    (jds/nm-status))))
 
 ;;; Don't ask for confirmation about starting new buffers 
 
