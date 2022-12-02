@@ -64,7 +64,11 @@ mention-count)) (channel . (has-unreads . mention-count)))))"
   ;; setup tab command - bind over lui mode completion 
   ;; (add-hook 'slack-mode-hook 'jds/completion-keys)
   ;; (setq lui-completion-function 'company-complete)
-  )
+
+  ;; auto-start slack if connected to the internet and not already started
+  (if (and (jds~internet-up-p)
+	   (not (fboundp 'slack-select-rooms)))
+      (slack-start)))
 
 ;; quick reactions with thumbs up
 

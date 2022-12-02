@@ -434,7 +434,11 @@
          (funcall ,function))
        (add-hook ,hook ',sym ,append ,local))))
 
-
+;; https://emacs.stackexchange.com/questions/7653/elisp-code-to-check-for-internet-connection
+;;;###autoload
+(defun jds~internet-up-p (&optional host)
+    (= 0 (call-process "ping" nil nil nil "-c" "1" "-W" "1" 
+                       (if host host "www.google.com"))))
 
 (provide 'core)
 ;;; core.el ends here
