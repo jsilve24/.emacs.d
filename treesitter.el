@@ -1,6 +1,7 @@
 ;;; treesitter.el --- summary -*- lexical-binding: t -*-
 
 (use-package tree-sitter
+  :diminish tree-sitter-mode
   :config
   (global-tree-sitter-mode)
   (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode)
