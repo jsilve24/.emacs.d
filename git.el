@@ -20,17 +20,33 @@
 ;;
 ;;; Code:
 
-(straight-use-package 'magit)
-
 (use-package magit
   :commands magit-status
   :custom
   (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
   :config
-(transient-append-suffix 'magit-merge "-A"
+  (transient-append-suffix 'magit-merge "-A"
     '("-A" "Allow unrelated histories" "--allow-unrelated-histories"))
   (transient-append-suffix 'magit-pull "-A"
     '("-A" "Allow unrelated histories" "--allow-unrelated-histories"))
+
+  ;; allow use of magit-list-repos for overviews
+  ;; https://magit.vc/manual/magit/Repository-List.html (documentation)
+  (setq magit-repository-directories '(("~/.homesick/repos/arch-dotfiles/" 0)
+				       ("~/Dropbox/org/roam/references/" 0)
+				       ("~/.emacs.d/" 0))
+	magit-repolist-columns '(("Name" 25 magit-repolist-column-ident nil)
+				 ;; ("Version" 25 magit-repolist-column-version
+				 ;;  ((:sort magit-repolist-version<)))
+				 ("Flag" 8 magit-repolist-column-flag)
+				 ("B<U" 3 magit-repolist-column-unpulled-from-upstream
+				  ((:right-align t)
+				   (:sort <)))
+				 ("B>U" 3 magit-repolist-column-unpushed-to-upstream
+				  ((:right-align t)
+				   (:sort <)))
+				 ;; ("Path" 99 magit-repolist-column-path nil)
+				 ))
 
   ;; https://github.com/magit/ghub/issues/81
   ;; (setq ghub-use-workaround-for-emacs-bug 'force)

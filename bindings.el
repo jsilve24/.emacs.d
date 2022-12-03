@@ -398,6 +398,7 @@
 
 (jds/leader-def
   "g" '(:ignore t :which-key "git")
+  "gs" #'magit-list-repositories
   "gg" #'magit-status
   "gt" #'git-timemachine
   "gb" #'magit-blame
