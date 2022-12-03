@@ -168,25 +168,12 @@
   (setq evil-tex-toggle-override-m nil
 	evil-tex-toggle-override-t nil)
   :config
+  (define-key evil-tex-inner-text-objects-map "y" 'evil-tex-inner-superscript)
+  (define-key evil-tex-outer-text-objects-map "y" 'evil-tex-a-superscript)
+  (define-key evil-tex-inner-text-objects-map "u" 'evil-tex-inner-subscript)
+  (define-key evil-tex-outer-text-objects-map "u" 'evil-tex-a-subscript)
 
-  ;; redefine evil-tex-a-delim to fall back to jds~evil-a/inner-paren
-
-  ;; (define-key evil-tex-inner-text-objects-map "d" nil)
-  ;; (define-key evil-tex-outer-text-objects-map "d" nil)
   
-  ;; (evil-define-text-object evil-tex-a-delim (count &optional beg end type)
-  ;;   "Select a delimiter, e.g. (foo), \\left[bar\\right] or \\bigl\\=\\{baz\\bigr\\}."
-  ;;   :extend-selection nil
-  ;;   (if (texmathp)
-  ;; 	(nbutlast (evil-tex--select-delim beg end type count) 2)
-  ;;     (jds~evil-paren-range count beg end type t)))
-
-  ;; (evil-define-text-object evil-tex-inner-delim (count &optional beg end type)
-  ;;   "Select inner delimiter, e.g. (foo), \\left[bar\\right] or \\bigl\\=\\{baz\\bigr\\}."
-  ;;   :extend-selection nil
-  ;;   (if (texmathp)
-  ;; 	(last (evil-tex--select-delim beg end type count) 2)
-  ;;     (jds~evil-paren-range count beg end type nil)))
 
   ;; place evil tex toggles on <localleader>z for relevant modes
   (jds/localleader-def
