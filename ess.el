@@ -24,14 +24,26 @@
 
   ;; from here: https://github.com/SteveLane/dot-emacs/blob/master/ess-config.el
   ;; Add in company-mode helpers
-  (defun my-ess-company-hook ()
-    ;; ensure company-R-library is in ESS backends
-    (make-variable-buffer-local 'company-backends)
-    (cl-delete-if (lambda (x) (and (eq (car-safe x) 'company-R-args))) company-backends)
-    (add-to-list 'company-backends
-		 '(company-R-args company-R-objects company-R-library
-				  company-dabbrev-code :separate)))
-  (add-hook 'ess-mode-hook #'my-ess-company-hook)
+  ;; (defun my-ess-company-hook ()
+  ;;   ;; ensure company-R-library is in ESS backends
+  ;;   (make-variable-buffer-local 'company-backends)
+  ;;   (cl-delete-if (lambda (x) (and (eq (car-safe x) 'company-R-args))) company-backends)
+  ;;   (add-to-list 'company-backends
+  ;; 		 '(company-R-args company-R-objects company-R-library
+  ;; 				  company-dabbrev-code :separate)))
+  ;; (add-hook 'ess-mode-hook #'my-ess-company-hook)
+  ;; 
+  ;; (defun jds~ess-capf-hook ()
+  ;;   ;; ensure company-R-library is in ESS backends
+  ;;   (make-variable-buffer-local 'completion-at-point-functions)
+  ;;   (add-to-list 'company-backends (mapcar #'cape-company-to-capf
+  ;; 					   '(#'company-R-args
+  ;; 					     #'company-R-objects
+  ;; 					     #'company-R-library)))
+  ;;   (add-to-list 'company-backends
+  ;; 		 '(company-R-args company-R-objects company-R-library
+  ;; 				  company-dabbrev-code :separate)))
+  ;; (add-hook 'ess-mode-hook #'my-ess-company-hook)
 
 
   ;; this also makes heading section headers available in consult-outline

@@ -106,17 +106,19 @@
          ("C-c p r" . cape-rfc1345))
   :init
   ;; Add `completion-at-point-functions', used by `completion-at-point'.
-  (add-to-list 'completion-at-point-functions #'cape-file)
+  (add-to-list 'completion-at-point-functions
+	       (cape-super-capf #'cape-file #'cape-symbol #'cape-keyword))
+  ;; (add-to-list 'completion-at-point-functions #'cape-file)
   ;; (add-to-list 'completion-at-point-functions #'cape-dabbrev)
   ;;(add-to-list 'completion-at-point-functions #'cape-history)
-  ;;(add-to-list 'completion-at-point-functions #'cape-keyword)
+  ;; (add-to-list 'completion-at-point-functions #'cape-keyword)
   ;;(add-to-list 'completion-at-point-functions #'cape-tex)
   ;;(add-to-list 'completion-at-point-functions #'cape-sgml)
   ;;(add-to-list 'completion-at-point-functions #'cape-rfc1345)
   ;;(add-to-list 'completion-at-point-functions #'cape-abbrev)
   ;;(add-to-list 'completion-at-point-functions #'cape-ispell)
   ;;(add-to-list 'completion-at-point-functions #'cape-dict)
-  ;;(add-to-list 'completion-at-point-functions #'cape-symbol)
+  ;; (add-to-list 'completion-at-point-functions #'cape-symbol)
   ;;(add-to-list 'completion-at-point-functions #'cape-line)
   )
 
@@ -129,25 +131,4 @@
  "<down>" nil
  "C-k" #'comint-previous-input
  "C-j" #'comint-next-input)
-
-;;; tabnine and AI -------------------------------------------------------------
-
-;; (use-package company-tabnine
-;;   :config
-;;   (defun jds~setup-capf-tabnine ()
-;;     (make-local-variable 'completion-at-point-functions)
-;;     (add-to-list 'completion-at-point-functions
-;; 		 (cape-company-to-capf #'company-tabnine)))
-
-;;   ;; installation details
-;;   ;; Installing at /home/jds6696/.emacs.d/var/company/tabnine-binaries/4.4.143/x86_64-unknown-linux-gnu/TabNine. Downloading https://update.tabnine.com/bundles/4.4.143/x86_64-unknown-linux-gnu/TabNine.zip ...
-;;   ;; Wrote /home/jds6696/.emacs.d/var/company/tabnine-binaries/4.4.143/x86_64-unknown-linux-gnu.zip
-;;   ;; Archive:  /home/jds6696/.emacs.d/var/company/tabnine-binaries/4.4.143/x86_64-unknown-linux-gnu.zip
-;;   ;;   inflating: /home/jds6696/.emacs.d/var/company/tabnine-binaries/4.4.143/x86_64-unknown-linux-gnu/TabNine
-;;   ;;   inflating: /home/jds6696/.emacs.d/var/company/tabnine-binaries/4.4.143/x86_64-unknown-linux-gnu/TabNine-deep-cloud
-;;   ;;   inflating: /home/jds6696/.emacs.d/var/company/tabnine-binaries/4.4.143/x86_64-unknown-linux-gnu/TabNine-deep-local
-;;   ;;   inflating: /home/jds6696/.emacs.d/var/company/tabnine-binaries/4.4.143/x86_64-unknown-linux-gnu/WD-TabNine
-;;   ;; TabNine installation complete.
-;;   (company-tabnine-install-binary))
-
 
