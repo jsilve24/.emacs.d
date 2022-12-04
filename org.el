@@ -156,6 +156,8 @@
 
 ;;; setup capture
 
+  (require 'org-protocol)
+
   (add-hook 'org-capture-before-finalize-hook (lambda () (org-align-tags t)))
   (setq org-capture-templates
 	`(("t" "todo")
