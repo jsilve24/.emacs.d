@@ -165,13 +165,86 @@
 (use-package org-noter
   :config
   ;; (evil-collection-define-key 'normal 'org-noter-notes-mode-map
-  ;;   (kbd "C-.") #'org-noter-sync-current-note)
+  ;; (kbd "C-.") #'org-noter-sync-current-note)
   (defun jds~org-noter-bindings ()
     (evil-local-set-key 'normal (kbd "C-.") #'org-noter-sync-current-note))
   (add-hook 'org-noter-notes-mode-hook #'jds~org-noter-bindings)
   (setq org-noter-notes-search-path '("~/Dropbox/org/roam/references/notes/")
 	org-noter-always-create-frame nil
-	org-noter-kill-frame-at-session-end nil))
+	org-noter-kill-frame-at-session-end nil)
+
+
+  ;; fix bug in org-noter: https://github.com/weirdNox/org-noter/issues/125
+(defun org-noter-kill-session (&optional session)
+  "Kill an `org-noter' session.
+
+When called interactively, if there is no prefix argument and the
+buffer has an annotation session, it will kill it; else, it will
+show a list of open `org-noter' sessions, asking for which to
+kill.
+
+When called from elisp code, you have to pass in the SESSION you
+want to kill."
+  (interactive "P")
+  (when (and (called-interactively-p 'any) (> (length org-noter--sessions) 0))
+    ;; NOTE(nox): `session' is representing a prefix argument
+    (if (and org-noter--session (not session))
+        (setq session org-noter--session)
+      (setq session nil)
+      (let (collection default doc-display-name notes-file-name display)
+        (dolist (session org-noter--sessions)
+          (setq doc-display-name (org-noter--session-display-name session)
+                notes-file-name (file-name-nondirectory
+                                 (org-noter--session-notes-file-path session))
+                display (concat doc-display-name " - " notes-file-name))
+          (when (eq session org-noter--session) (setq default display))
+          (push (cons display session) collection))
+        (setq session (cdr (assoc (completing-read "Which session? " collection nil t
+                                                   nil nil default)
+                                  collection))))))
+
+  (when (and session (memq session org-noter--sessions))
+    (setq org-noter--sessions (delq session org-noter--sessions))
+
+    (when (eq (length org-noter--sessions) 0)
+      (remove-hook 'delete-frame-functions 'org-noter--handle-delete-frame)
+      (advice-remove 'doc-view-goto-page 'org-noter--location-change-advice)
+      (advice-remove 'nov-render-document 'org-noter--nov-scroll-handler))
+
+    (let* ((ast (org-noter--parse-root session))
+	   (frame (org-noter--session-frame session))
+	   (notes-buffer (org-noter--session-notes-buffer session))
+	   (base-buffer (buffer-base-buffer notes-buffer))
+	   (notes-modified (buffer-modified-p base-buffer))
+	   (doc-buffer (org-noter--session-doc-buffer session)))
+
+      (dolist (window (get-buffer-window-list notes-buffer nil t))
+	(with-selected-frame (window-frame window)
+	  (if (= (count-windows) 1)
+	      (when (org-noter--other-frames) (delete-frame))
+	    (delete-window window))))
+
+      (with-current-buffer notes-buffer
+	(remove-hook 'kill-buffer-hook 'org-noter--handle-kill-buffer t)
+	(restore-buffer-modified-p nil))
+      (kill-buffer notes-buffer)
+
+      (with-current-buffer base-buffer
+	(org-noter--unset-text-properties ast)
+	(set-buffer-modified-p notes-modified))
+
+      (with-current-buffer doc-buffer
+	(remove-hook 'kill-buffer-hook 'org-noter--handle-kill-buffer t))
+      (if (not org-noter-kill-frame-at-session-end) (set-window-dedicated-p (get-buffer-window doc-buffer) nil))
+      (kill-buffer doc-buffer)
+
+      (when (frame-live-p frame)
+	(if (and (org-noter--other-frames) org-noter-kill-frame-at-session-end)
+	    (delete-frame frame)
+	  (progn
+	    (delete-other-windows)
+	    (set-frame-parameter nil 'name nil)))))))
+  )
 
 ;; (general-define-key
 ;;  :keymaps 'org-noter-notes-mode-map
