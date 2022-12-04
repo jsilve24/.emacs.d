@@ -13,7 +13,8 @@
   (setq ess-offset-continued 'straight
 	ess-nuke-trailing-whitespace-p t
 	ess-style 'DEFAULT
-	ess-eval-visibly 'nowait)
+	ess-eval-visibly 'nowait
+	ess-use-flymake nil)
 
   ;; most people say this is annoying -- I need to figure out what it is eventually
   (setq ess-smart-S-assign-key nil)
