@@ -120,6 +120,16 @@
   ;;(add-to-list 'completion-at-point-functions #'cape-line)
   )
 
+;;; keep comint mode out of completion -----------------------------------------
+
+(general-define-key
+ :keymaps 'comint-mode-map
+ :states '(n i)
+ "<up>" nil
+ "<down>" nil
+ "C-k" #'comint-previous-input
+ "C-j" #'comint-next-input)
+
 ;;; tabnine and AI -------------------------------------------------------------
 
 ;; (use-package company-tabnine
