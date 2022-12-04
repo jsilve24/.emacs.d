@@ -97,12 +97,12 @@
     (define-key evil-visual-state-local-map "iS" #'lispyville-inner-string)
 
 
-    (define-key evil-visual-state-local-map "aa" #'lispyville-inner-atom)
-    (define-key evil-visual-state-local-map "al" #'lispyville-inner-list)
-    (define-key evil-visual-state-local-map "ax" #'lispyville-inner-sexp)
-    (define-key evil-visual-state-local-map "af" #'lispyville-inner-function)
-    (define-key evil-visual-state-local-map "ac" #'lispyville-inner-comment)
-    (define-key evil-visual-state-local-map "aS" #'lispyville-inner-string)
+    (define-key evil-visual-state-local-map "aa" #'lispyville-a-atom)
+    (define-key evil-visual-state-local-map "al" #'lispyville-a-list)
+    (define-key evil-visual-state-local-map "ax" #'lispyville-a-sexp)
+    (define-key evil-visual-state-local-map "af" #'lispyville-a-function)
+    (define-key evil-visual-state-local-map "ac" #'lispyville-a-comment)
+    (define-key evil-visual-state-local-map "aS" #'lispyville-a-string)
 
 
     (define-key evil-operator-state-local-map "ia" #'lispyville-inner-atom)
@@ -113,12 +113,12 @@
     (define-key evil-operator-state-local-map "iS" #'lispyville-inner-string)
 
 
-    (define-key evil-operator-state-local-map "aa" #'lispyville-inner-atom)
-    (define-key evil-operator-state-local-map "al" #'lispyville-inner-list)
-    (define-key evil-operator-state-local-map "ax" #'lispyville-inner-sexp)
-    (define-key evil-operator-state-local-map "af" #'lispyville-inner-function)
-    (define-key evil-operator-state-local-map "ac" #'lispyville-inner-comment)
-    (define-key evil-operator-state-local-map "aS" #'lispyville-inner-string))
+    (define-key evil-operator-state-local-map "aa" #'lispyville-a-atom)
+    (define-key evil-operator-state-local-map "al" #'lispyville-a-list)
+    (define-key evil-operator-state-local-map "ax" #'lispyville-a-sexp)
+    (define-key evil-operator-state-local-map "af" #'lispyville-a-function)
+    (define-key evil-operator-state-local-map "ac" #'lispyville-a-comment)
+    (define-key evil-operator-state-local-map "aS" #'lispyville-a-string))
 
   (add-hook 'lispyville-mode-hook 'lispyville-activate-text-objects-theme))
 
@@ -276,6 +276,7 @@ Version 2017-01-11"
 (jds/localleader-def
   :keymaps '(LaTeX-mode-map emacs-lisp-mode-map ess-r-mode-map)
   "f" #'hl-todo-occur
+  "F" #'hl-todo-rgrep
   "i" #'hl-todo-insert)
 
 (general-def
