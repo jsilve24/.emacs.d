@@ -275,6 +275,35 @@
 ;; sentence setup
 (setq sentence-end-double-space nil)
 
+;; don't backup by moving file 
+;; https://idiomdrottning.org/bad-emacs-defaults
+(setq backup-by-copying t)
+
+;; don't litter with backups all over the place
+(make-directory "~/.emacs_backups/" t)
+(make-directory "~/.emacs_autosave/" t)
+(setq auto-save-file-name-transforms '((".*" "~/.emacs_autosave/" t)))
+(setq backup-directory-alist '(("." . "~/.emacs_backups/")))
+
+;; guess indentation style 
+(use-package dtrt-indent
+  :disabled t
+  :diminish dtrt-indent-global-mode
+  :diminish dtrt-indent-mode
+  :config
+  (dtrt-indent-global-mode))
+
+;; require final newline in files
+(setq require-final-newline t)
+
+;; Without this, Emacs will try to resize itself to a specific column size, but like Tony, I’m on a
+;; tiling wm, and I change font sizes all the time, so this is no good.
+(setq frame-inhibit-implied-resize t)
+
+;; I think this may require emacs 29
+(setq pixel-scroll-precision-mode t)
+
+
 ;; turn on visual line mode
 (global-visual-line-mode 1)
 
@@ -306,7 +335,11 @@
 
 
 ;; Keep folders Clean
-(use-package no-littering)
+(use-package no-littering
+  :config
+  (with-eval-after-load 'recentf
+    (add-to-list 'recentf-exclude no-littering-var-directory)
+    (add-to-list 'recentf-exclude no-littering-etc-directory)))
 
 ;; no-littering doesn't set this by default so we must place
 ;; auto save files in the same path as it uses for sessions
