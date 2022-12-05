@@ -22,6 +22,11 @@
 
 (use-package consult-eglot)
 
+;; don't have to use the mouse to see errors in echo area
+(use-package flymake-cursor
+  :config
+  (eval-after-load 'flymake '(require 'flymake-cursor)))
+
 
 ;;; lsp-mode rather than eglot 
 (use-package lsp-mode
