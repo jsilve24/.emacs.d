@@ -35,6 +35,13 @@
  "C-t" #'evil-numbers/inc-at-pt-incremental
  "C-S-t" #'evil-numbers/dec-at-pt-incremental)
 
+(general-define-key
+ :keymaps 'normal
+ "C-y" #'evil-scroll-line-down
+ "C-S-y" #'evil-scroll-line-up
+ "C-d" #'evil-scroll-down
+ "C-S-d" #'evil-scroll-up)
+
 
 ;;;###autoload
 (defun jds~kill-whole-line ()
@@ -481,6 +488,7 @@
  "gn" #'jds/evil-search-convert-avy-jump
  ;; "gi" #'evil-insert-resume
  "gv" #'evil-visual-restore
+ "gp" #'+evil/reselect-paste
  "gu"  #'evil-downcase
  "gU"  #'evil-upcase
  "gt" #'jds/title-case-region-or-line
