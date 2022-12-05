@@ -205,18 +205,24 @@ The exact color values are taken from the active Ef theme."
 
 (use-package olivetti)
 
+;;; Nice Display of Colors
 
+  (use-package rainbow-mode
+    :diminish rainbow-mode
+    :config
+    (setq rainbow-x-colors nil)
+    (add-hook 'prog-mode-hook 'rainbow-mode))
 
 ;;; org-mode theme -------------------------------------------------------------
 
 ;; (with-eval-after-load 'org
-;;   (custom-set-faces
-;;    '(org-level-1 ((t (:inherit outline-1 :height 1.25))))
-;;    '(org-level-2 ((t (:inherit outline-2 :height 1.1))))
-;;    '(org-level-3 ((t (:inherit outline-3 :height 1.0))))
-;;    '(org-level-4 ((t (:inherit outline-4 :height 1.0))))
-;;    '(org-level-5 ((t (:inherit outline-5 :height 1.0))))
-;;    '(org-agenda-structure ((t (:inherit outline-1 :height 1.10))))))
+;; (custom-set-faces
+;; '(org-level-1 ((t (:inherit outline-1 :height 1.25))))
+;; '(org-level-2 ((t (:inherit outline-2 :height 1.1))))
+;; '(org-level-3 ((t (:inherit outline-3 :height 1.0))))
+;; '(org-level-4 ((t (:inherit outline-4 :height 1.0))))
+;; '(org-level-5 ((t (:inherit outline-5 :height 1.0))))
+;; '(org-agenda-structure ((t (:inherit outline-1 :height 1.10))))))
 
 (provide 'themes)
 ;;; themes.el ends here
