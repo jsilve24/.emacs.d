@@ -137,6 +137,16 @@
 (use-package yaml-mode
   :mode (("\\.yml\\'" . yaml-mode)))
 
+;;; ess-breakerofchains
+
+(use-package ess-breakerofchains
+  :straight (ess-breakerofchains
+	     :type git :host github :repo "jsilve24/ess-breakerofchains"))
+(general-define-key
+ :keymaps 'ess-r-mode-map
+ :states '(insert normal)
+ "<C-S-return>" #'ess-boc-break-chain)
+
 
 ;;; key bindings
 
