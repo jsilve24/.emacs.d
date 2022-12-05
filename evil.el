@@ -102,20 +102,7 @@
   (setq evil-kill-on-visual-paste nil)
 
   ;; Get better undo history in insert mode
-  (setq evil-want-fine-undo t)
-
-  ;; deal with whitespace polluting kill-ring
-  ;;from here: https://emacs.stackexchange.com/questions/39434/evil-dont-yank-with-only-whitespace-to-register
-  ;; (define-key evil-normal-state-map "x" 'delete-forward-char)
-  ;; (define-key evil-normal-state-map "X" 'delete-backward-char)
-  ;; (evil-define-operator evil-delete-without-register-if-whitespace (beg end type reg yank-handler)
-  ;;   (interactive "<R><y>")
-  ;;   (let ((text (replace-regexp-in-string "\n" "" (filter-buffer-substring beg end))))
-  ;;     (if (string-match-p "^\\s-*$" text)
-  ;; 	  (evil-delete beg end type ?_)
-  ;; 	(evil-delete beg end type reg yank-handler))))
-  ;; (define-key evil-normal-state-map "d" #'evil-delete-without-register-if-whitespace)
-  )
+  (setq evil-want-fine-undo t))
 
 ;;; evil-collection
 
@@ -123,9 +110,11 @@
   :straight (evil-collection :type git :host github :repo "emacs-evil/evil-collection"
 			     :fork (:host github :repo "jsilve24/evil-collection"))
   :after evil
-  :init 
+  :diminish evil-collection
+  :init
   (setq evil-collection-key-blacklist '("m")
-	evil-collection-want-unimpaired-p nil)
+	evil-collection-want-unimpaired-p t ; note this is myown highly customized version
+	evil-collection-unimpaired-want-repeat-mode-integration t) 
   :config
 
   ;; move "m" bindings
