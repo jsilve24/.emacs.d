@@ -9,6 +9,8 @@
   :config
   (setq eldoc-echo-area-use-multiline-p 1)
   (setq eglot-ignored-server-capabilites nil)
+  ;; https://joaotavora.github.io/eglot/#Customizing-Eglot
+  ;;(add-to-list eglot-stay-out-of 'imenu)
   ;; (defun jds~latex-eglot-hook ()
   ;;   "Hook run on eglot start in latex-mode"
   ;;   (setq-local eglot-stay-out-of '("imenu")))
@@ -24,6 +26,7 @@
 
 ;; don't have to use the mouse to see errors in echo area
 (use-package flymake-cursor
+  :diminish flymake-mode
   :config
   (eval-after-load 'flymake '(require 'flymake-cursor)))
 

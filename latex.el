@@ -4,6 +4,7 @@
   :mode ("\\.tex\\'" . LaTeX-mode)
   :hook (LaTeX-mode . reftex-mode)
   :ensure t
+  :diminish reftex-mode
   :config
   (setq TeX-parse-self t ;; parse on load
         TeX-auto-save t  ;; parse on save
@@ -60,6 +61,7 @@
   ;; don't use smartparens you probably won't want these also.
   ;; also auctex takes care of inserting _ and ^
   ;; also auctex already provides `LaTeX-insert-item' so C-ret not needed
+  :diminish cdlatex-mode
   :bind
   (:map cdlatex-mode-map
 	;; ("$" . nil)
