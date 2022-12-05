@@ -106,9 +106,7 @@
          ("C-c p r" . cape-rfc1345))
   :init
   ;; Add `completion-at-point-functions', used by `completion-at-point'.
-  (add-to-list 'completion-at-point-functions
-	       (cape-super-capf #'cape-file #'cape-symbol #'cape-keyword))
-  ;; (add-to-list 'completion-at-point-functions #'cape-file)
+  (add-to-list 'completion-at-point-functions #'cape-file)
   ;; (add-to-list 'completion-at-point-functions #'cape-dabbrev)
   ;;(add-to-list 'completion-at-point-functions #'cape-history)
   ;; (add-to-list 'completion-at-point-functions #'cape-keyword)
@@ -120,6 +118,13 @@
   ;;(add-to-list 'completion-at-point-functions #'cape-dict)
   ;; (add-to-list 'completion-at-point-functions #'cape-symbol)
   ;;(add-to-list 'completion-at-point-functions #'cape-line)
+  :config
+  ;; setup cape based on major mode
+  (defun jds~setup-prog-mode-capf ()
+    (make-variable-buffer-local 'completion-at-point-functions)
+    (add-to-list 'completion-at-point-functions #'cape-symbol)
+    (add-to-list 'completion-at-point-functions #'cape-keyword))
+  (add-hook 'prog-mode-hook 'jds~setup-prog-mode-capf)
   )
 
 ;;; keep comint mode out of completion -----------------------------------------
