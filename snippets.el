@@ -232,6 +232,7 @@ escape."
     ";cols"   (jds~yas-lambda-expand-snippet-by-key "org-beamer-cols")
     ";pdf" (jds~yas-lambda-expand-snippet-by-key "org-beamer-include-pdf")
     ";rplot" (jds~yas-lambda-expand-snippet-by-key "org-beamer-r-plot")
+    ";ir" (jds~yas-lambda-expand "src_R[:session \"*R*\"]{$1}$0")
     ";width" (jds~yas-lambda-expand "#+ATTR_LATEX: :width ${1:0.9\\linewidth}")
     ";atex" (jds~yas-lambda-expand "#+ATTR_LATEX: $0")
     ";alatex" (jds~yas-lambda-expand "#+ATTR_LATEX: $0")
