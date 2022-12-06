@@ -201,7 +201,7 @@
 	   ,(concat "* MEETING %u with Kyle :MEETING:w_kyle:\n"
 		    "** cGSEA :p_cgsea:\n"
 		    "** Effective Scale Models :p_effscalemod:\n"
-		    "** Future Plans :p_cgsea:\n"
+		    "** Future Plans \n"
 		    "  %?")
 	   :jump-to-captured t
 	   :tree-type month)
