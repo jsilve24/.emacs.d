@@ -485,6 +485,7 @@
  "g/" #'avy-goto-char-timer
  "g," #'jds/evil-snipe-convert-avy-jump
  "gm" #'evil-next-match	;; select prior search
+ "gM" #'jds/avy-latex-math
  "gn" #'jds/evil-search-convert-avy-jump
  ;; "gi" #'evil-insert-resume
  "gv" #'evil-visual-restore
