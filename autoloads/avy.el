@@ -21,14 +21,6 @@
 ;;; Code:
 
 ;;;###autoload
-(defun jds/avy-latex-math ()
-  "Use avy to jump to LaTeX math environments in the current buffer."
-  (interactive)
-  (let ((avy-all-windows nil))
-    (avy-with latex-math-avy
-      (avy-jump "\\(\\\\begin{\\(equation\\*?\\|align\\*?\\|split\\*?\\)}\\)\\|\\(\\\\\\[\\|\\\\(\\|\\$\\$?[^\\$]+\\$\\)"))))
-
-;;;###autoload
 (defun jds/evil-search-convert-avy-jump ()
   "Repeat the last evil-search but this time using avy-goto-char-timer."
   (interactive)

@@ -86,6 +86,7 @@
 (load-config "org-roam.el")
 (load-config "lsp.el")
 (load-config "treesitter.el")
+(load-config "autoloads/avy-tex-math.el")
 
 
 ;; for some reason has to be at the end to ensure 

@@ -485,7 +485,7 @@
  "g/" #'avy-goto-char-timer
  "g," #'jds/evil-snipe-convert-avy-jump
  "gm" #'evil-next-match	;; select prior search
- "gM" #'jds/avy-latex-math
+ ;; "gM" held for things like jds/avy-latex-math
  "gn" #'jds/evil-search-convert-avy-jump
  ;; "gi" #'evil-insert-resume
  "gv" #'evil-visual-restore
@@ -513,7 +513,7 @@
  ;; "gY" #'XXX
  ;; "gq" #'XXX
  ;; "gQ" #'XXX
- "ga" #'ace-window
+ ;; "ga" #'ace-window
  "gA" #'jds/ace-window-save-excursion
  "gz" #'jds/avy-fix-spelling
  ;; "gZ" #'XXX

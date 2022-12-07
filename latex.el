@@ -263,3 +263,17 @@
   "c" '(:ignore t)
   "cS" #'biblio-lookup)
 
+
+;; some key bindings that should be in org and latex
+(general-define-key
+ :keymaps '(LaTeX-mode-map org-mode-map org-capture-mode-map)
+ :states 'normal
+ "[m" #'jds/latex-previous-math-start
+ "]m" #'jds/latex-next-math-start)
+
+(jds/localleader-def
+ :keymaps '(LaTeX-mode-map org-mode-map org-capture-mode-map)
+ :states 'normal
+ "g" '(:ignore t :which-key "goto") 
+ "gm" #'jds/avy-latex-math)
+
