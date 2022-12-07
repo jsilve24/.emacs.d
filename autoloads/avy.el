@@ -26,7 +26,7 @@
   (interactive)
   (let ((avy-all-windows nil))
     (avy-with latex-math-avy
-      (avy-jump "\\(\\\\begin{\\(equation\\*?\\|align\\*?\\|split\\*?\\)}\\)\\|\\(\\\\\\[\\|\\\\(\\)"))))
+      (avy-jump "\\(\\\\begin{\\(equation\\*?\\|align\\*?\\|split\\*?\\)}\\)\\|\\(\\\\\\[\\|\\\\(\\|\\$\\$?[^\\$]+\\$\\)"))))
 
 ;;;###autoload
 (defun jds/evil-search-convert-avy-jump ()
