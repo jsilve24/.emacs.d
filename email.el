@@ -339,6 +339,11 @@ mu4e-headers-goto-message-id."
  "f" #'jds/avy-mu4e-header
  "F" #'link-hint-open-link)
 
+(general-define-key
+ :states 'normal
+ :keymaps 'mu4e-view-mode-map
+ "P" #'mu4e-view-save-all-attachments)
+
 
 (provide 'email)
 ;;; email.el ends here
