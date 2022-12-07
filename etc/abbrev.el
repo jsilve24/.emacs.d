@@ -127,6 +127,7 @@
     ("nusiance" "nuisance" nil :count 0)
     ("occurence" "occurrence" nil :count 0)
     ("patern" "pattern" nil :count 0)
+    ("peices" "pieces" nil :count 0)
     ("perscribing" "prescribing" nil :count 0)
     ("pertmutations" "permutations" nil :count 0)
     ("positve" "positive" nil :count 0)
