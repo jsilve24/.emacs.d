@@ -204,7 +204,8 @@ for tomorrow.  With two prefixes, select the schedule date."
 ;;  mnemnonic: > is to redirect the files to output everything.
 ;; (define-key mu4e-view-mode-map ">" 'mu4e-view-save-all-attachments)
 
-(defvar bulk-saved-attachments-dir mu4e-attachment-dir)
+(with-eval-after-load 'mu4e
+ (defvar bulk-saved-attachments-dir mu4e-attachment-dir))
 
 ;;;###autoload
 (defun cleanse-subject (sub)
