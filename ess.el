@@ -149,6 +149,46 @@
  "<C-S-return>" #'ess-boc-break-chain)
 
 
+;;; ess add library import
+(defun jds/ess-add-library-import (library-name)
+  "Add a 'library' import statement for LIBRARY-NAME to the current R script buffer.
+
+The function searches backwards from the end of the buffer
+for the regular expression '^library(.*)$', which matches a
+'library' import statement. If a match is found, the function
+moves the point to the end of the matched line and inserts a
+newline and a 'library' import statement for LIBRARY-NAME.
+If no match is found, the function opens a new line above the
+first line in the buffer and inserts a 'library' import statement
+for LIBRARY-NAME.
+
+The function raises an error if the current buffer is not an
+R script buffer (i.e. the major mode is not `ess-r-mode`)."
+  (interactive "sLibrary name: ")
+  (if (eq major-mode 'ess-r-mode)
+      (let ((library-import-regexp "^library(.*)$")
+	    (proc (ess-get-process))
+	    (fstring (format "library(%s)\n" library-name)))
+	(save-excursion 
+	  (goto-char (point-max))
+	  (if (re-search-backward library-import-regexp nil t)
+              (progn
+		(goto-char (match-beginning 0))
+		(match-string-no-properties 0)
+		(end-of-line)
+		(newline)
+		(insert fstring))
+	    (goto-char (point-min))
+	    (beginning-of-line)
+	    (newline)
+	    (forwar-line -1)
+	    (insert fstring)))
+	(if proc
+	    (ess-send-string proc fstring)))
+    (error "Buffer is not in ess-r-mode")))
+
+
+
 ;;; key bindings
 
 (general-define-key
@@ -162,6 +202,7 @@
   "vs" #'r/df-sample-small
   "vm" #'r/df-sample-medium
   "vl" #'r/df-sample-large
+  "l"  #'jds/ess-add-library-import
   ;; predefined keymaps
   "h" 'ess-doc-map
   "x" 'ess-extra-map
