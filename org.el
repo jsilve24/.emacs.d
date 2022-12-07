@@ -295,6 +295,9 @@
   ;; with this you can use #+ATTR_ORG: :width 400 to resize inline previews
   (setq org-image-actual-width nil)
 
+  ;; nicer latex previews (slightly larger)
+ (plist-put org-format-latex-options :scale 1.25)
+
   ;; for some reason this was needed when I first put this config together
   (org-reload))
 
