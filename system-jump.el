@@ -39,12 +39,13 @@
 (use-package affe
   :commands (affe-find affe-grep)
   :config
-  (setq affe-find-command (concat 
-	  "find -type f "
-	  "\! \( -path */.git/* \) "
-	  "\! \( -path */.dropbox/* \) "
-	  "\! \( -path */.mail/* \) "
-	  "\! \( -path */python3\.9/* \) ")))
+  (setq affe-find-command (concat
+			   "find -type f "
+			   "\! \( -path */.git/* \) "
+			   "\! \( -path */.dropbox/* \) "
+			   "\! \( -path */.mail/* \) "
+			   "\! \( -path */python3\.9/* \) "
+			   "\! \( -name \".DS_Store\" \) ")))
 
 ;;;###autoload
 (defun jds/affe-find-files-home ()
