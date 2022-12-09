@@ -292,19 +292,43 @@ Version 2017-01-11"
   :config
   (global-hungry-delete-mode 1))
 
+(defun jds~delete-pairs-balanced ()
+  "Delete pairs if previous character is pair opening. Returns t if
+within pair, nil if not within pair."
+  (if (looking-back (rx (or
+			 (literal "(")
+			 (literal "[")
+			 (literal "{")))
+		    1)
+      (progn
+	(electric-pair-delete-pair 1)
+	t)
+    nil))
+
 ;;;###autoload
 (defun jds/hungry-delete-or-kill-sexp (&optional arg)
-    "Hungry delete if point is on whitespace, otherwise kill-sexp. Delete forwards with ARG"
+  "Hungry delete if point is on whitespace, otherwise kill-sexp. Delete forwards with ARG.
+If point is within empty delmiters, kill the delimiters."
   (interactive "P")
-  (cond
-   ((looking-back (rx (>= 2 (char blank))) 1)
-    (if arg
-	(hungry-delete-forward 1)
-      (hungry-delete-backward 1)))
-   (t
-    (if arg
-	(kill-sexp)
-      (backward-kill-sexp)))))
+  (unless (jds~delete-pairs-balanced)
+    (cond
+     ((looking-back (rx (or (literal "(")
+			    (literal "[")
+			    (literal  "{")
+			    (literal "\{")
+			    (literal "\(")
+			    (literal "\left(")
+			    (literal "\left{")
+			    (literal "\left["))))
+      (electric-pair-delete-pair 1))
+     ((looking-back (rx (>= 2 (char blank))) 1)
+      (if arg
+	  (hungry-delete-forward 1)
+	(hungry-delete-backward 1)))
+     (t
+      (if arg
+	  (kill-sexp)
+	(backward-kill-sexp))))))
 
 ;;; rotate text ----------------------------------------------------------------
 
