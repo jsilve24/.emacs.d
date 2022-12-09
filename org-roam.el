@@ -84,10 +84,19 @@
   (interactive)
   (org-roam-tag-add '("ROAM_EXCLUDE")))
 
+(use-package org-drawer-list
+  :straight (org-drawer-list :type git :host github :repo "d12frosted/org-drawer-list"))
 
-;; tools
-;; org-roam-end-of-meta-data
-;; org-roam-up-heading-or-point-min
+;;;###autoload
+(defun jds/add-to-references-drawer ()
+  "Adds references drawer under org-headline or adds new list
+item to existing references drawer."
+  (interactive)
+  (let* ((range (org-drawer-list-block "REFERENCES" t t))
+	 (end (cdr range)))
+    (goto-char end)
+    (open-line 1)
+    (insert "- ")))
 
 (use-package consult-org-roam
   :ensure t
