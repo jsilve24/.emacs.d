@@ -307,6 +307,7 @@ With a prefix ARG, remove start location."
   "lf" #'org-roam-node-find
   "li" #'org-roam-node-insert
   "lI" #'jds/org-roam-insert-quick-link
+  "lc" #'jds/add-to-references-drawer
   "l," #'org-roam-capture
   "lr" #'org-roam-refile
   "lR" #'org-roam-link-replace-all
