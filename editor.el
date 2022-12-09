@@ -315,7 +315,13 @@ Version 2017-01-11"
   (grugru-define-on-major-mode '(org-mode latex-mode) 'tex-command '("\\parallel" "\\perp"))
   (grugru-define-on-major-mode '(latex-mode) 'tex-command '("\\section" "\\subsection" "\\subsubsection" "\\paragraph")))
 
- 
+
+;;; indent
+
+(use-package aggressive-indent
+  :diminish aggressive-indent-mode
+  :config
+  (aggressive-indent-mode +1))
 
 (provide 'editor)
 ;;; editor.el ends here
