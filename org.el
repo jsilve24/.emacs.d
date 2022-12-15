@@ -296,7 +296,7 @@
   (setq org-image-actual-width nil)
 
   ;; nicer latex previews (slightly larger)
- (plist-put org-format-latex-options :scale 1.25)
+ (plist-put org-format-latex-options :scale 1.15)
 
   ;; for some reason this was needed when I first put this config together
   (org-reload))
