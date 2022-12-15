@@ -41,7 +41,7 @@
 #+BIND: org-export-filter-bold-functions (org-beamer-bold-as-textbf)
 #+BEGIN_SRC emacs-lisp :exports results :results none
   (defun org-beamer-bold-as-textbf (s backend info)
-    (replace-regexp-in-string "\\\\alert" "\\\\textbf" s))
+    (replace-regexp-in-string "\\\\\\\\alert" "\\\\\\\\textbf" s))
 #+END_SRC
 
 
