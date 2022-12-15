@@ -263,12 +263,8 @@ re-align the table if necessary. (Necessary because org-mode has a
   (interactive)
   (save-excursion 
     (goto-char 1)
-    (while (re-search-forward "https?://[a-z]+\.zoom\.us/[a-z]/\\([^\n\s]*\\)" nil t)
-      (replace-match "[[zoom:\\1][(ZOOM)]]" nil nil))))
-
-;; create new org link type for this
-(with-eval-after-load 'org
-  (org-link-set-parameters "zoom" :follow 'jds~launch-zoom-by-conference-number))
+    (while (re-search-forward "https?://[a-z]+\.zoom\.us/[^\n\s]*" nil t)
+      (replace-match "[[\\&][(ZOOM)]]" nil nil))))
 
 ;;;###autoload
 ;; from here: https://emacs.stackexchange.com/questions/10597/how-to-refile-into-a-datetree
