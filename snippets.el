@@ -91,11 +91,10 @@ escape."
 	      ";frac" (jds~yas-lambda-expand "\\frac\\{$1\\}\\{$2\\}$0")
 	      "//" (jds~yas-lambda-expand "\\frac\\{$1\\}\\{$2\\}$0")
 	      ";sum" (jds~yas-lambda-expand  "\\sum_{$1}${2:^{$3\\}}$0")
-	      ";int" (jds~yas-lambda-expand  "\\int${1:_{$2}}${3:^{$4\\}}$0")
+	      ";int" (jds~yas-lambda-expand  "\\int${1:_{$2\\}}${3:^{$4\\}}$0")
+	      ";prod" (jds~yas-lambda-expand  "\\prod${1:_{$2\\}}${3:^{$4\\}}$0")
 	      ";all" "\\forall"
 	      ";set" (jds~yas-lambda-expand "\\\\{$0\\\\}")
-	      ";pp" (jds~yas-lambda-expand "p($0)")
-	      ";pr" (jds~yas-lambda-expand "P($0)")
 	      ";pc" (jds~yas-lambda-expand "p($1 \\vert $2)")
 	      ";approx" "\\approx"
 	      ";norm" (jds~yas-lambda-expand "N($1,$2)")
@@ -239,6 +238,7 @@ escape."
     ";caption" (jds~yas-lambda-expand "#+CAPTION:$0")
     ";ofig" (jds~yas-lambda-expand "[[./$0]]")
     ";pause" "#+BEAMER: \\pause"
+    ";fill" "#+BEAMER: \\vfill"
     ";overlay" (jds~yas-lambda-expand "#+ATTR_BEAMER: :overlay <${1:+-}>"))
 
 
