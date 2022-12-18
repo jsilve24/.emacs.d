@@ -190,6 +190,12 @@
   ;; default is 0.2
   (setq evil-goggles-duration 0.2))
 
+;; visual preview of evil-ex commands
+(use-package evil-traces
+  :config
+  ;; (evil-traces-use-diff-faces) ; if you want to use diff's faces
+  (evil-traces-mode))
+
 ;;; evil-suround and evil-embrace
 (use-package evil-surround
   :straight t
