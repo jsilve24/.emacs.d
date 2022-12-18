@@ -82,6 +82,9 @@
   (load-theme 'modus-vivendi)
   :bind ("<f5>" . modus-themes-toggle))
 
+;; themes I like:
+;; ef-duo-dark
+;; doom-dark+
 (use-package ef-themes
   :commands (ef-themes-toggle)
   :bind ("<f6>" . ef-themes-toggle)
