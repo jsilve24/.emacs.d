@@ -296,11 +296,16 @@
   (setq org-image-actual-width nil)
 
   ;; nicer latex previews (slightly larger)
- (plist-put org-format-latex-options :scale 1.15)
+  (plist-put org-format-latex-options :scale 1.15)
+  
+  ;; don't always have math mode on in org
+  (add-hook 'org-cdlatex-mode-hook
+	    (lambda () (advice-remove 'texmathp 'org--math-always-on)))
+  
+
 
   ;; for some reason this was needed when I first put this config together
   (org-reload))
-
 
 
 ;;;###autoload
