@@ -312,6 +312,8 @@ If point is within empty delmiters, kill the delimiters."
   (interactive "P")
   (unless (jds~delete-pairs-balanced)
     (cond
+     ((string= major-mode "vterm-mode")
+      (vterm-delete-region  (save-excursion (progn (backward-sexp) (point))) (point)))
      ((looking-back (rx (or (literal "(")
 			    (literal "[")
 			    (literal  "{")
