@@ -192,6 +192,7 @@
 
 ;; visual preview of evil-ex commands
 (use-package evil-traces
+  :diminish evil-traces-mode
   :config
   ;; (evil-traces-use-diff-faces) ; if you want to use diff's faces
   (evil-traces-mode))
