@@ -32,8 +32,8 @@
 
 ;; https://git.kyleam.com/ob-stan/about/
 ;; seems pretty outdated
-(use-package ob-stan
-  :straight (ob-stan :local-repo "~/.emacs.d/local-packages/ob-stan/"))
+;; (use-package ob-stan
+;;   :straight (ob-stan :local-repo "~/.emacs.d/local-packages/ob-stan/"))
 
 ;;; flycheck-stan.el
 ;; (use-package flycheck-stan

@@ -244,15 +244,15 @@
   (setq org-latex-pdf-process (list "latexmk -shell-escape -f -pdf %f"))
 
   ;; active Babel languages
-  (with-eval-after-load 'ob-stan
-    (org-babel-do-load-languages
-     'org-babel-load-languages
-     '((R . t)
-       (emacs-lisp . t)
-       (latex . t)
-       (org . t)
-       (shell . t)
-       (stan . t))))
+  (load-file "~/.emacs.d/ob-stan.el")
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((R . t)
+     (emacs-lisp . t)
+     (latex . t)
+     (org . t)
+     (shell . t)
+     (stan . t)))
 
   (setq org-src-fontify-natively t
 	org-export-with-smart-quotes t)
