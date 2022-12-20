@@ -305,6 +305,9 @@
 (setq pixel-scroll-precision-mode t)
 
 
+;; turn off bell
+(setq ring-bell-function 'ignore)
+
 ;; turn on visual line mode
 (global-visual-line-mode 1)
 
