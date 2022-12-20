@@ -175,6 +175,7 @@ The exact color values are taken from the active Ef theme."
   (mapc 'diminish
 	'(yas-minor-mode
 	  citar-embark-mode
+	  evil-traces-mode
 	  citar-org-roam-mode
 	  org-roam-bibtex-mode
 	  evil-snipe-mode
