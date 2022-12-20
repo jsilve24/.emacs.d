@@ -120,7 +120,12 @@ With optional arg, don't automatically rebalance windows."
 
   ;; This will need to be updated to the name of a display!  You can find
   ;; the names of your displays by looking at arandr or the output of xrandr
-  (setq exwm-randr-workspace-monitor-plist '(1 "eDP-1" 2 "eDP-1" 3 "HDMI-1-0" 4  "HDMI-1-0" 5 "DP-1-2" 6 "DP-1-2"))
+  (cond
+   ((string= (system-name) "lenovoGen4Sil")
+    (setq exwm-randr-workspace-monitor-plist '(1 "eDP-1" 2 "eDP-1" 3 "HDMI-1-0" 4 "HDMI-1-0" 5 "DP-1-2" 6 "DP-1-2")))
+   ((string= (system-name) "lenovoGen2Sil")
+    (setq exwm-randr-workspace-monitor-plist '(1 "eDP-1" 2 "eDP-1" 3 "HDMI-1-1" 4 "HDMI-1-1" 5 "DP-1-1" 6 "DP-1-1"))))
+  
 
   (add-hook 'exwm-randr-screen-change-hook #'efs/update-displays)
   (efs/update-displays)
