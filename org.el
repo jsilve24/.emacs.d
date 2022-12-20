@@ -316,6 +316,24 @@
 	(org-refile-use-outline-path t))
     (org-refile)))
 
+;;;###autoload
+(defun jds/scan-org-roam-for-org-id ()
+  "Force Org to scan all agenda and roam files for org ids"
+  (interactive)
+  (unless org-agenda-files
+    (user-error "No agenda files"))
+  (unless org-roam-directory
+    (user-error "org-roam-directory is not set"))
+  (let* ((files (org-agenda-files))
+	 (files (cl-union files
+			  (mapcar (lambda (x) (file-name-concat org-roam-directory x))
+				  (seq-remove (lambda (x) (or  (string-match "^.#" x)
+							       (not (string-match "org$" x))))
+					      (cl-remove-if (lambda (x) (member x '("." "..")))
+							    (directory-files org-roam-directory)))))))
+    (org-id-update-id-locations files)))
+
+
 ;;; Better latex org previews 
 (use-package org-fragtog
   :hook (org-mode . org-fragtog-mode))
