@@ -42,6 +42,12 @@
  "C-d" #'evil-scroll-down
  "C-S-d" #'evil-scroll-up)
 
+;; better scroll other window  bindings
+(general-define-key
+ :keymaps '(normal insert emacs visual motion)
+ "C-S-f" (general-simulate-key "C-M-v")
+ "C-S-b" (general-simulate-key "M-<prior>"))
+
 
 ;;;###autoload
 (defun jds~kill-whole-line ()

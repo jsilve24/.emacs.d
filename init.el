@@ -69,6 +69,7 @@
 (load-config "spelling.el")
 (load-config "latex.el")		
 (load-config "pdf.el")
+(load-config "autoloads/sow.el")
 (load-config "autoloads/email.el")
 (load-config "email.el")
 (load-config "calendar.el")

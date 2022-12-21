@@ -32,6 +32,14 @@
    :keymaps 'pdf-view-mode-map
    "SPC" nil)
 
+  ;; scroll other window that works with pdf-tools
+  ;; https://github.com/politza/pdf-tools/issues/55
+  (require 'sow)
+  (sow-mode 1)
+  (add-hook 'org-noter-notes-mode-hook #'sow-mode)
+  (setq org-noter--inhibit-location-change-handler t)
+
+
   (defun pdf-misc-print-document (filename &optional interactive-p)
     "Print the PDF doc FILENAME.
 
