@@ -45,8 +45,8 @@
 ;; better scroll other window  bindings
 (general-define-key
  :keymaps '(normal insert emacs visual motion)
- "C-S-f" (general-simulate-key "C-M-v")
- "C-S-b" (general-simulate-key "M-<prior>"))
+ "C-S-n" (general-simulate-key "C-M-v")
+ "C-S-p" (general-simulate-key "M-<prior>"))
 
 
 ;;;###autoload
