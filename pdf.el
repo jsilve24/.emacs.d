@@ -34,7 +34,7 @@
 
   ;; scroll other window that works with pdf-tools
   ;; https://github.com/politza/pdf-tools/issues/55
-  (require 'sow)
+  (require 'scroll-other-window)
   (sow-mode 1)
   (add-hook 'org-noter-notes-mode-hook #'sow-mode)
   (setq org-noter--inhibit-location-change-handler t)
