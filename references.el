@@ -198,6 +198,7 @@ a string specifying full filepath."
 (general-define-key
  :keymaps 'jds/citation-map
  "c" #'jds/citar-insert-cite-prioritize-local-bib
+ "p" #'citar-org-update-pre-suffix
  ;; "r" #'jds/literate-bib-tangle-and-refresh
  ;; "o" #'jds/goto-global-org-bib
  ;; "i" #'jds/literate-bib-search
