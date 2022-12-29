@@ -28,7 +28,11 @@
 
 ;; seems lighter weight than smartparens
 (electric-pair-mode 1)
-
+;; don't complete <>
+;;  https://www.topbug.net/blog/2016/09/29/emacs-disable-certain-pairs-for-electric-pair-mode/
+(setq electric-pair-inhibit-predicate
+      (lambda (c)
+	(if (char-equal c ?\<) t (electric-pair-default-inhibit c))))
 
 (use-package expand-region)
 
