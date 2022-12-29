@@ -53,7 +53,9 @@
   :straight (zotra :type git :host github :repo "mpedramfar/zotra")
   :commands (zotra-add-entry-from-search)
   :config
-  (setq zotra-default-bibliography "/home/jds6696/Dropbox/org/roam/references/references.bib")
+  (setq zotra-default-bibliography "/home/jds6696/Dropbox/org/roam/references/references.bib"
+	;; todo could upgrade to the zotra-cli which can also download papers
+	zotra-backend 'translation-server)
   (add-hook 'zotra-after-add-entry-hook (lambda ()
 					  (bibtex-clean-entry t)
 					  (bibtex-sort-buffer)))
