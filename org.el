@@ -26,11 +26,11 @@
 
   ;; turn on cdlatex
   ;; (use-package cdlatex
-  ;;   :config
-  ;;   (add-hook 'org-mode-hook 'turn-on-org-cdlatex)
+  ;; :config
+  ;; (add-hook 'org-mode-hook 'turn-on-org-cdlatex)
   ;; ;; don't have cdlatex take over the backtick symbol (funcationality done by aas snippets now)
   ;; (defun jds~org-cdlatex-hook-function ()
-  ;;   (define-key org-cdlatex-mode-map (kbd "`") nil))
+  ;; (define-key org-cdlatex-mode-map (kbd "`") nil))
   ;; (add-hook 'org-mode-hook 'jds~org-cdlatex-hook-function))
   ;; latex highlighting
   (setq org-highlight-latex-and-related '(latex entities))
@@ -255,7 +255,9 @@
      (stan . t)))
 
   (setq org-src-fontify-natively t
-	org-export-with-smart-quotes t)
+	org-export-with-smart-quotes t
+	;; don't raise error for broken links
+	org-export-with-broken-links 'mark)
 
   ;; get syntax highlighting working
   ;; taken from here: http://joonro.github.io/blog/posts/org-mode-outputdir-minted-latex-export/
@@ -297,6 +299,9 @@
 
   ;; nicer latex previews (slightly larger)
   (plist-put org-format-latex-options :scale 1.15)
+
+  ;; add support for mathfrac in latex previews
+  ;; (add-to-list  'org-latex-default-packages-alist '("" "amsfonts" t))
   
   ;; don't always have math mode on in org
   (add-hook 'org-cdlatex-mode-hook
