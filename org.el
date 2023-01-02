@@ -343,6 +343,10 @@
 (use-package org-fragtog
   :hook (org-mode . org-fragtog-mode))
 
+(use-package org-preview
+  :straight (org-preview :type git :host github :repo "karthink/org-preview")
+  :config
+  (org-preview-mode 1))
 
 ;;; Setup Appointment / Calendar Notifications ---------------------------------
 
