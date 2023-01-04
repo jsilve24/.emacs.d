@@ -51,11 +51,15 @@ escape."
 	   (yas-expand-snippet ,symbol)
 	 (yas-expand-snippet (concat "\\\\(" ,symbol "\\\\)")))))
 
+  (defun jds~expand-math-symbol-p ()
+      "Predicate for when to expand math snippets. In non-mathmode, only expand if preceded by non alphanumeric character"
+      (cond
+       ((and (not (texmathp)) (looking-back "[a-zA-Z0-9]" 1)) nil)
+       (t t)))
+
   (defmacro jds~aas-setup-insert-math (mode)
     `(progn (aas-set-snippets ,mode
 	      :cond #'(lambda () (not (texmathp)))
-	      "i.e" "i.e" ;; block expansion in this case
-	      "e.g" "e.g" ;; block expansion in this case
 	      ";m" (jds~yas-lambda-expand "\\\\($0\\\\)")
 	      ";M" (jds~yas-lambda-expand "\\\[$0\\\]")
 	      "mdim" (jds~yas-lambda-expand "\\\\($1 \\times $2\\\\) matrix $0")
@@ -122,6 +126,7 @@ escape."
 	      "SS" #'(lambda () (interactive) (jds~string-just-one-space "\\sim"))
 	      "NN" #'(lambda () (interactive) (progn (jds~string-just-one-space "\\\\") (newline))))
 	    (aas-set-snippets ,mode
+	      :cond #'jds~expand-math-symbol-p
 	      ";ee" (jds~aas-insert-math "\\mathbb\\{E\\}$0")
 	      ";inf" (jds~aas-insert-math "\\inf$0")
 	      ";sup" (jds~aas-insert-math "\\sup$0")
