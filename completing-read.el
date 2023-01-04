@@ -28,6 +28,8 @@
   ;; setup vertico quick
   (define-key vertico-map "\M-q" #'vertico-quick-exit)
   (define-key vertico-map "\M-Q" #'vertico-quick-insert)
+  (define-key vertico-map "\M-j" #'next-line-or-history-element)
+  (define-key vertico-map "\M-k" #'previous-line-or-history-element)
 
   ;; setup vertico multiform
   (vertico-multiform-mode)
