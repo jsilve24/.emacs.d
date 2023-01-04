@@ -76,16 +76,6 @@
 (general-nmap
   "C-e" #'move-end-of-line)
 
-;; completion
-;;;###autoload
-(defun jds/yas-or-capf-or-indent ()
-  (interactive)
-  (if (yas-expand)
-      nil
-    (if (completion-at-point)
-	nil
-      (indent-for-tab-command))))
-
 
 ;; ultimately I found this annoying and it screwed with balanced parentheses in lisp code
 (global-set-key [remap dabbrev-expand] 'hippie-expand)
@@ -106,11 +96,16 @@
    ((and (string= (string (char-before)) " ")
 	 (string= major-mode "org-mode"))
     (org-cycle))
-   (t (jds/yas-or-capf-or-indent))))
+   ((and (string= major-mode "ess-r-mode") (looking-back "[^\s]"))
+    (ess-indent-or-complete))
+   ((yas-expand) nil)
+   (completion-at-point nil)
+   (indent-for-tab-command nil)))
 
 
 (defun jds/completion-keys ()
   (evil-local-set-key 'insert (kbd "<tab>") #'jds/tab-dwim)
+  (evil-local-set-key 'normal (kbd "<tab>") #'jds/tab-dwim)
   ;; (evil-local-set-key 'insert (kbd "C-l")   #'company-ispell)
   )
 (add-hook 'text-mode-hook 'jds/completion-keys)
