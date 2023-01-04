@@ -43,9 +43,9 @@ Also binds under goto motions using evil-textobj-tree-sitter-goto-textobj."
   :config
 
   (jds~bind-evil-textobj-ts "f" "function.inner" "function.outer")
-  (jds~bind-evil-textobj-ts "h" "call.inner" "call.outer")
-  (jds~bind-evil-textobj-ts "v" "conditional.inner" "conditional.outer")
+  (jds~bind-evil-textobj-ts "c" "call.inner" "call.outer")
+  (jds~bind-evil-textobj-ts "k" "conditional.inner" "conditional.outer")
   (jds~bind-evil-textobj-ts "l" "loop.inner" "loop.outer")
   (jds~bind-evil-textobj-ts "a" ("parameter.inner" "call.inner") ("parameter.outer" "call.outer"))
-  (jds~bind-evil-textobj-ts "c" "comment.outer" "comment.outer")
+  (jds~bind-evil-textobj-ts "v" "comment.outer" "comment.outer")
 )

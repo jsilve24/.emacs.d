@@ -95,34 +95,34 @@
     "override default text objects activation and make bindings buffer local"
     (define-key evil-visual-state-local-map "ia" #'lispyville-inner-atom)
     (define-key evil-visual-state-local-map "il" #'lispyville-inner-list)
-    (define-key evil-visual-state-local-map "ix" #'lispyville-inner-sexp)
+    (define-key evil-visual-state-local-map "io" #'lispyville-inner-sexp)
     (define-key evil-visual-state-local-map "if" #'lispyville-inner-function)
-    (define-key evil-visual-state-local-map "ic" #'lispyville-inner-comment)
-    (define-key evil-visual-state-local-map "iS" #'lispyville-inner-string)
+    (define-key evil-visual-state-local-map "iv" #'lispyville-inner-comment)
+    (define-key evil-visual-state-local-map "iq" #'lispyville-inner-string)
 
 
     (define-key evil-visual-state-local-map "aa" #'lispyville-a-atom)
     (define-key evil-visual-state-local-map "al" #'lispyville-a-list)
-    (define-key evil-visual-state-local-map "ax" #'lispyville-a-sexp)
+    (define-key evil-visual-state-local-map "ao" #'lispyville-a-sexp)
     (define-key evil-visual-state-local-map "af" #'lispyville-a-function)
-    (define-key evil-visual-state-local-map "ac" #'lispyville-a-comment)
-    (define-key evil-visual-state-local-map "aS" #'lispyville-a-string)
+    (define-key evil-visual-state-local-map "av" #'lispyville-a-comment)
+    (define-key evil-visual-state-local-map "aq" #'lispyville-a-string)
 
 
     (define-key evil-operator-state-local-map "ia" #'lispyville-inner-atom)
     (define-key evil-operator-state-local-map "il" #'lispyville-inner-list)
-    (define-key evil-operator-state-local-map "ix" #'lispyville-inner-sexp)
+    (define-key evil-operator-state-local-map "io" #'lispyville-inner-sexp)
     (define-key evil-operator-state-local-map "if" #'lispyville-inner-function)
-    (define-key evil-operator-state-local-map "ic" #'lispyville-inner-comment)
-    (define-key evil-operator-state-local-map "iS" #'lispyville-inner-string)
+    (define-key evil-operator-state-local-map "iv" #'lispyville-inner-comment)
+    (define-key evil-operator-state-local-map "iq" #'lispyville-inner-string)
 
 
     (define-key evil-operator-state-local-map "aa" #'lispyville-a-atom)
     (define-key evil-operator-state-local-map "al" #'lispyville-a-list)
-    (define-key evil-operator-state-local-map "ax" #'lispyville-a-sexp)
+    (define-key evil-operator-state-local-map "ao" #'lispyville-a-sexp)
     (define-key evil-operator-state-local-map "af" #'lispyville-a-function)
-    (define-key evil-operator-state-local-map "ac" #'lispyville-a-comment)
-    (define-key evil-operator-state-local-map "aS" #'lispyville-a-string))
+    (define-key evil-operator-state-local-map "av" #'lispyville-a-comment)
+    (define-key evil-operator-state-local-map "aq" #'lispyville-a-string))
 
   (add-hook 'lispyville-mode-hook 'lispyville-activate-text-objects-theme))
 
