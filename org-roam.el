@@ -162,6 +162,7 @@ item to existing references drawer."
   :after citar
   :diminish org-roam-bibtex-mode
   :config
+  (diminish 'org-roam-bibtex-mode)
 
   (setq orb-preformat-keywords
 	'("citekey" "title" "url" "author-or-editor" "keywords" "file" "keywords" "date" "note?" "author" "editor" "author-abbrev")
