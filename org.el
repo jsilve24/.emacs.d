@@ -63,6 +63,9 @@
   (setq org-startup-indented t
 	org-startup-truncated nil)
 
+  ;; allow alphabetical lists
+  (setq org-list-allow-alphabetical t)
+
   ;; hide blank lines in folded views
   (setq org-cycle-separator-lines 0)
   ;; Prevent creating blank lines before headings, allow list items to adapt to existing blank lines around the items:
