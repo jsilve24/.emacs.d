@@ -1,0 +1,26 @@
+# -*- mode: snippet -*-
+# name: org-homework-template
+# key: org-homework
+# --
+
+#+TITLE: $1
+#+AUTHOR: Justin Silverman
+#+OPTIONS: toc:nil d:(not "RELATED") ^:nil 
+#+DATE:
+#+latex_class: article
+#+latex_class_options:
+#+latex_header: 
+#+latex_header_extra:
+#+latex_compiler: pdflatex
+#+latex_header: \usepackage{indentfirst}
+#+latex_header: \usepackage{graphicx}
+#+LATEX_HEADER: \usepackage[margin=1in]{geometry}
+#+latex_header: \usepackage{subfigure}
+#+latex_header: \usepackage{amsmath}
+#+latex_header: \usepackage{listings}
+#+latex_header: \usepackage{tikz}
+#+latex_header: \usetikzlibrary{matrix}
+
+\vspace{0.25in}
+
+* Problem 1 (X Points)
