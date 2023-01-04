@@ -99,7 +99,7 @@
    ((and (string= major-mode "ess-r-mode") (looking-back "[^\s]"))
     (ess-indent-or-complete))
    ((yas-expand) nil)
-   (completion-at-point nil)
+   ((completion-at-point) nil)
    (indent-for-tab-command nil)))
 
 
