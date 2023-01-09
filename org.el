@@ -352,7 +352,8 @@
   :hook (org-mode . org-fragtog-mode))
 
 (use-package org-preview
-  :straight (org-preview :type git :host github :repo "karthink/org-preview")
+  :straight (org-preview :type git :host github :repo "karthink/org-preview" :fork t)
+  :disabled 
   :config
   (org-preview-mode 1))
 
