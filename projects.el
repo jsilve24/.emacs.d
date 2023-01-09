@@ -82,6 +82,11 @@
     :matcher (lambda (fn) (string-match ".tex$" fn))
     :mappers (lambda (fn) (replace-regexp-in-string "\\.tex$" ".pdf" fn)))
 
+  ;; txt
+  (ruled-switch-buffer-define tex-to-pdf
+    :matcher (lambda (fn) (string-match ".txt$" fn))
+    :mappers (lambda (fn) (replace-regexp-in-string "\\.txt$" ".org" fn)))
+
   ;; rmd
   (ruled-switch-buffer-define rmd-to
     :matcher (lambda (fn) (string-match ".[rR]md$" fn))
@@ -93,6 +98,7 @@
     :matcher (lambda (fn) (string-match ".org$" fn))
     :mappers ((lambda (fn) (replace-regexp-in-string "\\.org$" ".pdf" fn))
 	      (lambda (fn) (replace-regexp-in-string "\\.org$" ".html" fn))
+	      (lambda (fn) (replace-regexp-in-string "\\.org$" ".txt" fn))
 	      (lambda (fn) (replace-regexp-in-string "\\.org$" ".tex" fn))))
 
   ;; rules for c/c++
