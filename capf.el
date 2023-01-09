@@ -129,11 +129,12 @@
 
 ;;; keep comint mode out of completion -----------------------------------------
 
-(general-define-key
- :keymaps 'comint-mode-map
- :states '(n i)
- "<up>" nil
- "<down>" nil
- "C-k" #'comint-previous-input
- "C-j" #'comint-next-input)
+;; should use completions using M-j and M-k now
+;; (general-define-key
+;;  :keymaps 'comint-mode-map
+;;  :states '(n i)
+;;  "<up>" nil
+;;  "<down>" nil
+;;  "C-k" #'comint-previous-input
+;;  "C-j" #'comint-next-input)
 
