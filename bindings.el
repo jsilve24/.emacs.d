@@ -86,6 +86,17 @@
   (looking-at-p "^[[:space:]]*$"))
 
 ;;;###autoload
+(defun jds/jump-delim ()
+    "Jump past delimiter"
+  (interactive)
+(if (looking-at (rx (or
+		     (literal ")")
+		     (literal "]")
+		     (literal "}"))))
+    (progn (forward-char) t)
+  nil))
+					
+;;;###autoload
 (defun jds/tab-dwim ()
   (interactive)
   ;; don't indent in texmathp
