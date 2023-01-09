@@ -19,7 +19,7 @@
   (defun jds~setup-capf-stan ()
     (make-local-variable 'completion-at-point-function)
     (add-to-list 'completion-at-point-functions
-		 (cape-company-to-capf #'company-stan)))
+		 (cape-company-to-capf #'company-stan-backend)))
   (add-hook 'stan-mode-hook  'jds~setup-capf-stan))
 
 ;;; eldoc-stan.el
