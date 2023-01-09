@@ -282,7 +282,8 @@
   ;; (add-to-list 'org-latex-packages-alist '("" "color"))
   ;; taken from here: https://stackoverflow.com/questions/46438516/how-to-encapsualte-code-blocks-into-a-frame-when-exporting-to-pdf/60396939#60396939
   (setq org-latex-minted-options
-	'(("bgcolor" "bg") ("frame" "lines")))
+	'(;; ("bgcolor" "bg") ;; this line was just making the background color black... 
+	  ("frame" "lines")))
 
   ;; avoid this bug: https://www.reddit.com/r/emacs/comments/u0lk2w/orgbabelexecutesrcblock_with_results_value_giving/
   (add-to-list 'org-export-backends 'org t)
