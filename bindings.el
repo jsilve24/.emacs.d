@@ -104,13 +104,18 @@
    ((and (texmathp) (or (bound-and-true-p cdlatex-mode) org-cdlatex-mode))
     (cdlatex-tab))
    ((org-table-p) (org-table-next-field))
-   ((and (string= (string (char-before)) " ")
-	 (string= major-mode "org-mode"))
+   ((and
+     (or 
+      (org-at-drawer-p)
+      (org-at-heading-p))     
+     (string= major-mode "org-mode"))
     (org-cycle))
-   ((and (string= major-mode "ess-r-mode") (looking-back "[^\s]"))
-    (ess-indent-or-complete))
    ((yas-expand) nil)
-   ((completion-at-point) nil)
+   ((and (looking-back "[a-zA-Z0-9][a-zA-Z0-9]" 2)
+	 (completion-at-point))  nil)
+   ((jds/jump-delim) nil)
+   ((and (string= major-mode "ess-r-mode") (looking-back "[^\s]"))
+    (ess-indent-command))
    (indent-for-tab-command nil)))
 
 
