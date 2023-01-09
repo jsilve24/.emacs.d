@@ -63,6 +63,11 @@
   (setq org-startup-indented t
 	org-startup-truncated nil)
 
+  ;; startup with drawers folded
+  (defun jds~org-fold-drawers ()
+    (org-cycle-hide-drawers 'all))
+  (add-hook 'org-mode-hook #'jds~org-fold-drawers)
+
   ;; allow alphabetical lists
   (setq org-list-allow-alphabetical t)
 
