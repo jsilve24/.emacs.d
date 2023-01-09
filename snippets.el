@@ -128,6 +128,7 @@ escape."
 	    (aas-set-snippets ,mode
 	      :cond #'jds~expand-math-symbol-p
 	      ";ee" (jds~aas-insert-math "\\mathbb\\{E\\}$0")
+	      ";rr" (jds~aas-insert-math "\\mathbb\\{R\\}$0")
 	      ";inf" (jds~aas-insert-math "\\inf$0")
 	      ";sup" (jds~aas-insert-math "\\sup$0")
 	      ";frac" (jds~aas-insert-math "\\frac\\{$1\\}\\{$2\\}$0")
@@ -176,7 +177,6 @@ escape."
 	      ".L" (jds~aas-insert-math "\\Lambda$0")
 	      ".m" (jds~aas-insert-math "\\mu$0")
 	      ".n" (jds~aas-insert-math "\\nu$0")
-	      ".N" (jds~aas-insert-math "\\mathbb\\{N\\}$0")
 	      ".o" (jds~aas-insert-math "\\omega$0")
 	      ".O" (jds~aas-insert-math "\\Omega$0")
 	      "..o" (jds~aas-insert-math "\\circ$0")
@@ -190,7 +190,6 @@ escape."
 	      "..s" (jds~aas-insert-math "\\varsigma$0")
 	      ".S" (jds~aas-insert-math "\\Sigma$0")
 	      ".r" (jds~aas-insert-math "\\rho$0")
-	      ".R" (jds~aas-insert-math "\\mathbb\\{R\\}$0")
 	      ".t" (jds~aas-insert-math "\\tau$0")
 	      ".u" (jds~aas-insert-math "\\upsilon$0")
 	      ".U" (jds~aas-insert-math "\\Upsilon$0")
