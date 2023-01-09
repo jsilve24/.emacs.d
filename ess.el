@@ -12,7 +12,7 @@
   :config
   (setq ess-offset-continued 'straight
 	ess-nuke-trailing-whitespace-p t
-	ess-style 'DEFAULT
+	ess-style 'RStudio
 	ess-eval-visibly 'nowait
 	ess-use-flymake nil)
 
@@ -181,7 +181,7 @@ R script buffer (i.e. the major mode is not `ess-r-mode`)."
 	    (goto-char (point-min))
 	    (beginning-of-line)
 	    (newline)
-	    (forwar-line -1)
+	    (forward-line -1)
 	    (insert fstring)))
 	(if proc
 	    (ess-send-string proc fstring)))
