@@ -124,7 +124,7 @@ With optional arg, don't automatically rebalance windows."
    ((string= (system-name) "lenovoGen4Sil")
     (setq exwm-randr-workspace-monitor-plist '(1 "eDP-1" 2 "eDP-1" 3 "HDMI-1-0" 4 "HDMI-1-0" 5 "DP-1-2" 6 "DP-1-2")))
    ((string= (system-name) "lenovoGen2Sil")
-    (setq exwm-randr-workspace-monitor-plist '(1 "eDP-1" 2 "eDP-1" 3 "HDMI-1-1" 4 "HDMI-1-1" 5 "DP-1-1" 6 "DP-1-1"))))
+    (setq exwm-randr-workspace-monitor-plist '(1 "eDP-1" 2 "eDP-1" 3 "HDMI-1-0" 4 "HDMI-1-0" 5 "DP-1-0" 6 "DP-1-0"))))
   
 
   (add-hook 'exwm-randr-screen-change-hook #'efs/update-displays)
@@ -467,7 +467,16 @@ buffer (=minimizing in other WM/DE)"
   (interactive)
   (jds/quiet-async-shell-commands " xrandr --output eDP-1 --primary --mode 1920x1200 --pos 1920x0 --rotate normal --output HDMI-1 --off --output DP-1 --off --output DP-2 --off --output DP-3 --off --output DP-4 --off --output DP-1-0 --off --output DP-1-1 --off --output DP-1-2 --off --output DP-1-3 --off --output HDMI-1-0 --mode 1920x1080 --pos 0x0 --rotate normal")
   (jds/quiet-async-shell-commands "xrandr --output HDMI-1-0 --same-as eDP-1")
-  (jds/quiet-async-shell-commands "xsetwacom set "Wacom Intuos BT S Pen stylus" MapToOutput HEAD-0"))
+  (jds/quiet-async-shell-commands "xsetwacom set 'Wacom Intuos BT S Pen stylus' MapToOutput HEAD-0"))
+
+;; make sure to connect with dell splitter
+(defun jds/setup-projector-and-wacom-E210 ()
+  "Quick setup screen mirroring and wacom to HEAD-0 for teaching in Westgate E208"
+  (interactive)
+  (jds/quiet-async-shell-commands "xrandr --output eDP-1 --primary --mode 1920x1080 --pos 0x0 --rotate normal --output DP-1-0 --mode 1920x1080 --pos 1920x0 --rotate normal --output DP-1-1 --off --output HDMI-1-0 --off")
+  (jds/quiet-async-shell-commands "xrandr --output DP-1-0 --same-as eDP-1")
+  (jds/quiet-async-shell-commands "xsetwacom set 'Wacom Intuos BT S Pen stylus' MapToOutput HEAD-0"))
+
 
 ;; also for quickly launching my personal zoom room
 (defun jds~launch-zoom-by-conference-number (conf)
