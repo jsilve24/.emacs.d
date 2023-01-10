@@ -217,6 +217,7 @@ escape."
 	      "._" (jds~aas-insert-math "\\downarrow$0")
 	      ".8" (jds~aas-insert-math "\\infty$0")
 	      ".*" (jds~aas-insert-math "\\odot$0")
+	      ".#" (jds~aas-insert-math "\\otimes$0")
 	      "./" (jds~aas-insert-math "\\oslash$0")
 	      ".+" (jds~aas-insert-math "\\oplus$0")
 	      ".-" (jds~aas-insert-math "\\ominus$0"))))
