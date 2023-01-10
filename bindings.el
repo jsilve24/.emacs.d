@@ -108,7 +108,8 @@
      (or 
       (org-at-drawer-p)
       (org-at-heading-p))     
-     (string= major-mode "org-mode"))
+     (or (string= major-mode "org-mode")
+	 (string= major-mode "org-msg-edit-mode")))
     (org-cycle))
    ((yas-expand) nil)
    ((and (looking-back "[a-zA-Z0-9][a-zA-Z0-9]" 2)
