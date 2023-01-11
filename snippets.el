@@ -139,7 +139,7 @@ escape."
 	      ";;int" (jds~aas-insert-math  "\\int${1:_{$2\\}}${3:^{$4\\}}$0")
 	      ";prod" (jds~aas-insert-math  "\\prod${1:_{$2\\}}${3:^{$4\\}}$0")
 	      ";set" (jds~aas-insert-math "\\\\{$0\\\\}")
-	      ";pc" (jds~aas-insert-math "p($1 \\vert $2)")
+	      ";pc" (jds~aas-insert-math "p($1 \\mid $2)")
 	      ";norm" (jds~aas-insert-math "N($1,$2)")
 	      ";cov" (jds~aas-insert-math "\\text{Cov}($0)")
 	      ";var" (jds~aas-insert-math "\\text{Var}($0)")
@@ -193,7 +193,7 @@ escape."
 	      ".t" (jds~aas-insert-math "\\tau$0")
 	      ".u" (jds~aas-insert-math "\\upsilon$0")
 	      ".U" (jds~aas-insert-math "\\Upsilon$0")
-	      ".v" "\\vert "
+	      ".v" "\\mid "
 	      ".x" (jds~aas-insert-math "\\xi$0")
 	      ".X" (jds~aas-insert-math "\\Xi$0")
 	      ".y" (jds~aas-insert-math "\\psi$0")
