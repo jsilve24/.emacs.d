@@ -159,7 +159,8 @@
   "hf" #'helpful-callable
   "hv" #'helpful-variable
   "hF" #'describe-face
-  "ha" #'consult-apropos
+  ;; "ha" #'consult-apropos
+  "ha" #'helpful-symbol
   "ht" #'consult-theme
   "hl" #'view-lossage
   "hi" #'info-display-manual
