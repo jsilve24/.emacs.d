@@ -37,10 +37,7 @@
 
 
 (use-package kaolin-themes
-  :config
-  ;; (load-theme 'kaolin-aurora t)
-  ;; (kaolin-treemacs-theme)
-  )
+  :disabled t)
 
 (use-package gruvbox-theme)
 
