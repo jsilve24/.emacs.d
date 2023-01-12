@@ -1,16 +1,18 @@
 ;;; org.el --- org related config -*- lexical-binding: t; -*-
 
 
-
 ;; get newest version of org
-;; (straight-use-package 'org)
-(straight-use-package '(org-contrib :type git :host github :repo "emacsmirror/org-contrib"))
+;;(straight-use-package 'org)
 
 (use-package org
-  :straight (org-mode :local-repo "~/Downloads/org-mode/")
+  ;;:straight (org-mode :local-repo "~/Downloads/org-mode/")
+  ;; :ensure t
+  ;;:straight (org-mode :host github :repo "emacs-straight/org-mode")
   :diminish org-indent-mode
   :diminish org-cdlatex-mode
   :config
+
+
   ;; don't include files in .attach
   (setq org-agenda-files
 	(seq-filter
@@ -324,6 +326,10 @@
 
   ;; for some reason this was needed when I first put this config together
   (org-reload))
+
+
+;; not sure this is needed and it seemed to be trying to download a different version of emacs...
+;;  (straight-use-package '(org-contrib :type git :host github :repo "emacsmirror/org-contrib"))
 
 
 ;;;###autoload
