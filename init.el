@@ -43,6 +43,8 @@
     (setq native-comp-deferred-compilation t))
     (message "Native complation is *not* available"))
 
+(setq jds~skip-wm nil
+      jds~skip-email nil)
 
 ;;; Core
 (load-config "core.el")
