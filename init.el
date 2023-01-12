@@ -46,7 +46,8 @@
 
 ;;; Core
 (load-config "core.el")
-(load-config "wm.el")
+(unless jds~skip-wm
+  (load-config "wm.el"))
 (load-config "evil.el")
 (load-config "autoloads/evil.el")
 (load-config "autoloads/textobjects.el")
@@ -70,8 +71,9 @@
 (load-config "latex.el")		
 (load-config "autoloads/sow.el")
 (load-config "pdf.el")
-(load-config "autoloads/email.el")
-(load-config "email.el")
+(unless jds~skip-email t
+	(load-config "autoloads/email.el")
+	(load-config "email.el"))
 (load-config "calendar.el")
 (load-config "autoloads/movement.el")
 (load-config "ibuffer.el")

@@ -251,6 +251,10 @@
   ;; setup org latex export
   (setq org-latex-pdf-process (list "latexmk -shell-escape -f -pdf %f"))
 
+  ;; setup async export
+  (setq org-export-async-init-file
+	(expand-file-name "org-async-init.el" user-emacs-directory))
+
   ;; active Babel languages
   (load-file "~/.emacs.d/ob-stan.el")
   (org-babel-do-load-languages
