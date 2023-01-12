@@ -134,6 +134,8 @@ With optional arg, don't automatically rebalance windows."
   ;; (require 'exwm-systemtray)
   ;; (setq exwm-systemtray-height 15)
   ;; (exwm-systemtray-enable)
+  ;; to start manually
+  ;; (exwm-systemtray--init)
 
   ;; make window divisions clear
   (setq window-divider-default-bottom-width 1)
