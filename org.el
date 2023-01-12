@@ -299,7 +299,7 @@
   (setq org-confirm-babel-evaluate nil)
 
   ;; better org-src buffer window placement
-  (setq org-src-window-setup 'plain)
+  (setq org-src-window-setup 'split-window-right)
 
   ;; allow binding in oeg export 
   ;; https://tex.stackexchange.com/questions/637386/org-mode-export-bold-text-to-beamer
