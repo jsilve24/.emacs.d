@@ -19,30 +19,33 @@
   ;; most people say this is annoying -- I need to figure out what it is eventually
   (setq ess-smart-S-assign-key nil)
 
+  ;; ess don't ask for startup directory
+  (setq ess-ask-for-ess-directory nil
+	ess-startup-directory 'default-directory)
 
   (add-hook 'ess-r-mode-hook #'display-fill-column-indicator-mode)
 
   ;; from here: https://github.com/SteveLane/dot-emacs/blob/master/ess-config.el
   ;; Add in company-mode helpers
   ;; (defun my-ess-company-hook ()
-  ;;   ;; ensure company-R-library is in ESS backends
-  ;;   (make-variable-buffer-local 'company-backends)
-  ;;   (cl-delete-if (lambda (x) (and (eq (car-safe x) 'company-R-args))) company-backends)
-  ;;   (add-to-list 'company-backends
-  ;; 		 '(company-R-args company-R-objects company-R-library
-  ;; 				  company-dabbrev-code :separate)))
+  ;; ;; ensure company-R-library is in ESS backends
+  ;; (make-variable-buffer-local 'company-backends)
+  ;; (cl-delete-if (lambda (x) (and (eq (car-safe x) 'company-R-args))) company-backends)
+  ;; (add-to-list 'company-backends
+  ;; '(company-R-args company-R-objects company-R-library
+  ;; company-dabbrev-code :separate)))
   ;; (add-hook 'ess-mode-hook #'my-ess-company-hook)
   ;; 
   ;; (defun jds~ess-capf-hook ()
-  ;;   ;; ensure company-R-library is in ESS backends
-  ;;   (make-variable-buffer-local 'completion-at-point-functions)
-  ;;   (add-to-list 'company-backends (mapcar #'cape-company-to-capf
-  ;; 					   '(#'company-R-args
-  ;; 					     #'company-R-objects
-  ;; 					     #'company-R-library)))
-  ;;   (add-to-list 'company-backends
-  ;; 		 '(company-R-args company-R-objects company-R-library
-  ;; 				  company-dabbrev-code :separate)))
+  ;; ;; ensure company-R-library is in ESS backends
+  ;; (make-variable-buffer-local 'completion-at-point-functions)
+  ;; (add-to-list 'company-backends (mapcar #'cape-company-to-capf
+  ;; '(#'company-R-args
+  ;; #'company-R-objects
+  ;; #'company-R-library)))
+  ;; (add-to-list 'company-backends
+  ;; '(company-R-args company-R-objects company-R-library
+  ;; company-dabbrev-code :separate)))
   ;; (add-hook 'ess-mode-hook #'my-ess-company-hook)
 
 
@@ -67,18 +70,18 @@
 
   ;; better display-buffer defaulsts
   ;; (add-to-list 'display-buffer-alist '("^\\*R Dired"
-  ;; 				       (display-buffer-reuse-window display-buffer-in-side-window)
-  ;; 				       (side . right)
-  ;; 				       (slot . -1)
-  ;; 				       (window-width . 0.33)
-  ;; 				       (reusable-frames . nil)))
+  ;; (display-buffer-reuse-window display-buffer-in-side-window)
+  ;; (side . right)
+  ;; (slot . -1)
+  ;; (window-width . 0.33)
+  ;; (reusable-frames . nil)))
 
   ;; (add-to-list 'display-buffer-alist '("^\\*R"
-  ;; 				       (display-buffer-reuse-window display-buffer-in-side-window)
-  ;; 				       (side . right)
-  ;; 				       (slot . -1)
-  ;; 				       (window-width . 0.5)
-  ;; 				       (reusable-frames . nil)))
+  ;; (display-buffer-reuse-window display-buffer-in-side-window)
+  ;; (side . right)
+  ;; (slot . -1)
+  ;; (window-width . 0.5)
+  ;; (reusable-frames . nil)))
 
   ;; ;; (add-to-list 'display-buffer-alist '("^\\*Help"
   ;; ;; 				       (display-buffer-reuse-window display-buffer-in-side-window)
@@ -88,16 +91,16 @@
   ;; ;; 				       (reusable-frames . nil)))
 
   ;; (add-to-list 'display-buffer-alist '("^R_x11"
-  ;; 				       (display-buffer-reuse-window display-buffer-in-side-window)
-  ;; 				       (side . right)
-  ;; 				       (slot . 1)
-  ;; 				       (window-width . 0.33)
-  ;; 				       (reusable-frames . nil)))
+  ;; (display-buffer-reuse-window display-buffer-in-side-window)
+  ;; (side . right)
+  ;; (slot . 1)
+  ;; (window-width . 0.33)
+  ;; (reusable-frames . nil)))
 
 
   ;; dont ask for startup directory just starup in wherever the script is.
   ;; (setq  ess-startup-directory nil
-  ;; 	 ess-ask-for-ess-directory nil)
+  ;; ess-ask-for-ess-directory nil)
   )
 
 
