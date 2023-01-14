@@ -1,5 +1,7 @@
 ;;; evil.el --- Evil Bindings and Setup -*- lexical-binding: t; -*-
 
+(load-config "autoloads/evil.el")
+
 ;;; simple undo system
 
 ;; (use-package undo-fu
@@ -12,7 +14,6 @@
   (global-undo-tree-mode))
 
 ;;; main evil config
-(straight-use-package 'evil)
 (use-package evil
   :init
   (setq evil-respect-visual-line-mode t) ; needs to be front and center
@@ -51,30 +52,11 @@
   :config
   (evil-mode 1)
 
-
-
-  ;; done in core.el
-  ;; ;; leader key
-  ;; ;; set leader in all states
-  ;; (evil-set-leader nil (kbd "M-SPC"))
-  ;; ;; set leader in normal state
-  ;; (evil-set-leader 'motion (kbd "SPC"))
-  ;; ;; set leader in normal state
-  ;; (evil-set-leader 'operator (kbd "SPC"))
-  ;; ;; set leader in normal state
-  ;; (evil-set-leader 'normal (kbd "SPC"))
-  ;; ;; set local leader
-  ;; (evil-set-leader 'normal "\\" t)
-  ;; (evil-set-leader 'motion "\\" t)
-  ;; (evil-set-leader 'operator "\\" t)
-
   ;; since using m as prefix
   (general-def 'normal "M" #'evil-set-marker)
 
   ;; remove ret binding as its pretty much useless but blocks some modes
   (define-key evil-motion-state-map (kbd "RET") nil)
-
-
 
   ;; make normal state the default always
   (setq evil-emacs-state-modes '(vterm-mode))
@@ -127,9 +109,7 @@
   (evil-collection-init))
 
 
-;;;; Additional Evil packages
-
-
+;;; Additional Evil packages ---------------------------------------------------
 
 
 (use-package evil-snipe
@@ -228,7 +208,6 @@
   (setq evil-lion-right-align-key (kbd "z L"))
   (evil-lion-mode))
 
-
 (use-package evil-args
   :demand t
   :after evil
@@ -236,8 +215,8 @@
              evil-forward-arg evil-backward-arg
              evil-jump-out-args))
 
-
-(use-package posframe)
+(use-package posframe
+  :disabled)
 
 (use-package evil-owl
   :disabled 
@@ -248,67 +227,10 @@
   (evil-owl-mode))
 
 
-;;; custom evil objects --------------------------------------------------------
-
-;; from here; http://blog.binchen.org/posts/code-faster-by-extending-emacs-evil-text-object/
-;; (defun jds~evil-paren-range (count beg end type inclusive)
-;;   "Get minimum range of paren text object.
-;; COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive."
-;;   (let* ((point (point))
-;; 	 ;; (parens '("\(\)" "\[\]" "{}" "<>"))
-;; 	 (parens '((?\( . ?\))
-;; 		   (?\[ . ?\])
-;; 		   (?{ . ?})
-;; 		   (?< . ?>)))
-;; 	 range
-;;          found-range)
-;;     (dolist (p parens)
-;;       (condition-case nil
-;; 	  (if (characterp (cdr p))
-;; 	      (setq range (evil-select-paren (car p) (cdr p) beg end type count inclusive))
-;; 	    (setq range (evil-select-block #'(lambda (&optional cnt) (evil-up-block (car p) (cdr p) cnt))
-;; 					   beg end type count inclusive)))
-;; 	(error nil))
-;;       (when range
-;; 	;; (message (format "%s, %s" (nth 0 range) (nth 1 range)))
-;;         (cond
-;;          (found-range
-;;           (when (< (abs (- (car range) point))
-;; 		   (abs (- (car found-range) point)))
-;;             (setf (nth 0 found-range) (nth 0 range))
-;;             (setf (nth 1 found-range) (nth 1 range))))
-;;          (t
-;;           (setq found-range range)))))
-;;     found-range))
-
-;; (evil-define-text-object jds~evil-a-paren (count &optional beg end type)
-;;   "Select a paren."
-;;   :extend-selection t
-;;   (jds~evil-paren-range count beg end type t))
-
-;; (evil-define-text-object jds~evil-inner-paren (count &optional beg end type)
-;;   "Select 'inner' paren."
-;;   :extend-selection nil
-;;   (jds~evil-paren-range count beg end type nil))
-
-;; (define-key evil-inner-text-objects-map "d" #'jds~evil-inner-paren)
-;; (define-key evil-outer-text-objects-map "d" #'jds~evil-a-paren)
-
-
-
-;; (use-package evil-traces
-;;   :straight t
-;;   :after evil-ex
-;;   :config
-;;   (pushnew! evil-traces-argument-type-alist
-;;             '(+evil:align . evil-traces-global)
-;;             '(+evil:align-right . evil-traces-global))
-;;   (evil-traces-mode))
-
-;;; tragets --------------------------------------------------------------------
-
+;;; targets --------------------------------------------------------------------
 
 (use-package targets
+  :disabled
   :straight (targets :type git :host github :repo "noctuid/targets.el")
   :config
   (targets-setup)
@@ -325,12 +247,7 @@
     :remote-key "r"
     :keys "d"))
 
+(load-config "autoloads/textobjects.el")
 
-
-
-
-
-
-(provide 'evil)
-;;; evil.el ends here
+(provide 'config-evil)
 

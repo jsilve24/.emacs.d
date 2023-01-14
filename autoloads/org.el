@@ -1,24 +1,4 @@
 ;;; org.el --- org functions -*- lexical-binding: t; -*-
-;;
-;; Copyright (C) 2021 Justin Silverman
-;;
-;; Author: Justin Silverman <https://github.com/jsilve24>
-;; Maintainer: Justin Silverman <jsilve24@gmail.com>
-;; Created: October 22, 2021
-;; Modified: October 22, 2021
-;; Version: 0.0.1
-;; Keywords: abbrev bib c calendar comm convenience data docs emulations extensions faces files frames games hardware help hypermedia i18n internal languages lisp local maint mail matching mouse multimedia news outlines processes terminals tex tools unix vc wp
-;; Homepage: https://github.com/jsilve24/org
-;; Package-Requires: ((emacs "24.3"))
-;;
-;; This file is not part of GNU Emacs.
-;;
-;;; Commentary:
-;;
-;;  org functions org-functions
-;;
-;;; Code:
-
 
 ;;;###autoload
 (defun jds/org-agenda-show-custom-day (&optional arg)
@@ -38,7 +18,6 @@
 (defun jds/quoteless-day-agenda ()
   "intended only to be called by i3"
   (org-agenda nil "d"))
-
 
 
 ;; Save excusion and window position
@@ -333,10 +312,36 @@ is nil, refile in the current file."
           (insert description)))))
 
 
-;; (defun jds/super-link-link-and-capture ()
-;;   ""
-;;   (interactive)
-;;   (jds~super-links-eval-add-via (progn  (org-capture) (org-capture-goto-last-stored))))
+;;;###autoload
+(defun jds/org-refile-current-buffer ()
+    "Run org-refile but only suggest headings in the currently visited buffer"
+  (interactive)
+  (let ((org-refile-targets '((nil :maxlevel . 9)))
+	(org-refile-use-outline-path t))
+    (org-refile)))
 
-(provide 'org)
-;;; org.el ends here
+
+;;;###autoload
+(defun jds/scan-org-roam-for-org-id ()
+  "Force Org to scan all agenda and roam files for org ids"
+  (interactive)
+  (unless org-agenda-files
+    (user-error "No agenda files"))
+  (unless org-roam-directory
+    (user-error "org-roam-directory is not set"))
+  (let* ((files (org-agenda-files))
+	 (files (cl-union files
+			  (mapcar (lambda (x) (file-name-concat org-roam-directory x))
+				  (seq-remove (lambda (x) (or  (string-match "^.#" x)
+							       (not (string-match "org$" x))))
+					      (cl-remove-if (lambda (x) (member x '("." "..")))
+							    (directory-files org-roam-directory)))))))
+    (org-id-update-id-locations files)))
+
+
+;;; autoloads
+;;;###autoload
+(defun jds/open-custom-day-agenda-new-frame ()
+  (interactive)
+  (select-frame (make-frame))
+  (org-agenda nil "d"))

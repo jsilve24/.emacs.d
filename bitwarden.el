@@ -19,6 +19,11 @@
   (bitwarden-login)
   (bitwarden-unlock))
 
+(with-eval-after-load 'exwm
+  (exwm-input-set-key (kbd  "s-u") #'bitwarden-kill-username)
+  (exwm-input-set-key (kbd  "s-p") #'bitwarden-kill-password)
+  (exwm-input-set-key (kbd  "s-P") #'jds/kill-psu-pass))
+
 
 (defvar bitwarden-time-to-store "2 min"
   "Length of time to store last selected username and password before deleting. String should be recognized by the command run-at-time.")

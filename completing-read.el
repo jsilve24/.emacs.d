@@ -58,6 +58,7 @@
 
   (define-key vertico-map "\C-f" #'vertico-scroll-up)
   (define-key vertico-map "\C-b" #'vertico-scroll-down))
+
 ;; Configure directory extension.
 ;; NOTE: The file `vertico-directory.el' must be installed manually.
 (use-package vertico-directory
@@ -96,10 +97,6 @@
 ;;       (apply fn args)))
 ;;   (advice-add 'company-capf--candidates :around #'just-one-face))
 
-;; Persist history over Emacs restarts. Vertico sorts by history position.
-(use-package savehist
-  :init
-  (savehist-mode))
 
 ;; A few more useful configurations...
 (use-package emacs

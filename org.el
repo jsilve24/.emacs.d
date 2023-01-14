@@ -1,8 +1,6 @@
 ;;; org.el --- org related config -*- lexical-binding: t; -*-
 
-
-;; get newest version of org
-;;(straight-use-package 'org)
+(load-config "autoloads/org.el")
 
 (use-package org
   ;;:straight (org-mode :local-repo "~/Downloads/org-mode/")
@@ -26,33 +24,17 @@
 ;;; high level config
   (setq org-default-notes-file "~/Dropbox/org/inbox.org")
 
-  ;; turn on cdlatex
-  ;; (use-package cdlatex
-  ;; :config
-  ;; (add-hook 'org-mode-hook 'turn-on-org-cdlatex)
-  ;; ;; don't have cdlatex take over the backtick symbol (funcationality done by aas snippets now)
-  ;; (defun jds~org-cdlatex-hook-function ()
-  ;; (define-key org-cdlatex-mode-map (kbd "`") nil))
-  ;; (add-hook 'org-mode-hook 'jds~org-cdlatex-hook-function))
   ;; latex highlighting
   (setq org-highlight-latex-and-related '(latex entities))
-  ;; (set-face-attribute 'org-latex-and-related nil
-  ;; :foreground "#51afef"
-  ;; :weight 'normal)
 
 ;;; make org-ret follow inks
   (setq org-return-follows-link t)
-
 
   ;; store link to files when attaching
   (setq org-attach-store-link-p 'attached)
 
   ;; setup org  attach directory so that I can easily refile
   (setq org-attach-directory "~/Dropbox/org/.attach")
-
-  ;; setup org-habit
-  ;; (require 'org-habit)
-  ;; (add-to-list 'org-modules 'org-habit)
 
   (setq org-complete-tags-always-offer-all-agenda-tags t
 	org-tags-column -70)
@@ -75,7 +57,8 @@
 
   ;; hide blank lines in folded views
   (setq org-cycle-separator-lines 0)
-  ;; Prevent creating blank lines before headings, allow list items to adapt to existing blank lines around the items:
+  ;; Prevent creating blank lines before headings, allow list items to adapt to existing blank lines
+  ;; around the items:
   (setq org-blank-before-new-entry '((heading . auto)
 				     (plain-list-item . auto)))
 
@@ -84,7 +67,7 @@
   ;; Prevent editing invisible (folded) text
   (setq org-catch-invisible-edits 'error)
 
-;;; setup refile
+  ;;; setup refile
 
   ;; Targets include this file and any file contributing to the agenda - up to 9 levels deep
   (setq org-refile-targets '((nil :maxlevel . 9)
@@ -94,17 +77,15 @@
   (setq org-refile-use-outline-path 'file
 	org-outline-path-complete-in-steps nil)
 
-
   ;; Allow refile to create parent tasks with confirmation
   (setq org-refile-allow-creating-parent-nodes 'confirm)
-
 
   (defun bh/verify-refile-target ()
     "Exclude todo keywords with a done state from refile targets"
     (not (member (nth 2 (org-heading-components)) org-done-keywords)))
   (setq org-refile-target-verify-function 'bh/verify-refile-target)
 
-;;; setup agenda
+  ;;; setup agenda
 
   ;; More visible current time in Agenda
   (setq org-agenda-current-time-string ">>>>>>>>>> NOW <<<<<<<<<<")
@@ -112,28 +93,20 @@
   (setq org-agenda-start-day "0d")
 
   (setq org-todo-keywords
-	'((sequence "TODO(t)" "NEXT(n)" "MAYBE(m)" "PROJ(p)" "|" "DONE(d)" "CANCELED(c)")
-	  (sequence "WAITING(w)" "HOLD(h)" "|" "MEETING(M)")))
-
+	'((sequence "TODO(t)" "WAITING(w)" "NEXT(n)" "PROJ(p)" "|" "DONE(d)" "HOLD(h)")))
   (setq org-todo-keyword-faces
 	'(("TODO" :foreground "orange" :weight bold)
 	  ("NEXT" :foreground "red" :weight bold)
 	  ("DONE" :foreground "forest green" :weight bold)
 	  ("PROJ" :foreground "light blue" :weight bold)
-	  ("MAYBE" :foreground "light orange" :weight bold)
 	  ("WAITING" :foreground "orange" :weight bold)
-	  ("CANCELED" :foreground "magenta" :weight bold)
-	  ("HOLD" :foreground "magenta" :weight bold)
-	  ("MEETING" :foreground "forest green" :weight bold)))
-
+	  ("HOLD" :foreground "magenta" :weight bold)))
   ;; setup stuck-projects definitions
   (setq org-stuck-projects
 	'("/PROJ"
 	  ("NEXT" "TODO")
-	  nil				; Tags that define a stuck project
-	  "SCHEDULED:"			; regex that denotes a not stuck project
-	  ))
-
+	  nil   	 ; Tags that define a stuck project
+	  "SCHEDULED:")) ; regex that denotes a not stuck project
 
   (setq org-agenda-compact-blocks nil)
   (setq org-agenda-block-separator nil)
@@ -165,7 +138,7 @@
   (setq org-agenda-skip-deadline-if-done t)
   (setq org-agenda-skip-scheduled-if-done t)
 
-;;; setup capture
+  ;;; setup capture
 
   (require 'org-protocol)
 
@@ -194,9 +167,7 @@
 		    "** ALDEx2 Manuscript :p_tram:\n"
 		    "** Bacteremia :p_bacteremia:\n"
 		    "** Decision Theory :p_bdt:\n"
-		    "** Chicken Microbiome :p_chicken:\n"
-		    ;; "** ARL :p_arl:"
-		    )
+		    "** Chicken Microbiome :p_chicken:\n")
 	   :jump-to-captured t
 	   :tree-type month)
 	  ("mPa" "meeting Andrew" entry (file+datetree "~/Dropbox/org/mtx-andrew.org")
@@ -228,9 +199,6 @@
 	   "* %? \n %^T\n %a")
 	  ("n" "note" entry (file+headline "~/Dropbox/org/notes.org" "Notes")
 	   "* %? \n %U")
-	  ;; ("e" "email" entry (file+headline "~/Dropbox/org/mail.org" "Email")
-	  ;; "* TODO %:fromname: %a %?\nDEADLINE: %(org-insert-time-stamp (org-read-date nil t \"+2d\"))"
-	  ;; :immediate-finish t)
 	  ("P" "Protocol")
 	  ("Pw" "Capture Website" entry (file "~/Dropbox/org/inbox.org")
 	   "* TODO %:annotation \n %i %?")))
@@ -240,7 +208,7 @@
   ;; (in-mode . "mu4e-headers-mode")
   ;; (in-mode . "mu4e-view-mode")))))
 
-;;; appearance customizations
+  ;;; appearance customizations
   (setq org-ellipsis " ▾")
 
   ;; don't wrap lines in org-agenda
@@ -315,14 +283,10 @@
   ;; nicer latex previews (slightly larger)
   (plist-put org-format-latex-options :scale 1.15)
 
-  ;; add support for mathfrac in latex previews
-  ;; (add-to-list  'org-latex-default-packages-alist '("" "amsfonts" t))
-  
   ;; don't always have math mode on in org
   (add-hook 'org-cdlatex-mode-hook
 	    (lambda () (advice-remove 'texmathp 'org--math-always-on)))
   
-
 
   ;; for some reason this was needed when I first put this config together
   (org-reload))
@@ -330,113 +294,6 @@
 
 ;; not sure this is needed and it seemed to be trying to download a different version of emacs...
 ;;  (straight-use-package '(org-contrib :type git :host github :repo "emacsmirror/org-contrib"))
-
-
-;;;###autoload
-(defun jds/org-refile-current-buffer ()
-    "Run org-refile but only suggest headings in the currently visited buffer"
-  (interactive)
-  (let ((org-refile-targets '((nil :maxlevel . 9)))
-	(org-refile-use-outline-path t))
-    (org-refile)))
-
-;;;###autoload
-(defun jds/scan-org-roam-for-org-id ()
-  "Force Org to scan all agenda and roam files for org ids"
-  (interactive)
-  (unless org-agenda-files
-    (user-error "No agenda files"))
-  (unless org-roam-directory
-    (user-error "org-roam-directory is not set"))
-  (let* ((files (org-agenda-files))
-	 (files (cl-union files
-			  (mapcar (lambda (x) (file-name-concat org-roam-directory x))
-				  (seq-remove (lambda (x) (or  (string-match "^.#" x)
-							       (not (string-match "org$" x))))
-					      (cl-remove-if (lambda (x) (member x '("." "..")))
-							    (directory-files org-roam-directory)))))))
-    (org-id-update-id-locations files)))
-
-
-;;; Better latex org previews 
-(use-package org-fragtog
-  :hook (org-mode . org-fragtog-mode))
-
-(use-package org-preview
-  :straight (org-preview :type git :host github :repo "karthink/org-preview" :fork t)
-  :disabled 
-  :config
-  (org-preview-mode 1))
-
-;;; Setup Appointment / Calendar Notifications ---------------------------------
-
-;; make sure I get alerted to events
-;; (use-package org-notify
-;;   :ensure t
-;;   :config
-;;   (org-notify-start)
-
-;;   ;; remove defaults
-;;   (setq org-notify-map nil)
-;;   (org-notify-add 'appt
-;; 		  '(:time "15m" po))
-;;   )
-
-;; (use-package org-wild-notifier
-;;   :custom
-;;   (org-wild-notifier-tags-whitelist '("appt"))
-;;   (org-wild-notifier-keyword-whitelist nil)
-;;   (org-wild-notifier-alert-time '(1 2 3 4 5 6 7 8))
-;;   :config
-;;   (org-wild-notifier-mode 1)
-;;   (setq alert-default-style 'notifications))
-
-(require 'appt)
-(appt-activate t)
-
-(defun fw/org-agenda-to-appt ()
-  "Rebuild all appt reminders using org."
-  (interactive)
-  (setq appt-time-msg-list nil)
-  (org-agenda-to-appt))
-
-(fw/org-agenda-to-appt)
-(add-hook 'org-agenda-finalize-hook 'fw/org-agenda-to-appt)
-
-
-
-
-
-;;; lazyness -- use evil-org
-(use-package evil-org
-  :straight (evil-org :type git :host github :repo "Somelauw/evil-org-mode"
-		      :fork t)
-  :diminish evil-org-mode
-  :after evil
-  :hook (org-mode . evil-org-mode)
-  :hook (org-capture-mode . evil-insert-state)
-  :hook (org-agenda-mode . evil-org-agenda-set-keys)
-  :init
-
-  ;; hack-fix for https://github.com/Somelauw/evil-org-mode/issues/93
-  ;; (fset 'evil-redirect-digit-argument 'ignore)
-  ;; (add-to-list 'evil-digit-bound-motions 'evil-org-beginning-of-line)
-  (evil-define-key 'motion 'evil-org-mode
-    (kbd "0") 'evil-org-beginning-of-line)
-  (evil-define-key 'normal 'evil-org-mode
-    (kbd "0") 'evil-org-beginning-of-line)
-
-
-  (defvar evil-org-retain-visual-state-on-shift t)
-  (defvar evil-org-special-o/O '(table-row item))
-  (defvar evil-org-use-additional-insert t)
-  :config
-  (setq org-special-ctrl-a/e t
-	evil-org-retain-visual-state-on-shift t)
-  (add-hook 'evil-org-mode-hook #'evil-normalize-keymaps)
-  (evil-org-set-key-theme '(textobjects insert additional todo)) ; removed heading, navigation, and shift
-  (require 'evil-org-agenda)
-  (evil-org-agenda-set-keys))
 
 ;; make it easier to edit fontified/hidden text (I mostly just use this for org-links)
 (use-package org-appear
@@ -462,6 +319,60 @@
   (add-hook 'org-mode-hook 'org-appear-mode))
 
 
+;;; Better latex org previews 
+(use-package org-fragtog
+  :hook (org-mode . org-fragtog-mode))
+
+(use-package org-preview
+  :straight (org-preview :type git :host github :repo "karthink/org-preview" :fork t)
+  :disabled 
+  :config
+  (org-preview-mode 1))
+
+
+;;; Setup Appointment / Calendar Notifications ---------------------------------
+
+(require 'appt)
+(appt-activate t)
+
+(defun fw/org-agenda-to-appt ()
+  "Rebuild all appt reminders using org."
+  (interactive)
+  (setq appt-time-msg-list nil)
+  (org-agenda-to-appt))
+
+(fw/org-agenda-to-appt)
+(add-hook 'org-agenda-finalize-hook 'fw/org-agenda-to-appt)
+
+
+;;; evil integration -----------------------------------------------------------
+(use-package evil-org
+  :straight (evil-org :type git :host github :repo "Somelauw/evil-org-mode"
+		      :fork t)
+  :diminish evil-org-mode
+  :after evil
+  :hook (org-mode . evil-org-mode)
+  :hook (org-capture-mode . evil-insert-state)
+  :hook (org-agenda-mode . evil-org-agenda-set-keys)
+  :init
+
+  (evil-define-key 'motion 'evil-org-mode
+    (kbd "0") 'evil-org-beginning-of-line)
+  (evil-define-key 'normal 'evil-org-mode
+    (kbd "0") 'evil-org-beginning-of-line)
+
+  (defvar evil-org-retain-visual-state-on-shift t)
+  (defvar evil-org-special-o/O '(table-row item))
+  (defvar evil-org-use-additional-insert t)
+  :config
+  (setq org-special-ctrl-a/e t
+	evil-org-retain-visual-state-on-shift t)
+  (add-hook 'evil-org-mode-hook #'evil-normalize-keymaps)
+  (evil-org-set-key-theme '(textobjects insert additional todo)) ; removed heading, navigation, and shift
+  (require 'evil-org-agenda)
+  (evil-org-agenda-set-keys))
+
+
 ;;; org-super-links ------------------------------------------------------------
 (use-package org-super-links
   :straight (org-super-links :type git :host github :repo "toshism/org-super-links" :branch "develop"))
@@ -474,12 +385,10 @@
       (org-super-links-delete-link)
     (org-super-links-link)))
 
-
 ;; use org-ids for links
 (with-eval-after-load 'org
   (require 'org-id)
   (setq org-id-link-to-org-use-id 'create-if-interactive-and-no-custom-id))
-
 
 ;;; local bindings -------------------------------------------------------------
 
@@ -511,9 +420,6 @@
   "a" #'org-attach)
 
 
-
-;; get q
-
 (jds/localleader-def
   :keymaps 'org-agenda-mode-map
   "d" '(ignore t :wk "date")
@@ -539,11 +445,6 @@
   "dT" #'org-time-stamp-inactive
   ;; "c"  jds/citation-map ; reserved
   "'" #'org-edit-special)
-
-;;(with-eval-after-load 'org-roam
-;;      (jds/localleader-def
-;;	:keymaps '(org-capture-mode-map org-mode-map)
-;;	"a" (jds~roam-exclude-dwim (org-attach))))
 
 (jds/localleader-def
   :keymaps 'org-src-mode-map
@@ -574,7 +475,6 @@
   :keymaps 'org-beamer-mode-map
   "m" #'org-beamer-export-to-pdf)
 
-
 (general-define-key
  :keymaps 'calendar-mode-map
  :states '(nv)
@@ -588,14 +488,6 @@
  "[" #'LaTeX-insert-left-brace
  "{" #'LaTeX-insert-left-brace)
 
-;;; autoloads
-;;;###autoload
-(defun jds/open-custom-day-agenda-new-frame ()
-  (interactive)
-  (select-frame (make-frame))
-  (org-agenda nil "d"))
-
-
-(provide 'org)
+(provide 'config-org)
 ;;; org.el ends here
 

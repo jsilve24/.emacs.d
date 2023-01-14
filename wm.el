@@ -1,112 +1,15 @@
 ;; wm.el --- EXWM config -*- lexical-binding: t; -*-
 
-(defun efs/run-in-background (command)
-  (let ((command-parts (split-string command "[ ]+")))
-    (apply #'call-process `(,(car command-parts) nil 0 nil ,@(cdr command-parts)))))
+(load-config "autoloads/wm.el")
 
-(defun efs/set-wallpaper ()
-  (interactive)
-  ;; NOTE: You will need to update this to a valid background path!
-  (start-process-shell-command
-      "feh" nil  "feh --bg-scale /home/jds6696/.local/share/wallpapers/grey-arch.jpg"))
-
-(defun efs/exwm-update-class ()
-  (exwm-workspace-rename-buffer exwm-class-name))
-
-(defun efs/exwm-update-title ()
-  (pcase exwm-class-name
-    ;; ("qutebrowser" (exwm-workspace-rename-buffer (format "Qutebrowser: %s" exwm-title)))
-    ("Firefox" (exwm-workspace-rename-buffer (format "Firefox: %s" exwm-title)))))
-
-;; This function isn't currently used, only serves as an example how to
-;; position a window
-;; (defun efs/position-window ()
-;;   (let* ((pos (frame-position))
-;;          (pos-x (car pos))
-;;           (pos-y (cdr pos)))
-
-;;     (exwm-floating-move (- pos-x) (- pos-y))))
-
-(defun efs/configure-window-by-class ()
-  (interactive)
-  (pcase exwm-class-name
-    ;; ("Firefox" (exwm-workspace-move-window 2))
-    ;; ("qutebrowser" (exwm-workspace-rename-buffer (format "Qutebrowser: %s" exwm-title)))
-    ;; ("qutebrowser" (jds~set-window-dedicated))
-    ;; ("Google-chrome" (hide-mode-line-mode))
-    ;; ("mpv" (exwm-floating-toggle-floating)
-    ;;        (exwm-layout-toggle-mode-line))
-    ))
-
-
-
-;; This function should be used only after configuring autorandr!
-(defun efs/update-displays ()
-  (efs/run-in-background "autorandr --change")
-  (efs/set-wallpaper)
-  (message "Display config: %s"
-	   (string-trim (shell-command-to-string "autorandr --current"))))
-
-
-
-
-(defun exwm-layout-toggle-fullscreen-or-single-window ()
-  (interactive)
-  (if (eq major-mode 'exwm-mode)
-      (call-interactively 'exwm-layout-toggle-fullscreen)
-    (toggle-single-window)))
-
-;; function that maximizes not just x windows but also emacs buffers
-(defvar single-window--last-configuration nil "Last window conf wiguration before calling `delete-other-windows'.")
-(defun toggle-single-window ()
-  "Un-maximize current window.
-If multiple windows are active, save window configuration and
-delete other windows.  If only one window is active and a window
-configuration was previously save, restore that configuration."
-  (interactive)
-  (if (= (count-windows) 1)
-      (when single-window--last-configuration
-        (set-window-configuration single-window--last-configuration))
-    (setq single-window--last-configuration (current-window-configuration))
-    (delete-other-windows)))
-
-
-;; function to toggle vertical horizontal splits
-;; from wiki: https://www.emacswiki.org/emacs/ToggleWindowSplit
-;; modified by Justin Silverman to automatically rebalace
-(defun window-toggle-split-direction (&optional arg)
-  "Switch window split from horizontally to vertically, or vice versa.
-i.e. change right window to bottom, or change bottom window to right.
-With optional arg, don't automatically rebalance windows."
-  (interactive "P")
-  (require 'windmove)
-  (let ((done))
-    (dolist (dirs '((right . down) (down . right)))
-      (unless done
-        (let* ((win (selected-window))
-               (nextdir (car dirs))
-               (neighbour-dir (cdr dirs))
-               (next-win (windmove-find-other-window nextdir win))
-               (neighbour1 (windmove-find-other-window neighbour-dir win))
-               (neighbour2 (if next-win (with-selected-window next-win
-                                          (windmove-find-other-window neighbour-dir next-win)))))
-          ;; (message "win: %s\nnext-win: %s\nneighbour1: %s\nneighbour2:%s" win next-win neighbour1 neighbour2)
-          (setq done (and (eq neighbour1 neighbour2)
-                          (not (eq (minibuffer-window) next-win))))
-          (if done
-              (let* ((other-buf (window-buffer next-win)))
-                (delete-window next-win)
-                (if (eq nextdir 'right)
-                    (split-window-vertically)
-                  (split-window-horizontally))
-                (set-window-buffer (windmove-find-other-window neighbour-dir) other-buf))))))
-    (if (not arg)
-	(balance-windows))))
-
-
+;; this depends on window.el and associated autoloads, some of the autoloads do depend on evil currently. 
 
 ;;; exwm main setup
 (use-package exwm
+  :init
+  ;; default to not replacing existing window manager
+  (setq exwm-replace nil)
+
   :config
   ;; set the default number of workspaces
   (setq exwm-workspace-number 6)
@@ -125,7 +28,7 @@ With optional arg, don't automatically rebalance windows."
     (setq exwm-randr-workspace-monitor-plist '(1 "eDP-1" 2 "eDP-1" 3 "HDMI-1-0" 4 "HDMI-1-0" 5 "DP-1-2" 6 "DP-1-2")))
    ((string= (system-name) "lenovoGen2Sil")
     (setq exwm-randr-workspace-monitor-plist '(1 "eDP-1" 2 "eDP-1" 3 "HDMI-1-0" 4 "HDMI-1-0" 5 "DP-1-0" 6 "DP-1-0"))))
-  
+
 
   (add-hook 'exwm-randr-screen-change-hook #'efs/update-displays)
   (efs/update-displays)
@@ -157,27 +60,6 @@ With optional arg, don't automatically rebalance windows."
   ;; (efs/run-in-background "caffeine")
   (efs/run-in-background "dropbox start")
 
-  ;; Notifications
-  ;; (efs/run-in-background "dunst")
-
-  ;; (defun efs/dunstctl (command)
-  ;;   (start-process-shell-command "dunstctl" nil (concat "dunstctl " command)))
-
-  ;; (exwm-input-set-key (kbd "s-n") (lambda () (interactive) (efs/dunstctl "history-pop")))
-  ;; (exwm-input-set-key (kbd "s-N") (lambda () (interactive) (efs/dunstctl "close-all")))
-  ;; (defun efs/disable-desktop-notifications ()
-  ;;   (interactive)
-  ;;   (start-process-shell-command "notify-send" nil "notify-send \"DUNST_COMMAND_PAUSE\""))
-
-  ;; (defun efs/enable-desktop-notifications ()
-  ;;   (interactive)
-  ;;   (start-process-shell-command "notify-send" nil "notify-send \"DUNST_COMMAND_RESUME\""))
-
-  ;; (defun efs/toggle-desktop-notifications ()
-  ;;   (interactive)
-  ;;   (start-process-shell-command "notify-send" nil "notify-send \"DUNST_COMMAND_TOGGLE\""))
-
-
   ;; When window "class" updates, use it to set the buffer name
   (add-hook 'exwm-update-class-hook #'efs/exwm-update-class)
 
@@ -186,12 +68,7 @@ With optional arg, don't automatically rebalance windows."
 
   ;; Configure windows as they're created
   (add-hook 'exwm-manage-finish-hook #'efs/configure-window-by-class)
-  
-  ;; rebind caps lock
-  ;; (start-process-shell-command "capslock" nil "~/bin/capslock.sh")
-  ;; (start-process-shell-command "kmonad" nil "/usr/bin/kmonad ~/.config/kmonad/kinesis.kbd")
 
-  
   ;; Automatically send the mouse cursor to the selected workspace's display
   (setq exwm-workspace-warp-cursor t)
 
@@ -205,67 +82,60 @@ With optional arg, don't automatically rebalance windows."
   ;; Ctrl+Q will enable the next key to be sent directly
   (define-key exwm-mode-map [?\C-q] 'exwm-input-send-next-key)
 
-
-  
-
   ;; these keys should always pass through to Emacs
   (setq exwm-input-prefix-keys
-    '(?\C-x
-      ?\C-u
-      ?\C-h
-      ?\M-x
-      ?\M-`
-      ?\s-\t
-      ?\s-u ;; username
-      ?\s-p ;; password
-      ?\M-' ;; nothing at the moment, reserved though
-      ?\M-&
-      ?\M-:
-      ?\C-\M-j ;; Buffer list
-      ?\C-\    ;;Ctrl+Space
-      ?\C-,
-      ?\C-' ;; popups dismisal
-      ?\C-\M-' ;; popup cycle
-      ?\C-\M-\" ;; toggle popup type (e.g., change to normal window) 
-      ?\C-\\
-      ?\M-\ ))  ;; Meta+Space
-  
-  ;; Ctrl+Q will enable the next key to be sent directly
-  (define-key exwm-mode-map [?\C-q] 'exwm-input-send-next-key)
+	'(?\C-x
+	  ?\C-u
+	  ?\C-h
+	  ?\M-x
+	  ?\M-`
+	  ?\s-\t
+	  ?\s-u ;; username
+	  ?\s-p ;; password
+	  ?\M-' ;; nothing at the moment, reserved though
+	  ?\M-&
+	  ?\M-:
+	  ?\C-\M-j ;; Buffer list
+	  ?\C-\	   ;;Ctrl+Space
+	  ?\C-,
+	  ?\C-' ;; popups dismisal
+	  ?\C-\M-' ;; popup cycle
+	  ?\C-\M-\" ;; toggle popup type (e.g., change to normal window)
+	  ?\C-\\
+	  ?\M-\ )) ;; Meta+Space
 
-   ;; Set up global key bindings.  These always work, no matter the input state!
+  ;; Set up global key bindings.  These always work, no matter the input state!
   ;; Keep in mind that changing this list after EXWM initializes has no effect.
   (setq exwm-input-global-keys
-        `(
+	`(
 	  ([?\s-r] . hydra-resize/body)
-          ;; Reset to line-mode (C-c C-k switches to char-mode via exwm-input-release-keyboard)
-          ([?\s-R] . exwm-reset)
+	  ;; Reset to line-mode (C-c C-k switches to char-mode via exwm-input-release-keyboard)
+	  ([?\s-R] . exwm-reset)
 	  ;; ([?\s-f] . exwm-layout-toggle-fullscreen)
 	  ([?\s-f] . exwm-layout-toggle-fullscreen-or-single-window)
 	  ([?\s-z] . exwm-input-toggle-keyboard)
 
+	  ;; Move between windows
+	  ([s-left] . windmove-left)
+	  ([s-right] . windmove-right)
+	  ([s-up] . windmove-up)
+	  ([s-down] . windmove-down)
 
-          ;; Move between windows
-          ([s-left] . windmove-left)
-          ([s-right] . windmove-right)
-          ([s-up] . windmove-up)
-          ([s-down] . windmove-down)
+	  ([?\s-h] . windmove-left)
+	  ([?\s-l] . windmove-right)
+	  ([?\s-k] . windmove-up)
+	  ([?\s-j] . windmove-down)
 
-          ([?\s-h] . windmove-left)
-          ([?\s-l] . windmove-right)
-          ([?\s-k] . windmove-up)
-          ([?\s-j] . windmove-down)
-	  
-          ([?\s-H] . +evil/window-move-left)
-          ([?\s-L] . +evil/window-move-right)
-          ([?\s-K] . +evil/window-move-up)
-          ([?\s-J] . +evil/window-move-down)
+	  ([?\s-H] . +evil/window-move-left)
+	  ([?\s-L] . +evil/window-move-right)
+	  ([?\s-K] . +evil/window-move-up)
+	  ([?\s-J] . +evil/window-move-down)
 
-	  ([?\s-v] . windmove-display-right)
-	  ([?\s-V] . windmove-display-left)
-	  ([?\s-s] . windmove-display-down)
-	  ([?\s-S] . windmove-display-up)
-	  ([?\s-p] . windmove-display-same-window) ;; "at point"
+	  ;; ([?\s-v] . windmove-display-right)
+	  ;; ([?\s-V] . windmove-display-left)
+	  ;; ([?\s-s] . windmove-display-down)
+	  ;; ([?\s-S] . windmove-display-up)
+	  ;; ([?\s-p] . windmove-display-same-window) ;; "at point"
 
 	  ([?\s-q] . delete-window)
 	  ([?\s-Q] . jds/kill-buffer-delete-window)
@@ -274,57 +144,49 @@ With optional arg, don't automatically rebalance windows."
 	  ([?\s-b] . bury-buffer)
 	  ([?\s-w] . balance-windows)
 
-          ;; Launch applications via shell command
-          ([?\s-:] . (lambda (command)
-                       (interactive (list (read-shell-command "$ ")))
-                       (start-process-shell-command command nil command)))
+	  ;; Launch applications via shell command
+	  ([?\s-:] . (lambda (command)
+		       (interactive (list (read-shell-command "$ ")))
+		       (start-process-shell-command command nil command)))
 
-          ;; Switch workspace
-          ;; ([?\s-w] . exwm-workspace-switch)
-          ([?\s-`] . (lambda () (interactive) (exwm-workspace-switch-create 0)))
+	  ;; Switch workspace
+	  ;; ([?\s-w] . exwm-workspace-switch)
+	  ([?\s-`] . (lambda () (interactive) (exwm-workspace-switch-create 0)))
 
-          ;; 's-N': Switch to certain workspace with Super (Win) plus a number key (0 - 9)
-          ,@(mapcar (lambda (i)
-                      `(,(kbd (format "s-%d" i)) .
-                        (lambda ()
-                          (interactive)
-                          (exwm-workspace-switch-create ,i))))
-                    (number-sequence 0 9))
-
-	  ;; 's-shift-N': move window to certain workspace
-          ;; ([?\s-!] . (lambda () (interactive) (exwm-workspace-move-window 1)))
-          ;; ([?\s-@] . (lambda () (interactive) (exwm-workspace-move-window 2)))
-          ;; ([?\s-#] . (lambda () (interactive) (exwm-workspace-move-window 3)))
-          ;; ([?\s-$] . (lambda () (interactive) (exwm-workspace-move-window 4)))
-          ;; ([?\s-%] . (lambda () (interactive) (exwm-workspace-move-window 5)))
-          ;; ([?\s-^] . (lambda () (interactive) (exwm-workspace-move-window 6)))
-          ;; ([?\s-&] . (lambda () (interactive) (exwm-workspace-move-window 7)))
-          ;; ([?\s-*] . (lambda () (interactive) (exwm-workspace-move-window 8)))
-          ;; ([?\s-\(] . (lambda () (interactive) (exwm-workspace-move-window 9)))
-          ;; ([?\s-\)] . (lambda () (interactive) (exwm-workspace-move-window 0)))
-          ([?\s-!] . (lambda () (interactive) (eh-current-window-to-workspace-and-follow-by-index 1)))
-          ([?\s-@] . (lambda () (interactive) (eh-current-window-to-workspace-and-follow-by-index 2)))
-          ([?\s-#] . (lambda () (interactive) (eh-current-window-to-workspace-and-follow-by-index 3)))
-          ([?\s-$] . (lambda () (interactive) (eh-current-window-to-workspace-and-follow-by-index 4)))
-          ([?\s-%] . (lambda () (interactive) (eh-current-window-to-workspace-and-follow-by-index 5)))
-          ([?\s-^] . (lambda () (interactive) (eh-current-window-to-workspace-and-follow-by-index 6)))
-          ([?\s-&] . (lambda () (interactive) (eh-current-window-to-workspace-and-follow-by-index 7)))
-          ([?\s-*] . (lambda () (interactive) (eh-current-window-to-workspace-and-follow-by-index 8)))
-          ([?\s-\(] . (lambda () (interactive) (eh-current-window-to-workspace-and-follow-by-index 9)))
-          ([?\s-\)] . (lambda () (interactive) (eh-current-window-to-workspace-and-follow-by-index 0)))
-	  ;; ,@(mapcar (lambda (i j)
-	  ;; 	      `(,(kbd (format "s-%d" i)) .
-	  ;; 		(lambda ()
-	  ;; 		  (interactive)
-	  ;; 		  (exwm-workspace-move-window ,j))))
-	  ;; 	    '(?\) ?! ?@ ?# ?$ ?% ?^ ?& ?* ?\) )
-	  ;; 	    (number-sequence 0-9))
-
-
+;; 	  ;; 's-N': Switch to certain workspace with Super (Win) plus a number key (0 - 9)
+;; 	  (\, @ (mapcar (lambda (i)
+;; 			  `(,(kbd (format "s-%d" i)) .
+;; 			    (lambda ()
+;; 			      (interactive)
+;; 			      (exwm-workspace-switch-create ,i))))
+;; 			(number-sequence 0 9)))
+;; 
+;; 	  ;; 's-shift-N': move window to certain workspace
+;; 	  ;; ([?\s-!] . (lambda () (interactive) (eh-current-window-to-workspace-and-follow-by-index 1)))
+;; 	  ;; ([?\s-@] . (lambda () (interactive) (eh-current-window-to-workspace-and-follow-by-index 2)))
+;; 	  ;; ([?\s-#] . (lambda () (interactive) (eh-current-window-to-workspace-and-follow-by-index 3)))
+;; 	  ;; ([?\s-$] . (lambda () (interactive) (eh-current-window-to-workspace-and-follow-by-index 4)))
+;; 	  ;; ([?\s-%] . (lambda () (interactive) (eh-current-window-to-workspace-and-follow-by-index 5)))
+;; 	  ;; ([?\s-^] . (lambda () (interactive) (eh-current-window-to-workspace-and-follow-by-index 6)))
+;; 	  ;; ([?\s-&] . (lambda () (interactive) (eh-current-window-to-workspace-and-follow-by-index 7)))
+;; 	  ;; ([?\s-*] . (lambda () (interactive) (eh-current-window-to-workspace-and-follow-by-index 8)))
+;; 	  ;; ([?\s-\(] . (lambda () (interactive) (eh-current-window-to-workspace-and-follow-by-index 9)))
+;; 	  ;; ([?\s-\)] . (lambda () (interactive) (eh-current-window-to-workspace-and-follow-by-index 0)))
 	  ))
 
   (exwm-input-set-key (kbd "s-`") #'aw-previous-window)
   (exwm-input-set-key (kbd "s-t") #'window-toggle-split-direction)
+
+  (setq exwm-launcher-map (make-sparse-keymap))
+  (exwm-input-set-key (kbd "s-<tab>") exwm-launcher-map)
+
+  (exwm-input-set-key (kbd "s-e") #'jds~set-window-dedicated)
+
+  ;; ;; Don't let ediff break EXWM, keep it in one frame
+  (setq ediff-diff-options "-w"
+	ediff-split-window-function 'split-window-horizontally
+	ediff-window-setup-function 'ediff-setup-windows-plain)
+
 
   (exwm-enable)
   ;; (require 'exwm-config)
@@ -332,90 +194,19 @@ With optional arg, don't automatically rebalance windows."
   )
 
 
-(with-eval-after-load 'exwm
-
-  ;; make sure window really closes when killing exwm buffer
-  (defun jds/kill-buffer-delete-window ()
-    "Simpler than kill-buffer-and-window but that was not working for EXWM windows."
-    (interactive)
-    (if (not (string= major-mode "exwm-mode"))
-	(kill-buffer-and-window)
-      (let ((buffer (current-buffer))
-	    (window (selected-window)))
-	(kill-buffer buffer)
-	(delete-window window))))
-
-  ;; from exwm cookbook
-  (defun exwm-async-run (name)
-    "Run a process asynchronously"
-    (interactive)
-    (start-process name nil name))
-
-  ;; stolen from here: https://kfx.fr/e/koe-utils.el
-  (defun jds/quiet-async-shell-commands (cmd &rest cmds)
-    "Run async shell CMD with optional CMDS in a oneliner silently."
-    (interactive)
-    (let
-	((display-buffer-alist
-	  (list
-           (cons
-            "\\*Async Shell Command\\*.*"
-            (cons #'display-buffer-no-window nil))))
-	 ;; don't ask for confirmation before running in new buffer
-	 (async-shell-command-buffer 'new-buffer))
-      (async-shell-command
-       (concat cmd " " (string-join cmds " ")))))
-
-  (defun run-or-raise-or-dismiss (program program-buffer-name)
-    "If no instance of the program is running, launch the program.
-If an instance already exists, and its corresponding buffer is
-displayed on the screen, move to the buffer. If the buffer is not
-visible, switch to the buffer in the current window. Finally, if
-the current buffer is already that of the program, bury the
-buffer (=minimizing in other WM/DE)"
-    ;; check current buffer
-    (if (string= (buffer-name) program-buffer-name)
-	(bury-buffer)
-      ;; either switch to or launch program
-      (progn
-	(if (get-buffer program-buffer-name)
-	    (progn
-	      (if (get-buffer-window program-buffer-name)
-		  (select-window (display-buffer program-buffer-name) nil)
-		(exwm-workspace-switch-to-buffer program-buffer-name)))
-	  ;; start program
-	  (exwm-async-run program)))))
-  (setq exwm-launcher-map (make-sparse-keymap))
-  (exwm-input-set-key (kbd "s-<tab>") exwm-launcher-map))
-
-
-;; largely templated off of the exwm cookbook (on the github wiki)
-;;;###autoload
-(defun jds~set-window-dedicated (&optional arg)
-  "Toggle loose window dedication.  If prefix ARG, set strong."
-  (interactive "P")
-  (let* ((dedicated (if arg t (if (window-dedicated-p) nil "loose"))))
-    (message "setting window dedication to %s" dedicated)
-    (set-window-dedicated-p (selected-window) dedicated)))
-(exwm-input-set-key (kbd "s-e") #'jds~set-window-dedicated)
-
-
-
-(with-eval-after-load 'evil
-  (general-define-key
-   :keymaps 'exwm-launcher-map
-   ;; "q" '((lambda () (interactive) (run-or-raise-or-dismiss "qutebrowser" "qutebrowser")) :wk "qutebrowser")
-   "q" '((lambda () (interactive) (exwm-async-run "qutebrowser")) :wk "qutebrowser-new-window")
-   "Q" '((lambda () (interactive) (progn (+evil/window-vsplit-and-follow) (exwm-async-run "qutebrowser"))) :wk "qutebrowser-new-window")
-   ;; "y" '((lambda () (interactive) (run-or-raise-or-dismiss "slack" "Slack")) :wk "slack")
-   ;; "c" '((lambda () (interactive) (jds/quiet-async-shell-commands "~/bin/capslock.sh")) :wk "capslock.sh")
-   "x" '((lambda () (interactive) (exwm-async-run "/home/jds6696/bin/writepswd.sh")) :wk "writepswd")
-   "v" 'evil-window-vsplit
-   "s" 'evil-window-split
-   "S" #'+evil/window-split-and-follow
-   "V" #'+evil/window-vsplit-and-follow
-   "RET" 'multi-vterm
-   "S-<return>" #'(lambda () (interactive) (progn (+evil/window-vsplit-and-follow) (multi-vterm)))))
+(general-define-key
+ :keymaps 'exwm-launcher-map
+ ;; "q" '((lambda () (interactive) (run-or-raise-or-dismiss "qutebrowser" "qutebrowser")) :wk "qutebrowser")
+ "q" '((lambda () (interactive) (exwm-async-run "qutebrowser")) :wk "qutebrowser-new-window")
+ "Q" '((lambda () (interactive) (progn (+evil/window-vsplit-and-follow) (exwm-async-run "qutebrowser"))) :wk "qutebrowser-new-window")
+ ;; "y" '((lambda () (interactive) (run-or-raise-or-dismiss "slack" "Slack")) :wk "slack")
+ ;; "c" '((lambda () (interactive) (jds/quiet-async-shell-commands "~/bin/capslock.sh")) :wk "capslock.sh")
+ "v" 'evil-window-vsplit
+ "s" 'evil-window-split
+ "S" #'+evil/window-split-and-follow
+ "V" #'+evil/window-vsplit-and-follow
+ "RET" 'multi-vterm
+ "S-<return>" #'(lambda () (interactive) (progn (+evil/window-vsplit-and-follow) (multi-vterm))))
 
 ;; allow moving between monitors
 (use-package framemove
@@ -423,15 +214,14 @@ buffer (=minimizing in other WM/DE)"
   :config
   (setq framemove-hook-into-windmove t))
 
-
 ;; exwm-helper to move window / buffer to new frame (including fames not currently visible)
 (use-package exwm-helper
+  :disabled
   :commands eh-current-window-to-workspace-and-follow-by-index eh-current-window-to-workspace-and-follow-by-index
   :straight (exwm-helper :type git :host github :repo "jsilve24/exwm-helper")
   :config
   (setq eh-split-window-function 'jds~new-frame-or-new-window
 	eh-last-window-function  '(lambda () (progn  (switch-to-buffer "*scratch*")))))
-
 
 ;; make windmove-display work more universally
 ;; this line was causing point to jump lines in mu4e header view when opening messages. 
@@ -443,7 +233,6 @@ buffer (=minimizing in other WM/DE)"
   :ensure t
   :straight '(app-launcher :host github :repo "SebastienWae/app-launcher")
   :config
-
   (exwm-input-set-key (kbd "s-;") #'app-launcher-run-app))
 
 (with-eval-after-load 'app-launcher
@@ -460,31 +249,6 @@ buffer (=minimizing in other WM/DE)"
       (define-key embark-application-map (kbd "v") (jds/embark-split-action app-launcher-run-app +evil/window-vsplit-and-follow))
       (define-key embark-application-map (kbd "s") (jds/embark-split-action app-launcher-run-app +evil/window-split-and-follow))
       )))
-
-
-;;; quick setup for teaching
-
-(defun jds/setup-projector-and-wacom-E208 ()
-  "Quick setup screen mirroring and wacom to HEAD-0 for teaching in Westgate E208"
-  (interactive)
-  (jds/quiet-async-shell-commands " xrandr --output eDP-1 --primary --mode 1920x1200 --pos 1920x0 --rotate normal --output HDMI-1 --off --output DP-1 --off --output DP-2 --off --output DP-3 --off --output DP-4 --off --output DP-1-0 --off --output DP-1-1 --off --output DP-1-2 --off --output DP-1-3 --off --output HDMI-1-0 --mode 1920x1080 --pos 0x0 --rotate normal")
-  (jds/quiet-async-shell-commands "xrandr --output HDMI-1-0 --same-as eDP-1")
-  (jds/quiet-async-shell-commands "xsetwacom set 'Wacom Intuos BT S Pen stylus' MapToOutput HEAD-0"))
-
-;; make sure to connect with dell splitter
-(defun jds/setup-projector-and-wacom-E210 ()
-  "Quick setup screen mirroring and wacom to HEAD-0 for teaching in Westgate E208"
-  (interactive)
-  (jds/quiet-async-shell-commands "xrandr --output eDP-1 --primary --mode 1920x1080 --pos 0x0 --rotate normal --output DP-1-0 --mode 1920x1080 --pos 1920x0 --rotate normal --output DP-1-1 --off --output HDMI-1-0 --off")
-  (jds/quiet-async-shell-commands "xrandr --output DP-1-0 --same-as eDP-1")
-  (jds/quiet-async-shell-commands "xsetwacom set 'Wacom Intuos BT S Pen stylus' MapToOutput HEAD-0"))
-
-
-;; also for quickly launching my personal zoom room
-(defun jds~launch-zoom-by-conference-number (conf)
-  "Use xdg-open to zoom opening CONF meeting ID. CONF should be a string."
-  (jds/quiet-async-shell-commands
-   (format "xdg-open 'zoommtg://zoom.us/join?action=join&confno=%s'" conf)))
 
 
 ;;; setup modeline
@@ -513,42 +277,21 @@ buffer (=minimizing in other WM/DE)"
      nil)
     (desktop-environment-mode)))
 
-;;; fixing issues (e.g., ediff)
 
-;; ;; Don't let ediff break EXWM, keep it in one frame
-(setq ediff-diff-options "-w"
-      ediff-split-window-function 'split-window-horizontally
-      ediff-window-setup-function 'ediff-setup-windows-plain)
-
-(with-eval-after-load 'bitwarden
-  (exwm-input-set-key (kbd  "s-u") #'bitwarden-kill-username)
-  (exwm-input-set-key (kbd  "s-p") #'bitwarden-kill-password)
-  (exwm-input-set-key (kbd  "s-P") #'jds/kill-psu-pass))
 
 
 ;;; Quick bindings to replace systemtray
 
-;; replace nmicon
-
-;; replace caffeine
 ;; (defun jds/toggle-caffeine ()
 ;;   (interactive)
-;;   (let* ((running (shell-command-to-string "pidof caffeine-ng")))
+;;   (let* ((running (shell-command-to-string "pgrep caffeine")))
 ;;     (if (string= running "")
 ;; 	(progn
 ;; 	  (jds/quiet-async-shell-commands "caffeine &")
 ;; 	  (message "Caffeine Started"))
-;;       (jds/quiet-async-shell-commands "caffeine &"))))
-(defun jds/toggle-caffeine ()
-  (interactive)
-  (let* ((running (shell-command-to-string "pgrep caffeine")))
-    (if (string= running "")
-	(progn 
-	  (jds/quiet-async-shell-commands "caffeine &")
-	  (message "Caffeine Started"))
-      (jds/quiet-async-shell-commands "pkill caffeine &")
-      (message "Caffeine Stopped"))))
-(exwm-input-set-key (kbd "s-c") #'jds/toggle-caffeine)
+;;       (jds/quiet-async-shell-commands "pkill caffeine &")
+;;       (message "Caffeine Stopped"))))
+;; (exwm-input-set-key (kbd "s-c") #'jds/toggle-caffeine)
 
 (defun jds/nm-status ()
   (interactive)
@@ -558,8 +301,3 @@ buffer (=minimizing in other WM/DE)"
 				      (popper-toggle-latest)
 				    (jds/nm-status))))
 
-;;; Don't ask for confirmation about starting new buffers 
-
-
-
-(provide 'wm)

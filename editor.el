@@ -1,30 +1,21 @@
 ;;; editor.el --- core editing features -*- lexical-binding: t; -*-
-;;
-;; Copyright (C) 2021 Justin Silverman
-;;
-;; Author: Justin Silverman <https://github.com/jsilve24>
-;; Maintainer: Justin Silverman <jsilve24@gmail.com>
-;; Created: October 24, 2021
-;; Modified: October 24, 2021
-;; Version: 0.0.1
-;; Keywords: abbrev bib c calendar comm convenience data docs emulations extensions faces files frames games hardware help hypermedia i18n internal languages lisp local maint mail matching mouse multimedia news outlines processes terminals tex tools unix vc wp
-;; Homepage: https://github.com/jsilve24/editor
-;; Package-Requires: ((emacs "24.3"))
-;;
-;; This file is not part of GNU Emacs.
-;;
-;;; Commentary:
-;;
-;;  core editing features
-;;
-;;; Code:
 
-;; (use-package smartparens
-;;   :straight t
-;;   :defer t
-;;   :config
-;;   (require 'smartparens-config)
-;;   (show-smartparens-global-mode t))
+;; guess indentation style 
+(use-package dtrt-indent
+  :disabled t
+  :diminish dtrt-indent-global-mode
+  :diminish dtrt-indent-mode
+  :config
+  (dtrt-indent-global-mode))
+
+
+;; autorevert org and dired buffers
+(use-package autorevert
+  :ensure t
+  :config
+  (setq auto-revert-check-vc-info t)
+  (global-auto-revert-mode t))
+
 
 ;; seems lighter weight than smartparens
 (electric-pair-mode 1)
@@ -206,6 +197,7 @@ Version 2017-01-11"
 
 ;; https://github.com/jdtsmith/outli
 (use-package outli
+  :disabled
   :straight (outli :type git :host github :repo "jdtsmith/outli")
   :hook (emacs-lisp-mode . outli-mode)
   :hook (ess-r-mode . outli-mode)

@@ -1,25 +1,4 @@
 ;;; window.el --- window functions -*- lexical-binding: t; -*-
-;;
-;; Copyright (C) 2021 Justin Silverman
-;;
-;; Author: Justin Silverman <https://github.com/jsilve24>
-;; Maintainer: Justin Silverman <jsilve24@gmail.com>
-;; Created: October 22, 2021
-;; Modified: October 22, 2021
-;; Version: 0.0.1
-;; Keywords: abbrev bib c calendar comm convenience data docs emulations extensions faces files frames games hardware help hypermedia i18n internal languages lisp local maint mail matching mouse multimedia news outlines processes terminals tex tools unix vc wp
-;; Homepage: https://github.com/jsilve24/window
-;; Package-Requires: ((emacs "24.3"))
-;;
-;; This file is not part of GNU Emacs.
-;;
-;;; Commentary:
-;;
-;;  window functions
-;;
-;;; Code:
-
-
 ;;; functions taken from doom
 
 ;; stolen from here: https://www.emacswiki.org/emacs/MiniBuffer#minibuffer
@@ -112,6 +91,134 @@ With optional arg, don't automatically balance windows."
   (unless arg
     (balance-windows)))
 
+;; function to toggle vertical horizontal splits
+;; from wiki: https://www.emacswiki.org/emacs/ToggleWindowSplit
+;; modified by Justin Silverman to automatically rebalace
+;;;###autoload
+(defun window-toggle-split-direction (&optional arg)
+  "Switch window split from horizontally to vertically, or vice versa.
+i.e. change right window to bottom, or change bottom window to right.
+With optional arg, don't automatically rebalance windows."
+  (interactive "P")
+  (require 'windmove)
+  (let ((done))
+    (dolist (dirs '((right . down) (down . right)))
+      (unless done
+        (let* ((win (selected-window))
+               (nextdir (car dirs))
+               (neighbour-dir (cdr dirs))
+               (next-win (windmove-find-other-window nextdir win))
+               (neighbour1 (windmove-find-other-window neighbour-dir win))
+               (neighbour2 (if next-win (with-selected-window next-win
+                                          (windmove-find-other-window neighbour-dir next-win)))))
+          ;; (message "win: %s\nnext-win: %s\nneighbour1: %s\nneighbour2:%s" win next-win neighbour1 neighbour2)
+          (setq done (and (eq neighbour1 neighbour2)
+                          (not (eq (minibuffer-window) next-win))))
+          (if done
+              (let* ((other-buf (window-buffer next-win)))
+                (delete-window next-win)
+                (if (eq nextdir 'right)
+                    (split-window-vertically)
+                  (split-window-horizontally))
+                (set-window-buffer (windmove-find-other-window neighbour-dir) other-buf))))))
+    (if (not arg)
+	(balance-windows))))
 
-(provide 'window)
-;;; window.el ends here
+;;;###autoload
+(defun split-window-sensibly-prefer-horizontal-internal (&optional window)
+  "Based on split-window-sensibly, but designed to prefer a horizontal split,
+i.e. windows tiled side-by-side."
+  (let ((window (or window (selected-window))))
+    (or (and (window-splittable-p window t)
+             ;; Split window horizontally
+             (with-selected-window window
+               (split-window-right)))
+	(and (window-splittable-p window)
+             ;; Split window vertically
+             (with-selected-window window
+               (split-window-below)))
+	(and
+         ;; If WINDOW is the only usable window on its frame (it is
+         ;; the only one or, not being the only one, all the other
+         ;; ones are dedicated) and is not the minibuffer window, try
+         ;; to split it horizontally disregarding the value of
+         ;; `split-height-threshold'.
+         (let ((frame (window-frame window)))
+           (or
+            (eq window (frame-root-window frame))
+            (catch 'done
+              (walk-window-tree (lambda (w)
+                                  (unless (or (eq w window)
+                                              (window-dedicated-p w))
+                                    (throw 'done nil)))
+                                frame)
+              t)))
+	 (not (window-minibuffer-p window))
+	 (let ((split-width-threshold 0))
+	   (when (window-splittable-p window t)
+             (with-selected-window window
+               (split-window-right))))))))
+
+;;;###autoload
+(defun split-window-sensibly-prefer-horizontal (&optional window norebalance)
+"Based on split-window-sensibly, but designed to prefer a horizontal split,
+i.e. windows tiled side-by-side. If norebalance then don't automatically rebalance windows after splitting.
+This is a wrapper around split-window-sensibly-prefer-horizontal-internal that adds the rebalancing functionality."
+(let ((window (split-window-sensibly-prefer-horizontal-internal window)))
+  (if window
+      (unless norebalance
+	(balance-windows)))))
+
+;;;###autoload
+(defun jds~new-frame-or-new-window (&optional norebalance)
+  "New Frame and Focus unless using EXWM then new window.
+If norebalance then don't automatically rebalance windows after split."
+  (if (frame-parameter (selected-frame) 'exwm-active)
+      (progn
+	(let ((split-width-threshold 150)
+	      (split-height-threshold 20))
+	  (if (not (split-window-sensibly-prefer-horizontal nil norebalance))
+	      (unless norebalance 
+		(split-window-right)
+		(balance-windows))))
+	(other-window 1))
+    (select-frame (make-frame))))
+
+;; make sure window really closes when killing exwm buffer
+;;;###autoload
+(defun jds/kill-buffer-delete-window ()
+  "Simpler than kill-buffer-and-window but that was not working for EXWM windows."
+  (interactive)
+  (if (not (string= major-mode "exwm-mode"))
+      (kill-buffer-and-window)
+    (let ((buffer (current-buffer))
+	  (window (selected-window)))
+      (kill-buffer buffer)
+      (delete-window window))))
+
+
+;; stolen from here: https://kfx.fr/e/koe-utils.el
+;;;###autoload
+(defun jds/quiet-async-shell-commands (cmd &rest cmds)
+  "Run async shell CMD with optional CMDS in a oneliner silently."
+  (interactive)
+  (let
+      ((display-buffer-alist
+	(list
+	 (cons
+	  "\\*Async Shell Command\\*.*"
+	  (cons #'display-buffer-no-window nil))))
+       ;; don't ask for confirmation before running in new buffer
+       (async-shell-command-buffer 'new-buffer))
+    (async-shell-command
+     (concat cmd " " (string-join cmds " ")))))
+
+;;;###autoload
+;; largely templated off of the exwm cookbook (on the github wiki)
+;;;###autoload
+(defun jds~set-window-dedicated (&optional arg)
+  "Toggle loose window dedication.  If prefix ARG, set strong."
+  (interactive "P")
+  (let* ((dedicated (if arg t (if (window-dedicated-p) nil "loose"))))
+    (message "setting window dedication to %s" dedicated)
+    (set-window-dedicated-p (selected-window) dedicated)))
