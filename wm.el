@@ -261,6 +261,7 @@
 
 ;;; setup brightness and volume
 (use-package desktop-environment
+  :diminish desktop-environment-mode
   :config
   ;; don't let this package set global exwm input keys
   (setq desktop-environment-update-exwm-global-keys nil
@@ -301,4 +302,5 @@
 				  (if popper-open-popup-alist
 				      (popper-toggle-latest)
 				    (jds/nm-status))))
+
 
