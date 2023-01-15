@@ -203,6 +203,20 @@
 
 ;;; recentf and savehist -------------------------------------------------------
 
+;;Keep folders Clean
+(use-package no-littering
+  :config
+  (with-eval-after-load 'recentf
+    (add-to-list 'recentf-exclude no-littering-var-directory)
+    (add-to-list 'recentf-exclude no-littering-etc-directory)))
+
+;; no-littering doesn't set this by default so we must place
+;; auto save files in the same path as it uses for sessions
+(setq auto-save-file-name-transforms
+      `((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))
+
+
+
 ;; track recent files
 (use-package recentf
   :init
@@ -222,18 +236,6 @@
   (add-to-list 'recentf-exclude "recentf-save\\.el")
   (recentf-cleanup))
 
-
-;; Keep folders Clean
-;; (use-package no-littering
-;;   :config
-;;   (with-eval-after-load 'recentf
-;;     (add-to-list 'recentf-exclude no-littering-var-directory)
-;;     (add-to-list 'recentf-exclude no-littering-etc-directory)))
-
-;; no-littering doesn't set this by default so we must place
-;; auto save files in the same path as it uses for sessions
-;; (setq auto-save-file-name-transforms
-;;       `((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))
 
 ;; Persist history over Emacs restarts. Vertico sorts by history position.
 (use-package savehist
