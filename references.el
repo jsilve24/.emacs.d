@@ -1,6 +1,12 @@
 ;;; references.el --- summary -*- lexical-binding: t -*-
 
-
+(use-package bibtex-completion
+  :straight t
+  :defer t
+  :config
+  (setq bibtex-completion-bibliography '("~/Dropbox/org/roam/references/references.bib")
+	;; this is used by org-roam-bibtex note actions
+	bibtex-completion-library-path '("~/Dropbox/org/roam/references/articles/")))
 
 (use-package citar
   :after (:any latex org)

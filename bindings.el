@@ -1,8 +1,6 @@
 ;;; bindings.el -- only for general purpose high-level bindings -*- lexical-binding: t; -*-
 
 
-;; (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
-
 
 ;;; universal argument and other short stuff
 (jds/leader-def 
@@ -53,8 +51,6 @@
 (defun jds~kill-whole-line ()
   "Kill line, with prefix-arg kill entire line forwards and backwards to start of line."
   (interactive)
-  ;; (beginning-of-line)
-  ;; (kill-line)
   (evil-delete-back-to-indentation))
 
 ;;;###autoload
@@ -204,8 +200,9 @@
 ;;; toggle
 (jds/leader-def
   "t" '(:ignore t :wk "toggles")
-  "tm" #'hide-mode-line-mode
-  "to" #'olivetti-mode)
+  ;; "tm" #'hide-mode-line-mode
+  ;; "to" #'olivetti-mode
+  )
 
 ;;; other
 (jds/leader-def
@@ -617,7 +614,7 @@
   (key-chord-mode 1)
   (setq key-chord-one-keys-delay 0.010
 	key-chord-two-keys-delay 0.06)
-  (key-chord-define-global "jk" 'evil-force-normal-state)
+  ;; (key-chord-define-global "jk" 'evil-force-normal-state)
   (key-chord-define-global "wq" 'save-buffer)
   (key-chord-define-global "WQ" 'evil-write-all))
 

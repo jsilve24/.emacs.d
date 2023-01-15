@@ -1,5 +1,7 @@
 ;;; window.el --- window movement and setup -*- lexical-binding: t; -*-
 
+(load-config "autoloads/window.el")
+
 ;;;###autoload
 (defun jds/ace-window-save-excursion ()
   "Ace-window but return to window selected when calling function."

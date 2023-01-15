@@ -14,9 +14,6 @@
 
 (set-face-attribute 'default nil :font jds/default-font-fixed-width
                     :height jds/default-font-size)
-;; (set-face-attribute 'default nil :font "DejaVuSansMono"
-;;                     :height jds/default-font-size)
-
 
 ;; Set the fixed pitch face
 (set-face-attribute 'fixed-pitch nil :font jds/default-font-fixed-width
@@ -29,17 +26,10 @@
 
 ;;; main themes
 
-(use-package doom-themes
-  ;; :init (load-theme 'doom-vibrant t)
-  :config
-  ;; (setq doom-themes-padded-modeline t)
-  )
+(use-package doom-themes)
 
-
-(use-package kaolin-themes
-  :disabled t)
-
-(use-package gruvbox-theme)
+(use-package gruvbox-theme
+  :disabled)
 
 (use-package emacs
   :init
@@ -73,8 +63,7 @@
 	  (2 . (rainbow overline bold 1.1))
 	  (3 . (overline rainbow bold 1.0))
 	  (4 . (rainbow bold))
-	  (t . (bold)))
-	)
+	  (t . (bold))))
   :config
   (load-theme 'modus-vivendi)
   :bind ("<f5>" . modus-themes-toggle))
@@ -95,34 +84,7 @@
 	  (4 . (rainbow bold))
 	  (t . (bold))))
 
-  (mapc #'disable-theme custom-enabled-themes)
-
-  ;; fix up hl-todo(defun my-ef-themes-hl-todo-faces ()
-  "Configure `hl-todo-keyword-faces' with Ef themes colors.
-The exact color values are taken from the active Ef theme."
-  ;; (ef-themes-with-colors
-  ;;   (setq hl-todo-keyword-faces
-  ;; 	  `(("HOLD" . ,yellow)
-  ;; 	    ("TODO" . ,red)
-  ;; 	    ("NEXT" . ,blue)
-  ;; 	    ("THEM" . ,magenta)
-  ;; 	    ("PROG" . ,cyan-warmer)
-  ;; 	    ("OKAY" . ,green-warmer)
-  ;; 	    ("DONT" . ,yellow-warmer)
-  ;; 	    ("FAIL" . ,red-warmer)
-  ;; 	    ("BUG" . ,red-warmer)
-  ;; 	    ("DONE" . ,green)
-  ;; 	    ("NOTE" . ,blue-warmer)
-  ;; 	    ("KLUDGE" . ,cyan)
-  ;; 	    ("HACK" . ,cyan)
-  ;; 	    ("TEMP" . ,red)
-  ;; 	    ("FIXME" . ,red-warmer)
-  ;; 	    ("XXX+" . ,red-warmer)
-  ;; 	    ("REVIEW" . ,red)
-  ;; 	    ("DEPRECATED" . ,yellow))))
-
-  ;; (add-hook 'ef-themes-post-load-hook #'my-ef-themes-hl-todo-faces)
-  )
+  (mapc #'disable-theme custom-enabled-themes))
 
 
 ;;; hl-line-mode ---------------------------------------------------------------
@@ -138,16 +100,6 @@ The exact color values are taken from the active Ef theme."
 
 (straight-use-package 'all-the-icons)
 (use-package all-the-icons)
-
-;; NOTE: The first time you load your configuration on a new machine, you’ll need to run `M-x
-;; all-the-icons-install-fonts` so that mode line icons display correctly.
-;; (use-package doom-modeline
-;;   :init (doom-modeline-mode 1)
-;;   :custom ((doom-modeline-height 15))
-;;   :config
-;;   (doom-themes-visual-bell-config)
-;;   ;; (setq doom-modeline-modal-icon nil)
-;;   )
 
 (use-package smart-mode-line
   :config
@@ -204,7 +156,8 @@ The exact color values are taken from the active Ef theme."
 
 ;;; Olivetti Mode
 
-(use-package olivetti)
+(use-package olivetti
+  :disabled t)
 
 ;;; Nice Display of Colors
 
@@ -214,16 +167,9 @@ The exact color values are taken from the active Ef theme."
     (setq rainbow-x-colors nil)
     (add-hook 'prog-mode-hook 'rainbow-mode))
 
-;;; org-mode theme -------------------------------------------------------------
 
-;; (with-eval-after-load 'org
-;; (custom-set-faces
-;; '(org-level-1 ((t (:inherit outline-1 :height 1.25))))
-;; '(org-level-2 ((t (:inherit outline-2 :height 1.1))))
-;; '(org-level-3 ((t (:inherit outline-3 :height 1.0))))
-;; '(org-level-4 ((t (:inherit outline-4 :height 1.0))))
-;; '(org-level-5 ((t (:inherit outline-5 :height 1.0))))
-;; '(org-agenda-structure ((t (:inherit outline-1 :height 1.10))))))
+(use-package hide-mode-line
+  :disabled)
 
-(provide 'themes)
-;;; themes.el ends here
+
+(provide 'config-themes)

@@ -134,6 +134,8 @@
 ;; I think this may require emacs 29
 (setq pixel-scroll-precision-mode t)
 
+(setq-default fill-column 100)
+
 
 ;;; Minibuffer -----------------------------------------------------------------
 

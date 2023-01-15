@@ -88,16 +88,6 @@
   ;; allow orderless completion in company
   (setq orderless-component-separator "[ &]"))
 
-;; The matching portions of candidates aren’t highlighted. That’s because company-capf is hard-coded
-;; to look for the completions-common-part face, and it only use one face, company-echo-common to
-;; highlight candidates.
-;; (with-eval-after-load 'company
-;;   (defun just-one-face (fn &rest args)
-;;     (let ((orderless-match-faces [completions-common-part]))
-;;       (apply fn args)))
-;;   (advice-add 'company-capf--candidates :around #'just-one-face))
-
-
 ;; A few more useful configurations...
 (use-package emacs
   :init
@@ -139,11 +129,6 @@
   :config
   ;; from doom
   (add-hook 'marginalia-mode-hook #'all-the-icons-completion-marginalia-setup))
-
-;;; embark
-;; Install Embark and add two keybindings for embark-dwim and embark-act. I am using M-. and
-;; C-.. These commands allow you to act on the object at point or in the minibuffer.
-;; investigate embark-keymap-alist for finding correct embark-keymaps
 
 (use-package embark
   :straight (embark :type git :host github :repo "oantolin/embark"
@@ -203,25 +188,26 @@ targets."
 
 
   ;; this is awesome -- taken from here: https://karthinks.com/software/fifteen-ways-to-use-embark/
-  (eval-when-compile
-    (defmacro jds/embark-ace-action (fn)
-      `(defun ,(intern (concat "jds/embark-ace-" (symbol-name fn))) ()
-	 (interactive)
-	 (with-demoted-errors "%s"
-	   (require 'ace-window)
-	   (let ((aw-dispatch-always t)
-		 (aw-dispatch-alist '((?F aw-split-window-fair "Split Fair Window")
-				      (?s aw-split-window-vert "Split Vert Window")
-				      (?v aw-split-window-horz "Split Horz Window")
-				      (?o delete-other-windows "Delete Other Windows"))))
-	     (aw-switch-to-window (aw-select nil))
-	     (call-interactively (symbol-function ',fn)))))))
+  (with-eval-after-load 'ace-window
+    (eval-when-compile
+      (defmacro jds/embark-ace-action (fn)
+	`(defun ,(intern (concat "jds/embark-ace-" (symbol-name fn))) ()
+	   (interactive)
+	   (with-demoted-errors "%s"
+	     (require 'ace-window)
+	     (let ((aw-dispatch-always t)
+		   (aw-dispatch-alist '((?F aw-split-window-fair "Split Fair Window")
+					(?s aw-split-window-vert "Split Vert Window")
+					(?v aw-split-window-horz "Split Horz Window")
+					(?o delete-other-windows "Delete Other Windows"))))
+	       (aw-switch-to-window (aw-select nil))
+	       (call-interactively (symbol-function ',fn)))))))
 
-  (define-key embark-file-map (kbd "o") (jds/embark-ace-action find-file))
-  (define-key embark-buffer-map (kbd "o") (jds/embark-ace-action switch-to-buffer))
-  (define-key embark-bookmark-map (kbd "o") (jds/embark-ace-action bookmark-jump))
-  (define-key embark-org-link-map (kbd "o") (jds/embark-ace-action org-open-at-point))
-  (define-key embark-url-map (kbd "o") (jds/embark-ace-action browse-url))
+    (define-key embark-file-map (kbd "o") (jds/embark-ace-action find-file))
+    (define-key embark-buffer-map (kbd "o") (jds/embark-ace-action switch-to-buffer))
+    (define-key embark-bookmark-map (kbd "o") (jds/embark-ace-action bookmark-jump))
+    (define-key embark-org-link-map (kbd "o") (jds/embark-ace-action org-open-at-point))
+    (define-key embark-url-map (kbd "o") (jds/embark-ace-action browse-url)))
 
 
 
@@ -448,10 +434,6 @@ This only works with orderless and for the first component of the search."
 
 
 
-;;; set outline regex for consult-outline and more 
-;; (setq outline-regexp "[*\f]+")
-
-
 ;;; embark-consult
 ;; Install Embark-Consult and Wgrep for export from consult-line to occur-mode buffers and from
 ;; consult-grep to editable grep-mode buffers.
@@ -461,7 +443,6 @@ This only works with orderless and for the first component of the search."
 ;; probably want to install and load the embark-consult package, which adds support for exporting a
 ;; list of grep results to an honest grep-mode buffer, on which you can even use wgrep if you wish.
 
-(straight-use-package 'embark-consult)
 ;; Consult users will also want the embark-consult package.
 (use-package embark-consult
   :ensure t
@@ -480,7 +461,6 @@ This only works with orderless and for the first component of the search."
   :config
    (setq consult-dir-project-list-function #'consult-dir-projectile-dirs))
 
-(straight-use-package 'helpful)
 (use-package helpful
   ;; a better *help* buffer
   :commands helpful--read-symbol
@@ -495,8 +475,6 @@ This only works with orderless and for the first component of the search."
   (global-set-key [remap describe-symbol]   #'helpful-symbol))
 
 ;;; wgrep
-
-(straight-use-package 'wgrep)
 (use-package wgrep
   :commands wgrep-change-to-wgrep-mode
   :config (setq wgrep-auto-save-buffer t))
@@ -524,21 +502,12 @@ This only works with orderless and for the first component of the search."
 
 
 ;;; fluff
-(straight-use-package 'all-the-icons-completion)
 (use-package all-the-icons-completion
   :after marginalia
   :config
   (all-the-icons-completion-mode)
   (add-hook 'marginalia-mode-hook #'all-the-icons-completion-marginalia-setup))
 
-
-;;; open some files with external application by default 
-;; (use-package openwith
-;;   :straight (openwith :type git :host github :repo "thisirs/openwith")
-;;   :config
-;;   (setq openwith-associations
-;; 	'(("\\.docx" "libreoffice" (file)
-;; 	   "\\.xlsx'" "libreoffice" (file)))))
 
 ;; from here: https://emacs.stackexchange.com/questions/3105/how-to-use-an-external-program-as-the-default-way-to-open-pdfs-from-emacs
 (defun jds~xdg-open (filename)
@@ -554,9 +523,8 @@ This only works with orderless and for the first component of the search."
         '("\\.xlsx?\\'" "\\.docx?\\'" "\\.odt?\\'" "\\.odp?\\'"))
        (jds~xdg-open filename)
      (apply orig-fun args))))
-
 (advice-add 'find-file :around 'jds~find-file-advice)
 
 
-(provide 'completing-read)
+(provide 'config-completing-read)
 ;;; completing-read.el ends here

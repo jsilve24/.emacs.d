@@ -7,49 +7,11 @@
   (projectile-mode +1)
 
   (setq projectile-indexing-method 'hybrid
-	projectile-globally-ignored-file-suffixes '("pygtex" "pygstyle" "fls" "aux" "synctex.gz" "fdb_latexmk" "bbl"))
-  
-  ;; (setq projectile-other-file-alist
-  ;; 	(append projectile-other-file-alist
-  ;; 		'(("Rmd" "pdf" "html")
-  ;; 		  ("tex" "pdf"))))
-  )
+	projectile-globally-ignored-file-suffixes '("pygtex" "pygstyle" "fls" "aux" "synctex.gz" "fdb_latexmk" "bbl")))
 
 
 (use-package consult-projectile
-  ;; :disabled t
   :straight (consult-projectile :type git :host gitlab :repo "OlMon/consult-projectile" :branch "master"))
-
-(use-package project
-  :disabled t)
-
-(use-package consult-project-extra
-  :disabled t)
-
-(use-package project-rootfile
-  :disabled t
-  :config
-  (add-to-list 'project-find-functions #'project-rootfile-try-detect t)
-  (setq project-rootfile-list `(,@project-rootfile-list
-				"DESCRIPTION"
-				".projectile")))
-
-;;;###autoload
-;; (defun jds/remember-project ()
-;;     "Add current project to known projects list."
-;;   (interactive)
-;;   (if (not (project-current))
-;;       (message "Not in recognized project.")
-;;     (project-remember-project (project-current))))
-
-
-;; setup project ibuffer integration
-(use-package ibuffer-project
-  :disabled t
-  :config
-   (add-hook 'ibuffer-hook
-             (lambda ()
-               (setq ibuffer-filter-groups (ibuffer-project-generate-filter-groups)))))
 
 
 ;;; better switch to other file (simpler at least) -----------------------------
@@ -113,5 +75,5 @@
     :mappers (lambda (fn) (replace-regexp-in-string "\\.c.*$" ".h" fn))))
 
 
-(provide 'projects)
+(provide 'config-projects)
 ;;; projects.el ends here

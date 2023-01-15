@@ -23,10 +23,8 @@
 	evil-want-C-u-scroll nil
 	evil-want-C-d-scroll nil
 	evil-want-keybinding nil
-	evil-want-integration t)
-  ;; from doom 
-
-  (setq evil-ex-search-vim-style-regexp t
+	evil-want-integration t
+	evil-ex-search-vim-style-regexp t
 	evil-ex-visual-char-range t
 	evil-mode-line-format nil
 	evil-symbol-word-search t
@@ -34,7 +32,7 @@
 	;; we won't need superfluous indicators to do it instead.
 	;; evil-default-cursor '+evil-default-cursor-fn
 	evil-normal-state-cursor 'box
-	evil-emacs-state-cursor  '(hbar . 6) 
+	evil-emacs-state-cursor '(hbar . 6)
 	evil-insert-state-cursor 'bar
 	evil-visual-state-cursor 'hollow
 	evil-replace-state-cursor 'hbar
@@ -47,7 +45,15 @@
 	;; errors will abort macros, so suppress them:
 	evil-kbd-macro-suppress-motion-error t
 	;; evil-undo-system 'undo-fu
-	evil-undo-system 'undo-tree)
+	evil-undo-system 'undo-tree
+	;; stop cursor creep when switching back to normal mode
+	evil-move-cursor-back nil
+	;; allow cursor to move 1 character past end of line.
+	evil-move-beyond-eol t
+	;; Don't put overwritten text in the kill ring
+	evil-kill-on-visual-paste nil
+	;; Get better undo history in insert mode
+	evil-want-fine-undo t)
 
   :config
   (evil-mode 1)
@@ -73,20 +79,7 @@
 
   ;; Use visual line motions even outside of visual-line-mode buffers
   (evil-global-set-key 'motion "j" 'evil-next-visual-line)
-  (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
-
-  ;; stop cursor creep when switching back to normal mode
-  (setq evil-move-cursor-back nil)
-  ;; allow cursor to move 1 character past end of line.
-  (setq evil-move-beyond-eol t)
-
-  ;; Don't put overwritten text in the kill ring
-  (setq evil-kill-on-visual-paste nil)
-
-  ;; Get better undo history in insert mode
-  (setq evil-want-fine-undo t))
-
-;;; evil-collection
+  (evil-global-set-key 'motion "k" 'evil-previous-visual-line))
 
 (use-package evil-collection
   :straight (evil-collection :type git :host github :repo "emacs-evil/evil-collection"

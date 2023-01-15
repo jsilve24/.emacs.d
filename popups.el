@@ -23,4 +23,4 @@
   (setq popper-display-function #'popper-select-popup-at-bottom)
   (setq popper-window-height 22))         
 
-(provide 'popups)
+(provide 'config-popups)

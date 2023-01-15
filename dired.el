@@ -162,3 +162,8 @@ line."
  :states 'n
  "zh" #'dired-hide-dotfiles-mode)
 
+(load-config "autoloads/dired.el")
+
+(provide 'config-dired)
+
+

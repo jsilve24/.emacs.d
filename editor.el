@@ -203,39 +203,11 @@ Version 2017-01-11"
   :hook (ess-r-mode . outli-mode)
   :diminish outline-minor-mode
   :config
-  (add-to-list 'outli-heading-config '(ess-r-mode "##" ?# t)))
+  (add-to-list 'outli-heading-config '(ess-r-mode "##" ?# t))
 
-(jds/localleader-def
+  (jds/localleader-def
   :keymaps '(text-mode-map prog-mode-map)
-  "n" #'outli-toggle-narrow-to-subtree)
-
-;;; autocapitalize -------------------------------------------------------------
-
-;; (use-package captain
-;; :config
-;; (global-captain-mode)
-;; ;; only work in comments in programming modes
-;; (add-hook 'prog-mode-hook
-;; (lambda ()
-;; (setq captain-predicate (lambda () (nth 8 (syntax-ppss (point)))))))
-;; ;; Or for text modes, work all the time:
-;; (add-hook 'text-mode-hook
-;; (lambda ()
-;; (setq captain-predicate (lambda () t))))
-;; ;; turn on in slack buffers
-;; ;; (add-hook 'text-mode-hook
-;; ;;            (lambda ()
-;; ;;              (setq captain-predicate (lambda () t))))
-;; ;; Or don't work in source blocks in Org mode:
-;; (add-hook
-;; 'org-mode-hook
-;; (lambda ()
-;; (setq captain-predicate
-;; (lambda () (not (org-in-src-block-p)))))))
-
-;;; tags -----------------------------------------------------------------------
-
-;; (use-package ggtags)
+  "n" #'outli-toggle-narrow-to-subtree))
 
 
 ;;; dumb jump ------------------------------------------------------------------
@@ -328,8 +300,6 @@ If point is within empty delmiters, kill the delimiters."
 	  (kill-sexp)
 	(backward-kill-sexp))))))
 
-;;; rotate text ----------------------------------------------------------------
-
 (use-package grugru
   :config
   (grugru-define-on-major-mode 'emacs-lisp-mode 'symbol '("t" "nil"))
@@ -345,5 +315,16 @@ If point is within empty delmiters, kill the delimiters."
   :config
   (aggressive-indent-mode +1))
 
-(provide 'editor)
-;;; editor.el ends here
+(use-package comment-dwim-2
+  :straight (comment-dwim-2 :type git :host github :repo "remyferre/comment-dwim-2" :branch "master")
+  :commands (comment-dwim-2 org-comment-dwim-2)
+  :bind (("M-;" . comment-dwim-2)
+         :map org-mode-map
+         ("M-;" . org-comment-dwim-2))
+  :config
+  ;; make sure to add a space after the comment charater in inline-comments
+  ;; I like the way this looks better
+  (advice-add 'comment-indent :after #'just-one-space))
+
+
+(provide 'config-editor)

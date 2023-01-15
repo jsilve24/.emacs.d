@@ -17,4 +17,3 @@
  [C-return] #'eir-eval-in-python)
 
 
-#'python-shell-switch-to-shell

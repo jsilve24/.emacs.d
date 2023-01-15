@@ -213,7 +213,6 @@ If norebalance then don't automatically rebalance windows after split."
     (async-shell-command
      (concat cmd " " (string-join cmds " ")))))
 
-;;;###autoload
 ;; largely templated off of the exwm cookbook (on the github wiki)
 ;;;###autoload
 (defun jds~set-window-dedicated (&optional arg)

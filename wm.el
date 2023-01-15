@@ -197,8 +197,9 @@
 (general-define-key
  :keymaps 'exwm-launcher-map
  ;; "q" '((lambda () (interactive) (run-or-raise-or-dismiss "qutebrowser" "qutebrowser")) :wk "qutebrowser")
- "q" '((lambda () (interactive) (exwm-async-run "qutebrowser")) :wk "qutebrowser-new-window")
- "Q" '((lambda () (interactive) (progn (+evil/window-vsplit-and-follow) (exwm-async-run "qutebrowser"))) :wk "qutebrowser-new-window")
+ "q" '((lambda () (interactive) (start-process "qutebrowser" nil "qutebrowser")) :wk "qutebrowser-new-window")
+ "Q" '((lambda () (interactive) (progn (+evil/window-vsplit-and-follow) (start-process "qutebrowser" nil "qutebrowser")))
+       :wk "qutebrowser-new-window")
  ;; "y" '((lambda () (interactive) (run-or-raise-or-dismiss "slack" "Slack")) :wk "slack")
  ;; "c" '((lambda () (interactive) (jds/quiet-async-shell-commands "~/bin/capslock.sh")) :wk "capslock.sh")
  "v" 'evil-window-vsplit

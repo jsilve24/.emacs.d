@@ -1,28 +1,6 @@
 ;;; avy.el --- jumping config -*- lexical-binding: t; -*-
-;;
-;; Copyright (C) 2021 Justin Silverman
-;;
-;; Author: Justin Silverman <https://github.com/jsilve24>
-;; Maintainer: Justin Silverman <jsilve24@gmail.com>
-;; Created: October 22, 2021
-;; Modified: October 22, 2021
-;; Version: 0.0.1
-;; Keywords: abbrev bib c calendar comm convenience data docs emulations extensions faces files frames games hardware help hypermedia i18n internal languages lisp local maint mail matching mouse multimedia news outlines processes terminals tex tools unix vc wp
-;; Homepage: https://github.com/jsilve24/avy
-;; Package-Requires: ((emacs "24.3"))
-;;
-;; This file is not part of GNU Emacs.
-;;
-;;; Commentary:
-;;
-;;  jumping config
-;;
-;;; Code:
 
-
-;;; avy
 (use-package avy
-  :straight t
   :after evil
   :config
   (avy-setup-default)
@@ -65,27 +43,8 @@
 	  (?T . avy-action-teleport)
 	  (?W . avy-action-teleport-whole-line)
 	  (?Y . avy-action-yank)
-	  (?L . avy-action-yank-line)))
-  ;; (setf (alist-get ?\; avy-dispatch-alist) 'avy-action-embark)
-  )
+	  (?L . avy-action-yank-line))))
 
-;; ;;; link-hint
-;; ;;;###autoload
-;; (defun jds/link-hint-add-embark (link-type)
-;;   (link-hint-define-type link-type
-;;      :embark #'embark-act))
-
-;; ;;;###autoload
-;; (defun jds/link-hint-add-open-new-window (link-type)
-;;   (interactive)
-;;   (link-hint-define-type link-type
-;;     :open-new-window
-;;     (lambda (&rest _)
-;;       (let* ((fn (plist-get
-;; 		  (symbol-plist
-;; 		   (intern (concat "link-hint-" (symbol-name link-type)))) :open)))
-;; 	;; (select-window (split-window-sensibly-prefer-horizontal))
-;; 	(`(apply ',fn ,@_))))))
 
 (use-package link-hint
   :after avy
@@ -95,39 +54,7 @@
   (setq browse-url-browser-function 'browse-url-generic)
   (setq browse-url-generic-program "qutebrowser")
   ;; Open urls in a new tab instead of window; can also be set in the config file
-  (setq browse-url-generic-args '("--target" "tab"))
-
-  ;; to override avy settings
-  ;; (setq link-hint-ayy-style 'at)
-
-  ;; ;; add embark to link-hint
-  ;; (mapc #'jds/link-hint-add-embark
-  ;; 	(mapcar (lambda (x) (intern (replace-regexp-in-string "link-hint-" "" (symbol-name x)))) link-hint-types))
-  ;; (mapc #'jds/link-hint-add-open-new-window
-  ;; 	(mapcar (lambda (x) (intern (replace-regexp-in-string "link-hint-" "" (symbol-name x)))) link-hint-types))
-
-  ;; (link-hint-define-type 'org-link
-  ;;   :open-new-window (lambda ()
-  ;; 		       (select-window (split-window-sensibly-prefer-horizontal))
-  ;; 		       (link-hint--open-org-link)))
-
-  ;; (defun link-hint-embark-link ()
-  ;;   "Run embark-act on link"
-  ;;   (interactive)
-  ;;   (avy-with link-hint-embark-link
-  ;;     (link-hint--one :embark)))
-
-  ;; (defun link-hint-open-new-window ()
-  ;;   "Run embark-act on link"
-  ;;   (interactive)
-  ;;   (avy-with link-hint-open-new-window
-  ;;     (link-hint--one :open-new-window)))
-
-
-  ;; (setq link-hint-avy-keys '(?a ?b ?c ?d ?e ?f ?g ?h ?i ?j ?k ?l ?m ?n ?p ?q ?r ?s ?t ?u ?w ?x ?y ?z))
-  )
-
-;; (jds/link-hint-add-embark 'link-hint-mu4e-message)
+  (setq browse-url-generic-args '("--target" "tab")))
 
 ;; setup ace-window integration for link-hint from here:
 ;;  https://localauthor.github.io/posts/aw-select.html
@@ -252,5 +179,7 @@
   (evilem-make-motion evilem-motion-backward-word-end #'evil-backward-word-end :scope 'visible)
   (evilem-make-motion evilem-motion-backward-WORD-end #'evil-backward-WORD-end :scope 'visible))
 
-(provide 'avy)
-;;; avy.el ends here
+
+(load-config "autoloads/avy.el")
+
+(provide 'config-avy)
