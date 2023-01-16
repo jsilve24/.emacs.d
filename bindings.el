@@ -238,10 +238,7 @@
   "bb" #'consult-buffer
   "bB" #'consult-buffer-other-frame
   "bo" #'consult-bookmark
-  "bO" #'burly-open-last-bookmark
   "bd" #'kill-current-buffer
-  "bw" #'burly-bookmark-windows
-  "bf" #'burly-bookmark-frames
   "bm" #'bookmark-set
   "bM" #'bookmark-delete
   "br" #'revert-buffer
