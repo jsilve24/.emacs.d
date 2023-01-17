@@ -16,6 +16,8 @@
 
 ;;; Modules
 (load-config "core.el")
+(unless jds~skip-wm
+  (load-config "wm.el"))
 (load-config "defaults.el")
 (load-config "secrets.el")
 (load-config "macros.el")
@@ -30,8 +32,6 @@
 (load-config "system-jump.el")
 (load-config "avy.el")
 (load-config "window.el")
-(unless jds~skip-wm
-  (load-config "wm.el"))
 (load-config "hydra.el")
 (load-config "dired.el")
 (load-config "spelling.el")
