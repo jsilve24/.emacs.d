@@ -96,7 +96,7 @@
 	  ?\M-&
 	  ?\M-:
 	  ?\C-\M-j ;; Buffer list
-	  ?\C-\	   ;;Ctrl+Space
+	  ?\C-\ 	   ;;Ctrl+Space
 	  ?\C-,
 	  ?\C-' ;; popups dismisal
 	  ?\C-\M-' ;; popup cycle
