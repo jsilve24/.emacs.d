@@ -147,7 +147,7 @@
 	`(("t" "todo")
 	  ("ta" "todo with attachment" entry (file "~/Dropbox/org/inbox.org")
 	   "* TODO %?\n %U\n %a")
-	  ("te" "todo tweaks" entry (file+headline "~/Dropbox/org/resources.org" "Inbox")
+	  ("te" "todo resource" entry (file+headline "~/Dropbox/org/resources.org" "Inbox")
 	   "* TODO %? \n %U")
 	  ("tt" "plain todo" entry (file "~/Dropbox/org/inbox.org")
 	   "* TODO %?\n %U")
