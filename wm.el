@@ -280,20 +280,20 @@
     (desktop-environment-mode)))
 
 
+;;;###autoload
+(defun jds/screen-awake-rest ()
+  "Toggle screen to stay awake versus allow screensaver."
+  (interactive)
+  (save-match-data
+    (let* ((settings (shell-command-to-string "xset q"))
+	   (_ (string-match "DPMS is \\(\\w+\\)" settings)))
+      (pcase (match-string 1 settings)
+	("Disabled" (progn (shell-command "xset s on\nxset +dpms")
+			   (message "Can't keep.. eyes... open....")))
+	("Enabled" (progn (shell-command "xset s off\nxset -dpms"))
+	 (message "We going to RAGE!"))))))
+(exwm-input-set-key (kbd "s-c") #'jds/screen-awake-rest)
 
-
-;;; Quick bindings to replace systemtray
-
-;; (defun jds/toggle-caffeine ()
-;;   (interactive)
-;;   (let* ((running (shell-command-to-string "pgrep caffeine")))
-;;     (if (string= running "")
-;; 	(progn
-;; 	  (jds/quiet-async-shell-commands "caffeine &")
-;; 	  (message "Caffeine Started"))
-;;       (jds/quiet-async-shell-commands "pkill caffeine &")
-;;       (message "Caffeine Stopped"))))
-;; (exwm-input-set-key (kbd "s-c") #'jds/toggle-caffeine)
 
 (defun jds/nm-status ()
   (interactive)
