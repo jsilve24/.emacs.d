@@ -8,3 +8,4 @@
 
 ;; load main init.el file
 (load (expand-file-name "init.el" user-emacs-directory))
+(require 'ox-beamer)

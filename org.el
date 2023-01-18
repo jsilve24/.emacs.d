@@ -12,11 +12,12 @@
 
 
   ;; don't include files in .attach
-  (setq org-agenda-files
+ (setq org-agenda-files
 	(seq-filter
 	 (lambda (x) (and  (not (string-match-p (rx "\.attach") x))
 			   (not (string-match-p (rx "ShoeTracking") x))
-			   (not (string-match-p (rx "emacs cheatsheet") x))))
+			   (not (string-match-p (rx "emacs cheatsheet") x))
+			   (not (string-match-p (rx "meetings_anarres") x))))
 	 (directory-files "~/Dropbox/org/" t "\\.org$")))
 
   (setq org-directory "~/Dropbox/org")
@@ -473,7 +474,8 @@
 
 (jds/localleader-def
   :keymaps 'org-beamer-mode-map
-  "m" #'org-beamer-export-to-pdf)
+  "m" #'(lambda () (interactive) (org-beamer-export-to-pdf
+				  org-export-in-background)))
 
 (general-define-key
  :keymaps 'calendar-mode-map

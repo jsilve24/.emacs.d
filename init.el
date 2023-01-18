@@ -11,8 +11,10 @@
     (setq native-comp-deferred-compilation t))
     (message "Native complation is *not* available"))
 
-(setq jds~skip-wm nil
-      jds~skip-email nil)
+(if (not (boundp jds~skip-wm))
+    (setq jds~skip-wm nil))
+(if (not (boundp jds~skip-email))
+    (setq jds~skip-email nil))
 
 ;;; Modules
 (load-config "core.el")
@@ -38,7 +40,7 @@
 (load-config "latex.el")		
 (load-config "autoloads/sow.el")
 (load-config "pdf.el")
-(unless jds~skip-email t
+(unless jds~skip-email
 	(load-config "autoloads/email.el")
 	(load-config "email.el"))
 (load-config "calendar.el")
