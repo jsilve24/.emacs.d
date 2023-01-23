@@ -10,12 +10,17 @@
   :init
   (setq org-roam-v2-ack t)
   :config
+  ;; better export for org-roam files
+  (require 'org-roam-export)
   (setq org-roam-capture-templates
 	'(("d" "default" plain "%?"
 	   :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+date: %U\n#+STARTUP: latexpreview\n")
 	   :unnarrowed t)
 	  ("w" "wiki" plain "%?"
 	   :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+date: %U\n#+filetags: :wiki:\n#+STARTUP: latexpreview\n")
+	   :unnarrowed t)
+	  ("c" "cookbook" plain "%?"
+	   :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+date: %U\n#+filetags: :cookbook:\n#+STARTUP: latexpreview\n")
 	   :unnarrowed t)
 	  ("l" "lecturenotes" plain "%?"
 	   :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: %u ${title}\n#+date: %U\n#+filetags: :lecture:\n#+STARTUP: latexpreview\n")
