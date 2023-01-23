@@ -37,7 +37,6 @@
 (setq straight-use-package-by-default t)
 
 ;;; Keybinding Utilities
-(straight-use-package 'general)
 (use-package general
   :ensure t
   :config
