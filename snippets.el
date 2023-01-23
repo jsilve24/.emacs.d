@@ -67,7 +67,7 @@ escape."
 	      ";begin" (jds~yas-lambda-expand "\\begin\\{$1\\}\n$0\n\\end\\{$1\\}")
 	      ";align" (jds~yas-lambda-expand "\\begin\\{align\\}\n$0\n\\end\\{align\\}")
 	      ";Align" (jds~yas-lambda-expand "\\begin\\{align*\\}\n$0\n\\end\\{align*\\}")
-	      ";cite" 'citar-insert-citation
+	      ";cite" 'jds/citar-insert-cite-prioritize-local-bib
 	      ";ref"  (jds~yas-lambda-expand "\\ref\\{$1\\}$0")
 	      ";it" (jds~yas-lambda-expand "\\textit\\{$1\\}$0")
 	      ";bf" (jds~yas-lambda-expand "\\textbf\\{$1\\}$0")
