@@ -121,38 +121,43 @@
 (use-package diminish
   :defer t
   :config
-  (mapc 'diminish
-	'(yas-minor-mode
-	  citar-embark-mode
-	  evil-traces-mode
-	  citar-org-roam-mode
-	  org-roam-bibtex-mode
-	  evil-snipe-mode
-	  evil-snipe-override-mode
-	  evil-snipe-local-mode
-	  undo-tree-mode
-	  auto-revert-mode
-	  dired-hide-dotfiles-mode
-	  eldoc-mode
-	  abbrev-mode
-	  which-key-mode
-	  lispyville-mode
-	  evil-owl-mode
-	  evil-collection-unimpaired-mode
-	  desktop-environment-mode
-	  consult-org-roam-mode
-	  lispy-mode
-	  synosaurus-mode
-	  evil-goggles-mode
-	  org-indent-mode
-	  flyspell-mode
-	  evil-org-mode
-	  org-cdlatex-mode
-	  org-indent-mode
-	  cdlatex-mode
-	  reftex-mode
-	  visual-line-mode)))
 
+  (defvar jds~hidden-minor-modes
+    '(yas-minor-mode
+      citar-embark-mode
+      evil-traces-mode
+      citar-org-roam-mode
+      org-roam-bibtex-mode
+      evil-snipe-mode
+      evil-snipe-override-mode
+      evil-snipe-local-mode
+      undo-tree-mode
+      auto-revert-mode
+      dired-hide-dotfiles-mode
+      eldoc-mode
+      abbrev-mode
+      which-key-mode
+      lispyville-mode
+      evil-owl-mode
+      evil-collection-unimpaired-mode
+      desktop-environment-mode
+      consult-org-roam-mode
+      lispy-mode
+      synosaurus-mode
+      evil-goggles-mode
+      org-indent-mode
+      flyspell-mode
+      evil-org-mode
+      org-cdlatex-mode
+      org-indent-mode
+      cdlatex-mode
+      reftex-mode
+      visual-line-mode))
+
+  (defun jds~purge-minor-modes ()
+    (mapc 'diminish jds~hidden-minor-modes))
+
+  (add-hook 'after-change-major-mode-hook 'jds~purge-minor-modes))
 
 ;;; Olivetti Mode
 
