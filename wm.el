@@ -291,7 +291,7 @@
 	("Disabled" (progn (shell-command "xset s on\nxset +dpms")
 			   (message "Can't keep.. eyes... open....")))
 	("Enabled" (progn (shell-command "xset s off\nxset -dpms"))
-	 (message "We going to RAGE!"))))))
+	 (message "We're gonna to RAGE!"))))))
 (exwm-input-set-key (kbd "s-c") #'jds/screen-awake-rest)
 
 
