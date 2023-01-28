@@ -27,7 +27,7 @@
  "C-<tab>" #'completion-at-point)
 
 (general-define-key
- :keymaps '(insert normal)
+ :keymaps '(insert normal override)
  "C-<backspace>" #'jds/hungry-delete-or-kill-sexp
  "C-n" #'grugru
  "C-t" #'evil-numbers/inc-at-pt-incremental
