@@ -294,7 +294,11 @@
 
 
 ;; not sure this is needed and it seemed to be trying to download a different version of emacs...
-;;  (straight-use-package '(org-contrib :type git :host github :repo "emacsmirror/org-contrib"))
+(straight-use-package '(org-contrib :type git :host github :repo "emacsmirror/org-contrib"))
+(use-package org-screenshot
+  :after org
+  :config
+  (setq org-screenshot-file-name-format "screenshot-%XXXXXXXXXX.png"))
 
 ;; make it easier to edit fontified/hidden text (I mostly just use this for org-links)
 (use-package org-appear
