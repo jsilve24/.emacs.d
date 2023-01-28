@@ -124,8 +124,7 @@
     (make-variable-buffer-local 'completion-at-point-functions)
     (add-to-list 'completion-at-point-functions #'cape-symbol)
     (add-to-list 'completion-at-point-functions #'cape-keyword))
-  (add-hook 'prog-mode-hook 'jds~setup-prog-mode-capf)
-  )
+  (add-hook 'emacs-lisp-mode-hook 'jds~setup-prog-mode-capf))
 
 ;;; keep comint mode out of completion -----------------------------------------
 
