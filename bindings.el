@@ -435,7 +435,8 @@
 
 (jds/leader-def
   "o" '(:ignore t :which-key "other/apps")
-  "os" #'jds/hydra-spotify-wrapper
+  ;; "os" #'jds/hydra-spotify-wrapper
+  "os" engine-mode-prefixed-map
   "oc" #'calendar
   "or" #'jds/citar-open-prioritize-global-bib
   "op" #'proced
