@@ -57,6 +57,7 @@
 (load-config "lsp.el")
 (load-config "treesitter.el")
 (load-config "autoloads/avy-tex-math.el")
+(load-config "engines.el")
 
 
 ;; for some reason has to be at the end to ensure 
