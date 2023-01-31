@@ -12,6 +12,8 @@
 (defun jds/open-custom-day-agenda-new-frame ()
   (interactive)
   (jds~new-frame-or-new-window)
+  (sit-for .01)				; added for exwm buffers
+
   (org-agenda nil "d"))
 
 ;;;###autoload
