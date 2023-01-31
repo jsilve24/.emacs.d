@@ -224,7 +224,9 @@
 
   ;; setup async export
   (setq org-export-async-init-file
-	(expand-file-name "org-async-init.el" user-emacs-directory))
+	(expand-file-name "org-async-init.el" user-emacs-directory)
+	;; default to export in background
+	org-export-in-background t)
 
   ;; active Babel languages
   (load-file "~/.emacs.d/ob-stan.el")
