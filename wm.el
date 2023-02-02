@@ -143,6 +143,9 @@
 	  ([?\s-\ ] . ace-window)
 	  ([?\s-b] . bury-buffer)
 	  ([?\s-w] . balance-windows)
+	  ([?\s-s] . exwm-workspace-switch)
+	  ([?\s-S] . exwm-workspace-move-window)
+
 
 	  ;; Launch applications via shell command
 	  ([?\s-:] . (lambda (command)
@@ -153,25 +156,25 @@
 	  ;; ([?\s-w] . exwm-workspace-switch)
 	  ([?\s-`] . (lambda () (interactive) (exwm-workspace-switch-create 0)))
 
-;; 	  ;; 's-N': Switch to certain workspace with Super (Win) plus a number key (0 - 9)
-;; 	  (\, @ (mapcar (lambda (i)
-;; 			  `(,(kbd (format "s-%d" i)) .
-;; 			    (lambda ()
-;; 			      (interactive)
-;; 			      (exwm-workspace-switch-create ,i))))
-;; 			(number-sequence 0 9)))
-;; 
-;; 	  ;; 's-shift-N': move window to certain workspace
-;; 	  ;; ([?\s-!] . (lambda () (interactive) (eh-current-window-to-workspace-and-follow-by-index 1)))
-;; 	  ;; ([?\s-@] . (lambda () (interactive) (eh-current-window-to-workspace-and-follow-by-index 2)))
-;; 	  ;; ([?\s-#] . (lambda () (interactive) (eh-current-window-to-workspace-and-follow-by-index 3)))
-;; 	  ;; ([?\s-$] . (lambda () (interactive) (eh-current-window-to-workspace-and-follow-by-index 4)))
-;; 	  ;; ([?\s-%] . (lambda () (interactive) (eh-current-window-to-workspace-and-follow-by-index 5)))
-;; 	  ;; ([?\s-^] . (lambda () (interactive) (eh-current-window-to-workspace-and-follow-by-index 6)))
-;; 	  ;; ([?\s-&] . (lambda () (interactive) (eh-current-window-to-workspace-and-follow-by-index 7)))
-;; 	  ;; ([?\s-*] . (lambda () (interactive) (eh-current-window-to-workspace-and-follow-by-index 8)))
-;; 	  ;; ([?\s-\(] . (lambda () (interactive) (eh-current-window-to-workspace-and-follow-by-index 9)))
-;; 	  ;; ([?\s-\)] . (lambda () (interactive) (eh-current-window-to-workspace-and-follow-by-index 0)))
+	  ;; 	  ;; 's-N': Switch to certain workspace with Super (Win) plus a number key (0 - 9)
+	  ;; 	  (\, @ (mapcar (lambda (i)
+	  ;; 			  `(,(kbd (format "s-%d" i)) .
+	  ;; 			    (lambda ()
+	  ;; 			      (interactive)
+	  ;; 			      (exwm-workspace-switch-create ,i))))
+	  ;; 			(number-sequence 0 9)))
+	  ;;
+	  ;; 	  ;; 's-shift-N': move window to certain workspace
+	  ;; 	  ;; ([?\s-!] . (lambda () (interactive) (eh-current-window-to-workspace-and-follow-by-index 1)))
+	  ;; 	  ;; ([?\s-@] . (lambda () (interactive) (eh-current-window-to-workspace-and-follow-by-index 2)))
+	  ;; 	  ;; ([?\s-#] . (lambda () (interactive) (eh-current-window-to-workspace-and-follow-by-index 3)))
+	  ;; 	  ;; ([?\s-$] . (lambda () (interactive) (eh-current-window-to-workspace-and-follow-by-index 4)))
+	  ;; 	  ;; ([?\s-%] . (lambda () (interactive) (eh-current-window-to-workspace-and-follow-by-index 5)))
+	  ;; 	  ;; ([?\s-^] . (lambda () (interactive) (eh-current-window-to-workspace-and-follow-by-index 6)))
+	  ;; 	  ;; ([?\s-&] . (lambda () (interactive) (eh-current-window-to-workspace-and-follow-by-index 7)))
+	  ;; 	  ;; ([?\s-*] . (lambda () (interactive) (eh-current-window-to-workspace-and-follow-by-index 8)))
+	  ;; 	  ;; ([?\s-\(] . (lambda () (interactive) (eh-current-window-to-workspace-and-follow-by-index 9)))
+	  ;; 	  ;; ([?\s-\)] . (lambda () (interactive) (eh-current-window-to-workspace-and-follow-by-index 0)))
 	  ))
 
   (exwm-input-set-key (kbd "s-`") #'aw-previous-window)
