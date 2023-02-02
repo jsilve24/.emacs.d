@@ -376,7 +376,10 @@
   "t" #'jds/multi-vterm-same-window
   "T" #'jds/multi-vterm-new-window-or-frame
   "f" #'jds/org-agenda-show-custom-day
-  "F" #'jds/open-custom-day-agenda-new-frame
+  "F" (lambda () (interactive)
+	(split-window-right)
+	(other-window 1)
+	(org-agenda nil "d"))
   "p" #'org-agenda
   "s" #'jds/consult-org-agenda-or-ripgrep-all-headlines
   ;; "s" #'consult-org-agenda

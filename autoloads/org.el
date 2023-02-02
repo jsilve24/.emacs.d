@@ -9,14 +9,6 @@
 
 
 ;;;###autoload
-(defun jds/open-custom-day-agenda-new-frame ()
-  (interactive)
-  (jds~new-frame-or-new-window)
-  (sit-for .01)				; added for exwm buffers
-
-  (org-agenda nil "d"))
-
-;;;###autoload
 (defun jds/quoteless-day-agenda ()
   "intended only to be called by i3"
   (org-agenda nil "d"))
