@@ -436,13 +436,16 @@
 (jds/leader-def
   "o" '(:ignore t :which-key "other/apps")
   ;; "os" #'jds/hydra-spotify-wrapper
-  "os" engine-mode-prefixed-map
   "oc" #'calendar
   "or" #'jds/citar-open-prioritize-global-bib
   "op" #'proced
   "od" #'hydra-edebug/body
   "ob" #'ebib
   "oz" #'(lambda () (interactive) (jds~launch-zoom-by-conference-number 3697254414)))
+
+(with-eval-after-load 'engine-mode
+  (jds/leader-def
+      "os" engine-mode-prefixed-map))
 
 ;;; notes and org/org-roam stuff
 (jds/leader-def
