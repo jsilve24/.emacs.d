@@ -79,7 +79,11 @@
 
   ;; Use visual line motions even outside of visual-line-mode buffers
   (evil-global-set-key 'motion "j" 'evil-next-visual-line)
-  (evil-global-set-key 'motion "k" 'evil-previous-visual-line))
+  (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
+
+  ;; quick change and delete words
+  (general-nmap "X" (general-simulate-key "d a w"))
+  (general-nmap "C" (general-simulate-key "c i w")))
 
 (use-package evil-collection
   :straight (evil-collection :type git :host github :repo "emacs-evil/evil-collection"
