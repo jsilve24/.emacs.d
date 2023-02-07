@@ -12,6 +12,10 @@
     "https://www.google.com/search?hl=en&q=%s"
     :keybinding "s")
 
+  (defengine google-scholar
+    "https://scholar.google.com/scholar?q=%s"
+    :keybinding "r")
+
   (defengine wikipedia
     "https://en.wikipedia.org/w/index.php?search=%s"
     :keybinding "w")
