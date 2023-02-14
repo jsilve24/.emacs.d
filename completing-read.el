@@ -239,8 +239,8 @@ targets."
 
   ;; create new embark keymap for org-headings
   (add-to-list 'marginalia-prompt-categories '("Go to heading:" . consult-org-heading))
-  (embark-define-keymap embark-consult-org-heading-map
-    "Keymap to use with embark and consult-org-heading")
+  (defvar-keymap embark-consult-org-heading-map
+    :doc "Keymap to use with embark and consult-org-heading")
   (add-to-list 'embark-keymap-alist '(consult-org-heading . embark-consult-org-heading-map))
   (define-key embark-consult-org-heading-map (kbd "o") (jds/embark-ace-action consult-org-agenda))
   (define-key embark-consult-org-heading-map (kbd "v") (jds/embark-split-action consult-org-agenda split-window-right))
@@ -309,7 +309,7 @@ targets."
   ;; Optionally configure preview. The default value
   ;; is 'any, such that any key triggers the preview.
   ;; (setq consult-preview-key 'any)
-  (setq consult-preview-key (kbd "M-."))
+  ;; (setq consult-preview-key (kbd "M-."))
   ;; (setq consult-preview-key (list (kbd "<S-down>") (kbd "<S-up>")))
   ;; For some commands and buffer sources it is useful to configure the
   ;; :preview-key on a per-command basis using the `consult-customize' macro.
@@ -319,7 +319,8 @@ targets."
    consult-ripgrep consult-git-grep consult-grep
    consult-bookmark consult-recent-file consult-xref
    consult--source-recent-file consult--source-project-recent-file consult--source-bookmark
-   :preview-key (kbd "M-."))
+   ;; :preview-key (kbd "M-.")
+   )
 
   ;; consult-buffer filter buffer list
   ;; (add-to-list 'consult-buffer-filter "\\*straight-process\\*")
