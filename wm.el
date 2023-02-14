@@ -143,7 +143,7 @@
 	  ([?\s-\ ] . ace-window)
 	  ([?\s-b] . bury-buffer)
 	  ([?\s-w] . balance-windows)
-	  ([?\s-s] . exwm-workspace-switch-create)
+	  ([?\s-s] . exwm-workspace-switch)
 	  ([?\s-S] . exwm-workspace-move-window)
 
 
