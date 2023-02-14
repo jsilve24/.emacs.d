@@ -20,6 +20,7 @@
 #+latex_header: \usepackage{listings}
 #+latex_header: \usepackage{tikz}
 #+latex_header: \usetikzlibrary{matrix}
+#+STARTUP: latexpreview
 
 \vspace{0.25in}
 
