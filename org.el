@@ -14,10 +14,11 @@
   ;; don't include files in .attach
  (setq org-agenda-files
 	(seq-filter
-	 (lambda (x) (and  (not (string-match-p (rx "\.attach") x))
-			   (not (string-match-p (rx "ShoeTracking") x))
-			   (not (string-match-p (rx "emacs cheatsheet") x))
-			   (not (string-match-p (rx "meetings_anarres") x))))
+	 (lambda (x) (and (not (string-match-p (rx "\.attach") x))
+			  (not (string-match-p (rx "\.#") x))
+			  (not (string-match-p (rx "ShoeTracking") x))
+			  (not (string-match-p (rx "emacs cheatsheet") x))
+			  (not (string-match-p (rx "meetings_anarres") x))))
 	 (directory-files "~/Dropbox/org/" t "\\.org$")))
 
   (setq org-directory "~/Dropbox/org")
@@ -343,10 +344,10 @@
 (appt-activate t)
 
 (defun fw/org-agenda-to-appt ()
-  "Rebuild all appt reminders using org."
-  (interactive)
-  (setq appt-time-msg-list nil)
-  (org-agenda-to-appt))
+ "Rebuild all appt reminders using org."
+ (interactive)
+ (setq appt-time-msg-list nil)
+ (org-agenda-to-appt))
 
 (fw/org-agenda-to-appt)
 (add-hook 'org-agenda-finalize-hook 'fw/org-agenda-to-appt)
