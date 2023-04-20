@@ -6,9 +6,9 @@
 # -*- eval: (setq-local ess-startup-directory default-directory) -*-
 #+TITLE:     $1
 #+SUBTITLE:  $2
-#+AUTHOR:    Justin Silverman
+#+AUTHOR:    Justin Silverman, MD, PhD
 #+EMAIL:     JustinSilverman@psu.edu 
-#+BEAMER_HEADER: \institute[]{Penn State University} 
+#+BEAMER_HEADER: \institute[]{The Pennsylvania State University \\ College of Information Science and Technology \\ Departments of Statistics and Medicine \\ Institute for Computational and Data Science} 
 #+DATE:      
 #+DESCRIPTION: 
 #+KEYWORDS: 
@@ -34,6 +34,8 @@
 #+BEAMER_HEADER: \hypersetup{colorlinks,linkcolor=,urlcolor=links}
 #+BEAMER_HEADER: \usepackage{lmodern}
 #+BEAMER_HEADER: \usefonttheme{professionalfonts}
+#+BEAMER_HEADER: %\setbeameroption{show notes on second screen=right} % Both
+# %\setbeameroption{hide notes} % Only slides
 #+STARTUP: beamer
 #+OPTIONS: d:(not "RELATED") ^:nil
 #+BEAMER_HEADER: \usepackage[doi=false,isbn=false,url=false,eprint=false]{biblatex}
