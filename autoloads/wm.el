@@ -78,6 +78,7 @@ configuration was previously save, restore that configuration."
   (interactive)
   (jds/quiet-async-shell-commands "xrandr --output eDP-1 --primary --mode 1920x1080 --pos 0x0 --rotate normal --output DP-1-0 --mode 1920x1080 --pos 1920x0 --rotate normal --output DP-1-1 --off --output HDMI-1-0 --off")
   (jds/quiet-async-shell-commands "xrandr --output DP-1-0 --same-as eDP-1")
+  (sit-for 15)
   (jds/quiet-async-shell-commands "xsetwacom set 'Wacom Intuos BT S Pen stylus' MapToOutput HEAD-0"))
 
 
