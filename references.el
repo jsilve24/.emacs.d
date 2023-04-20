@@ -14,14 +14,53 @@
   (setq citar-select-multiple t)
 
   ;; nice file icons
-  (setq citar-symbols
-	`((file . (,(all-the-icons-icon-for-file "foo.pdf" :face 'all-the-icons-dred) .
-		   ,(all-the-icons-icon-for-file "foo.pdf" :face 'citar-icon-dim)))
-	  (note . (,(all-the-icons-icon-for-file "foo.txt") .
-		   ,(all-the-icons-icon-for-file "foo.txt" :face 'citar-icon-dim)))
-	  (link .
-		(,(all-the-icons-faicon "external-link-square" :v-adjust 0.02 :face 'all-the-icons-dpurple) .
-		 ,(all-the-icons-faicon "external-link-square" :v-adjust 0.02 :face 'citar-icon-dim)))))
+  (defvar citar-indicator-files-icons
+    (citar-indicator-create
+     :symbol (all-the-icons-icon-for-file "foo.pdf" :face 'all-the-icons-dred)
+     :function #'citar-has-files
+     :padding "  " ; need this because the default padding is too low for these icons
+     :tag "has:files"))
+
+  (defvar citar-indicator-links-icons
+    (citar-indicator-create
+     :symbol (all-the-icons-octicon
+	      "link"
+	      :face 'all-the-icons-orange
+	      :v-adjust 0.01)
+     :function #'citar-has-links
+     :padding "  "
+     :tag "has:links"))
+
+  (defvar citar-indicator-notes-icons
+    (citar-indicator-create
+     :symbol (all-the-icons-icon-for-file "foo.txt")
+     :function #'citar-has-notes
+     :padding "  "
+     :tag "has:notes"))
+
+  (defvar citar-indicator-cited-icons
+    (citar-indicator-create
+     :symbol (all-the-icons-faicon
+	      "circle-o"
+	      :face 'all-the-icon-green)
+     :function #'citar-is-cited
+     :padding "  "
+     :tag "is:cited"))
+
+  (setq citar-indicators
+	(list citar-indicator-files-icons
+	      citar-indicator-links-icons
+	      citar-indicator-notes-icons
+	      citar-indicator-cited-icons))
+
+  ;; (setq citar-symbols
+  ;; 	`((file . (,(all-the-icons-icon-for-file "foo.pdf" :face 'all-the-icons-dred) .
+  ;; 		   ,(all-the-icons-icon-for-file "foo.pdf" :face 'citar-icon-dim)))
+  ;; 	  (note . (,(all-the-icons-icon-for-file "foo.txt") .
+  ;; 		   ,(all-the-icons-icon-for-file "foo.txt" :face 'citar-icon-dim)))
+  ;; 	  (link .
+  ;; 		(,(all-the-icons-faicon "external-link-square" :v-adjust 0.02 :face 'all-the-icons-dpurple) .
+  ;; 		 ,(all-the-icons-faicon "external-link-square" :v-adjust 0.02 :face 'citar-icon-dim)))))
   ;; Here we define a face to dim non 'active' icons, but preserve alignment
   (defface citar-icon-dim
     '((((background dark)) :foreground "#282c34")
@@ -35,8 +74,8 @@
   (org-cite-activate-processor 'citar)
   (citar-bibliography org-cite-global-bibliography)
   (org-cite-export-processors
-   '((latex  biblatex)				      
-     (t  csl))) ; Fallback
+   '((latex biblatex)
+     (t csl)))				; Fallback
   :config
   (require 'oc)
   (require 'oc-biblatex)
