@@ -20,13 +20,15 @@
 (use-package affe
   :commands (affe-find affe-grep)
   :config
-  (setq affe-find-command (concat
-			   "find -type f "
-			   "\! \( -path */.git/* \) "
-			   "\! \( -path */.dropbox/* \) "
-			   "\! \( -path */.mail/* \) "
-			   "\! \( -path */python3\.9/* \) "
-			   "\! \( -name \".DS_Store\" \) ")))
+  (setq affe-find-command "rg --color=never --files --hidden --ignore-file /home/jds6696/.emacs.d/.affe-ignore")
+  ;; (setq affe-find-command (concat
+  ;; 			   "find -type f "
+  ;; 			   "\! \( -path */.git/* \) "
+  ;; 			   "\! \( -path */.dropbox/* \) "
+  ;; 			   "\! \( -path */.mail/* \) "
+  ;; 			   "\! \( -path */python3\.9/* \) "
+  ;; 			   "\! \( -name \".DS_Store\" \) "))
+  )
 
 ;;;###autoload
 (defun jds/affe-find-files-home ()

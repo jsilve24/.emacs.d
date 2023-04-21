@@ -1,0 +1,7 @@
+.gnupg/**
+.cache/**
+.dropbox/**
+.mail/**
+.mozilla/**
+**/.git/**
+.DS_Store
