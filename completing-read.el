@@ -270,20 +270,20 @@ targets."
 (use-package consult
   :defer t
   :bind
-  (([remap apropos]                      . #'consult-apropos)
-   ([remap bookmark-jump]                . #'consult-bookmark)
-   ([remap evil-show-marks]              . #'consult-mark)
+  (([remap apropos] . #'consult-apropos)
+   ([remap bookmark-jump] . #'consult-bookmark)
+   ([remap evil-show-marks] . #'consult-mark)
    ;; ([remap evil-show-jumps]              . #'+vertico/jump-list)
-   ([remap goto-line]                    . #'consult-goto-line)
-   ([remap imenu]                        . #'consult-imenu)
-   ([remap locate]                       . #'consult-locate)
-   ([remap load-theme]                   . #'consult-theme)
-   ([remap man]                          . #'consult-man)
-   ([remap recentf-open-files]           . #'consult-recent-file)
-   ([remap switch-to-buffer]             . #'consult-buffer)
-   ([remap switch-to-buffer-other-window]. #'consult-buffer-other-window)
+   ([remap goto-line] . #'consult-goto-line)
+   ([remap imenu] . #'consult-imenu)
+   ([remap locate] . #'consult-locate)
+   ([remap load-theme] . #'consult-theme)
+   ([remap man] . #'consult-man)
+   ([remap recentf-open-files] . #'consult-recent-file)
+   ([remap switch-to-buffer] . #'consult-buffer)
+   ([remap switch-to-buffer-other-window] ly-raw function consult-buffer-other-window)
    ([remap switch-to-buffer-other-frame] . #'consult-buffer-other-frame)
-   ([remap yank-pop]                     . #'consult-yank-pop)
+   ([remap yank-pop] . #'consult-yank-pop)
    ;; ([remap persp-switch-to-buffer]       . #'+vertico/switch-workspace-buffer)
    )
 
@@ -323,11 +323,24 @@ targets."
    )
 
   ;; consult-buffer filter buffer list
-  ;; (add-to-list 'consult-buffer-filter "\\*straight-process\\*")
+  (add-to-list 'consult-buffer-filter "\\*straight-process\\*")
+  (add-to-list 'consult-buffer-filter "\\*ESS\*")
+  (add-to-list 'consult-buffer-filter "\\*gcal-output\*")
+  (add-to-list 'consult-buffer-filter "\\*exchange-output\*")
+  (add-to-list 'consult-buffer-filter "\\*Slack Event")
+  (add-to-list 'consult-buffer-filter "\\*Ibuffer\\*")
+  (add-to-list 'consult-buffer-filter "\\*Calendar\\*")
+  (add-to-list 'consult-buffer-filter "\\*Slack Log")
+  (add-to-list 'consult-buffer-filter "\\*Org Agenda\\*")
+  (add-to-list 'consult-buffer-filter "\\*Org ASCII Export\\*")
+  (add-to-list 'consult-buffer-filter "slack-curl-downloader")
   (add-to-list 'consult-buffer-filter "\\*helpful*")
   (add-to-list 'consult-buffer-filter "\\*Apropos\\*")
   (add-to-list 'consult-buffer-filter "\\*zoxide\\*")
   (add-to-list 'consult-buffer-filter "\\*trace*")
+  (add-to-list 'consult-buffer-filter "\\*Messages\\*")
+  (add-to-list 'consult-buffer-filter "\\*TeX Help\\*")
+  (add-to-list 'consult-buffer-filter "\\*scratch\\*")
   (add-to-list 'consult-buffer-filter "\\*sent draft\\*")
 
   ;; combine sources for consult-buffer
@@ -341,36 +354,36 @@ targets."
 
   ;; add annotation to consult-org-agenda
   ;; (consult-customize
-  ;;  consult-org-agenda
-  ;;  :annotate (lambda (&optional foo)
-  ;; 	       (let ((end (save-excursion (outline-next-heading) (point))))
-  ;; 		 (if (or (re-search-forward org-ts-regexp end t)
-  ;; 			 (re-search-forward org-ts-regexp-both end t))
-  ;; 		     (match-string 0))) ))
+  ;; consult-org-agenda
+  ;; :annotate (lambda (&optional foo)
+  ;; (let ((end (save-excursion (outline-next-heading) (point))))
+  ;; (if (or (re-search-forward org-ts-regexp end t)
+  ;; (re-search-forward org-ts-regexp-both end t))
+  ;; (match-string 0))) ))
 
 
 
 
   ;; dont' preview exwm buffers
   ;; see: https://github.com/minad/consult/wiki#do-not-preview-exwm-windows-or-tramp-buffers
-(defun consult-buffer-state-no-x ()
-  "Buffer state function that doesn't preview X buffers."
-  (let ((orig-state (consult--buffer-state))
-        (filter (lambda (action cand)
-                  (if (or (eq action 'return)
-			  (if cand
-                              (let ((buffer (get-buffer cand)))
-				(and buffer
-                                     (not (eq 'exwm-mode (buffer-local-value 'major-mode buffer)))))))
-                      cand
-                    nil))))
-    (lambda (action cand)
-      (funcall orig-state action (funcall filter action cand)))))
+  (defun consult-buffer-state-no-x ()
+    "Buffer state function that doesn't preview X buffers."
+    (let ((orig-state (consult--buffer-state))
+	  (filter (lambda (action cand)
+		    (if (or (eq action 'return)
+			    (if cand
+				(let ((buffer (get-buffer cand)))
+				  (and buffer
+				       (not (eq 'exwm-mode (buffer-local-value 'major-mode buffer)))))))
+			cand
+		      nil))))
+      (lambda (action cand)
+	(funcall orig-state action (funcall filter action cand)))))
 
-(setq consult--source-buffer
-      (plist-put consult--source-buffer :state #'consult-buffer-state-no-x))
-  
-    ;; group exwm buffers together
+  (setq consult--source-buffer
+	(plist-put consult--source-buffer :state #'consult-buffer-state-no-x))
+
+  ;; group exwm buffers together
   (defun exwm-all-buffers ()
     (seq-filter
      (lambda (buffer)
@@ -401,9 +414,9 @@ targets."
   ;; There are multiple reasonable alternatives to chose from.
 ;;;; 1. project.el (project-roots)
   ;; (setq consult-project-root-function
-  ;; 	(lambda ()
-  ;; 	  (when-let (project (project-current))
-  ;; 	    (car (project-roots project)))))
+  ;; (lambda ()
+  ;; (when-let (project (project-current))
+  ;; (car (project-roots project)))))
 ;;;; 2. projectile.el (projectile-project-root)
   (autoload 'projectile-project-root "projectile")
   (setq consult-project-root-function #'projectile-project-root)
