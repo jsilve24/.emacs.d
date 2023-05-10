@@ -176,6 +176,13 @@
 	   ,(concat "* MEETING %u with Andrew :MEETING:w_andrew:\n  %?")
 	   :jump-to-captured t
 	   :tree-type month)
+	  ("mPt" "meeting Tinghua" entry (file+datetree "~/Dropbox/org/mtx-tinghua.org")
+	   ,(concat "* MEETING %u with Tinghua :MEETING:w_tinghua:\n"
+		    "** Chicken Microbiome :p_chicken:\n"
+		    "** Causal Inference :p_tram:\n"
+		    "** Future Plans \n")
+	   :jump-to-captured t
+	   :tree-type month)
 	  ("mPd" "meeting DIHI" entry (file+datetree "~/Dropbox/org/mtx-michelle.org")
 	   ,(concat "* MEETING %u with DIHI :MEETING:w_michelle:p_bacteremia:\n"
 		    "  %?")
