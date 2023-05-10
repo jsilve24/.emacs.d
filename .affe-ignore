@@ -1,6 +1,7 @@
 .gnupg/**
 .cache/**
 .dropbox/**
+.dropbox-dist/**
 .mail/**
 .mozilla/**
 **/.git/**
