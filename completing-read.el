@@ -270,7 +270,6 @@ targets."
 (use-package consult
   :defer t
   :bind
-
   (([remap apropos]                      . #'consult-apropos)
    ([remap bookmark-jump]                . #'consult-bookmark)
    ([remap evil-show-marks]              . #'consult-mark)
@@ -328,6 +327,7 @@ targets."
   (add-to-list 'consult-buffer-filter "\\*ESS\\*")
   (add-to-list 'consult-buffer-filter "\\*gcal-output\\*")
   (add-to-list 'consult-buffer-filter "\\*exchange-output\\*")
+  (add-to-list 'consult-buffer-filter "\\*Magit Repositories\\*")
   (add-to-list 'consult-buffer-filter "\\*Slack Event")
   (add-to-list 'consult-buffer-filter "\\*Ibuffer\\*")
   (add-to-list 'consult-buffer-filter "\\*Calendar\\*")
