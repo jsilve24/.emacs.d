@@ -270,20 +270,21 @@ targets."
 (use-package consult
   :defer t
   :bind
-  (([remap apropos] . #'consult-apropos)
-   ([remap bookmark-jump] . #'consult-bookmark)
-   ([remap evil-show-marks] . #'consult-mark)
+
+  (([remap apropos]                      . #'consult-apropos)
+   ([remap bookmark-jump]                . #'consult-bookmark)
+   ([remap evil-show-marks]              . #'consult-mark)
    ;; ([remap evil-show-jumps]              . #'+vertico/jump-list)
-   ([remap goto-line] . #'consult-goto-line)
-   ([remap imenu] . #'consult-imenu)
-   ([remap locate] . #'consult-locate)
-   ([remap load-theme] . #'consult-theme)
-   ([remap man] . #'consult-man)
-   ([remap recentf-open-files] . #'consult-recent-file)
-   ([remap switch-to-buffer] . #'consult-buffer)
-   ([remap switch-to-buffer-other-window] ly-raw function consult-buffer-other-window)
+   ([remap goto-line]                    . #'consult-goto-line)
+   ([remap imenu]                        . #'consult-imenu)
+   ([remap locate]                       . #'consult-locate)
+   ([remap load-theme]                   . #'consult-theme)
+   ([remap man]                          . #'consult-man)
+   ([remap recentf-open-files]           . #'consult-recent-file)
+   ([remap switch-to-buffer]             . #'consult-buffer)
+   ([remap switch-to-buffer-other-window]. #'consult-buffer-other-window)
    ([remap switch-to-buffer-other-frame] . #'consult-buffer-other-frame)
-   ([remap yank-pop] . #'consult-yank-pop)
+   ([remap yank-pop]                     . #'consult-yank-pop)
    ;; ([remap persp-switch-to-buffer]       . #'+vertico/switch-workspace-buffer)
    )
 
@@ -324,9 +325,9 @@ targets."
 
   ;; consult-buffer filter buffer list
   (add-to-list 'consult-buffer-filter "\\*straight-process\\*")
-  (add-to-list 'consult-buffer-filter "\\*ESS\*")
-  (add-to-list 'consult-buffer-filter "\\*gcal-output\*")
-  (add-to-list 'consult-buffer-filter "\\*exchange-output\*")
+  (add-to-list 'consult-buffer-filter "\\*ESS\\*")
+  (add-to-list 'consult-buffer-filter "\\*gcal-output\\*")
+  (add-to-list 'consult-buffer-filter "\\*exchange-output\\*")
   (add-to-list 'consult-buffer-filter "\\*Slack Event")
   (add-to-list 'consult-buffer-filter "\\*Ibuffer\\*")
   (add-to-list 'consult-buffer-filter "\\*Calendar\\*")
