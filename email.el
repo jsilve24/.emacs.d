@@ -178,6 +178,7 @@
   ;; completely disable mu4e-specific mode-line components
   (defun mu4e~headers-update-mode-line ())
   (defun mu4e-context-in-modeline ())
+  (setq mu4e-modeline-mode nil)
 
   ;; start mu4e in background
   ;; (mu4e)
