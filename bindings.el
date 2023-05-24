@@ -134,7 +134,6 @@
   "fa" #'jds/affe-find-files-home
   "fS" #'evil-write-all
   "fz" #'zoxide-find-file
-  "fZ" #'zoxide-cd
   "fc" #'jds/open-config
   "fC" #'jds/find-file-config
   ;; "fk" #'project-kill-buffers
