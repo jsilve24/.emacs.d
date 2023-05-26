@@ -1,23 +1,4 @@
 ;;; email.el --- mu4e setup -*- lexical-binding: t; -*-
-;;
-;; Copyright (C) 2021 Justin Silverman
-;;
-;; Author: Justin Silverman <https://github.com/jsilve24>
-;; Maintainer: Justin Silverman <jsilve24@gmail.com>
-;; Created: October 23, 2021
-;; Modified: October 23, 2021
-;; Version: 0.0.1
-;; Keywords: abbrev bib c calendar comm convenience data docs emulations extensions faces files frames games hardware help hypermedia i18n internal languages lisp local maint mail matching mouse multimedia news outlines processes terminals tex tools unix vc wp
-;; Homepage: https://github.com/jsilve24/email
-;; Package-Requires: ((emacs "24.3"))
-;;
-;; This file is not part of GNU Emacs.
-;;
-;;; Commentary:
-;;
-;;  mu4e setup
-;;
-;;; Code:
 
 ;; (straight-use-package '(mu4e
 ;;   ;; :files (:defaults "/usr/local/share/emacs/site-lisp/mu4e/*.el")))
@@ -146,7 +127,7 @@
 
 
   ;; turn off mu4e in doom modeline
-  (setq doom-modeline-mu4e nil)
+  ;; (setq doom-modeline-mu4e nil)
 
   ;; setup calendar
   (setq mu4e-view-use-gnus t)
@@ -346,6 +327,6 @@ mu4e-headers-goto-message-id."
  "P" #'mu4e-view-save-all-attachments)
 
 
-(provide 'email)
+(provide 'config-email)
 ;;; email.el ends here
 
