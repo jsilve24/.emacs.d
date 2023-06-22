@@ -189,11 +189,17 @@
                          ; "uncomment then options go here "
                          (buffer-file-name))))
 
+;;;###autoload
+(defun jds/tex-command-run-all-and-save ()
+  (interactive)
+  (save-buffer)
+  (call-interactively #'TeX-command-run-all))
+
 ;;; keybindings
 
 (jds/localleader-def
   :keymaps 'LaTeX-mode-map
-  "m" #'TeX-command-run-all
+  "m" #'jds/tex-command-run-all-and-save
   "e" #'LaTeX-environment
   "s" #'LaTeX-section
   "C" #'LaTeX-close-environment
