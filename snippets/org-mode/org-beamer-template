@@ -8,7 +8,7 @@
 #+SUBTITLE:  $2
 #+AUTHOR:    Justin Silverman, MD, PhD
 #+EMAIL:     JustinSilverman@psu.edu 
-#+BEAMER_HEADER: \institute[]{The Pennsylvania State University \\ College of Information Science and Technology \\ Departments of Statistics and Medicine \\ Institute for Computational and Data Science} 
+#+BEAMER_HEADER: \institute[]{The Pennsylvania State University \\\\ College of Information Science and Technology \\\\ Departments of Statistics and Medicine \\\\ Institute for Computational and Data Science} 
 #+DATE:      
 #+DESCRIPTION: 
 #+KEYWORDS: 
@@ -33,6 +33,9 @@
 #+BEAMER_HEADER: \definecolor{links}{HTML}{4167E1}
 #+BEAMER_HEADER: \hypersetup{colorlinks,linkcolor=,urlcolor=links}
 #+BEAMER_HEADER: \usepackage{lmodern}
+#+BEAMER_HEADER: \DeclareMathOperator*{\mean}{mean}
+#+BEAMER_HEADER: \DeclareMathOperator*{\median}{median}
+#+BEAMER_HEADER: \newcommand{\E}{\mathbb{E}} % Nice Infimum
 #+BEAMER_HEADER: \usefonttheme{professionalfonts}
 #+BEAMER_HEADER: %\setbeameroption{show notes on second screen=right} % Both
 # %\setbeameroption{hide notes} % Only slides

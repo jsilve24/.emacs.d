@@ -1,11 +1,15 @@
 # -*- mode: snippet -*-
-# name: article-template
-# key: article
+# name: article-template-notitle
+# key: article-notitle
 # --
-\documentclass[${1:options}]{article}
+\\documentclass[11pt,a4paper]{article}
+\\usepackage[utf8x]{inputenc}
+\\usepackage{geometry}
+\\usepackage{amsmath}
+\\usepackage{graphicx}
 
-\author{$3}
-
-\begin{document}
+\\begin{document}
 $0
-\end{document}
+\\end{document}
+
+
