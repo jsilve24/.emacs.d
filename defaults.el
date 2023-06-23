@@ -70,29 +70,12 @@
 
 (menu-bar-mode -1)            ; Disable the menu bar
 
-(global-display-line-numbers-mode t)
+;; Turn on line line numbers in some buffers
+(dolist (mode '(text-mode-hook
+		prog-mode-hook))
+  (add-hook mode (lambda () (display-line-numbers-mode 1))))
 (setq display-line-numbers-type 'relative)
 
-;; Disable line numbers for some modes
-(dolist (mode '(;;org-mode-hook
-                term-mode-hook
-		slack-message-buffer-mode-hook
-		slack-file-info-buffer-mode-hook
-		slack-file-list-buffer-mode-hook
-                pdf-view-mode-hook
-		doc-view-mode-hook
-		vterm-mode-hook
-                shell-mode-hook
-                treemacs-mode-hook
-                mu4e-main-mode-hook
-		mu4e-view-mode-hook
-                mu4e-main-index-update-hook
-		org-capture-before-finalize-hook
-		mu4e-headers-mode-hook
-                org-agenda-mode-hook
-		dired-sidebar-mode
-                eshell-mode-hook))
-  (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
 
 ;; The blinking cursor is distracting, but also interferes with cursor settings
