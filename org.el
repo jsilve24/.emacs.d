@@ -53,6 +53,8 @@
   (defun jds~org-fold-drawers ()
     (org-cycle-hide-drawers 'all))
   (add-hook 'org-mode-hook #'jds~org-fold-drawers)
+  (add-hook 'org-mode-hook #'org-align-all-tags)
+
 
   ;; allow alphabetical lists
   (setq org-list-allow-alphabetical t)
