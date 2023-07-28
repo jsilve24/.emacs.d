@@ -53,7 +53,14 @@
   (defun jds~org-fold-drawers ()
     (org-cycle-hide-drawers 'all))
   (add-hook 'org-mode-hook #'jds~org-fold-drawers)
-  (add-hook 'org-mode-hook #'org-align-all-tags)
+  (add-hook 'org-mode-hook (lambda ()
+			     (run-with-idle-timer
+			      5 nil
+			      (lambda ()
+				(let ((mod (buffer-modified-p)))
+				  (org-align-all-tags)
+				  (if mod nil
+				    (save-buffer)))))))
 
 
   ;; allow alphabetical lists
