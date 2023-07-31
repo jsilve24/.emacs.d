@@ -105,6 +105,7 @@
   :config
   ;; give a bit extra space to battery indicator 
   (setq	sml/battery-format " %p ")
+  (setq sml/extra-filler -6)
 
   ;; setup 
   (sml/setup)
