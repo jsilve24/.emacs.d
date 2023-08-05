@@ -11,8 +11,8 @@
   ;; https://magit.vc/manual/magit/Repository-List.html (documentation)
   (setq magit-repository-directories '(("~/.homesick/repos/arch-dotfiles/" 0)
 				       ("~/Dropbox/org/roam/references/" 0)
-				       ("/home/jds6696/.local/share/ArchMatic/")
-				       ("~/Dropbox/Research/src/fido/")
+				       ("/home/jds6696/.local/share/ArchMatic/" 0)
+				       ("~/Dropbox/Research/src/fido/" 0)
 				       ("~/.emacs.d/" 0))
 	magit-repolist-columns '(("Name" 25 magit-repolist-column-ident nil)
 				 ;; ("Version" 25 magit-repolist-column-version
