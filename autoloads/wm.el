@@ -64,6 +64,16 @@ configuration was previously save, restore that configuration."
 
 ;;; quick setup for teaching
 ;;;###autoload
+(defun jds/setup-projector-and-wacom-E206 ()
+  "Quick setup screen mirroring and wacom to HEAD-0 for teaching in Westgate E208"
+  (interactive)
+  (jds/quiet-async-shell-commands "xrandr --output eDP-1 --primary --mode 1920x1080 --pos 0x0 --rotate normal --output DP-1-0 --mode 1920x1080 --pos 1911x0 --rotate normal --output DP-1-1 --off --output HDMI-1-0 --off")
+  (jds/quiet-async-shell-commands "xrandr --output DP-1-0 --same-as eDP-1")
+  (jds/quiet-async-shell-commands "xsetwacom set 'Wacom Intuos BT S Pen stylus' MapToOutput HEAD-0"))
+
+
+
+;;;###autoload
 (defun jds/setup-projector-and-wacom-E208 ()
   "Quick setup screen mirroring and wacom to HEAD-0 for teaching in Westgate E208"
   (interactive)
