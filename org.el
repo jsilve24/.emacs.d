@@ -200,16 +200,21 @@
 	  ("mPk" "meeting Kyle" entry (file+datetree "~/Dropbox/org/mtx-kyle.org")
 	   ,(concat "* MEETING %u with Kyle :MEETING:w_kyle:\n"
 		    "** cGSEA :p_cgsea:\n"
-		    "** Effective Scale Models :p_effscalemod:\n"
+		    "** Interval Null :p_intervalnull:\n"
 		    "** Future Plans \n"
 		    "  %?")
 	   :jump-to-captured t
 	   :tree-type month)
-	  ("mPz" "meeting Zhao Ma" entry (file+datetree "~/Dropbox/org/mtx-zhaoma.org")
-	   ,(concat "* MEETING %u with Zhao Ma :MEETING:w_zhao:\n"
+	  ("mPw" "meeting Won" entry (file+datetree "~/Dropbox/org/mtx-won.org")
+	   ,(concat "* MEETING %u with Won :MEETING:w_won:\n"
 		    "  %?")
 	   :jump-to-captured t
 	   :tree-type month)
+	  ;; ("mPz" "meeting Zhao Ma" entry (file+datetree "~/Dropbox/org/mtx-zhaoma.org")
+	  ;;  ,(concat "* MEETING %u with Zhao Ma :MEETING:w_zhao:\n"
+	  ;; 	    "  %?")
+	  ;;  :jump-to-captured t
+	  ;;  :tree-type month)
 	  ("c" "calendar event")
 	  ("cc" "plain event" entry (file+headline "~/Dropbox/org/calendar.org" "Calendar")
 	   "* %? \n %^T")
