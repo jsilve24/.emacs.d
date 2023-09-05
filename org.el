@@ -327,6 +327,7 @@
 ;; make it easier to edit fontified/hidden text (I mostly just use this for org-links)
 (use-package org-appear
   :after org
+  :disabled 
   :config
   ;; (setq org-hide-emphasis-markers t)
 
