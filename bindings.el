@@ -329,10 +329,10 @@
     "Create new lambda function that wraps functions like org-store-link to smarly add ROAM_EXCLUDE tag."
     `(lambda (&optional arg)
        (interactive "P")
-       (let ((nodep (org-roam-db-node-p))
-	     (inorg (string= major-mode "org-mode"))
-	     (inroam (string-prefix-p (expand-file-name org-roam-directory) (buffer-file-name)))
-	     (include (not (member "ROAM_EXCLUDE" (org-get-tags)))))
+       (let* ((inorg (string= major-mode "org-mode"))
+	      (nodep (if inorg (org-roam-db-node-p) nil))
+	      (inroam (string-prefix-p (expand-file-name org-roam-directory) (buffer-file-name)))
+	      (include (if inorg  (not (member "ROAM_EXCLUDE" (org-get-tags))) nil)))
 	 ,body
 	 (unless arg
 	   (if (and inorg
