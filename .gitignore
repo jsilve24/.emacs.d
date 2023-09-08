@@ -1,4 +1,6 @@
-/straight/
+/straight/build/
+/straight/repos/
+/straight/build-cache.el
 /var/
 /spell-fu/
 /elpa/

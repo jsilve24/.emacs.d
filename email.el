@@ -4,10 +4,11 @@
 ;;   ;; :files (:defaults "/usr/local/share/emacs/site-lisp/mu4e/*.el")))
 ;;   :files (:defaults "mu4e/*.el")))
 (use-package mu4e
+  ;; from here: https://github.com/radian-software/straight.el/issues/491
   :straight (:local-repo "/usr/share/emacs/site-lisp/mu4e"
-			 :pre-build ())
+			 :type built-in)
   ;; :commands mu4e mu4e-compose-new mu4e-headers-search-bookmark mu4e-get-bookmark-query mu4e~start
-  :ensure t
+  ;;:ensure t
   :init
   (provide 'html2text) ;; disable obsolete package
   :config
