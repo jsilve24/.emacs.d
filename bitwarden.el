@@ -1,5 +1,6 @@
 (use-package bitwarden
-  :straight (bitwarden :type git :host github :repo "jsilve24/emacs-bitwarden")
+  :straight (bitwarden :type git :host github :repo "seanfarley/emacs-bitwarden"
+		       :fork t)
   :config
   (setq bitwarden-user "jsilve24@gmail.com")
   (setq bitwarden-api-secret-key
