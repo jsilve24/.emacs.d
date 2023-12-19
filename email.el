@@ -170,6 +170,7 @@
 (use-package org-msg
   :straight t
   :after mu4e
+  ;; :disabled t
   :config
   (setq
    org-msg-options "html-postamble:nil num:nil ^:{} toc:nil author:nil email:nil \\n:t tex:dvipng eval:nil"

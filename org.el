@@ -3,16 +3,16 @@
 (load-config "autoloads/org.el")
 
 (use-package org
-  ;;:straight (org-mode :local-repo "~/Downloads/org-mode/")
+  ;; :straight (org-mode :local-repo "~/Downloads/org-mode/")
   ;; :ensure t
-  ;;:straight (org-mode :host github :repo "emacs-straight/org-mode")
+  ;; :straight (org-mode :host github :repo "emacs-straight/org-mode")
   :diminish org-indent-mode
   :diminish org-cdlatex-mode
   :config
 
 
   ;; don't include files in .attach
- (setq org-agenda-files
+  (setq org-agenda-files
 	(seq-filter
 	 (lambda (x) (and (not (string-match-p (rx "\.attach") x))
 			  (not (string-match-p (rx "\.#") x))
@@ -78,7 +78,7 @@
   ;; Prevent editing invisible (folded) text
   (setq org-catch-invisible-edits 'error)
 
-  ;;; setup refile
+;;; setup refile
 
   ;; Targets include this file and any file contributing to the agenda - up to 9 levels deep
   (setq org-refile-targets '((nil :maxlevel . 9)
@@ -96,7 +96,7 @@
     (not (member (nth 2 (org-heading-components)) org-done-keywords)))
   (setq org-refile-target-verify-function 'bh/verify-refile-target)
 
-  ;;; setup agenda
+;;; setup agenda
 
   ;; More visible current time in Agenda
   (setq org-agenda-current-time-string ">>>>>>>>>> NOW <<<<<<<<<<")
@@ -116,8 +116,8 @@
   (setq org-stuck-projects
 	'("/PROJ"
 	  ("NEXT" "TODO")
-	  nil   	 ; Tags that define a stuck project
-	  "SCHEDULED:")) ; regex that denotes a not stuck project
+	  nil				; Tags that define a stuck project
+	  "SCHEDULED:"))		; regex that denotes a not stuck project
 
   (setq org-agenda-compact-blocks nil)
   (setq org-agenda-block-separator nil)
@@ -149,7 +149,7 @@
   (setq org-agenda-skip-deadline-if-done t)
   (setq org-agenda-skip-scheduled-if-done t)
 
-  ;;; setup capture
+;;; setup capture
 
   (require 'org-protocol)
 
@@ -177,8 +177,7 @@
 		    "** TRAM Manuscript :p_tram:\n"
 		    "** ALDEx2 Manuscript :p_tram:\n"
 		    "** Bacteremia :p_bacteremia:\n"
-		    "** Decision Theory :p_bdt:\n"
-		    "** Chicken Microbiome :p_chicken:\n")
+		    "** Decision Theory :p_bdt:\n")
 	   :jump-to-captured t
 	   :tree-type month)
 	  ("mPa" "meeting Andrew" entry (file+datetree "~/Dropbox/org/mtx-andrew.org")
@@ -199,7 +198,6 @@
 	   :tree-type month)
 	  ("mPk" "meeting Kyle" entry (file+datetree "~/Dropbox/org/mtx-kyle.org")
 	   ,(concat "* MEETING %u with Kyle :MEETING:w_kyle:\n"
-		    "** cGSEA :p_cgsea:\n"
 		    "** Interval Null :p_intervalnull:\n"
 		    "** Future Plans \n"
 		    "  %?")
@@ -211,10 +209,10 @@
 	   :jump-to-captured t
 	   :tree-type month)
 	  ;; ("mPz" "meeting Zhao Ma" entry (file+datetree "~/Dropbox/org/mtx-zhaoma.org")
-	  ;;  ,(concat "* MEETING %u with Zhao Ma :MEETING:w_zhao:\n"
-	  ;; 	    "  %?")
-	  ;;  :jump-to-captured t
-	  ;;  :tree-type month)
+	  ;; ,(concat "* MEETING %u with Zhao Ma :MEETING:w_zhao:\n"
+	  ;; "  %?")
+	  ;; :jump-to-captured t
+	  ;; :tree-type month)
 	  ("c" "calendar event")
 	  ("cc" "plain event" entry (file+headline "~/Dropbox/org/calendar.org" "Calendar")
 	   "* %? \n %^T")
@@ -231,7 +229,7 @@
   ;; (in-mode . "mu4e-headers-mode")
   ;; (in-mode . "mu4e-view-mode")))))
 
-  ;;; appearance customizations
+;;; appearance customizations
   (setq org-ellipsis " ▾")
 
   ;; don't wrap lines in org-agenda
