@@ -292,5 +292,5 @@ R script buffer (i.e. the major mode is not `ess-r-mode`)."
   ;;        "p" #'ess-noweb-previous-chunk
   ;;        "n" #'ess-noweb-next-chunk)))
 
-(provide  'ess)
+(provide  'config-ess)
 

@@ -52,10 +52,10 @@ escape."
 	 (yas-expand-snippet (concat "\\\\(" ,symbol "\\\\)")))))
 
   (defun jds~expand-math-symbol-p ()
-      "Predicate for when to expand math snippets. In non-mathmode, only expand if preceded by non alphanumeric character"
-      (cond
-       ((and (not (texmathp)) (looking-back "[a-zA-Z0-9]" 1)) nil)
-       (t t)))
+    "Predicate for when to expand math snippets. In non-mathmode, only expand if preceded by non alphanumeric character"
+    (cond
+     ((and (not (texmathp)) (looking-back "[a-zA-Z0-9]" 1)) nil)
+     (t t)))
 
   (defmacro jds~aas-setup-insert-math (mode)
     `(progn (aas-set-snippets ,mode
@@ -294,7 +294,7 @@ escape."
     `(aas-set-snippets ,mode
        ";;" #'r/insert-assign
        ";in" "%in%"
-       ";*"  "%*%"
+       ";*" "%*%"
        ";m" #'r/insert-pipe
        ";func" (jds~yas-lambda-expand "$1 <- function($2) {\n $0 \n}")
        ";for" (jds~yas-lambda-expand "for (${1:i} in ${2:1:$3}) {\n$0\n}")))

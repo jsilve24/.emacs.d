@@ -11,6 +11,8 @@
     (setq native-comp-deferred-compilation t))
     (message "Native complation is *not* available"))
 
+(setq jds~skip-email t)
+
 (if (not (boundp 'jds~skip-wm))
     (setq jds~skip-wm nil))
 (if (not (boundp 'jds~skip-email))
@@ -46,7 +48,6 @@
 (load-config "calendar.el")
 (load-config "ibuffer.el")
 (load-config "editor.el")
-(load-config "snippets.el")
 ;; after everything else
 (load-config "bindings.el")
 ;; (load-config "debugging.el")
@@ -72,6 +73,9 @@
 (load-config "autoloads/ess-autoloads.el")
 (load-config "stan.el")
 ;; (load-config "ledger.el")
+
+(load-config "snippets.el")
+
 
 ;;; "optional" applications
 (load-config "slack.el")
