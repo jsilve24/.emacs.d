@@ -96,9 +96,9 @@ escape."
 	      ";cases" (jds~yas-lambda-expand "\\begin\\{cases\\}\n$0 \n\\end\\{cases\\}")
 	      ";approx" "\\approx"
 	      "lg" "\\log"
-	      ";ii" "_{ii}"
-	      ";ij" "_{ij}"
-	      ";jj" "_{jj}"
+	      ;; ";ii" "_{ii}"
+	      ;; ";ij" "_{ij}"
+	      ;; ";jj" "_{jj}"
 	      ";2" "^{2}"
 	      ";3" "^{3}"
 	      ";T" "^{T}"
@@ -153,6 +153,7 @@ escape."
 	      ;; ";natural" (jds~aas-insert-math "\\mathbb\\{N\\}$0")
 	      ";choose" (jds~aas-insert-math "\\{$1 \\choose $2\\}$0")
 	      ";all" (jds~aas-insert-math "\\forall$0")
+	      ";iid" (jds~aas-insert-math "\overset{\mathrm{iid}}{\sim}")
 	      ".a" (jds~aas-insert-math "\\alpha$0")
 	      ".b" (jds~aas-insert-math "\\beta$0")
 	      ".B" (jds~aas-insert-math "\\Beta$0")
