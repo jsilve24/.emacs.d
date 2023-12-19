@@ -3,6 +3,7 @@
 
 (use-package slack
   :straight (:type git :host github :repo "isamert/emacs-slack" :branch "master")
+  :disabled t
   :init
   (setq slack-buffer-emojify t
 	slack-prefer-current-team t
