@@ -163,16 +163,16 @@
 	  ("tt" "plain todo" entry (file "~/Dropbox/org/inbox.org")
 	   "* TODO %?\n %U")
 	  ("m" "meetings")
-	  ("ma" "meeting anarres" entry (file+datetree "~/Dropbox/org/meetings_anarres.org")
+	  ("ma" "meeting anarres" entry (file+olp+datetree "~/Dropbox/org/meetings_anarres.org")
 	   "* MEETING with %? - %u :MEETING:\n %U"
 	   :jump-to-captured t
 	   :tree-type month)
-	  ("mp" "meeting psu" entry (file+datetree "~/Dropbox/org/meetings_psu.org")
+	  ("mp" "meeting psu" entry (file+olp+datetree "~/Dropbox/org/meetings_psu.org")
 	   "* MEETING %u with %? :MEETING:\n "
 	   :jump-to-captured t
 	   :tree-type month)
 	  ("mP" "meeting specific person")
-	  ("mPm" "meeting Michelle" entry (file+datetree "~/Dropbox/org/mtx-michelle.org")
+	  ("mPm" "meeting Michelle" entry (file+olp+datetree "~/Dropbox/org/mtx-michelle.org")
 	   ,(concat "* MEETING %u with Michelle :MEETING:w_michelle:\n"
 		    "** TRAM Manuscript :p_tram:\n"
 		    "** ALDEx2 Manuscript :p_tram:\n"
@@ -180,35 +180,35 @@
 		    "** Decision Theory :p_bdt:\n")
 	   :jump-to-captured t
 	   :tree-type month)
-	  ("mPa" "meeting Andrew" entry (file+datetree "~/Dropbox/org/mtx-andrew.org")
+	  ("mPa" "meeting Andrew" entry (file+olp+datetree "~/Dropbox/org/mtx-andrew.org")
 	   ,(concat "* MEETING %u with Andrew :MEETING:w_andrew:\n  %?")
 	   :jump-to-captured t
 	   :tree-type month)
-	  ("mPt" "meeting Tinghua" entry (file+datetree "~/Dropbox/org/mtx-tinghua.org")
+	  ("mPt" "meeting Tinghua" entry (file+olp+datetree "~/Dropbox/org/mtx-tinghua.org")
 	   ,(concat "* MEETING %u with Tinghua :MEETING:w_tinghua:\n"
 		    "** Chicken Microbiome :p_chicken:\n"
 		    "** Causal Inference :p_tram:\n"
 		    "** Future Plans \n")
 	   :jump-to-captured t
 	   :tree-type month)
-	  ("mPd" "meeting DIHI" entry (file+datetree "~/Dropbox/org/mtx-michelle.org")
+	  ("mPd" "meeting DIHI" entry (file+olp+datetree "~/Dropbox/org/mtx-michelle.org")
 	   ,(concat "* MEETING %u with DIHI :MEETING:w_michelle:p_bacteremia:\n"
 		    "  %?")
 	   :jump-to-captured t
 	   :tree-type month)
-	  ("mPk" "meeting Kyle" entry (file+datetree "~/Dropbox/org/mtx-kyle.org")
+	  ("mPk" "meeting Kyle" entry (file+olp+datetree "~/Dropbox/org/mtx-kyle.org")
 	   ,(concat "* MEETING %u with Kyle :MEETING:w_kyle:\n"
 		    "** Interval Null :p_intervalnull:\n"
 		    "** Future Plans \n"
 		    "  %?")
 	   :jump-to-captured t
 	   :tree-type month)
-	  ("mPw" "meeting Won" entry (file+datetree "~/Dropbox/org/mtx-won.org")
+	  ("mPw" "meeting Won" entry (file+olp+datetree "~/Dropbox/org/mtx-won.org")
 	   ,(concat "* MEETING %u with Won :MEETING:w_won:\n"
 		    "  %?")
 	   :jump-to-captured t
 	   :tree-type month)
-	  ;; ("mPz" "meeting Zhao Ma" entry (file+datetree "~/Dropbox/org/mtx-zhaoma.org")
+	  ;; ("mPz" "meeting Zhao Ma" entry (file+olp+datetree "~/Dropbox/org/mtx-zhaoma.org")
 	  ;; ,(concat "* MEETING %u with Zhao Ma :MEETING:w_zhao:\n"
 	  ;; "  %?")
 	  ;; :jump-to-captured t
@@ -325,7 +325,6 @@
 ;; make it easier to edit fontified/hidden text (I mostly just use this for org-links)
 (use-package org-appear
   :after org
-  :disabled 
   :config
   ;; (setq org-hide-emphasis-markers t)
 
