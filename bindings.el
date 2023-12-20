@@ -49,22 +49,14 @@
 
 
 ;;;###autoload
-(defun jds~kill-whole-line ()
-  "Kill line, with prefix-arg kill entire line forwards and backwards to start of line."
-  (interactive)
-  (evil-delete-back-to-indentation))
-
-;;;###autoload
 (defun jds/evil-paste-from-clipboard ()
   (interactive)
   (evil-paste-from-register ?\"))
 
 (general-imap
-  "C-k" #'jds~kill-whole-line
   "C-a" #'move-beginning-of-line
   "C-e" #'move-end-of-line
-  "C-p" #'jds/evil-paste-from-clipboard
-  "M-w" #'kill-word)
+  "C-p" #'jds/evil-paste-from-clipboard)
 ;;  Note Defaults
 ;; C-w kill word back
 ;; "C-M-e" move to end of defun
@@ -72,7 +64,6 @@
 
 (general-nmap
   "C-e" #'move-end-of-line)
-
 
 ;; ultimately I found this annoying and it screwed with balanced parentheses in lisp code
 (global-set-key [remap dabbrev-expand] 'hippie-expand)
