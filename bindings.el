@@ -334,13 +334,18 @@
 	       (org-roam-tag-add '("ROAM_EXCLUDE")))))))
 
 
+
 ;;;###autoload
+(setq jds~task-files (mapcar (lambda (relfile) (expand-file-name relfile org-directory))
+			     (list "tasks.org" "resources.org")))
 (defun jds/consult-org-agenda-or-ripgrep-all-headlines (&optional arg)
   "Run consult-org-agenda or with prefix, run jds/consult-org-agenda-or-ripgrep-all-headlines."
   (interactive "P")
-  (if arg
-      (jds/consult-ripgrep-all-org-headlines)
-    (consult-org-agenda)))
+  (let ((prefix (prefix-numeric-value current-prefix-arg)))
+    (cond
+     ((eq prefix 4) (consult-org-agenda))
+     ((eq prefix 16) (jds/consult-ripgrep-all-org-headlines))
+     (t (consult-org-heading nil jds~task-files)))))
 
 (jds/sub-leader-def
   "," #'org-capture   ;; q "new"
