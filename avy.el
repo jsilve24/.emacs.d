@@ -47,6 +47,7 @@
 
 
 (use-package link-hint
+  :straight (link-hint :type git :host github :repo "noctuid/link-hint.el" :fork t)
   :after avy
   :ensure t
   :config
