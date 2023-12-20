@@ -18,7 +18,7 @@
 
 (general-define-key
  :keymaps 'override
- "C-'" #'popper-toggle-latest
+ "C-'" #'popper-toggle
  "C-\"" #'popper-cycle
  "C-M-'" #'popper-toggle-type
  "C-;" #'embark-act
