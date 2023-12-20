@@ -161,6 +161,11 @@
   (defun mu4e~headers-update-mode-line ())
   (defun mu4e-context-in-modeline ())
 
+  ;; Since I don't use the mu4e main-view its annoying when trying to call
+  ;; mu4e~headers-quit-buffer and having the minibuffer fire off asking if I
+  ;; want to send a message or view help etc...
+  (defun mu4e--main-view () "Ignore this function" 'ignore)
+
   ;; start mu4e in background
   ;; (mu4e)
   (mu4e 4)
