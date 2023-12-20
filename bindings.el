@@ -269,7 +269,7 @@
   "af" #'cape-file
   "ah" #'cape-history
   "ak" #'cape-keyword
-  "as" #'cape-symbol
+  "as" #'cape-elisp-symbol
   ;; "ab" #'cape-abbrev
   "al" #'cape-line
   "aw" #'cape-dict
