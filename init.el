@@ -11,8 +11,6 @@
     (setq native-comp-deferred-compilation t))
     (message "Native complation is *not* available"))
 
-(setq jds~skip-email t)
-
 (if (not (boundp 'jds~skip-wm))
     (setq jds~skip-wm nil))
 (if (not (boundp 'jds~skip-email))
@@ -111,9 +109,7 @@
    '("5fdc0f5fea841aff2ef6a75e3af0ce4b84389f42e57a93edc3320ac15337dc10" "e87f48ec4aebdca07bb865b90088eb28ae4b286ee8473aadb39213d361d0c45f" "3c83b3676d796422704082049fc38b6966bcad960f896669dfc21a7a37a748fa" "c74e83f8aa4c78a121b52146eadb792c9facc5b1f02c917e3dbb454fca931223" "a27c00821ccfd5a78b01e4f35dc056706dd9ede09a8b90c6955ae6a390eb1c1e" default))
  '(safe-local-variable-values
    '((eval setq-local ess-startup-directory default-directory)))
- '(warning-suppress-log-types '((org-babel) (comp)))
- '(warning-suppress-types '((comp))))
-(custom-set-faces
+)(custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
