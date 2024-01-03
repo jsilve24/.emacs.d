@@ -186,7 +186,7 @@
 	   :tree-type month)
 	  ("mPt" "meeting Tinghua" entry (file+olp+datetree "~/Dropbox/org/mtx-tinghua.org")
 	   ,(concat "* MEETING %u with Tinghua :MEETING:w_tinghua:\n"
-		    "** Chicken Microbiome :p_chicken:\n"
+		    "** Fido Additive GPs :p_addgp:\n"
 		    "** Causal Inference :p_tram:\n"
 		    "** Future Plans \n")
 	   :jump-to-captured t
