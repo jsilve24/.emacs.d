@@ -134,7 +134,7 @@
   "fs" #'save-buffer
   ;; "fa" #'jds/affe-find-files-home
   "fa" (lambda () (interactive) (find-file "~/Dropbox/Buisness/anarres/cash_flow/2023_anarres_cash_flow.xlsx"))
-  "fh" (lambda () (interactive) (find-file "~/Dropbox/Buisness/homewood_farm/cash_flow_records/homewood_cashflow_2023.xlsx"))
+  "fh" (lambda () (interactive) (find-file "~/Dropbox/Buisness/homewood_farm/cash_flow_records/homewood_cashflow_2024.xlsx"))
   "fS" #'evil-write-all
   "fz" #'zoxide-find-file
   "fc" #'jds/open-config
