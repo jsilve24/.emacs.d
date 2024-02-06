@@ -176,6 +176,7 @@
 	   ,(concat "* MEETING %u with Michelle :MEETING:w_michelle:\n"
 		    "** TRAM Manuscript :p_tram:\n"
 		    "** ALDEx2 Manuscript :p_tram:\n"
+		    "** SRI Covariance :p_covariance:\n"
 		    "** Decision Theory :p_bdt:\n")
 	   :jump-to-captured t
 	   :tree-type month)
