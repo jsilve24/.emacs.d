@@ -109,12 +109,13 @@
 	 (string= major-mode "org-msg-edit-mode")))
     (org-cycle))
    ((yas-expand) nil)
+   ((yas-active-snippets) (yas-next-field))
    ((and (looking-back "[a-zA-Z0-9][a-zA-Z0-9]" 2)
 	 (completion-at-point))  nil)
    ((jds/jump-delim) nil)
    ((and (string= major-mode "ess-r-mode") (looking-back "[^\s]"))
     (ess-indent-command))
-   (indent-for-tab-command nil)))
+   ((indent-for-tab-command nil))))
 
 
 (defun jds/completion-keys ()
