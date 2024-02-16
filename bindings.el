@@ -373,7 +373,9 @@
   "M" #'(lambda (&optional arg) (interactive "P")
 	  (jds~new-frame-or-new-window arg)
 	  (jds/mu4e-goto-todays-headers))
-  "n" #'org-roam-node-find
+  ;; "n" #'org-roam-node-find
+  "n" (lambda () (interactive) (let ((consult-preview-key nil))
+				 (call-interactively #'org-roam-node-find)))
   ";" #'org-roam-capture
   "l" (jds~roam-exclude-dwim (org-store-link nil t))
   ;; "L" #'org-super-links-store-link
