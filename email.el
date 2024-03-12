@@ -28,7 +28,6 @@
 	mu4e-enable-async-operations t
 	message-kill-on-buffer-exit t ;; don't keep meesge buffers around
 	message-kill-buffer-on-exit t
-	mu4e-compose-dont-reply-to-self t
 	mu4e-view-show-addresses t
 	mu4e-hide-index-message t
 	mu4e-view-show-images t ;; try to show images
@@ -37,6 +36,11 @@
 	smtpmail-stream-type 'starttls
 	mu4e-completing-read-function #'completing-read
 	mu4e-confirm-quit nil
+
+	mu4e-compose-dont-reply-to-self t ;; obsolete
+	message-dont-reply-to-names #'mu4e-personal-or-alternative-address-p
+
+	
 
 	;; set user-agent
 	mail-user-agent 'mu4e-user-agent
