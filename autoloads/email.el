@@ -33,7 +33,8 @@ default/fallback account."
                     (lambda () (mu4e-message "Switched to %s" label))
                     :leave-func
                     (lambda () (progn (setq +mu4e-personal-addresses nil)
-                                      (mu4e-clear-caches)))
+                                      ;; (mu4e-clear-caches)
+				      ))
                     :match-func
                     (lambda (msg)
                       (when msg
@@ -249,6 +250,24 @@ for tomorrow.  With two prefixes, select the schedule date."
 					    (sje-next-free
 					     (expand-file-name f dir)))))
       (mu4e-message "No attached files found"))))
+
+
+;;;###autoload
+(defun jds/mu4e-compose-reply (&optional no-wide)
+  "Reply to the message at point.
+If NO-WIDE is nil, make it a \"wide\" reply (a.k.a.
+\"reply-to-all\")."
+  (interactive "P")
+  (mu4e--compose-setup
+   'reply
+   (lambda (parent)
+     (insert (mu4e--decoded-message parent 'headers-only))
+     (if no-wide
+	 (setq wide nil)
+       (setq wide t))
+     (message-reply nil wide)
+     (message-goto-body)
+     (insert (mu4e--compose-cite parent)))))
 
 
 ;;;###autoload

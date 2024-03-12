@@ -140,7 +140,15 @@
 
   ;; simple rebinding
   (evil-collection-define-key 'normal 'mu4e-headers-mode-map
-    "F" 'link-hint-open-link)
+    "F" 'link-hint-open-link
+    "R" 'jds/mu4e-compose-reply
+    "cr" 'jds/mu4e-compose-reply
+    "cs" 'mu4e-compose-supersede)
+
+  (evil-collection-define-key 'normal 'mu4e-view-mode-map
+    "cr" 'jds/mu4e-compose-reply
+    "cs" 'mu4e-compose-supersede)
+
 
   ;; better html message handling, make it easier to view by converting to text
   (require 'mu4e-contrib)
@@ -175,7 +183,7 @@
 (use-package org-msg
   :straight t
   :after mu4e
-  ;; :disabled t
+  :disabled t
   :config
   (setq
    org-msg-options "html-postamble:nil num:nil ^:{} toc:nil author:nil email:nil \\n:t tex:dvipng eval:nil"
