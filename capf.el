@@ -20,7 +20,7 @@
   ;; (corfu-separator ?\s)          ;; Orderless field separator
   ;; (corfu-quit-at-boundary nil)   ;; Never quit at completion boundary
   ;; (corfu-quit-no-match nil)      ;; Never quit, even if there is no match
-  (corfu-preview-current t)       ;; Enable current candidate preview
+  (corfu-preview-current t) ;; Enable current candidate preview
   ;; (corfu-on-exact-match nil)     ;; Configure handling of exact matches
   ;; (corfu-echo-documentation nil) ;; Disable documentation in the echo area
   ;; (corfu-scroll-margin 5)        ;; Use scroll margin
@@ -60,7 +60,40 @@
 
   ;; setup corfu quick
   (define-key corfu-map "\M-q" #'corfu-quick-complete)
-  (define-key corfu-map "\M-Q" #'corfu-quick-insert))
+  (define-key corfu-map "\M-Q" #'corfu-quick-insert)
+
+  ;; Advise packages that use posframe for a multi-head setup
+  ;; Fixes this issue: https://github.com/minad/corfu/discussions/408
+  ;; From this config: 
+  ;; https://github.com/Momo-Softworks/Momomacs/blob/e1cdcb6e022be0a59594129ef1e61ea8de51d000/modules/system/exwm.el#L69
+  (defun get-focused-monitor-geometry ()
+    "Get the geometry of the monitor displaying the selected frame in EXWM."
+    (let* ((monitor-attrs (frame-monitor-attributes))
+           (workarea (assoc 'workarea monitor-attrs))
+           (geometry (cdr workarea)))
+      (list (nth 0 geometry) ; X
+            (nth 1 geometry) ; Y
+            (nth 2 geometry) ; Width
+            (nth 3 geometry) ; Height
+            )))
+  
+  (defun advise-corfu-make-frame-with-monitor-awareness (orig-fun frame x y width height buffer)
+    "Advise `corfu--make-frame` to be monitor-aware, adjusting X and Y according to the focused monitor."
+
+    ;; Get the geometry of the currently focused monitor
+    (let* ((monitor-geometry (get-focused-monitor-geometry))
+           (monitor-x (nth 0 monitor-geometry))
+           (monitor-y (nth 1 monitor-geometry))
+           ;; You may want to adjust the logic below if you have specific preferences
+           ;; on where on the monitor the posframe should appear.
+           ;; Currently, it places the posframe at its intended X and Y, but ensures
+           ;; it's within the bounds of the focused monitor.
+           (new-x (+ monitor-x x))
+           (new-y (+ monitor-y y)))
+
+      ;; Call the original function with potentially adjusted coordinates
+      (funcall orig-fun frame new-x new-y width height buffer)))
+  (advice-add 'corfu--make-frame :around #'advise-corfu-make-frame-with-monitor-awareness))
 
 ;; A few more useful configurations...
 (use-package emacs
