@@ -37,10 +37,9 @@
 	mu4e-completing-read-function #'completing-read
 	mu4e-confirm-quit nil
 
+	;; don't reply to myself
 	mu4e-compose-dont-reply-to-self t ;; obsolete
 	message-dont-reply-to-names #'mu4e-personal-or-alternative-address-p
-
-	
 
 	;; set user-agent
 	mail-user-agent 'mu4e-user-agent
@@ -177,6 +176,12 @@
   ;; mu4e~headers-quit-buffer and having the minibuffer fire off asking if I
   ;; want to send a message or view help etc...
   (defun mu4e--main-view () "Ignore this function" 'ignore)
+
+  ;; stop autofilling when working without org-msg
+  (add-hook 'mu4e-compose-mode-hook 'turn-off-auto-fill)
+  ;; also this may help
+  ;; ;; better flowing when sending default (without org-msg)
+  (setq  mu4e-compose-format-flowed t)
 
   ;; start mu4e in background
   ;; (mu4e)
