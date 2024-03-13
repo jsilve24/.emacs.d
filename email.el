@@ -241,16 +241,54 @@ are place there, otherwise you are prompted for a message buffer."
  "a" #'embark-attach-file)
 
 
+
+;; consult mu
+(use-package consult-mu
+  :straight (consult-mu :type git :host github :repo "armindarvish/consult-mu" :files (:defaults "extras/*.el"))
+  :after (mu4e consult)
+  :custom
+  ;;show preview when pressing any keys
+  (consult-mu-preview-key 'any)
+  ;;do not mark email as read when previewed
+  (consult-mu-mark-previewed-as-read nil)
+  ;;do not amrk email as read when selected. This is a good starting point to ensure you would not miss important emails marked as read by mistake especially when trying this package out. Later you can change this to t.
+  (consult-mu-mark-viewed-as-read nil)
+  ;; open the message in mu4e-view-buffer when selected.
+  (consult-mu-action #'consult-mu--view-action)
+
+ :config
+  ;;create a list of saved searches for quick access using `histroy-next-element' with `M-n' in minibuffer. Note the "#" character at the beginning of each query! Change these according to
+  (setq consult-mu-saved-searches-dynamics '("#flag:unread"))
+  (setq consult-mu-saved-searches-async '("#flag:unread"))
+  ;; require embark actions for marking, replying, forwarding, etc. directly from minibuffer
+  (require 'consult-mu-embark)
+  ;; require extra module for composing (e.g. for interactive attachment) as well as embark actions
+  (require 'consult-mu-compose)
+  (require 'consult-mu-compose-embark)
+  ;; require extra module for searching contacts and runing embark actions on contacts
+  (require 'consult-mu-contacts)
+  (require 'consult-mu-contacts-embark)
+  ;; change the prefiew key for compose so you don't open a preview of every file when selecting files to attach
+  (setq consult-mu-compose-preview-key "M-o")
+  ;; pick a key to bind to consult-mu-compose-attach in embark-file-map
+  (setq consult-mu-embark-attach-file-key "C-a")
+  (setq consult-mu-contacts-ignore-list '("^.*no.*reply.*"))
+  (setq consult-mu-contacts-ignore-case-fold-search t)
+  (consult-mu-compose-embark-bind-attach-file-key)
+  ;; choose if you want to use dired for attaching files (choice of 'always, 'in-dired, or nil)
+  (setq consult-mu-compose-use-dired-attachment 'in-dired))
+
+
 ;;; bindings
 
 (jds/localleader-def
- :keymaps '(mu4e-compose-mode-map)
- "m"     '(org-ctrl-c-ctrl-c :which-key "send-message")
- "gs"     '(message-goto-subject :which-key "goto subject")
- "gc"     '(message-goto-cc :which-key "goto cc")
- "gt"     '(message-goto-to :which-key "goto to")
- "k"      '(message-kill-buffer :which-key "kill message")
- "gb"     '(message-goto-body :which-key "goto body"))
+  :keymaps '(mu4e-compose-mode-map)
+  "m"     '(org-ctrl-c-ctrl-c :which-key "send-message")
+  "gs"     '(message-goto-subject :which-key "goto subject")
+  "gc"     '(message-goto-cc :which-key "goto cc")
+  "gt"     '(message-goto-to :which-key "goto to")
+  "k"      '(message-kill-buffer :which-key "kill message")
+  "gb"     '(message-goto-body :which-key "goto body"))
 
 (jds/localleader-def
   :keymaps '(org-msg-edit-mode-map)

@@ -367,7 +367,6 @@
   "A" #'consult-locate
   "z" #'zoxide-find-file
   "Z" #'zoxide-cd
-  "c" #'jds/mu4e-compose-goto-to
   "g" #'magit-status
   "m" #'jds/mu4e-goto-todays-headers
   "M" #'(lambda (&optional arg) (interactive "P")
@@ -400,7 +399,10 @@
   "Y" (jds~start-slack-function slack-select-unread-rooms)
   "k" #'jds/help-thing-at-point
   "d" #'jds/dired-jump-and-kill-buffer
-  "D" #'dired-jump-other-window) 
+  "D" #'dired-jump-other-window
+  "c" #'jds/mu4e-compose-goto-to
+  "e" #'consult-mu
+  "C" #'consult-mu-contacts) 
 
 ;;; faster editing in text buffers ------
 
