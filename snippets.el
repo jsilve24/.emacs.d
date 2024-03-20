@@ -225,6 +225,7 @@ escape."
 	      ".-" (jds~aas-insert-math "\\ominus$0"))))
   (jds~aas-setup-insert-math 'org-mode)
   (jds~aas-setup-insert-math 'latex-mode)
+  (jds~aas-setup-insert-math 'LaTeX-mode)
   (jds~aas-setup-insert-math 'markdown-mode)
 
 
@@ -328,6 +329,7 @@ escape."
     `(aas-set-snippets ,mode
        ";h " #'jds~comment-rule))
   (jds~aas-setup-headings 'latex-mode)
+  (jds~aas-setup-headings 'LaTeX-mode)
   (jds~aas-setup-headings 'prog-mode)
   (jds~aas-setup-headings 'python-mode)
 
