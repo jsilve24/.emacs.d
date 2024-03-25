@@ -57,9 +57,10 @@
 
   (setq mu4e-view-actions '(("capture message" . mu4e-action-capture-message)
 			    ("browser view" . mu4e-action-view-in-browser)
-			    ("pdf view" . mu4e-action-view-as-pdf)
 			    ("thread view" . mu4e-action-show-thread)))
-
+ 
+  ;; turn on thread folding by default
+ (add-hook 'mu4e-thread-mode-hook #'mu4e-thread-fold-all)
 
   ;; nicer header view
   (setq mu4e-headers-fields
@@ -313,6 +314,13 @@ are place there, otherwise you are prompted for a message buffer."
  "T"          #'mu4e-headers-mark-thread
  "l"          #'+mu4e/capture-msg-to-agenda)
 
+
+(jds/localleader-def
+  :keymaps 'mu4e-view-mode-map
+  "z" #'mu4e-view-detach
+  "Z" #'mu4e-view-attach)
+
+
 (with-eval-after-load 'link-hint
 
   ;; :next function should not move the point
@@ -383,10 +391,6 @@ mu4e-headers-goto-message-id."
  "f" #'jds/avy-mu4e-header
  "F" #'link-hint-open-link)
 
-(general-define-key
- :states 'normal
- :keymaps 'mu4e-view-mode-map
- "P" #'mu4e-view-save-all-attachments)
 
 
 (provide 'config-email)
