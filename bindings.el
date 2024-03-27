@@ -9,7 +9,7 @@
   ";" #'pp-eval-expression
   ;; "." #'consult-project-extra-find
   "." #'consult-projectile
-  ">" #'projectile-switch-open-project
+  ">" #'consult-projectile-switch-project
   "\`" #'evil-switch-to-windows-last-buffer
   "-"  #'vertico-repeat-last
   "SPC" #'consult-buffer
