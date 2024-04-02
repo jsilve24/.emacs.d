@@ -55,7 +55,7 @@
   (add-hook 'org-mode-hook #'jds~org-fold-drawers)
   (add-hook 'org-mode-hook (lambda ()
 			     (run-with-idle-timer
-			      5 nil
+			      20 nil
 			      (lambda ()
 				(let ((mod (buffer-modified-p)))
 				  (org-align-all-tags)
