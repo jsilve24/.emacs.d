@@ -199,6 +199,7 @@
 	  ("mPk" "meeting Kyle" entry (file+olp+datetree "~/Dropbox/org/mtx-kyle.org")
 	   ,(concat "* MEETING %u with Kyle :MEETING:w_kyle:\n"
 		    "** Interval Null :p_intervalnull:\n"
+		    "** ALDEx2 Mixed Effects :p_aldexme:\n"
 		    "** Future Plans \n"
 		    "  %?")
 	   :jump-to-captured t
