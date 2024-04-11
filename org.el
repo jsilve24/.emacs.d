@@ -177,7 +177,9 @@
 		    "** TRAM Manuscript :p_tram:\n"
 		    "** ALDEx2 Manuscript :p_tram:\n"
 		    "** SRI Covariance :p_covariance:\n"
-		    "** Decision Theory :p_bdt:\n")
+		    "** Decision Theory :p_bdt:\n"
+		    "** Future Plans\n"
+		    )
 	   :jump-to-captured t
 	   :tree-type month)
 	  ("mPa" "meeting Andrew" entry (file+olp+datetree "~/Dropbox/org/mtx-andrew.org")
