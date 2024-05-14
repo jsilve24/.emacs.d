@@ -182,6 +182,12 @@
 		    )
 	   :jump-to-captured t
 	   :tree-type month)
+	  ("mPx" "meeting Maxwell" entry (file+olp+datetree "~/Dropbox/org/mtx-maxwell.org")
+	   ,(concat "* MEETING %u with Maxwell :MEETING:w_maxwell:\n"
+		    "** Future Plans\n"
+		    )
+	   :jump-to-captured t
+	   :tree-type month)
 	  ("mPa" "meeting Andrew" entry (file+olp+datetree "~/Dropbox/org/mtx-andrew.org")
 	   ,(concat "* MEETING %u with Andrew :MEETING:w_andrew:\n  %?")
 	   :jump-to-captured t
