@@ -128,7 +128,7 @@ for tomorrow.  With two prefixes, select the schedule date."
               (when (= (org-outline-level) lev)  ; demote if necessary
                 (org-do-demote))
               ;; insert message and add deadline
-              (insert (concat " Respond to "
+              (insert (concat "Respond to "
                               "[[mu4e:msgid:"
                               (plist-get msg :message-id) "]["
                               (truncate-string-to-width
