@@ -259,8 +259,8 @@ are place there, otherwise you are prompted for a message buffer."
 
  :config
   ;;create a list of saved searches for quick access using `histroy-next-element' with `M-n' in minibuffer. Note the "#" character at the beginning of each query! Change these according to
-  (setq consult-mu-saved-searches-dynamics '("#flag:unread"))
-  (setq consult-mu-saved-searches-async '("#flag:unread"))
+  (setq consult-mu-saved-searches-dynamics '("#flag:attach"))
+  (setq consult-mu-saved-searches-async '("#flag:attach"))
   ;; require embark actions for marking, replying, forwarding, etc. directly from minibuffer
   (require 'consult-mu-embark)
   ;; require extra module for composing (e.g. for interactive attachment) as well as embark actions
