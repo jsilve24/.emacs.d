@@ -402,6 +402,7 @@
   "D" #'dired-jump-other-window
   "c" #'jds/mu4e-compose-goto-to
   "e" #'consult-mu
+  "E" (lambda () (interactive) (consult-mu "flag:attach "))
   "C" #'consult-mu-contacts) 
 
 ;;; faster editing in text buffers ------
