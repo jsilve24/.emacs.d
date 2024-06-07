@@ -173,14 +173,8 @@ for tomorrow.  With two prefixes, select the schedule date."
 If NO-WIDE is nil, make it a \"wide\" reply (a.k.a.
 \"reply-to-all\")."
   (interactive "P")
-  (mu4e--compose-setup
-   'reply
-   (lambda (parent)
-     (insert (mu4e--decoded-message parent 'headers-only))
-     (if no-wide
-	 (setq wide nil)
-       (setq wide t))
-     (message-reply nil wide)
-     (message-goto-body)
-     (insert (mu4e--compose-cite parent)))))
+  (if no-wide
+      (mu4e-compose-reply-to nil nil)
+    (mu4e-compose-reply-to nil t))
+  )
 
