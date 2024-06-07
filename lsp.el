@@ -6,6 +6,7 @@
 	 ;; (latex-mode . eglot-ensure)
 	 ;; (LaTeX-mode . eglot-ensure)
 	 )
+  :disabled
   :config
   (setq eldoc-echo-area-use-multiline-p 1)
   (setq eglot-ignored-server-capabilites nil)
@@ -22,10 +23,12 @@
   ;; (add-to-list 'eglot-server-programs '((tex-mode context-mode texinfo-mode bibtex-mode) . ("texlab")))
   )
 
-(use-package consult-eglot)
+(use-package consult-eglot
+  :disabled)
 
 ;; don't have to use the mouse to see errors in echo area
 (use-package flymake-cursor
+  :disabled
   :diminish flymake-mode
   :config
   (eval-after-load 'flymake '(require 'flymake-cursor)))
