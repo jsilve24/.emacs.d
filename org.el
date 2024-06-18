@@ -462,6 +462,7 @@
   "dd" #'org-agenda-deadline
   "ds" #'org-agenda-schedule
   "t"  #'org-agenda-todo
+  "n"  #'jds/org-agenda-move-to-next
   "q"  #'org-agenda-set-tags
   "r" #'(lambda () (interactive) (jds/save-excursion-and-min-point #'org-agenda-refile)))
 

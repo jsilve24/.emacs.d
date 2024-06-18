@@ -339,3 +339,12 @@ is nil, refile in the current file."
   (interactive)
   (select-frame (make-frame))
   (org-agenda nil "d"))
+
+;;;###autoload
+(defun jds/org-agenda-move-to-next ()
+  "Remove scheduled (if present) and change state to NEXT."
+  (interactive)
+  (org-agenda-todo "NEXT")
+  (let ((current-prefix-arg '(4)))
+    (call-interactively 'org-agenda-schedule)))
+
