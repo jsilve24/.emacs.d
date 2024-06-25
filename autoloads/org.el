@@ -236,8 +236,11 @@ re-align the table if necessary. (Necessary because org-mode has a
   (interactive)
   (save-excursion 
     (goto-char 1)
-    (while (re-search-forward "https?://[a-z]+\.zoom\.us/[^\n\s]*" nil t)
-      (replace-match "[[\\&][(ZOOM)]]" nil nil))))
+    (while (re-search-forward "\\[*https?://[a-z]+\.zoom\.us/[^\n\s]*" nil t)
+      (let* ((str (match-string 0)))
+	(if (string= (substring str 0 1) "[")
+	    nil
+	  (replace-match "[[\\&][(ZOOM)]]" nil nil))))))
 
 ;;;###autoload
 ;; from here: https://emacs.stackexchange.com/questions/10597/how-to-refile-into-a-datetree
