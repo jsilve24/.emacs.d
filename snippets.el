@@ -268,6 +268,7 @@ escape."
     ";ofig" (jds~yas-lambda-expand "[[./$0]]")
     ";pause" "#+BEAMER: \\pause"
     ";fill" "#+BEAMER: \\vfill"
+    ";gray" (jds~yas-lambda-expand "\\textcolor{gray}{$0}")
     ";overlay" (jds~yas-lambda-expand "#+ATTR_BEAMER: :overlay <${1:+-}>"))
 
 
