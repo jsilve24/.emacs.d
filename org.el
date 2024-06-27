@@ -478,7 +478,7 @@
   "F" #'org-sparse-tree
   "s" org-babel-map
   "S" #'org-screenshot-take
-  "a" #'org-attach
+  "f" #'org-attach
   "q" #'org-set-tags-command
   "d" '(:ignore t :wk "date")
   "dd" #'org-deadline
@@ -502,6 +502,7 @@
 (jds/localleader-def
   :keymaps 'org-mode-map
   "A"  #'org-archive-subtree
+  "a"  #'org-archive-to-archive-sibling
   "r"  #'org-refile
   "R" #'jds/org-refile-current-buffer
   "e"  #'org-export-dispatch
