@@ -269,7 +269,10 @@ escape."
     ";pause" "#+BEAMER: \\pause"
     ";fill" "#+BEAMER: \\vfill"
     ";gray" (jds~yas-lambda-expand "\\textcolor{gray}{$0}")
-    ";overlay" (jds~yas-lambda-expand "#+ATTR_BEAMER: :overlay <${1:+-}>"))
+    ";overlay" (jds~yas-lambda-expand "#+ATTR_BEAMER: :overlay <${1:+-}>")
+    ";trans" "#+latex: \\setbeamercovered{transparent}")
+
+  
 
 
   ;; elisp snippets
@@ -340,19 +343,20 @@ escape."
 
   (aas-set-snippets 'org-msg-edit-mode
     :cond #'message--in-tocc-p
-    "; " (lambda () (interactive) (insert ", ") (completion-at-point))))
+    "; " (lambda () (interactive) (insert ", ") (completion-at-point)))
 
-;; latex autoactivating snippets
+  ;; latex autoactivating snippets
 
-;; (use-package laas
-;;   :straight (laas :type git :host github :repo "jsilve24/LaTeX-auto-activating-snippets")
-;;   :hook (LaTeX-mode . laas-mode)
-;;   :hook (org-mode . laas-mode))
+  ;; (use-package laas
+  ;; :straight (laas :type git :host github :repo "jsilve24/LaTeX-auto-activating-snippets")
+  ;; :hook (LaTeX-mode . laas-mode)
+  ;; :hook (org-mode . laas-mode))
 
 
 
 ;;; abbreviations
 
-(provide 'snippets)
+  (provide 'snippets)
 ;;; snippets.el ends here
 
+  )
