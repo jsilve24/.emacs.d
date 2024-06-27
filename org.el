@@ -217,6 +217,11 @@
 		    "  %?")
 	   :jump-to-captured t
 	   :tree-type month)
+	  ("mPs" "meeting Manan" entry (file+olp+datetree "~/Dropbox/org/mtx-manan.org")
+	   ,(concat "* MEETING %u with Manan :MEETING:w_manan:\n"
+		    "  %?")
+	   :jump-to-captured t
+	   :tree-type month)
 	  ;; ("mPz" "meeting Zhao Ma" entry (file+olp+datetree "~/Dropbox/org/mtx-zhaoma.org")
 	  ;; ,(concat "* MEETING %u with Zhao Ma :MEETING:w_zhao:\n"
 	  ;; "  %?")
