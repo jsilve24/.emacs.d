@@ -45,7 +45,7 @@
     :mappers (lambda (fn) (replace-regexp-in-string "\\.tex$" ".pdf" fn)))
 
   ;; txt
-  (ruled-switch-buffer-define tex-to-pdf
+  (ruled-switch-buffer-define txt-to-pdf
     :matcher (lambda (fn) (string-match ".txt$" fn))
     :mappers (lambda (fn) (replace-regexp-in-string "\\.txt$" ".org" fn)))
 
