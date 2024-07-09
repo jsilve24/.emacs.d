@@ -172,17 +172,17 @@
 	   :jump-to-captured t
 	   :tree-type month)
 	  ("mP" "meeting specific person")
-	  ("mPm" "meeting Michelle" entry (file+olp+datetree "~/Dropbox/org/mtx-michelle.org")
-	   ,(concat "* MEETING %u with Michelle :MEETING:w_michelle:\n"
-		    "** TRAM Manuscript :p_tram:\n"
-		    "** ALDEx2 Manuscript :p_tram:\n"
-		    "** SRI Covariance :p_covariance:\n"
-		    "** Decision Theory :p_bdt:\n"
-		    "** Future Plans\n"
-		    )
-	   :jump-to-captured t
-	   :tree-type month)
-	  ("mPx" "meeting Maxwell" entry (file+olp+datetree "~/Dropbox/org/mtx-maxwell.org")
+	  ;; ("mPm" "meeting Michelle" entry (file+olp+datetree "~/Dropbox/org/mtx-michelle.org")
+	  ;;  ,(concat "* MEETING %u with Michelle :MEETING:w_michelle:\n"
+	  ;; 	    "** TRAM Manuscript :p_tram:\n"
+	  ;; 	    "** ALDEx2 Manuscript :p_tram:\n"
+	  ;; 	    "** SRI Covariance :p_covariance:\n"
+	  ;; 	    "** Decision Theory :p_bdt:\n"
+	  ;; 	    "** Future Plans\n"
+	  ;; 	    )
+	  ;;  :jump-to-captured t
+	  ;;  :tree-type month)
+	  ("mPm" "meeting Maxwell" entry (file+olp+datetree "~/Dropbox/org/mtx-maxwell.org")
 	   ,(concat "* MEETING %u with Maxwell :MEETING:w_maxwell:\n"
 		    "** Future Plans\n"
 		    )
