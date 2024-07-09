@@ -172,16 +172,6 @@
 	   :jump-to-captured t
 	   :tree-type month)
 	  ("mP" "meeting specific person")
-	  ;; ("mPm" "meeting Michelle" entry (file+olp+datetree "~/Dropbox/org/mtx-michelle.org")
-	  ;;  ,(concat "* MEETING %u with Michelle :MEETING:w_michelle:\n"
-	  ;; 	    "** TRAM Manuscript :p_tram:\n"
-	  ;; 	    "** ALDEx2 Manuscript :p_tram:\n"
-	  ;; 	    "** SRI Covariance :p_covariance:\n"
-	  ;; 	    "** Decision Theory :p_bdt:\n"
-	  ;; 	    "** Future Plans\n"
-	  ;; 	    )
-	  ;;  :jump-to-captured t
-	  ;;  :tree-type month)
 	  ("mPm" "meeting Maxwell" entry (file+olp+datetree "~/Dropbox/org/mtx-maxwell.org")
 	   ,(concat "* MEETING %u with Maxwell :MEETING:w_maxwell:\n"
 		    "** Future Plans\n"
@@ -197,11 +187,6 @@
 		    "** Fido Additive GPs :p_addgp:\n"
 		    "** Causal Inference :p_tram:\n"
 		    "** Future Plans \n")
-	   :jump-to-captured t
-	   :tree-type month)
-	  ("mPd" "meeting DIHI" entry (file+olp+datetree "~/Dropbox/org/mtx-michelle.org")
-	   ,(concat "* MEETING %u with DIHI :MEETING:w_michelle:p_bacteremia:\n"
-		    "  %?")
 	   :jump-to-captured t
 	   :tree-type month)
 	  ("mPk" "meeting Kyle" entry (file+olp+datetree "~/Dropbox/org/mtx-kyle.org")
@@ -222,11 +207,6 @@
 		    "  %?")
 	   :jump-to-captured t
 	   :tree-type month)
-	  ;; ("mPz" "meeting Zhao Ma" entry (file+olp+datetree "~/Dropbox/org/mtx-zhaoma.org")
-	  ;; ,(concat "* MEETING %u with Zhao Ma :MEETING:w_zhao:\n"
-	  ;; "  %?")
-	  ;; :jump-to-captured t
-	  ;; :tree-type month)
 	  ("c" "calendar event")
 	  ("cc" "plain event" entry (file+headline "~/Dropbox/org/calendar.org" "Calendar")
 	   "* %? \n %^T")
@@ -237,11 +217,6 @@
 	  ("P" "Protocol")
 	  ("Pw" "Capture Website" entry (file "~/Dropbox/org/inbox.org")
 	   "* TODO %:annotation \n %i %?")))
-
-  ;; make some templates only available in some modes
-  ;; (setq org-capture-templates-contexts '(("e" ((in-mode . "message-mode")
-  ;; (in-mode . "mu4e-headers-mode")
-  ;; (in-mode . "mu4e-view-mode")))))
 
 ;;; appearance customizations
   (setq org-ellipsis " ▾")
