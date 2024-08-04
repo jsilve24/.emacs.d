@@ -64,8 +64,9 @@
   (with-eval-after-load 'dumb-jump
     (add-hook 'ess-r-mode-hook
 	      (lambda ()
-		(add-hook 'xref-backend-functions #'eglot-xref-backend -100 'local)
-		(add-hook 'xref-backend-functions #'dumb-jump-xref-activate -90 'local))))
+		;; (add-hook 'xref-backend-functions #'eglot-xref-backend -100 'local)
+		(add-hook 'xref-backend-functions #'dumb-jump-xref-activate -90 'local)
+		)))
 
 
   ;; better display-buffer defaulsts
