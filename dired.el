@@ -15,8 +15,9 @@
   ;; Auto-refresh dired on filesystem change
   (add-hook 'dired-mode-hook 'auto-revert-mode)
   (evil-collection-define-key 'normal 'dired-mode-map
-    "h" 'dired-single-up-directory
-    "l" 'dired-single-buffer))
+    "l" 'dired-find-file
+    "L" 'dired-find-file-other-window
+    "h" 'dired-up-directory))
 
 
 
@@ -67,8 +68,6 @@ line."
   (avy-action-goto (avy-with jds/avy-dired
 		     (avy-process (jds~avy-dired-cands)))))
 
-;; don't use multiple buffers
-(use-package dired-single)
 
 (use-package dired-open
   :config
@@ -89,6 +88,7 @@ line."
   :straight (dired-copy-paste :type git :host github :repo "jsilve24/dired-copy-paste"))
 
 (use-package dired-registers
+  :disabled ;; disabled since it depends on dired-single which I am no longer-using, could remove. 
   :straight (dired-registers :type git :host github :repo "jsilve24/dired-registers")
   :config
   (dired-registers-store ?d "~/Downloads/")

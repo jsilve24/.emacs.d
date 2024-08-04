@@ -23,3 +23,5 @@
 /request/
 /transient/
 /straight/modified/
+/.#git.el
+/.#wm.el
