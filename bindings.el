@@ -134,8 +134,6 @@
   "fr" #'consult-recent-file
   "fs" #'save-buffer
   ;; "fa" #'jds/affe-find-files-home
-  "fa" (lambda () (interactive) (find-file "~/Dropbox/Buisness/anarres/cash_flow/2024_anarres_cash_flow.xlsx"))
-  "fh" (lambda () (interactive) (find-file "~/Dropbox/Buisness/homewood_farm/cash_flow_records/homewood_cashflow_2024.xlsx"))
   "fS" #'evil-write-all
   "fz" #'zoxide-find-file
   "fc" #'jds/open-config
@@ -214,12 +212,6 @@
 
 ;;; buffers
 
-;;;###autoload
-(defun jds/switch-to-agenda-file (fn)
-    "Display file listed org-directory."
-  (interactive)
-  (find-file
-   (expand-file-name fn org-directory)))
 
 (setq jds~scratch-keymap (make-sparse-keymap))
 (defmacro jds~execute-in-scratch (body)
@@ -250,11 +242,7 @@
   ;; "bx" '((lambda () (interactive) (switch-to-buffer (get-buffer-create "*scratch*"))) :which-key "scratch")
   "bx" jds~scratch-keymap
   "bz" '((lambda () (interactive) (switch-to-buffer (messages-buffer))) :which-key "messages")
-  "bs" #'(lambda () (interactive) (switch-to-buffer (get-buffer-create "*scratch*")))
-  "bt" '((lambda () (interactive) (jds/switch-to-agenda-file "tasks.org")) :which-key "tasks")
-  "bp" '((lambda () (interactive) (jds/switch-to-agenda-file "meetings_psu.org")) :which-key "meetings-psu")
-  "bp" '((lambda () (interactive) (jds/switch-to-agenda-file "notes.org")) :which-key "notes"))
-
+  "bs" #'(lambda () (interactive) (switch-to-buffer (get-buffer-create "*scratch*"))))
 
 (general-define-key
  :keymaps 'ibuffer-mode-map
@@ -293,18 +281,30 @@
   "rp"   #'run-python
   "rl"   #'run-lisp)
 
+(defmacro jds~dired-find-file (file)
+    "Macro to create interactive lambda opening dired at path. Used for bindings."
+    `(lambda () (interactive) (find-file ,file)))
+
+;;;###autoload
+(defun jds/switch-to-agenda-file (fn)
+    "Display file listed org-directory."
+  (interactive)
+  (find-file
+   (expand-file-name fn org-directory)))
+
+
 (jds/leader-def
   "j" '(:ignore t :which-key "jump")
-  "j f"   #'dired-hist-go-forward
+  "j n"   #'dired-hist-go-forward
   "j b"   #'dired-hist-go-back
-  "j RET" #'dired-registers-goto-completing-read
-  "j m"   #'dired-registers-store
-  "j j"   #'dired-registers-goto
-  "j d"   '((lambda () (interactive) (dired-registers-goto ?d)) :wk "downloads")
-  "j o"   '((lambda () (interactive) (dired-registers-goto ?o)) :wk "org")
-  "j r"   '((lambda () (interactive) (dired-registers-goto ?r)) :wk "roam")
-  "j h"   '((lambda () (interactive) (dired-registers-goto ?h)) :wk "home")
-  "j c"   '((lambda () (interactive) (dired-registers-goto ?c)) :wk "config"))
+  "j d"   (jds~dired-find-file "~/Downloads/")
+  "j o"   (jds~dired-find-file "~/Dropbox/org/")
+  "j h"   (jds~dired-find-file "~/")
+  "j c"   (jds~dired-find-file "~/.emacs.d/")
+  "j m"   (jds~dired-find-file "/run/media/jds6696/")
+  "j a" (lambda () (interactive) (find-file "~/Dropbox/Buisness/anarres/cash_flow/2024_anarres_cash_flow.xlsx"))
+  "j f" (lambda () (interactive) (find-file "~/Dropbox/Buisness/homewood_farm/cash_flow_records/homewood_cashflow_2024.xlsx"))
+  "j t" '((lambda () (interactive) (jds/switch-to-agenda-file "tasks.org")) :which-key "tasks"))
 
 ;;; org and apps
 
