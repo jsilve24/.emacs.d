@@ -191,9 +191,10 @@
 
 ;;; setup org-msg
 (use-package org-msg
-  :straight t
+  ;; :straight t
+  :straight (:type git :host github :repo "emacsomancer/org-msg")
   :after mu4e
-  :disabled t
+  ;; :disabled t
   :config
   (setq
    org-msg-options "html-postamble:nil num:nil ^:{} toc:nil author:nil email:nil \\n:t tex:dvipng eval:nil"
