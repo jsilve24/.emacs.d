@@ -73,6 +73,16 @@ configuration was previously save, restore that configuration."
   (run-with-timer 5 nil (lambda ()
 			  (jds/quiet-async-shell-commands "xsetwacom set 'Wacom Intuos BT S Pen stylus' MapToOutput HEAD-0"))))
 
+;;;###autoload
+(defun jds/setup-projector-and-wacom-willard-073 ()
+  "Quick setup screen mirroring and wacom to HEAD-0 for teaching in Westgate E206"
+  (interactive)
+  (jds/quiet-async-shell-commands "xrandr --output eDP-1 --primary --mode 1920x1080 --pos 0x0 --rotate normal --output DP-1-0 --mode 1920x1080 --pos 1911x0 --rotate normal --output DP-1-1 --off --output HDMI-1-0 --off")
+  (run-with-timer 1 nil (lambda ()  
+			  (jds/quiet-async-shell-commands "xrandr --output DP-1-0 --same-as eDP-1")))
+  (run-with-timer 5 nil (lambda ()
+			  (jds/quiet-async-shell-commands "xsetwacom set 'Wacom Intuos BT S Pen stylus' MapToOutput HEAD-0"))))
+
 
 
 ;;;###autoload
