@@ -198,7 +198,7 @@
 	   :jump-to-captured t
 	   :tree-type month)
 	  ("mPe" "meeting Edward" entry (file+olp+datetree "~/Dropbox/org/mtx-edward.org")
-	   ,(concat "* MEETING %u with Kyle :MEETING:w_kyle:\n"
+	   ,(concat "* MEETING %u with Edward :MEETING:w_edward:\n"
 		    "** Future Plans \n"
 		    "  %?")
 	   :jump-to-captured t
