@@ -337,10 +337,6 @@ escape."
   (jds~aas-setup-headings 'prog-mode)
   (jds~aas-setup-headings 'python-mode)
 
-  (aas-set-snippets 'text-mode
-    ";phone" "(310) 806-2315"
-    ";home" "123 Autumn Circle\nPort Matilda, PA 16870")
-
   (aas-set-snippets 'org-msg-edit-mode
     :cond #'message--in-tocc-p
     "; " (lambda () (interactive) (insert ", ") (completion-at-point)))
