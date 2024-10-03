@@ -192,7 +192,7 @@
 ;;; setup org-msg
 (use-package org-msg
   ;; :straight t
-  :straight (:type git :host github :repo "emacsomancer/org-msg")
+  :straight (:type git :host github :repo "jeremy-compostella/org-msg" :branch "master")
   :after mu4e
   ;; :disabled t
   :config
