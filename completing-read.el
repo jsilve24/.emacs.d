@@ -501,7 +501,8 @@ This only works with orderless and for the first component of the search."
     "Run consult ripgrep on all org files in ~/Dropbox/org/"
   (interactive)
   (let ((dir "~/Dropbox/org/")
-	(consult-ripgrep-args "rg --null --line-buffered --color=never --max-columns=1000 --path-separator /   --smart-case --no-heading --line-number -g \"*.org\" ."))
+	(consult-ripgrep-args "rg --null --line-buffered --color=never --max-columns=1000 --path-separator /   --smart-case --no-heading --line-number -g \"*.org\" .")
+	(consult-preview-key nil))
     (if initial
 	(funcall consult-org-roam-grep-func dir (format "%s" initial))
       (funcall consult-org-roam-grep-func dir))))
