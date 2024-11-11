@@ -58,9 +58,13 @@
   (setq mu4e-view-actions '(("capture message" . mu4e-action-capture-message)
 			    ("browser view" . mu4e-action-view-in-browser)
 			    ("thread view" . mu4e-action-show-thread)))
- 
+
   ;; turn on thread folding by default
- (add-hook 'mu4e-thread-mode-hook #'mu4e-thread-fold-all)
+  (add-hook 'mu4e-thread-mode-hook #'mu4e-thread-fold-all)
+
+  ;; don't auto-save drafts
+  (add-hook 'mu4e-compose-mode-hook #'(lambda () (auto-save-mode -1)))
+
 
   ;; nicer header view
   (setq mu4e-headers-fields
@@ -182,7 +186,7 @@
   (add-hook 'mu4e-compose-mode-hook 'turn-off-auto-fill)
   ;; also this may help
   ;; ;; better flowing when sending default (without org-msg)
-  (setq  mu4e-compose-format-flowed t)
+  (setq mu4e-compose-format-flowed t)
 
   ;; start mu4e in background
   ;; (mu4e)
@@ -194,7 +198,7 @@
   ;; :straight t
   :straight (:type git :host github :repo "jeremy-compostella/org-msg" :branch "master")
   :after mu4e
-  ;; :disabled t
+  :disabled t
   :config
   (setq
    org-msg-options "html-postamble:nil num:nil ^:{} toc:nil author:nil email:nil \\n:t tex:dvipng eval:nil"
@@ -223,6 +227,7 @@
 
 ;;; dired - embark -- attach files to messages
 (autoload 'gnus-dired-attach "gnus-dired")
+
 (jds/localleader-def
   :keymaps 'dired-mode-map
   "a" #'gnus-dired-attach)
@@ -241,7 +246,6 @@ are place there, otherwise you are prompted for a message buffer."
 (general-define-key
  :keymaps 'embark-file-map
  "a" #'embark-attach-file)
-
 
 
 ;; consult mu
