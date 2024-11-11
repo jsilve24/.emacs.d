@@ -77,7 +77,7 @@
             (nth 3 geometry) ; Height
             )))
   
-  (defun advise-corfu-make-frame-with-monitor-awareness (orig-fun frame x y width height buffer)
+  (defun advise-corfu-make-frame-with-monitor-awareness (orig-fun frame x y width height)
     "Advise `corfu--make-frame` to be monitor-aware, adjusting X and Y according to the focused monitor."
 
     ;; Get the geometry of the currently focused monitor
@@ -92,7 +92,7 @@
            (new-y (+ monitor-y y)))
 
       ;; Call the original function with potentially adjusted coordinates
-      (funcall orig-fun frame new-x new-y width height buffer)))
+      (funcall orig-fun frame new-x new-y width height)))
   (advice-add 'corfu--make-frame :around #'advise-corfu-make-frame-with-monitor-awareness))
 
 ;; A few more useful configurations...
