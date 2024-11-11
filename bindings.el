@@ -11,7 +11,7 @@
   "." #'consult-projectile
   ">" #'consult-projectile-switch-project
   "\`" #'evil-switch-to-windows-last-buffer
-  "-"  #'vertico-repeat-last
+  "-"  #'vertico-repeat
   "SPC" #'consult-buffer
   "C-SPC" #'consult-buffer)
 
