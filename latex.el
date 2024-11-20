@@ -22,7 +22,7 @@
   (setq-default TeX-master nil)
 
   ;; set-up chktex -- from doom
-  (setcar (cdr (assoc "Check" TeX-command-list)) "chktex -v6 -H %s")
+  ;; (setcar (cdr (assoc "Check" TeX-command-list)) "chktex -v6 -H %s")
   (add-hook 'TeX-mode-hook (lambda ()
 			     (setq ispell-parser 'tex
 				   fill-nobreak-predicate (cons #'texmathp fill-nobreak-predicate)))))
