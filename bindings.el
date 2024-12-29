@@ -348,7 +348,7 @@
 
 ;;;###autoload
 (setq jds~task-files (mapcar (lambda (relfile) (expand-file-name relfile org-directory))
-			     (list "tasks.org" "resources.org" "mail.org" "inbox.org" "inbox_mobile.org")))
+			     (list "tasks.org" "resources.org" "mail.org" "inbox.org" "inbox_mobile.org" "tasks-homewood.org")))
 (defun jds/consult-org-agenda-or-ripgrep-all-headlines (&optional arg)
   "Run consult-org-agenda or with prefix, run jds/consult-org-agenda-or-ripgrep-all-headlines."
   (interactive "P")
