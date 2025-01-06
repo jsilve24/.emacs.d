@@ -24,6 +24,8 @@
 (setq electric-pair-inhibit-predicate
       (lambda (c)
 	(if (char-equal c ?\<) t (electric-pair-default-inhibit c))))
+;; another good option for less agressive completion:
+;; https://www.reddit.com/r/emacs/comments/1h6b8ww/comment/m0x0o0f/?share_id=G76LIh8BuFenOhvn_Kdaz
 
 (use-package expand-region)
 
