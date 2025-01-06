@@ -186,6 +186,10 @@
 ;; require final newline in files
 (setq require-final-newline t)
 
+
+;; autosave bookmarks
+(setq bookmark-save-flag 1)
+
 ;;; recentf and savehist -------------------------------------------------------
 
 ;;Keep folders Clean
