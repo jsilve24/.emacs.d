@@ -204,8 +204,8 @@
    org-msg-options "html-postamble:nil num:nil ^:{} toc:nil author:nil email:nil \\n:t tex:dvipng eval:nil"
    org-msg-startup "hidestars indent inlineimages"
    org-msg-default-alternatives '((new . (text html))
-                                  (reply-to-html . (text html))
-                                  (reply-to-text . (text)))
+				  (reply-to-html . (text html))
+				  (reply-to-text . (text)))
    org-msg-convert-citation t
    ;; The default attachment matcher gives too many false positives,
    ;; it's better to be more conservative. See https://regex101.com/r/EtaiSP/4.
@@ -213,6 +213,24 @@
    "see[ \t\n]\\(?:the[ \t\n]\\)?\\(?:\\w+[ \t\n]\\)\\{0,3\\}\\(?:attached\\|enclosed\\)\\|\
 (\\(?:attached\\|enclosed\\))\\|\
 \\(?:attached\\|enclosed\\)[ \t\n]\\(?:for\\|is\\)[ \t\n]")
+
+  (defun mu4e--compose-before-send ()
+    "Function called just before sending a message."
+    ;; Remove References: if In-Reply-To: is missing.
+    ;; This allows the user to effectively start a new message-thread by
+    ;; removing the In-Reply-To header.
+    (when (eq mu4e-compose-type 'reply)
+      (unless (message-field-value "In-Reply-To")
+	(message-remove-header "References")))
+    (when use-hard-newlines
+      (mu4e--send-harden-newlines))
+    ;; in any case, make sure to save the message; this will also trigger
+    ;; before/after save hooks, which fixes up various fields.
+    (set-buffer-modified-p t)
+    ;; (save-buffer) ;; removed due to Forked due to this issue https://github.com/jeremy-compostella/org-msg/issues/200
+    ;; now handle what happens _after_ sending
+    (add-hook 'message-sent-hook #'mu4e--compose-message-sent nil t))
+
   (org-msg-mode))
 
 ;;;###autoload
