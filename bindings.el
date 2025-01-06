@@ -566,7 +566,8 @@
 (general-define-key
  :states '(normal visual)
  "<M-tab>" #'flyspell-correct-wrapper
- "zg" #'jds/save-word
+ ;; "zg" #'jds/save-word
+ "zg" #'jds/flyspell-correct-word-then-abbrev
  "zG" #'jds/flyspell-correct-word-then-abbrev
  ;; "[s" #'jds/spell-fix-previous-error
  ;; "]s" #'jds/spell-fix-next-error
