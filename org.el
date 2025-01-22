@@ -218,11 +218,25 @@
 	   "* %? \n %^T")
 	  ("ca" "event with attachment" entry (file+headline "~/Dropbox/org/calendar.org" "Calendar")
 	   "* %? \n %^T\n %a")
+	  ("ct" "30 Min Meeting" entry (file+headline "~/Dropbox/org/calendar.org" "Calendar")
+	   "* %^{Task Description}\n%(jds/org-capture-meeting-timestamp)")
 	  ("n" "note" entry (file+headline "~/Dropbox/org/notes.org" "Notes")
 	   "* %? \n %U")
 	  ("P" "Protocol")
 	  ("Pw" "Capture Website" entry (file "~/Dropbox/org/inbox.org")
 	   "* TODO %:annotation \n %i %?")))
+
+  ;; From here :   https://www.reddit.com/r/orgmode/comments/1i3np2x/comment/m8dli2w/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button
+  (defun jds/org-capture-meeting-timestamp (&optional duration)
+    "Get an Org timestamp for a meeting.
+Prompt for a start time, calculate the end time by adding DURATION (default 30
+minutes), and return a formatted Org timestamp with start and end times."
+    (let* ((duration (or duration 30))
+           (start-time (org-read-date t t))
+           (end-time (time-add start-time (seconds-to-time (* duration 60)))))
+      (concat (format-time-string (org-time-stamp-format t) start-time)
+              "--"
+              (format-time-string (org-time-stamp-format t) end-time))))
 
 ;;; appearance customizations
   (setq org-ellipsis " ▾")
