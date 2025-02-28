@@ -31,42 +31,81 @@
 (use-package gruvbox-theme
   :disabled)
 
-(use-package emacs
-  :init
-  (setq modus-themes-mode-line '(accented borderless)
-	modus-themes-org-blocks 'tinted-background
-	modus-themes-deuteranopia nil
-	modus-themes-bold-constructs t
-	modus-themes-italic-constructs t
-	modus-themes-syntax '(yellow-comments green-strings alt-syntax)
-	modus-themes-mixed-fonts t
-	modus-themes-links '(neutral-underline)
-	;; modus-themes-links nil
-	;; modus-themes-box-buttons '(flat faint)
-	modus-themes-box-buttons nil
-	modus-themes-prompts nil
-	modus-themes-fringe nil
-	modus-themes-lang-checkers '(straight-underline)
-	modus-themes-hl-line nil
-	modus-themes-subtle-line-numbers t
-	modus-themes-markup nil
-	modus-themes-region '(no-extend)
-	modus-themes-org-agenda '((scheduled . uniform))
-	;; modus-themes-org-agenda '((header-block . (1.5 variable-pitch))
-	;; 			  (header-date . (grayscale workaholic bold-today))
-	;; 			  (event . (accented varied))
-	;; 			  (scheduled . uniform)
-	;; 			  (habit . traffic-light))
-	modus-themes-scale-headings t
-	modus-themes-headings
-	'((1 . (background rainbow overline bold  1.2))
-	  (2 . (rainbow overline bold 1.1))
-	  (3 . (overline rainbow bold 1.0))
-	  (4 . (rainbow bold))
-	  (t . (bold))))
+(use-package modus-themes
+  :ensure nil
+  :demand t
   :config
-  (load-theme 'modus-vivendi)
+  (setq modus-themes-bold-constructs t
+	modus-themes-italic-constructs t
+	;; Make the fringe invisible
+	modus-themes-common-palette-overrides '((fringe unspecified)))
+;; Like the above, but use a shade of red for the current line number
+(setq modus-themes-common-palette-overrides
+      '((fg-line-number-inactive unspecified)
+        (fg-line-number-active red-cooler)
+        (bg-line-number-inactive unspecified)
+        (bg-line-number-active unspecified)))
+
+;; Make code blocks (in Org, for example) use a more colorful style
+;; for their delimiter lines as well as their contents.  Give this a
+;; purple feel.  Make the delimiter lines distinct from the contents.
+(setq modus-themes-common-palette-overrides
+      '((bg-prose-block-contents bg-magenta-nuanced)
+        (bg-prose-block-delimiter bg-lavender)
+        (fg-prose-block-delimiter fg-main)))
+
+
+  ;; ;; Remove the border
+  ;; (setq modus-themes-common-palette-overrides
+  ;; 	'((border-mode-line-active unspecified)
+  ;; 	  (border-mode-line-inactive unspecified)))
+  ;; Keep the border but make it the same color as the background of the
+  ;; mode line (thus appearing borderless).  The difference with the
+  ;; above is that this version is a bit thicker because the border are
+  ;; still there.
+  (setq modus-themes-common-palette-overrides
+	'((border-mode-line-active bg-mode-line-active)
+          (border-mode-line-inactive bg-mode-line-inactive)))
+
+  (load-theme 'modus-vivendi t)
   :bind ("<f5>" . modus-themes-toggle))
+
+;; (use-package emacs
+;;   :init
+;;   (setq modus-themes-mode-line '(accented borderless)
+;; 	modus-themes-org-blocks 'tinted-background
+;; 	modus-themes-deuteranopia nil
+;; 	modus-themes-bold-constructs t
+;; 	modus-themes-italic-constructs t
+;; 	modus-themes-syntax '(yellow-comments green-strings alt-syntax)
+;; 	modus-themes-mixed-fonts t
+;; 	modus-themes-links '(neutral-underline)
+;; 	;; modus-themes-links nil
+;; 	;; modus-themes-box-buttons '(flat faint)
+;; 	modus-themes-box-buttons nil
+;; 	modus-themes-prompts nil
+;; 	modus-themes-fringe nil
+;; 	modus-themes-lang-checkers '(straight-underline)
+;; 	modus-themes-hl-line nil
+;; 	modus-themes-subtle-line-numbers t
+;; 	modus-themes-markup nil
+;; 	modus-themes-region '(no-extend)
+;; 	modus-themes-org-agenda '((scheduled . uniform))
+;; 	;; modus-themes-org-agenda '((header-block . (1.5 variable-pitch))
+;; 	;; 			  (header-date . (grayscale workaholic bold-today))
+;; 	;; 			  (event . (accented varied))
+;; 	;; 			  (scheduled . uniform)
+;; 	;; 			  (habit . traffic-light))
+;; 	modus-themes-scale-headings t
+;; 	modus-themes-headings
+;; 	'((1 . (background rainbow overline bold  1.2))
+;; 	  (2 . (rainbow overline bold 1.1))
+;; 	  (3 . (overline rainbow bold 1.0))
+;; 	  (4 . (rainbow bold))
+;; 	  (t . (bold))))
+;;   :config
+;;   (load-theme 'modus-vivendi)
+;;   :bind ("<f5>" . modus-themes-toggle))
 
 ;; themes I like:
 ;; ef-duo-dark
