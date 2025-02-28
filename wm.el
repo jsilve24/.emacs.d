@@ -1,5 +1,6 @@
 ;; wm.el --- EXWM config -*- lexical-binding: t; -*-
 
+(message "exwm running")
 (load-config "autoloads/wm.el")
 
 ;; this depends on window.el and associated autoloads, some of the autoloads do depend on evil currently. 
@@ -17,15 +18,18 @@
   (setq exwm-workspace-current-index 1)
 
   ;; Set the screen resolution (update this to be the correct resolution for your screen!)
+  
   (require 'exwm-randr)
-  (exwm-randr-enable)
-  (start-process-shell-command "xrandr" nil "xrandr --output eDP-1 --primary --mode 1920x1080 --pos 0x0 --rotate normal")
+  ;; (exwm-randr-enable)
+  (exwm-randr-mode 1)
+  (cond ((string= (system-name) "lenovoX1Sil") (start-process-shell-command "xrandr" nil "xrandr --output eDP-1 --primary --mode 1920x1200 --pos 0x0 --rotate normal"))
+	((string= (system-name) "lenovoGen2Sil") (start-process-shell-command "xrandr" nil "xrandr --output eDP-1 --primary --mode 1920x1080 --pos 0x0 --rotate normal")))
 
   ;; This will need to be updated to the name of a display!  You can find
   ;; the names of your displays by looking at arandr or the output of xrandr
   (cond
-   ((string= (system-name) "lenovoGen4Sil")
-    (setq exwm-randr-workspace-monitor-plist '(1 "eDP-1" 2 "eDP-1" 3 "HDMI-1-0" 4 "HDMI-1-0" 5 "DP-1-2" 6 "DP-1-2")))
+   ((string= (system-name) "lenovoX1Sil")
+    (setq exwm-randr-workspace-monitor-plist '(1 "eDP-1" 2 "eDP-1" 3 "DP-1-1" 4 "DP-1-1" 5 "DP-3" 6 "DP-3")))
    ((string= (system-name) "lenovoGen2Sil")
     (setq exwm-randr-workspace-monitor-plist '(1 "eDP-1" 2 "eDP-1" 3 "HDMI-1-0" 4 "HDMI-1-0" 5 "DP-1-0" 6 "DP-1-0"))))
 
