@@ -54,6 +54,12 @@
         (bg-prose-block-delimiter bg-lavender)
         (fg-prose-block-delimiter fg-main)))
 
+(setq modus-themes-headings
+ '((1 . (background rainbow overline bold 1.2))
+   (2 . (rainbow overline bold 1.1))
+   (3 . (overline rainbow bold 1.0))
+   (4 . (rainbow bold))
+   (t . (bold))))
 
   ;; ;; Remove the border
   ;; (setq modus-themes-common-palette-overrides
