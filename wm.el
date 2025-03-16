@@ -29,7 +29,7 @@
   ;; the names of your displays by looking at arandr or the output of xrandr
   (cond
    ((string= (system-name) "lenovoX1Sil")
-    (setq exwm-randr-workspace-monitor-plist '(1 "eDP-1" 2 "eDP-1" 3 "DP-1-1" 4 "DP-1-1" 5 "DP-3" 6 "DP-3")))
+    (setq exwm-randr-workspace-monitor-plist '(1 "eDP-1" 2 "eDP-1" 3 "DP-3-1" 4 "DP-3-1" 5 "DP-3-3" 6 "DP-3-3")))
    ((string= (system-name) "lenovoGen2Sil")
     (setq exwm-randr-workspace-monitor-plist '(1 "eDP-1" 2 "eDP-1" 3 "HDMI-1-0" 4 "HDMI-1-0" 5 "DP-1-0" 6 "DP-1-0"))))
 
