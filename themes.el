@@ -37,41 +37,72 @@
   :config
   (setq modus-themes-bold-constructs t
 	modus-themes-italic-constructs t
+	modus-themes-mixed-fonts t
 	;; Make the fringe invisible
 	modus-themes-common-palette-overrides '((fringe unspecified)))
-;; Like the above, but use a shade of red for the current line number
-(setq modus-themes-common-palette-overrides
-      '((fg-line-number-inactive unspecified)
-        (fg-line-number-active red-cooler)
-        (bg-line-number-inactive unspecified)
-        (bg-line-number-active unspecified)))
 
-;; Make code blocks (in Org, for example) use a more colorful style
-;; for their delimiter lines as well as their contents.  Give this a
-;; purple feel.  Make the delimiter lines distinct from the contents.
-(setq modus-themes-common-palette-overrides
-      '((bg-prose-block-contents bg-magenta-nuanced)
-        (bg-prose-block-delimiter bg-lavender)
-        (fg-prose-block-delimiter fg-main)))
+  ;; Like the above, but use a shade of red for the current line number
+  (setq modus-themes-common-palette-overrides
+	'((fg-line-number-inactive unspecified)
+	  (fg-line-number-active red-cooler)
+	  (bg-line-number-inactive unspecified)
+	  (bg-line-number-active unspecified)))
 
-(setq modus-themes-headings
- '((1 . (background rainbow overline bold 1.2))
-   (2 . (rainbow overline bold 1.1))
-   (3 . (overline rainbow bold 1.0))
-   (4 . (rainbow bold))
-   (t . (bold))))
+  ;; recover old syntax highlighting
+  (setq modus-themes-common-palette-overrides
+	'((builtin magenta)
+	  (comment yellow-faint)
+	  (constant magenta-cooler)
+	  (docstring green-faint)
+	  (docmarkup magenta-faint)
+	  (fnname magenta-warmer)
+	  (keyword cyan)
+	  (preprocessor cyan-cooler)
+	  (string green-cooler)
+	  (type magenta-cooler)
+	  (variable blue-warmer)
+	  (rx-construct magenta-warmer)
+	  (rx-backslash blue-cooler)))
 
-  ;; ;; Remove the border
-  ;; (setq modus-themes-common-palette-overrides
-  ;; 	'((border-mode-line-active unspecified)
-  ;; 	  (border-mode-line-inactive unspecified)))
+  ;; Make code blocks (in Org, for example) use a more colorful style
+  ;; for their delimiter lines as well as their contents.  Give this a
+  ;; purple feel.  Make the delimiter lines distinct from the contents.
+  (setq modus-themes-common-palette-overrides
+	'((bg-prose-block-contents bg-magenta-nuanced)
+	  (bg-prose-block-delimiter bg-lavender)
+	  (fg-prose-block-delimiter fg-main)))
+
+  (setq modus-themes-headings
+	'((1 . (background rainbow overline bold 1.2))
+	  (2 . (rainbow overline bold 1.1))
+	  (3 . (overline rainbow bold 1.0))
+	  (4 . (rainbow bold))
+	  (t . (bold))))
+
+  ;; Make the Org agenda use faint colors.
+  (setq modus-themes-common-palette-overrides
+        '((date-common cyan-faint) ; for timestamps and more
+          (date-deadline red-faint)
+          (date-event fg-alt) ; default
+          (date-holiday magenta) ; default (for M-x calendar)
+          (date-now fg-main) ; default
+          (date-scheduled fg-main)
+          (date-weekday fg-alt)
+          (date-weekend fg-dim)))
+
+  ;; subtle underlines on links
+  (setq modus-themes-common-palette-overrides
+	'((underline-link border)
+	  (underline-link-visited border)
+	  (underline-link-symbolic border)))
+
   ;; Keep the border but make it the same color as the background of the
   ;; mode line (thus appearing borderless).  The difference with the
   ;; above is that this version is a bit thicker because the border are
   ;; still there.
   (setq modus-themes-common-palette-overrides
 	'((border-mode-line-active bg-mode-line-active)
-          (border-mode-line-inactive bg-mode-line-inactive)))
+	  (border-mode-line-inactive bg-mode-line-inactive)))
 
   (load-theme 'modus-vivendi t)
   :bind ("<f5>" . modus-themes-toggle))
@@ -115,7 +146,7 @@
 
 ;; themes I like:
 ;; ef-duo-dark
-;; doom-dark+
+;; 
 (use-package ef-themes
   :commands (ef-themes-toggle)
   :bind ("<f6>" . ef-themes-toggle)
