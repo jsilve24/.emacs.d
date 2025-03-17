@@ -304,7 +304,7 @@
   "j m"   `(,(jds~dired-find-file "/run/media/jds6696/") :which-key "Media")
   "j r"   `(,(jds~dired-find-file "~/Dropbox/org/roam/references/references.bib") :which-key "references")
   "j a" (lambda () (interactive) (find-file "~/Dropbox/Buisness/anarres/cash_flow/2024_anarres_cash_flow.xlsx"))
-  "j f" (lambda () (interactive) (find-file "~/Dropbox/Buisness/homewood_farm/cash_flow_records/homewood_cashflow_2024.xlsx"))
+  "j f" (lambda () (interactive) (find-file "~/Dropbox/Buisness/homewood_farm/cash_flow_records/homewood_cashflow_2025.xlsx"))
   "j t" '((lambda () (interactive) (jds/switch-to-agenda-file "tasks.org")) :which-key "tasks"))
 
 ;;; org and apps
@@ -483,6 +483,14 @@
   "ee" #'consult-eglot-symbols
   "eh" #'eldoc
   "em" #'consult-flymake)
+
+;; AI/gptel bindings
+(jds/leader-def
+  "d" '(:ignore t :which-key "AI")
+  "dd" #'gptel
+  "ds" #'gptel-send
+  "da" #'gptel-add
+  "dr" #'gptel-rewrite)
 
 ;;; evil bindings
 
