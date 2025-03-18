@@ -8,7 +8,7 @@
 #+SUBTITLE:  $2
 #+AUTHOR:    Justin Silverman, MD, PhD
 #+EMAIL:     JustinSilverman@psu.edu 
-#+BEAMER_HEADER: \institute[]{The Pennsylvania State University \\\\ College of Information Science and Technology \\\\ Departments of Statistics and Medicine \\\\ Institute for Computational and Data Science} 
+#+BEAMER_HEADER: \institute[]{The Pennsylvania State University \\\\ College of Information Science and Technology \\\\ Departments of Statistics and Medicine \\\\ Institute for Computational and Data Science \\ \\ @inschool4life.bsky.social} 
 #+DATE:      
 #+DESCRIPTION: 
 #+KEYWORDS: 
