@@ -198,7 +198,7 @@
   ;; TODO Forked due to this issue https://github.com/jeremy-compostella/org-msg/issues/200
   :straight (:type git :host github :repo "jeremy-compostella/org-msg" :branch "master" :fork t)
   :after mu4e
-  ;; :disabled t
+  :disabled t
   :config
   (setq
    org-msg-options "html-postamble:nil num:nil ^:{} toc:nil author:nil email:nil \\n:t tex:dvipng eval:nil"
