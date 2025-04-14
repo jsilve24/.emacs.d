@@ -32,7 +32,9 @@
 ;; - https://magit.vc/manual/forge/Token-Creation.html#Token-Creation
 ;; - https://magit.vc/manual/ghub/Getting-Started.html#Getting-Started
 (use-package forge
-  :after magit)
+  :after magit
+  :init
+  (setq forge-add-default-bindings nil))
 
 ;; for easier handling of pull-requests on github
 (use-package code-review
