@@ -270,7 +270,13 @@ want to kill."
 ;;  "C-." #'org-noter-sync-current-note)
 
 (use-package org-pdftools
-  :hook (org-mode . org-pdftools-setup-link))
+  :hook (org-mode . org-pdftools-setup-link)
+  :config
+  ;; As a quick workaround until the corresponding lines in org-pdftools are
+  ;; fixed, you can simply add this to your configuration:
+  ;; https://github.com/fuxialexander/org-pdftools/issues/110
+  (defalias 'find-if 'cl-find-if)
+  (defalias 'getf 'cl-getf))
 
 (use-package org-noter-pdftools
   :after org-noter
