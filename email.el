@@ -186,7 +186,7 @@
   (add-hook 'mu4e-compose-mode-hook 'turn-off-auto-fill)
   ;; also this may help
   ;; ;; better flowing when sending default (without org-msg)
-  (setq mu4e-compose-format-flowed t)
+  (setq mu4e-compose-format-flowed nil)
 
   ;; start mu4e in background
   ;; (mu4e)
