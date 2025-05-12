@@ -24,7 +24,9 @@
 				   (:sort <)))
 				 ("B>U" 3 magit-repolist-column-unpushed-to-upstream
 				  ((:right-align t)
-				   (:sort <))))))
+				   (:sort <)))))
+  ;; https://mstdn.social/@matt1126/113845518438376764
+  (setq magit-diff-refine-hunk 'all))
 
 (use-package browse-at-remote)
 
