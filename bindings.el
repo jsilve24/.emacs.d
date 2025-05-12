@@ -139,6 +139,7 @@
   "fc" #'jds/open-config
   "fC" #'jds/find-file-config
   ;; "fk" #'project-kill-buffers
+  "fm" #'projectile-compile-project ;; mneumonic: "file make"
   "fk" #'projectile-kill-buffers
   "fp" #'consult-projectile
   "fP" #'jds/find-file-other-project

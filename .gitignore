@@ -26,3 +26,4 @@
 /.#git.el
 /.#wm.el
 /wget-log
+/etc/transient/

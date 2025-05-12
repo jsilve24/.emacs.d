@@ -7,7 +7,8 @@
   (projectile-mode +1)
 
   (setq projectile-indexing-method 'hybrid
-	projectile-globally-ignored-file-suffixes '("pygtex" "pygstyle" "fls" "aux" "synctex.gz" "fdb_latexmk" "bbl")))
+	projectile-globally-ignored-file-suffixes '("pygtex" "pygstyle" "fls" "aux" "synctex.gz" "fdb_latexmk" "bbl")
+	projectile-project-compilation-cmd "make -k "))
 
 
 (use-package consult-projectile
