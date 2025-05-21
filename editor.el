@@ -307,8 +307,8 @@ If point is within empty delmiters, kill the delimiters."
   (grugru-define-on-major-mode 'emacs-lisp-mode 'symbol '("t" "nil"))
   (grugru-define-on-major-mode 'ess-r-mode 'symbol '("TRUE" "FALSE"))
   (grugru-define-on-major-mode 'conf-javaprop-mode 'symbol '("true" "false"))
-  (grugru-define-on-major-mode '(org-mode latex-mode) 'tex-command '("\\parallel" "\\perp"))
-  (grugru-define-on-major-mode '(latex-mode) 'tex-command '("\\section" "\\subsection" "\\subsubsection" "\\paragraph")))
+  (grugru-define-on-major-mode '(org-mode latex-mode LaTeX-mode) 'tex-command '("\\parallel" "\\perp"))
+  (grugru-define-on-major-mode '(latex-mode LaTeX-mode) 'tex-command '("\\section" "\\subsection" "\\subsubsection" "\\paragraph")))
 
 
 ;;; indent
