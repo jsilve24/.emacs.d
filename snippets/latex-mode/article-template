@@ -1,15 +1,62 @@
 # -*- mode: snippet -*-
-# name: article-template-notitle
-# key: article-notitle
+# name: article-template
+# key: article-template
 # --
-\\documentclass[11pt,a4paper]{article}
-\\usepackage[utf8x]{inputenc}
-\\usepackage{geometry}
-\\usepackage{amsmath}
+\\documentclass[11pt]{article}
+\\usepackage[margin=1in]{geometry}
+\\usepackage{amsmath, amssymb, amsthm}
 \\usepackage{graphicx}
+\\usepackage{authblk}
+\\usepackage{natbib}
+\\usepackage{hyperref}
+\\usepackage{enumitem}
+\\usepackage{algorithm}
+\\usepackage[noend]{algpseudocode}
+\\usepackage{booktabs}
+\\usepackage{xcolor}
+\\usepackage{mathtools}
+\\usepackage{url}
+
+% Define theorem environment
+\\newtheorem{theorem}{Theorem}
+
+\\hypersetup{
+  colorlinks=true,
+  citecolor=blue,
+  linkcolor=blue,
+  urlcolor=blue
+}
+
+\\title{Title Goes Here: Clear, Informative, and Precise}
+\\author[1]{Dharmik Rathod}
+\\author[1,2,3,4,*]{Justin D. Silverman}
+\\affil[1]{College of Information Sciences and Technology, The Pennsylvania State University}
+\\affil[2]{Department of Statistics, The Pennsylvania State University}
+\\affil[3]{Department of Medicine, The Pennsylvania State University}
+\\affil[4]{Institute for Computational and Data Science, The Pennsylvania State University}
+\\affil[*]{Corresponding Author, JustinSilverman@psu.edu}
+\\date{}
 
 \\begin{document}
-$0
+\\maketitle
+
+\\begin{abstract}
+Placeholder
+\\end{abstract}
+
+\\section{Introduction}
+Placeholder
+
+\section*{Acknowledgments}
+Placeholder
+
+\\bibliographystyle{plainnat}
+\\bibliography{references}
+
+\\appendix
+\\section{Appendix A: Supplementary Proofs}
+Include any long derivations, additional results, or proofs omitted from the main text.
+
 \\end{document}
 
 
