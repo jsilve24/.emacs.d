@@ -2,7 +2,7 @@
 
 (use-package zoxide
   :commands (zoxide-add zoxide-find-file zoxide-cd zoxide-query zoxide-travel)
-  :straight (zoxide :type git :host gitlab :repo "Vonfry/zoxide.el" :branch "master")
+  ;; :straight (zoxide :type git :host gitlab :repo "Vonfry/zoxide.el" :branch "master")
   :hook
   ((find-file . zoxide-add)
    (projectile-after-switch-project . zoxide-add)
