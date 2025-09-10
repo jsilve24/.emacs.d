@@ -164,7 +164,7 @@
 	   "* TODO %?\n %U")
 	  ("m" "meetings")
 	  ("ma" "meeting anarres" entry (file+olp+datetree "~/Dropbox/org/meetings_anarres.org")
-	   "* MEETING %u with %? :MEETING:\n %U"
+	   "* MEETING %u with %? :MEETING:\n "
 	   :jump-to-captured t
 	   :tree-type month)
 	  ("mp" "meeting psu" entry (file+olp+datetree "~/Dropbox/org/meetings_psu.org")
