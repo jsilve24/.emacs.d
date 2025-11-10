@@ -68,7 +68,7 @@
     "Face for obscuring/dimming icons"
     :group 'all-the-icons-faces)
   :custom
-  (org-cite-global-bibliography '("~/Dropbox/org/roam/references/references.bib"))
+  (org-cite-global-bibliography '("/home/jds6696/Dropbox/org/roam/references/references.bib"))
   (org-cite-insert-processor 'citar)
   (org-cite-follow-processor 'citar)
   (org-cite-activate-processor 'citar)
