@@ -7,4 +7,9 @@
 #+AUTHOR: Justin D. Silverman
 #+OPTIONS: toc:nil num:nil d:nil ^:nil
 #+LATEX_HEADER: \usepackage[margin=1in]{geometry}
+#+LATEX_HEADER: \usepackage[backend=biber,style=authoryear]{biblatex}
+#+LATEX_HEADER: \addbibresource{/home/jds6696/Dropbox/org/roam/references/references.bib}
+#+cite_export: biblatex
 $0
+
+#+print_bibliography:
