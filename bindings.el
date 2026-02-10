@@ -525,7 +525,8 @@
  "gc" #'evilnc-comment-operator
  "gC" #'evilnc-copy-and-comment-operator
  "g;" #'goto-last-change
- "g/" #'avy-goto-char-timer
+ ;; "g/" #'avy-goto-char-timer
+ "g/" #'avy-flash-jump
  "g," #'jds/evil-snipe-convert-avy-jump
  "gm" #'evil-next-match	;; select prior search
  ;; "gM" held for things like jds/avy-latex-math

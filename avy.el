@@ -45,6 +45,13 @@
 	  (?Y . avy-action-yank)
 	  (?L . avy-action-yank-line))))
 
+(use-package avy-flash
+  :straight (avy-flash
+             :type git
+             :host github
+             :repo "ZenScriptor/avy-flash"
+             :files ("avy-flash.el"))
+  :after avy)
 
 (use-package link-hint
   :straight (link-hint :type git :host github :repo "noctuid/link-hint.el" :fork t)
@@ -56,6 +63,7 @@
   (setq browse-url-generic-program "qutebrowser")
   ;; Open urls in a new tab instead of window; can also be set in the config file
   (setq browse-url-generic-args '("--target" "tab")))
+
 
 ;; setup ace-window integration for link-hint from here:
 ;;  https://localauthor.github.io/posts/aw-select.html
