@@ -266,6 +266,7 @@ escape."
     ";latex" (jds~yas-lambda-expand "#+LATEX: $0")
     ";atex" (jds~yas-lambda-expand "#+ATTR_LATEX: $0")
     ";alatex" (jds~yas-lambda-expand "#+ATTR_LATEX: $0")
+    ";ib" (jds~yas-lambda-expand "@@beamer:$0@@")
     ";caption" (jds~yas-lambda-expand "#+CAPTION:$0")
     ";ofig" (jds~yas-lambda-expand "[[./$0]]")
     ";pause" "#+BEAMER: \\pause"
