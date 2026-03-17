@@ -167,6 +167,20 @@ for tomorrow.  With two prefixes, select the schedule date."
 
 
 
+;;; org-agenda reply helper -------------------------------------------------
+
+(defvar jds~mu4e-reply-pending nil
+  "When non-nil, compose a reply as soon as the next mu4e view buffer is ready.
+Set by `jds/org-agenda-reply-to-email-and-done'.")
+
+;;;###autoload
+(defun jds~mu4e-maybe-compose-reply-hook ()
+  "Compose a reply if `jds~mu4e-reply-pending' is set.
+Intended for `mu4e-view-mode-hook'."
+  (when jds~mu4e-reply-pending
+    (setq jds~mu4e-reply-pending nil)
+    (run-with-idle-timer 0.1 nil #'jds/mu4e-compose-reply)))
+
 ;;;###autoload
 (defun jds/mu4e-compose-reply (&optional no-wide)
   "Reply to the message at point.

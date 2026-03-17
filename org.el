@@ -456,8 +456,9 @@ minutes), and return a formatted Org timestamp with start and end times."
 (general-define-key
  :states '(n v m)
  :keymaps 'org-agenda-mode-map
- "f" #'avy-org-agenda
- "F" #'jds/avy-org-agenda-and-jump)
+ "f"  #'avy-org-agenda
+ "F"  #'jds/avy-org-agenda-and-jump
+ "mR" #'jds/org-agenda-reply-to-email-and-done)
 
 (jds/localleader-def
   :keymaps 'org-capture-mode-map

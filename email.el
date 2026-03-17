@@ -65,6 +65,9 @@
   ;; don't auto-save drafts
   (add-hook 'mu4e-compose-mode-hook #'(lambda () (auto-save-mode -1)))
 
+  ;; compose reply triggered from org-agenda (see `jds/org-agenda-reply-to-email-and-done')
+  (add-hook 'mu4e-view-mode-hook #'jds~mu4e-maybe-compose-reply-hook)
+
 
   ;; nicer header view
   (setq mu4e-headers-fields

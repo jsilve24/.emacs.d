@@ -344,6 +344,36 @@ is nil, refile in the current file."
   (org-agenda nil "d"))
 
 ;;;###autoload
+(defun jds/org-agenda-reply-to-email-and-done ()
+  "In org-agenda, if the current entry has a mu4e link, reply to it and mark DONE.
+Searches the heading and its body for a [[mu4e:msgid:...]] link, opens that
+message in mu4e, and then composes a reply once the view is ready.
+Marks the agenda entry as DONE before opening the reply."
+  (interactive)
+  (let* ((marker (or (org-get-at-bol 'org-marker) (org-agenda-error)))
+         (buffer (marker-buffer marker))
+         (pos    (marker-position marker))
+         msgid)
+    (with-current-buffer buffer
+      (save-excursion
+        (goto-char pos)
+        (let ((end (save-excursion (outline-next-heading) (point))))
+          (when (re-search-forward "\\[\\[mu4e:msgid:\\([^]]+\\)\\]" end t)
+            (setq msgid (match-string-no-properties 1))))))
+    (if (not msgid)
+        (user-error "No mu4e link found in this entry")
+      (org-agenda-todo "DONE")
+      (setq jds~mu4e-reply-pending t)
+      ;; Fallback timer: fires if mu4e-view-mode-hook doesn't (buffer already in view mode)
+      (run-with-idle-timer
+       0.8 nil
+       (lambda ()
+         (when jds~mu4e-reply-pending
+           (setq jds~mu4e-reply-pending nil)
+           (jds/mu4e-compose-reply))))
+      (org-link-open-from-string (format "[[mu4e:msgid:%s]]" msgid)))))
+
+;;;###autoload
 (defun jds/org-agenda-move-to-next ()
   "Remove scheduled (if present) and change state to NEXT."
   (interactive)
