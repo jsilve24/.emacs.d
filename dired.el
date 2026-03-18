@@ -9,16 +9,30 @@
   ;; tell emacs to revert each Dired buffer automatically when revisiting buffer
   (setq dired-auto-revert-buffer t
 	dired-kill-when-opening-new-dired-buffer t
+	;; allow drag and drop out of dired
+	dired-mouse-drag-files t
 	;; Disable the prompt about whether I want to kill the Dired buffer for a
 	;; deleted directory. Of course I do!
 	dired-clean-confirm-killing-deleted-buffers nil)
   ;; Auto-refresh dired on filesystem change
   (add-hook 'dired-mode-hook 'auto-revert-mode)
+
+  ;; Keep evil from taking mouse (so dired-mouse-drag-files works)
+  (with-eval-after-load 'dired
+    (define-key dired-mode-map [down-mouse-1] #'dired-mouse-drag-files)
+    (define-key dired-mode-map [drag-mouse-1] #'dired-mouse-drag-files))
+  ;; and make sure Evil doesn't override in dired
+  (with-eval-after-load 'evil
+    (add-hook 'dired-mode-hook
+	      (lambda ()
+		(evil-local-set-key 'normal [down-mouse-1] nil)
+		(evil-local-set-key 'normal [drag-mouse-1] nil)
+		(evil-local-set-key 'motion [down-mouse-1] nil) (evil-local-set-key 'motion [drag-mouse-1] nil))))
+
   (evil-collection-define-key 'normal 'dired-mode-map
     "l" 'dired-find-file
     "L" 'dired-find-file-other-window
     "h" 'dired-up-directory))
-
 
 
 ;; stole the below function from dired-hacks-utils.el since it was difficult

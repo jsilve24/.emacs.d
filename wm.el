@@ -7,6 +7,9 @@
 
 ;;; exwm main setup
 (use-package exwm
+  ;; :straight (exwm :type git :host github :repo "emacs-exwm/exwm"
+  ;; 		  :commit "536486005f5d43c644a8dfcf86b703324fad704d"
+  ;; 		  )
   :init
   ;; default to not replacing existing window manager
   (setq exwm-replace nil)
@@ -195,6 +198,7 @@
 	ediff-window-setup-function 'ediff-setup-windows-plain)
 
 
+  ;; (exwm-wm-mode)
   (exwm-enable)
   ;; (require 'exwm-config)
   ;; (exwm-config-default)
