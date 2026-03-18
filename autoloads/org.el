@@ -357,6 +357,7 @@ Marks the agenda entry as DONE before opening the reply."
     (with-current-buffer buffer
       (save-excursion
         (goto-char pos)
+        (org-back-to-heading t)
         (let ((end (line-end-position)))
           (when (re-search-forward "\\[\\[mu4e:msgid:\\([^]]+\\)\\]" end t)
             (setq msgid (match-string-no-properties 1))))))
