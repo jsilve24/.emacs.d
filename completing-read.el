@@ -318,7 +318,7 @@ targets."
    :preview-key '(:debounce 1.5 any)
    consult-ripgrep consult-git-grep consult-grep
    consult-bookmark consult-recent-file consult-xref
-   consult--source-recent-file consult--source-project-recent-file consult--source-bookmark
+   consult-source-recent-file consult-source-project-recent-file consult-source-bookmark
    ;; :preview-key (kbd "M-.")
    )
 
@@ -360,18 +360,18 @@ targets."
       (lambda (action cand)
 	(funcall orig-state action (funcall filter action cand)))))
 
-  (setq consult--source-buffer
-	(plist-put consult--source-buffer :state #'consult-buffer-state-no-x))
+  (setq consult-source-buffer
+	(plist-put consult-source-buffer :state #'consult-buffer-state-no-x))
 
 
   ;; combine sources for consult-buffer
-  (setq consult-buffer-sources '(consult--source-buffer
-				 consult--source-bookmark
+  (setq consult-buffer-sources '(consult-source-buffer
+				 consult-source-bookmark
 				 ;; consult-project-extra--source-file
 				 ;; consult-project-extra--source-project
 				 consult-projectile--source-projectile-file
 				 consult-projectile--source-projectile-project
-				 consult--source-recent-file))
+				 consult-source-recent-file))
 
   ;; add annotation to consult-org-agenda
   ;; (consult-customize
