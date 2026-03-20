@@ -10,18 +10,19 @@
 	projectile-globally-ignored-file-suffixes '("pygtex" "pygstyle" "fls" "aux" "synctex.gz" "fdb_latexmk" "bbl")
 	projectile-project-compilation-cmd "make -k ")
 
-  ;; Fix: projectile-project-root calls file-remote-p with nil when
-  ;; default-directory is nil (e.g. during async file listing). Guard against
-  ;; this by catching wrong-type-argument and returning nil instead of erroring.
-  (advice-add 'projectile-project-root :around
-    (lambda (orig-fn &optional dir)
-      (condition-case nil
-	  (funcall orig-fn dir)
-	(wrong-type-argument nil)))))
+  )
 
 
 (use-package consult-projectile
-  :straight (consult-projectile :type git :host gitlab :repo "OlMon/consult-projectile" :branch "master"))
+  :straight (consult-projectile :type git :host gitlab :repo "OlMon/consult-projectile" :branch "master")
+  :config
+  ;; consult-projectile--file calls projectile without setting default-directory,
+  ;; so projectile-project-root falls back to a nil default-directory and
+  ;; file-remote-p crashes. Bind default-directory to the project dir first.
+  (advice-add 'consult-projectile--file :around
+    (lambda (orig-fn dir &rest args)
+      (let ((default-directory (expand-file-name dir)))
+	(apply orig-fn dir args)))))
 
 
 ;;; better switch to other file (simpler at least) -----------------------------
