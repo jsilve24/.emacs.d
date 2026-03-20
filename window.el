@@ -73,11 +73,12 @@
   (defun jds/aw-fix-mode-line-format ()
     "Ensure ace-window entry is present in mode-line-format for all buffers."
     (dolist (buf (buffer-list))
-      (when (and (local-variable-p 'mode-line-format buf)
-		 (not (assq 'ace-window-display-mode
-			    (buffer-local-value 'mode-line-format buf))))
-	(with-current-buffer buf
-	  (kill-local-variable 'mode-line-format)))))
+      (let ((fmt (buffer-local-value 'mode-line-format buf)))
+	(when (and (local-variable-p 'mode-line-format buf)
+		   (listp fmt)
+		   (not (assq 'ace-window-display-mode fmt)))
+	  (with-current-buffer buf
+	    (kill-local-variable 'mode-line-format))))))
 
   (jds/aw-fix-mode-line-format)
   (add-hook 'after-change-major-mode-hook #'jds/aw-fix-mode-line-format))
