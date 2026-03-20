@@ -182,7 +182,7 @@
 		    )
 	   :jump-to-captured t
 	   :tree-type month)
-	  ("mPz" "meeting Allen" entry (file+olp+datetree "~/Dropbox/org/mtx-allen.org")
+	  ("mPa" "meeting Allen" entry (file+olp+datetree "~/Dropbox/org/mtx-allen.org")
 	   ,(concat "* MEETING %u with Allen :MEETING:w_allen:\n")
 	   :jump-to-captured t
 	   :tree-type month)
@@ -190,10 +190,10 @@
 	   ,(concat "* MEETING %u with Vandana :MEETING:w_vandana:\n")
 	   :jump-to-captured t
 	   :tree-type month)
-	  ("mPa" "meeting Andrew" entry (file+olp+datetree "~/Dropbox/org/mtx-andrew.org")
-	   ,(concat "* MEETING %u with Andrew :MEETING:w_andrew:\n  %?")
-	   :jump-to-captured t
-	   :tree-type month)
+	  ;; ("mPa" "meeting Andrew" entry (file+olp+datetree "~/Dropbox/org/mtx-andrew.org")
+	  ;;  ,(concat "* MEETING %u with Andrew :MEETING:w_andrew:\n  %?")
+	  ;;  :jump-to-captured t
+	  ;;  :tree-type month)
 	  ("mPt" "meeting Tinghua" entry (file+olp+datetree "~/Dropbox/org/mtx-tinghua.org")
 	   ,(concat "* MEETING %u with Tinghua :MEETING:w_tinghua:\n"
 		    "** Fido Additive GPs :p_addgp:\n"
