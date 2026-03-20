@@ -8,7 +8,16 @@
 
   (setq projectile-indexing-method 'hybrid
 	projectile-globally-ignored-file-suffixes '("pygtex" "pygstyle" "fls" "aux" "synctex.gz" "fdb_latexmk" "bbl")
-	projectile-project-compilation-cmd "make -k "))
+	projectile-project-compilation-cmd "make -k ")
+
+  ;; Fix: projectile-project-root calls file-remote-p with nil when
+  ;; default-directory is nil (e.g. during async file listing). Guard against
+  ;; this by catching wrong-type-argument and returning nil instead of erroring.
+  (advice-add 'projectile-project-root :around
+    (lambda (orig-fn &optional dir)
+      (condition-case nil
+	  (funcall orig-fn dir)
+	(wrong-type-argument nil)))))
 
 
 (use-package consult-projectile
