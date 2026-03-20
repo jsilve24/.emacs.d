@@ -57,7 +57,7 @@
 	display-time-day-and-date t)
   (display-battery-mode 1)
 
-  (setq exwm-workspace-minibuffer-postion 'bottom)
+  (setq exwm-workspace-minibuffer-position 'bottom)
   ;; (exwm-workspace-display-echo-area-timeout 1)
 
 
@@ -219,6 +219,7 @@
 ;; allow moving between monitors
 (use-package framemove
   :straight (framemove :type git :host github :repo "jsilve24/framemove")
+  :disabled
   :config
   (setq framemove-hook-into-windmove t))
 
@@ -277,7 +278,7 @@
 	desktop-environment-brightness-get-regexp "\\([0-9]+\n\\)"
 	desktop-environment-brightness-normal-increment "+10"
 	desktop-environment-brightness-normal-decrement "-10"
-	desktop-environment-brightness-small-decrement "+5"
+	desktop-environment-brightness-small-increment "+5"
 	desktop-environment-brightness-small-decrement "-5")
   ;; unset s-l binding
   (progn

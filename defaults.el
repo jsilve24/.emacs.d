@@ -31,9 +31,12 @@
 ;; when it's idle. However, if the idle delay is too long, we run the risk of
 ;; runaway memory usage in busy sessions. If it's too low, then we may as well
 ;; not be using gcmh at all.
-(setq gcmh-idle-delay 'auto  ; default is 15s
-      gcmh-auto-idle-delay-factor 10
-      gcmh-high-cons-threshold (* 16 1024 1024))  ; 16mb
+(use-package gcmh
+  :config
+  (setq gcmh-idle-delay 'auto
+        gcmh-auto-idle-delay-factor 10
+        gcmh-high-cons-threshold (* 16 1024 1024))
+  (gcmh-mode 1))
 
 ;; Emacs "updates" its ui more often than it needs to, so slow it down slightly
 (setq idle-update-delay 1.0)  ; default is 0.5
@@ -115,7 +118,7 @@
 (setq frame-inhibit-implied-resize t)
 
 ;; I think this may require emacs 29
-(setq pixel-scroll-precision-mode t)
+(pixel-scroll-precision-mode 1)
 
 (setq-default fill-column 80)
 
