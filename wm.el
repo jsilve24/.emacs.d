@@ -57,9 +57,6 @@
 	display-time-day-and-date t)
   (display-battery-mode 1)
 
-  (setq exwm-workspace-minibuffer-position 'bottom)
-  ;; (exwm-workspace-display-echo-area-timeout 1)
-
 
   ;; (efs/run-in-background "nm-applet")
   (efs/run-in-background "davmail -server")

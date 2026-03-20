@@ -229,6 +229,7 @@
       org-indent-mode
       cdlatex-mode
       reftex-mode
+      gcmh-mode
       visual-line-mode))
 
   (defun jds~purge-minor-modes ()
