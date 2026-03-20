@@ -198,11 +198,7 @@
 	ediff-window-setup-function 'ediff-setup-windows-plain)
 
 
-  ;; (exwm-wm-mode)
-  (exwm-enable)
-  ;; (require 'exwm-config)
-  ;; (exwm-config-default)
-  )
+  (exwm-wm-mode))
 
 
 (general-define-key
