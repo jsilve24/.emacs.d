@@ -344,24 +344,9 @@ targets."
   (add-to-list 'consult-buffer-filter "\\*scratch\\*")
   (add-to-list 'consult-buffer-filter "\\*sent draft\\*")
 
-  ;; dont' preview exwm buffers
+  ;; dont' preview exwm buffers - use the public API (consult v2.9+)
   ;; see: https://github.com/minad/consult/wiki#do-not-preview-exwm-windows-or-tramp-buffers
-  (defun consult-buffer-state-no-x ()
-    "Buffer state function that doesn't preview X buffers."
-    (let ((orig-state (consult--buffer-state))
-	  (filter (lambda (action cand)
-		    (if (or (eq action 'return)
-			    (if cand
-				(let ((buffer (get-buffer cand)))
-				  (and buffer
-				       (not (eq 'exwm-mode (buffer-local-value 'major-mode buffer)))))))
-			cand
-		      nil))))
-      (lambda (action cand)
-	(funcall orig-state action (funcall filter action cand)))))
-
-  (setq consult-source-buffer
-	(plist-put consult-source-buffer :state #'consult-buffer-state-no-x))
+  (setq consult-preview-excluded-buffers '(major-mode . exwm-mode))
 
 
   ;; combine sources for consult-buffer
