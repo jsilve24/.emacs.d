@@ -105,7 +105,16 @@ definition of INTERACTIVE-P."
 ;;; try out lp-transient package -----------------------------------------------
 
 (use-package transient-extras-lp
-  :straight (transient-extras-lp :type git :host github :repo "haji-ali/transient-extras"))
+  :straight (transient-extras-lp :type git :host github :repo "haji-ali/transient-extras")
+  :config
+  ;; The upstream function relies on argument ordering which broke in newer
+  ;; transient versions. Find the buf-or-files argument by type instead.
+  (defun transient-extras-lp--do-print (args)
+    "Call `transient-extras-lp' with `transient' ARGS."
+    (interactive (list (transient-args 'transient-extras-lp-menu)))
+    (let* ((buf-or-files (cl-find-if (lambda (x) (or (bufferp x) (listp x))) args))
+           (lp-args (cl-remove buf-or-files args :test #'eq)))
+      (transient-extras-lp buf-or-files lp-args))))
 
 
 
