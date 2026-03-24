@@ -216,7 +216,6 @@
 ;; allow moving between monitors
 (use-package framemove
   :straight (framemove :type git :host github :repo "jsilve24/framemove")
-  :disabled
   :config
   (setq framemove-hook-into-windmove t))
 
