@@ -8,6 +8,7 @@
 			;; (setq-local evil-insert-state-cursor 'box)
 			(evil-insert-state)))
 	(define-key vterm-mode-map [return]                      #'vterm-send-return)
+	(evil-define-key '(insert normal) vterm-mode-map (kbd "C-q") #'vterm-send-next-key)
 
 	(setq vterm-keymap-exceptions nil)
 	(setq term-prompt-regexp "^[^#$%>\n]*[#$%>] *")  ;; Set this to match your custom shell prompt
