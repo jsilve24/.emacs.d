@@ -22,7 +22,7 @@
   (add-hook 'claude-code-mode-hook #'jds/claude-code-evil-setup)) ; Optionally enable Emacs MCP tools
 
 (jds/localleader-def
- :keymaps '(ess-r-mode-map emacs-lisp-mode-map)
+ :keymaps '(ess-r-mode-map emacs-lisp-mode-map vterm-mode-map)
  "'" #'claude-code-ide-menu)
 
 (provide 'ai)
