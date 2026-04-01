@@ -489,10 +489,18 @@
 ;; AI/gptel bindings
 (jds/leader-def
   "d" '(:ignore t :which-key "AI")
-  "dd" #'gptel
+  ;; "dd" #'gptel
+  "dd" #'gptel-agent
   "ds" #'gptel-send
-  "da" #'gptel-add
-  "dr" #'gptel-rewrite)
+  "d+" #'gptel-add
+  "dm" #'gptel-menu
+  "dr" #'gptel-rewrite
+  "da" #'gptel-aibo
+  "dA" #'gptel-aibo-apply-last-suggestions
+  "di" #'gptel-aibo-summon)
+
+
+
 
 ;;; evil bindings
 

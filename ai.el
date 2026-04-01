@@ -93,6 +93,11 @@
   :straight t ;use :ensure t for Elpaca
   :config (gptel-agent-update))         ;Read files from agents directories
 
+(use-package gptel-magit
+  :straight t
+  :after (gptel magit)
+  :hook (magit-mode . gptel-magit-install))
+
 
 (use-package gptel-aibo
   :straight t
