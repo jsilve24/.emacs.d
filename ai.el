@@ -1,11 +1,113 @@
 ;;; ai.el --- summary -*- lexical-binding: t -*-
 
-(use-package gptel)
+(use-package gptel
+  :init
+  ;; (setq gptel-model 'claude-sonnet-4-6)
+  (setq gptel-model 'claude-haiku-4-5-20251001)
+  :config
+  ;; --- Claude backend ---
+  (setq gptel-backend (gptel-make-anthropic "Claude"
+                        :stream t
+                        :key (auth-source-pick-first-password :host "api.anthropic.com" :user "apikey")))
+
+  ;; --- LaTeX writing system prompt ---
+  (defvar jds/gptel-latex-system
+    "You are an expert scientific writing assistant. Rules:
+1. Preserve ALL LaTeX commands, environments, and macros exactly as written.
+2. Return ONLY the requested text — no preamble, no explanation, no markdown code fences.
+3. Use formal, precise academic prose appropriate for peer-reviewed journals.
+4. Match the style and register of the surrounding text.")
+
+  ;; --- Shared callback factory ---
+  (defun jds/gptel--replace-region-callback (start end)
+    "Return a gptel callback that replaces START..END with the response."
+    (let ((buf (current-buffer)))
+      (lambda (response info)
+        (if (not response)
+            (message "gptel error: %s" (plist-get info :status))
+          (with-current-buffer buf
+            (delete-region start end)
+            (goto-char start)
+            (insert response)
+            (set-marker start nil)
+            (set-marker end nil))))))
+
+  ;; --- Rewrite selection (no document context) ---
+  (defun jds/gptel-rewrite (directive)
+    "Rewrite the selected region according to DIRECTIVE."
+    (interactive "sDirective: ")
+    (unless (use-region-p) (user-error "Select a region first"))
+    (let* ((start  (copy-marker (region-beginning)))
+           (end    (copy-marker (region-end) t))
+           (text   (buffer-substring-no-properties start end))
+           (prompt (format "Directive: %s\n\nText to rewrite:\n\n%s" directive text)))
+      (gptel-request prompt
+        :system jds/gptel-latex-system
+        :buffer (current-buffer)
+        :callback (jds/gptel--replace-region-callback start end))))
+
+  ;; --- Rewrite with full document as context ---
+  (defun jds/gptel-rewrite-with-context (directive)
+    "Rewrite the selected region using DIRECTIVE, with the full buffer as context."
+    (interactive "sDirective: ")
+    (unless (use-region-p) (user-error "Select a region first"))
+    (let* ((start  (copy-marker (region-beginning)))
+           (end    (copy-marker (region-end) t))
+           (sel    (buffer-substring-no-properties start end))
+           (doc    (buffer-substring-no-properties (point-min) (point-max)))
+           (prompt (format "Full document for context:\n\n%s\n\n---\n\nDirective: %s\n\nRewrite this passage from the document above:\n\n%s"
+                           doc directive sel)))
+      (gptel-request prompt
+        :system jds/gptel-latex-system
+        :buffer (current-buffer)
+        :callback (jds/gptel--replace-region-callback start end))))
+
+  ;; --- Draft new content at point, doc as context ---
+  (defun jds/gptel-draft-at-point (prompt)
+    "Draft new LaTeX content at point based on PROMPT, using the buffer as context."
+    (interactive "sDraft: ")
+    (let* ((doc      (buffer-substring-no-properties (point-min) (point-max)))
+           (pos      (copy-marker (point)))
+           (buf      (current-buffer))
+           (full-prompt (format "Document context:\n\n%s\n\n---\n\nDraft the following in LaTeX, fitting the style and flow of the document above. Return only the LaTeX text:\n\n%s"
+                                doc prompt)))
+      (gptel-request full-prompt
+        :system jds/gptel-latex-system
+        :buffer buf
+        :callback (lambda (response info)
+                    (if (not response)
+                        (message "gptel error: %s" (plist-get info :status))
+                      (with-current-buffer buf
+                        (goto-char pos)
+                        (insert response)
+                        (set-marker pos nil))))))))
+
 
 (use-package gptel-quick
   :straight (gptel-quick :type git :host github :repo "karthink/gptel-quick")
   :config
   (keymap-set embark-general-map "?" #'gptel-quick))
+
+;; https://github.com/karthink/gptel-agent
+(use-package gptel-agent
+  :straight t ;use :ensure t for Elpaca
+  :config (gptel-agent-update))         ;Read files from agents directories
+
+
+(use-package gptel-aibo
+  :straight t
+  :after gptel
+  :config
+  ;; Buffer-local evil bindings beat gptel-mode's evil keymap
+  (add-hook 'gptel-aibo-mode-hook
+            (lambda ()
+              (evil-local-set-key 'normal (kbd "RET") #'gptel-aibo-send)
+              (evil-local-set-key 'insert (kbd "RET") #'gptel-aibo-send)
+              ;; Pull gptel-agent tools from the registry into this buffer
+              (setq-local gptel-tools
+                          (mapcar #'cdr
+                                  (cdr (assoc "gptel-agent" gptel--known-tools)))))))
+
 
 ;;; CLAUDE
 (use-package claude-code-ide
@@ -40,8 +142,8 @@
   (defun jds/project-rg (pattern)
     "Search PATTERN in project using ripgrep."
     (claude-code-ide-mcp-server-with-session-context nil
-      (shell-command-to-string
-       (format "rg -n --no-heading '%s' %s" pattern default-directory))))
+						     (shell-command-to-string
+						      (format "rg -n --no-heading '%s' %s" pattern default-directory))))
 
   (claude-code-ide-make-tool
    :function #'jds/project-rg
@@ -54,6 +156,12 @@
  :keymaps '(ess-r-mode-map emacs-lisp-mode-map vterm-mode-map)
  "'" #'claude-code-ide-menu)
 
+(jds/localleader-def
+ :keymaps '(LaTeX-mode-map)
+ "d"  '(:ignore t :which-key "ai")
+ "dr" #'jds/gptel-rewrite               ; rewrite selection
+ "dc" #'jds/gptel-rewrite-with-context  ; rewrite with full doc context
+ "dd" #'jds/gptel-draft-at-point) ; draft new content at point
 
 (provide 'ai)
 
