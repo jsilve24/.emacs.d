@@ -2,20 +2,14 @@
 
 (use-package magit
   :commands (magit-status magit-list-repositories)
-  :custom
-  (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
-  :config
-  (transient-append-suffix 'magit-merge "-w" '("-a" "Allow unrelated histories" "--allow-unrelated-histories"))
-
-  ;; allow use of magit-list-repos for overviews
-  ;; https://magit.vc/manual/magit/Repository-List.html (documentation)
-  (setq magit-repository-directories '(("~/.homesick/repos/arch-dotfiles/" 0)
-				       ("~/Dropbox/org/roam/references/" 0)
-				       ("/home/jds6696/.local/share/ArchMatic/" 0)
-				       ("~/Dropbox/Research/src/fido/" 0)
-				       ("~/.emacs.d/" 0)
-				       ("~/Dropbox/Research/src/ALDEx3/" 0)
-				       ("~/Research/src/philr" 0))
+  :init
+  (setq magit-repository-directories '(("~/.homesick/repos/arch-dotfiles/" . 0)
+				       ("~/Dropbox/org/roam/references/" . 0)
+				       ("/home/jds6696/.local/share/ArchMatic/" . 0)
+				       ("~/Dropbox/Research/src/fido/" . 0)
+				       ("~/.emacs.d/" . 0)
+				       ("~/Dropbox/Research/src/ALDEx3/" . 0)
+				       ("~/Dropbox/Research/src/philr/" . 0))
 	magit-repolist-columns '(("Name" 25 magit-repolist-column-ident nil)
 				 ;; ("Version" 25 magit-repolist-column-version
 				 ;;  ((:sort magit-repolist-version<)))
@@ -26,6 +20,14 @@
 				 ("B>U" 3 magit-repolist-column-unpushed-to-upstream
 				  ((:right-align t)
 				   (:sort <)))))
+  :custom
+  (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
+  :config
+  (transient-append-suffix 'magit-merge "-w" '("-a" "Allow unrelated histories" "--allow-unrelated-histories"))
+
+  ;; allow use of magit-list-repos for overviews
+  ;; https://magit.vc/manual/magit/Repository-List.html (documentation)
+
   ;; https://mstdn.social/@matt1126/113845518438376764
   (setq magit-diff-refine-hunk 'all))
 
