@@ -459,7 +459,8 @@
   "op" #'proced
   "od" #'hydra-edebug/body
   "ob" #'ebib
-  "oz" #'(lambda () (interactive) (jds~launch-zoom-by-conference-number 3697254414)))
+  ;; "oz" #'(lambda () (interactive) (jds~launch-zoom-by-conference-number 3697254414))
+  "oo" #'(lambda () (interactive) (start-process "qutebrowser" nil "qutebrowser" "--target" "window" "https://claude.ai")))
 
 (with-eval-after-load 'engine-mode
   (jds/leader-def
