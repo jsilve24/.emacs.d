@@ -387,6 +387,7 @@ targets."
   (add-to-list 'consult-buffer-sources 'exwm-buffer-source 'append)
 
 
+  ;; consult-narrow acts to focus on a subset of results (e.g., just files) keyword "map"
   (setq consult-narrow-key "\\"
 	consult-line-numbers-widen t
 	consult-async-min-input 2

@@ -9,7 +9,11 @@
   (setq gptel-backend (gptel-make-anthropic "Claude"
                         :stream t
                         :key (auth-source-pick-first-password :host "api.anthropic.com" :user "apikey")))
-
+  (setq gptel-highlight-methods '(face))
+  (gptel-highlight-mode 1)
+  (setq gptel-default-mode 'org-mode
+	gptel-org-branching-context nil)
+  
   ;; --- LaTeX writing system prompt ---
   (defvar jds/gptel-latex-system
     "You are an expert scientific writing assistant. Rules:
