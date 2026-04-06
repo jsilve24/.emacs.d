@@ -490,7 +490,8 @@
 (jds/leader-def
   "d" '(:ignore t :which-key "AI")
   ;; "dd" #'gptel
-  "dd" #'gptel-agent
+  "dd" #'gptel
+  "dD" #'gptel-agent
   "ds" #'gptel-send
   "d+" #'gptel-add
   "dm" #'gptel-menu

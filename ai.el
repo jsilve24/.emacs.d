@@ -9,6 +9,12 @@
   (setq gptel-backend (gptel-make-anthropic "Claude"
                         :stream t
                         :key (auth-source-pick-first-password :host "api.anthropic.com" :user "apikey")))
+  
+  ;; --- Gemini backend ---
+  (gptel-make-gemini "Gemini"
+    :stream t
+    :key (auth-source-pick-first-password :host "generativelanguage.googleapis.com" :user "apikey"))
+  
   (setq gptel-highlight-methods '(face))
   (gptel-highlight-mode 1)
   (setq gptel-default-mode 'org-mode
@@ -111,12 +117,7 @@
   (add-hook 'gptel-aibo-mode-hook
             (lambda ()
               (evil-local-set-key 'normal (kbd "RET") #'gptel-aibo-send)
-              (evil-local-set-key 'insert (kbd "RET") #'gptel-aibo-send)
-              ;; Pull gptel-agent tools from the registry into this buffer
-              (setq-local gptel-tools
-                          (mapcar #'cdr
-                                  (cdr (assoc "gptel-agent" gptel--known-tools)))))))
-
+              (evil-local-set-key 'insert (kbd "RET") #'gptel-aibo-send))))
 
 ;;; CLAUDE
 (use-package claude-code-ide
