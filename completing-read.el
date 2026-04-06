@@ -454,7 +454,9 @@ This only works with orderless and for the first component of the search."
   ;; if you want to have consult previews as you move around an
   ;; auto-updating embark collect buffer
   :hook
-  (embark-collect-mode . consult-preview-at-point-mode))
+  (embark-collect-mode . (lambda ()
+                           (when (fboundp 'consult-preview-at-point-mode)
+                             (consult-preview-at-point-mode)))))
 
 
 (use-package consult-dir
