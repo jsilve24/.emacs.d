@@ -629,20 +629,14 @@
 (general-itomap
  :state 'o
  "g"  #'+evil:whole-buffer-txtobj
- ;; "f"  #'+evil:defun-textobj
- "c"  #'evilnc-inner-comment
- "a"  #'evil-inner-arg
- ;; "d"  #'evil-inner-delim
+ ;; "a" and "c" handled by evil-textobj-tree-sitter in treesitter.el
+ ;; (parameter/call for "a", call for "c", comment on "v")
  )
 
 
 (general-otomap
  :state 'o
  "g"  #'+evil:whole-buffer-txtobj
- ;; "f"  #'+evil:defun-textobj
- "c"  #'evilnc-outer-comment
- "a"  #'evil-outer-arg
- ;; "d"  #'evil-outer-delim
  )
 
 

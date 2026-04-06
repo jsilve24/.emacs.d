@@ -1,60 +1,35 @@
 ;;; lsp.el ---  Language Server Protocol setup -*- lexical-binding: t; -*-
 
-
+;; Eglot is built-in to Emacs 30+. Keybindings are in bindings.el under SPC e.
+;; Prerequisites:
+;;   Python: install pyright (npm i -g pyright) or pylsp (pip install python-lsp-server)
+;;   R: install.packages("languageserver") in R
+;;   LaTeX: install texlab (optional, uncomment below)
 (use-package eglot
-  :hook ((ess-r-mode . eglot-ensure)
-	 ;; (latex-mode . eglot-ensure)
-	 ;; (LaTeX-mode . eglot-ensure)
-	 )
-  :disabled
+  :straight (:type built-in)
+  ;; Hook both python-mode and python-ts-mode since treesit-auto may remap;
+  ;; only one fires per buffer.
+  :hook ((python-mode . eglot-ensure)
+	 (python-ts-mode . eglot-ensure)
+	 (ess-r-mode . eglot-ensure))
   :config
   (setq eldoc-echo-area-use-multiline-p 1)
-  (setq eglot-ignored-server-capabilites nil)
-  ;; https://joaotavora.github.io/eglot/#Customizing-Eglot
-  ;;(add-to-list eglot-stay-out-of 'imenu)
-  ;; (defun jds~latex-eglot-hook ()
-  ;;   "Hook run on eglot start in latex-mode"
-  ;;   (setq-local eglot-stay-out-of '("imenu")))
-  ;; add hook at front (before eglot) and make it local
-  ;; (add-hook 'LaTeX-mode-hook 'jds~latex-eglot-hook -100)
-  ;; (add-hook 'latex-mode-hook 'jds~latex-eglot-hook -100)
 
-  ;; use texlab instead of digestif
-  ;; (add-to-list 'eglot-server-programs '((tex-mode context-mode texinfo-mode bibtex-mode) . ("texlab")))
+  ;; R language server (requires R package: install.packages("languageserver"))
+  (add-to-list 'eglot-server-programs
+	       '(ess-r-mode . ("R" "--slave" "-e" "languageserver::run()")))
+
+  ;; Python: pyright is auto-detected by eglot, no explicit entry needed.
+  ;; If you prefer pylsp, uncomment:
+  ;; (add-to-list 'eglot-server-programs '((python-mode python-ts-mode) . ("pylsp")))
+
+  ;; LaTeX: texlab (uncomment to enable; install texlab first)
+  ;; (add-to-list 'eglot-server-programs
+  ;;              '((tex-mode context-mode texinfo-mode bibtex-mode LaTeX-mode latex-mode)
+  ;;                . ("texlab")))
   )
 
+;; Provides consult-eglot-symbols, bound to SPC e e in bindings.el
 (use-package consult-eglot
-  :disabled)
-
-;; don't have to use the mouse to see errors in echo area
-(use-package flymake-cursor
-  :disabled
-  :diminish flymake-mode
-  :config
-  (eval-after-load 'flymake '(require 'flymake-cursor)))
-
-
-;;; lsp-mode rather than eglot 
-(use-package lsp-mode
-  :disabled t
-  :custom
-  (lsp-completion-provider :none) ;; we use Corfu!
-
-  :init
-  (defun my/orderless-dispatch-flex-first (_pattern index _total)
-    (and (eq index 0) 'orderless-flex))
-
-  (defun my/lsp-mode-setup-completion ()
-    (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
-          '(orderless)))
-
-  ;; Optionally configure the first word as flex filtered.
-  (add-hook 'orderless-style-dispatchers #'my/orderless-dispatch-flex-first nil 'local)
-
-  ;; Optionally configure the cape-capf-buster.
-  (setq-local completion-at-point-functions (list (cape-capf-buster #'lsp-completion-at-point)))
-
-  :hook
-  (lsp-completion-mode . my/lsp-mode-setup-completion)
-  (ess-r-mode . lsp)
-  :commands lsp)
+  :after eglot
+  :commands consult-eglot-symbols)

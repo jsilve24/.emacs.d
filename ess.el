@@ -14,7 +14,7 @@
 	ess-nuke-trailing-whitespace-p t
 	ess-style 'RStudio
 	ess-eval-visibly 'nowait
-	ess-use-flymake nil)
+	ess-use-flymake t) ;; required for eglot diagnostics (was nil)
 
   ;; most people say this is annoying -- I need to figure out what it is eventually
   (setq ess-smart-S-assign-key nil)
