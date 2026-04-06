@@ -630,7 +630,7 @@
  :state 'o
  "g"  #'+evil:whole-buffer-txtobj
  ;; "a" and "c" handled by evil-textobj-tree-sitter in treesitter.el
- ;; (parameter/call for "a", call for "c", comment on "v")
+ ;; (parameter/call for "a", call for "c", comment on "x")
  )
 
 

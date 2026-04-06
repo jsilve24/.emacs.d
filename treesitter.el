@@ -82,5 +82,5 @@ Also binds under goto motions using evil-textobj-tree-sitter-goto-textobj."
   (jds~bind-evil-textobj-ts "k" "conditional.inner" "conditional.outer")
   (jds~bind-evil-textobj-ts "l" "loop.inner" "loop.outer")
   (jds~bind-evil-textobj-ts "a" ("parameter.inner" "call.inner") ("parameter.outer" "call.outer"))
-  (jds~bind-evil-textobj-ts "v" "comment.outer" "comment.outer")
+  (jds~bind-evil-textobj-ts "x" "comment.inner" "comment.outer")
 )
