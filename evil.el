@@ -190,6 +190,7 @@
   :config
   (evil-embrace-enable-evil-surround-integration)
   (add-hook 'LaTeX-mode-hook 'embrace-LaTeX-mode-hook)
+  (add-hook 'LaTeX-mode-hook (lambda () (embrace-add-pair ?/ "\\textit{" "}")) t)
   (add-hook 'org-mode-hook 'embrace-org-mode-hook))
 ;; see here: https://github.com/cute-jumper/embrace.el#adding-more-surrounding-pairs
 ;; for how to add more custom pairs
