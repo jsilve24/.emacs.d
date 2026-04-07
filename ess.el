@@ -25,36 +25,6 @@
 
   (add-hook 'ess-r-mode-hook #'display-fill-column-indicator-mode)
 
-  ;; from here: https://github.com/SteveLane/dot-emacs/blob/master/ess-config.el
-  ;; Add in company-mode helpers
-  ;; (defun my-ess-company-hook ()
-  ;; ;; ensure company-R-library is in ESS backends
-  ;; (make-variable-buffer-local 'company-backends)
-  ;; (cl-delete-if (lambda (x) (and (eq (car-safe x) 'company-R-args))) company-backends)
-  ;; (add-to-list 'company-backends
-  ;; '(company-R-args company-R-objects company-R-library
-  ;; company-dabbrev-code :separate)))
-  ;; (add-hook 'ess-mode-hook #'my-ess-company-hook)
-  ;; 
-  ;; (defun jds~ess-capf-hook ()
-  ;; ;; ensure company-R-library is in ESS backends
-  ;; (make-variable-buffer-local 'completion-at-point-functions)
-  ;; (add-to-list 'company-backends (mapcar #'cape-company-to-capf
-  ;; '(#'company-R-args
-  ;; #'company-R-objects
-  ;; #'company-R-library)))
-  ;; (add-to-list 'company-backends
-  ;; '(company-R-args company-R-objects company-R-library
-  ;; company-dabbrev-code :separate)))
-  ;; (add-hook 'ess-mode-hook #'my-ess-company-hook)
-
-
-  ;; this also makes heading section headers available in consult-outline
-  ;; (add-hook 'ess-mode-hook
-  ;; '(lambda ()
-  ;; (outline-minor-mode)
-  ;; (setq outline-regexp ".*----$")))
-  ;; turn off fancy comments which are really annoying
   (defun dont-like-fancy ()
     (setcdr (assoc 'ess-indent-with-fancy-comments (cdr (assoc 'DEFAULT ess-style-alist))) nil))
   (add-hook 'ess-mode-hook 'dont-like-fancy)
@@ -66,43 +36,85 @@
 	      (lambda ()
 		;; (add-hook 'xref-backend-functions #'eglot-xref-backend -100 'local)
 		(add-hook 'xref-backend-functions #'dumb-jump-xref-activate -90 'local)
-		)))
+		))))
 
+;;; inline R graphics via httpgd/essgd
 
-  ;; better display-buffer defaulsts
-  ;; (add-to-list 'display-buffer-alist '("^\\*R Dired"
-  ;; (display-buffer-reuse-window display-buffer-in-side-window)
-  ;; (side . right)
-  ;; (slot . -1)
-  ;; (window-width . 0.33)
-  ;; (reusable-frames . nil)))
+(require 'cl-lib)
 
-  ;; (add-to-list 'display-buffer-alist '("^\\*R"
-  ;; (display-buffer-reuse-window display-buffer-in-side-window)
-  ;; (side . right)
-  ;; (slot . -1)
-  ;; (window-width . 0.5)
-  ;; (reusable-frames . nil)))
+(defvar jds/essgd-prev-buffer nil
+  "The buffer active before switching to the `*essgd*' plot buffer.")
 
-  ;; ;; (add-to-list 'display-buffer-alist '("^\\*Help"
-  ;; ;; 				       (display-buffer-reuse-window display-buffer-in-side-window)
-  ;; ;; 				       (side . right)
-  ;; ;; 				       (slot . 1)
-  ;; ;; 				       (window-width . 0.33)
-  ;; ;; 				       (reusable-frames . nil)))
+(defun jds/essgd-display-on-first-plot (orig-fn n)
+  "Display `*essgd*' lazily, only once plot N is available."
+  (let ((essgd-buffer (get-buffer "*essgd*")))
+    (when (and essgd-buffer
+               (> n 0)
+               (not (get-buffer-window essgd-buffer t)))
+      (display-buffer essgd-buffer)))
+  (funcall orig-fn n))
 
-  ;; (add-to-list 'display-buffer-alist '("^R_x11"
-  ;; (display-buffer-reuse-window display-buffer-in-side-window)
-  ;; (side . right)
-  ;; (slot . 1)
-  ;; (window-width . 0.33)
-  ;; (reusable-frames . nil)))
+(defun jds/essgd-start ()
+  "Start an `essgd' graphics device for the current ESS R process."
+  (interactive)
+  ;; `essgd' is just the Emacs front-end. The actual persistent plot history
+  ;; comes from R's `httpgd' device, which `essgd-start' launches.
+  (if (fboundp 'essgd-start)
+      ;; `essgd-start' eagerly displays `*essgd*' even when there are no plots
+      ;; yet. Suppress that initial popup and let `essgd-show-plot-n' reveal
+      ;; the buffer the first time an actual plot is rendered.
+      (cl-letf (((symbol-function 'display-buffer)
+                 (lambda (buffer-or-name &optional action frame)
+                   (let ((buffer (get-buffer buffer-or-name)))
+                     (unless (and buffer
+                                  (string= (buffer-name buffer) "*essgd*"))
+                       (display-buffer buffer-or-name action frame))))))
+        (essgd-start))
+    (user-error "essgd is not available")))
 
+(defun jds/essgd-toggle-buffer ()
+  "Toggle between the current buffer and the `*essgd*' plot buffer."
+  (interactive)
+  (let ((essgd-buffer (get-buffer "*essgd*")))
+    (if (not essgd-buffer)
+        (message "No active *essgd* buffer")
+      (if (eq (current-buffer) essgd-buffer)
+          (if (and jds/essgd-prev-buffer
+                   (buffer-live-p jds/essgd-prev-buffer))
+              (pop-to-buffer jds/essgd-prev-buffer)
+            (message "No previous buffer recorded for essgd"))
+        ;; Remember the working buffer so repeated `m v p' toggles behave like
+        ;; a simple back-and-forth switch between code/REPL and plot history.
+        (setq jds/essgd-prev-buffer (current-buffer))
+        (pop-to-buffer essgd-buffer))))
+  (when (called-interactively-p 'any)
+    ;; Rebind the triggering key temporarily so pressing it again immediately
+    ;; flips back without needing a separate "return" command.
+    (set-transient-map
+     (let ((map (make-sparse-keymap))
+           (key (vector last-command-event)))
+       (define-key map key #'jds/essgd-toggle-buffer)
+       map))))
 
-  ;; dont ask for startup directory just starup in wherever the script is.
-  ;; (setq  ess-startup-directory nil
-  ;; ess-ask-for-ess-directory nil)
-  )
+(use-package essgd
+  :after ess
+  :if (fboundp 'xwidget-webkit-browse-url)
+  :straight (essgd :type git :host github :repo "sje30/essgd")
+  :hook
+  ;; Start the graphics device automatically for new R sessions so plots
+  ;; accumulate in the Emacs plot-history buffer without extra setup steps.
+  (ess-r-post-run . jds/essgd-start)
+  :config
+  ;; Guard startup on the R side: if `httpgd' is missing, fail softly and keep
+  ;; the ESS session usable instead of throwing an opaque device error.
+  (setq essgd-start-text
+        "if (requireNamespace('httpgd', quietly = TRUE)) httpgd::hgd(token = TRUE) else message('Install the R package httpgd to use essgd')")
+  ;; Delay showing the plot window until there is something to draw.
+  (advice-add 'essgd-show-plot-n :around #'jds/essgd-display-on-first-plot)
+  ;; Plot labels are hard to read against httpgd's white background on dark themes.
+  (add-hook 'essgd-mode-hook
+            (lambda ()
+              (face-remap-add-relative 'default :foreground "black"))))
 
 
 ;;; setup polymode
@@ -206,6 +218,10 @@ R script buffer (i.e. the major mode is not `ess-r-mode`)."
   "vs" #'r/df-sample-small
   "vm" #'r/df-sample-medium
   "vl" #'r/df-sample-large
+  "vp" #'jds/essgd-toggle-buffer
+  "vP" #'jds/essgd-start
+  "v[" #'essgd-prev-plot
+  "v]" #'essgd-next-plot
   "l"  #'jds/ess-add-library-import
   ;; predefined keymaps
   "h" 'ess-doc-map
@@ -220,6 +236,12 @@ R script buffer (i.e. the major mode is not `ess-r-mode`)."
   "op" #'ess-roxy-previous-entry
   "oh" #'ess-roxy-hide-all
   "cc" #'r/clear-environment)
+
+(jds/localleader-def
+  :keymaps 'essgd-mode-map
+  "vp" #'jds/essgd-toggle-buffer
+  "v[" #'essgd-prev-plot
+  "v]" #'essgd-next-plot)
 
 (general-define-key
  :keymaps '(polymode-mode-map markdown-mode-map)
@@ -294,4 +316,3 @@ R script buffer (i.e. the major mode is not `ess-r-mode`)."
   ;;        "n" #'ess-noweb-next-chunk)))
 
 (provide  'config-ess)
-
