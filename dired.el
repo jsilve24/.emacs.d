@@ -82,6 +82,13 @@ line."
   (avy-action-goto (avy-with jds/avy-dired
 		     (avy-process (jds~avy-dired-cands)))))
 
+;;;###autoload
+(defun jds/avy-dired-and-go ()
+  "Jump to a visible file or directory in Dired and visit it."
+  (interactive)
+  (jds/avy-dired)
+  (dired-find-file))
+
 
 (use-package dired-open
   :config
@@ -136,7 +143,7 @@ line."
      :states 'normal
      :keymaps 'local
      "f" #'jds/avy-dired
-     "F" #'link-hint-open-link
+     "F" #'jds/avy-dired-and-go
      "w"  #'(:ignore t)
      "wo" #'dired-view-file
      ";"  #'(:ignore t)
@@ -179,5 +186,4 @@ line."
 (load-config "autoloads/dired.el")
 
 (provide 'config-dired)
-
 

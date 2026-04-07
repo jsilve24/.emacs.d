@@ -245,11 +245,6 @@
   "bz" '((lambda () (interactive) (switch-to-buffer (messages-buffer))) :which-key "messages")
   "bs" #'(lambda () (interactive) (switch-to-buffer (get-buffer-create "*scratch*"))))
 
-(general-define-key
- :keymaps 'ibuffer-mode-map
- :states '(mnv)
- "f" #'avy-goto-line)
-
 ;;; text editing
 (jds/leader-def
   "a"      '(:ignore t :wk "editing")
