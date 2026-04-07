@@ -177,9 +177,9 @@
  "wd" #'evil-window-delete
  "wD" #'kill-buffer-and-window
  "w=" #'balance-windows
- "wv" #'evil-window-vsplit
+ "wv" #'jds/window-split-right
  "wV" #'+evil/window-vsplit-and-follow
- "ws" #'evil-window-split
+ "ws" #'jds/window-split-below
  "wS" #'+evil/window-split-and-follow
  "wh" #'evil-window-left
  "wj" #'evil-window-down
@@ -388,8 +388,7 @@
   "T" #'jds/multi-vterm-new-window-or-frame
   "f" #'jds/org-agenda-show-custom-day
   "F" (lambda () (interactive)
-	(split-window-right)
-	(other-window 1)
+	(jds/window-split-right t)
 	(org-agenda nil "d"))
   "p" #'org-agenda
   "s" #'jds/consult-org-agenda-or-ripgrep-all-headlines
@@ -660,4 +659,3 @@
   :keymap 'global
   "v" #'er/expand-region
   "V" #'er/contract-region)
-

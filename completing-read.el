@@ -228,7 +228,6 @@ targets."
   (define-key embark-url-map (kbd "s") (jds/embark-split-action browse-url +evil/window-split-and-follow))
 
 
-
   (define-key embark-file-map (kbd "v") (jds/embark-split-action find-file +evil/window-vsplit-and-follow))
   (define-key embark-buffer-map (kbd "v") (jds/embark-split-action switch-to-buffer +evil/window-vsplit-and-follow))
   (define-key embark-bookmark-map (kbd "v") (jds/embark-split-action bookmark-jump +evil/window-vsplit-and-follow))
@@ -236,15 +235,9 @@ targets."
   (define-key embark-url-map (kbd "v") (jds/embark-split-action browse-url +evil/window-vsplit-and-follow))
 
 
-
-  ;; create new embark keymap for org-headings
-  (add-to-list 'marginalia-prompt-categories '("Go to heading:" . consult-org-heading))
-  (defvar-keymap embark-consult-org-heading-map
-    :doc "Keymap to use with embark and consult-org-heading")
-  (add-to-list 'embark-keymap-alist '(consult-org-heading . embark-consult-org-heading-map))
-  (define-key embark-consult-org-heading-map (kbd "o") (jds/embark-ace-action consult-org-agenda))
-  (define-key embark-consult-org-heading-map (kbd "v") (jds/embark-split-action consult-org-agenda split-window-right))
-  (define-key embark-consult-org-heading-map (kbd "s") (jds/embark-split-action consult-org-agenda split-window-below))
+  ;; `consult-org-heading' candidates use Embark's `org-heading' category.
+  (define-key embark-org-heading-map (kbd "v") (jds/embark-split-action consult-org-agenda +evil/window-vsplit-and-follow))
+  (define-key embark-org-heading-map (kbd "s") (jds/embark-split-action consult-org-agenda +evil/window-split-and-follow))
 
 
   ;; open file as sudo

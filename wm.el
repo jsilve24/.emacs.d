@@ -206,8 +206,8 @@
        :wk "qutebrowser-new-window")
  ;; "y" '((lambda () (interactive) (run-or-raise-or-dismiss "slack" "Slack")) :wk "slack")
  ;; "c" '((lambda () (interactive) (jds/quiet-async-shell-commands "~/bin/capslock.sh")) :wk "capslock.sh")
- "v" 'evil-window-vsplit
- "s" 'evil-window-split
+ "v" #'jds/window-split-right
+ "s" #'jds/window-split-below
  "S" #'+evil/window-split-and-follow
  "V" #'+evil/window-vsplit-and-follow
  "RET" 'multi-vterm
@@ -306,5 +306,4 @@
 				  (if popper-open-popup-alist
 				      (popper-toggle-latest)
 				    (jds/nm-status))))
-
 

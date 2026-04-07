@@ -79,37 +79,23 @@
   (defun lh-aw--split-right (window)
     "like aw-move-window-split-right but returns window rather than buffer and does not move current buffer."
     (let ((cur-window (selected-window)))
-      (aw-switch-to-window window)
-      (split-window-right)
-      (call-interactively #'other-window)
-      (let ((new-window (selected-window)))
-	(select-window cur-window)
-	new-window)))
+      (let ((new-window (jds/window-split-right t nil window)))
+        (select-window cur-window)
+        new-window)))
   
   (defun lh-aw--split-below (window)
     "like aw-move-window-split-below but returns window rather than buffer and does not move current buffer."
     (let ((cur-window (selected-window)))
-      
-      (aw-switch-to-window window)
-      (split-window-below)
-      (call-interactively #'other-window)
-      (let ((new-window (selected-window)))
-	(select-window cur-window)
-	new-window)))
+      (let ((new-window (jds/window-split-below t nil window)))
+        (select-window cur-window)
+        new-window)))
 
   (defun lh-aw--split-fair (window)
-    "like aw-move-window-split-fair but returns window rather than buffer and does not move current buffer."
-    (let* ((cur-window (selected-window))
-	   (w (window-body-width window))
-	   (h (window-body-height window)))
-      (aw-switch-to-window window)
-      (if (< (* h aw-fair-aspect-ratio) w)
-	  (aw-split-window-horz window)
-	(aw-split-window-vert window))
-      (call-interactively #'other-window)
-      (let ((new-window (selected-window)))
-	(select-window cur-window)
-	new-window)))
+    "Like `aw-move-window-split-fair' but return the new window."
+    (let ((cur-window (selected-window)))
+      (let ((new-window (jds/window-split-auto t nil window)))
+        (select-window cur-window)
+        new-window)))
 
   (defun lh-aw--select (window)
     "Just a placeholder, identify function"

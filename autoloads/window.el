@@ -12,6 +12,63 @@
 
 
 ;;;###autoload
+(defvar jds/window-auto-balance nil
+  "When non-nil, rebalance windows after split commands.")
+
+;;;###autoload
+(defun jds/window--post-split (new-window follow norebalance)
+  "Handle shared post-split behavior for NEW-WINDOW.
+If FOLLOW is non-nil, select NEW-WINDOW.  Unless NOREBALANCE is non-nil,
+rebalance windows when `jds/window-auto-balance' is non-nil."
+  (when new-window
+    ;; EXWM windows can lag one event behind without a brief pause.
+    (when (frame-parameter (window-frame new-window) 'exwm-active)
+      (sit-for .01))
+    (when follow
+      (select-window new-window))
+    (when (and jds/window-auto-balance
+               (not norebalance))
+      (balance-windows)))
+  new-window)
+
+;;;###autoload
+(defun jds/window-split-right (&optional follow norebalance window)
+  "Split WINDOW to the right and return the new window.
+If FOLLOW is non-nil, select the new window.  If NOREBALANCE is non-nil,
+skip automatic balancing."
+  (interactive)
+  (let* ((window (or window (selected-window)))
+         (new-window (with-selected-window window
+                       (split-window-right))))
+    (jds/window--post-split new-window follow norebalance)))
+
+;;;###autoload
+(defun jds/window-split-below (&optional follow norebalance window)
+  "Split WINDOW below and return the new window.
+If FOLLOW is non-nil, select the new window.  If NOREBALANCE is non-nil,
+skip automatic balancing."
+  (interactive)
+  (let* ((window (or window (selected-window)))
+         (new-window (with-selected-window window
+                       (split-window-below))))
+    (jds/window--post-split new-window follow norebalance)))
+
+;;;###autoload
+(defun jds/window-split-auto (&optional follow norebalance window)
+  "Split WINDOW using the standard split policy and return the new window.
+If FOLLOW is non-nil, select the new window.  If NOREBALANCE is non-nil,
+skip automatic balancing."
+  (interactive)
+  (let* ((window (or window (selected-window)))
+         (new-window
+          (or (with-selected-window window
+                (split-window-sensibly window))
+              (ignore-errors
+                (with-selected-window window
+                  (split-window-right))))))
+    (jds/window--post-split new-window follow norebalance)))
+
+;;;###autoload
 (defun +evil--window-swap (direction)
   "Move current window to the next window in DIRECTION.
 If there are no windows there and there is only one window, split in that
@@ -67,29 +124,17 @@ the only window, use evil-window-move-* (e.g. `evil-window-move-far-left')."
 
 ;;;###autoload
 (defun +evil/window-split-and-follow (&optional arg)
-  "Split current window horizontally, then focus new window.
-If `evil-split-window-below' is non-nil, the new window isn't focused.
-
-With optional arg, don't automatically balance windows."
+  "Split current window below, then focus the new window.
+With optional ARG, skip automatic balancing."
   (interactive "P")
-  (split-window-below)
-  (sit-for .01)				; added for exwm buffers
-  (other-window 1)
-  (unless arg
-    (balance-windows)))
+  (jds/window-split-below t arg))
 
 ;;;###autoload
 (defun +evil/window-vsplit-and-follow (&optional arg)
-  "Split current window vertically, then focus new window.
-If `evil-vsplit-window-right' is non-nil, the new window isn't focused.
-
-With optional arg, don't automatically balance windows."
+  "Split current window to the right, then focus the new window.
+With optional ARG, skip automatic balancing."
   (interactive "P")
-  (split-window-right)
-  (sit-for .01)				; added for exwm buffers
-  (other-window 1)
-  (unless arg
-    (balance-windows)))
+  (jds/window-split-right t arg))
 
 ;; function to toggle vertical horizontal splits
 ;; from wiki: https://www.emacswiki.org/emacs/ToggleWindowSplit
@@ -125,63 +170,15 @@ With optional arg, don't automatically rebalance windows."
 	(balance-windows))))
 
 ;;;###autoload
-(defun split-window-sensibly-prefer-horizontal-internal (&optional window)
-  "Based on split-window-sensibly, but designed to prefer a horizontal split,
-i.e. windows tiled side-by-side."
-  (let ((window (or window (selected-window))))
-    (or (and (window-splittable-p window t)
-             ;; Split window horizontally
-             (with-selected-window window
-               (split-window-right)))
-	(and (window-splittable-p window)
-             ;; Split window vertically
-             (with-selected-window window
-               (split-window-below)))
-	(and
-         ;; If WINDOW is the only usable window on its frame (it is
-         ;; the only one or, not being the only one, all the other
-         ;; ones are dedicated) and is not the minibuffer window, try
-         ;; to split it horizontally disregarding the value of
-         ;; `split-height-threshold'.
-         (let ((frame (window-frame window)))
-           (or
-            (eq window (frame-root-window frame))
-            (catch 'done
-              (walk-window-tree (lambda (w)
-                                  (unless (or (eq w window)
-                                              (window-dedicated-p w))
-                                    (throw 'done nil)))
-                                frame)
-              t)))
-	 (not (window-minibuffer-p window))
-	 (let ((split-width-threshold 0))
-	   (when (window-splittable-p window t)
-             (with-selected-window window
-               (split-window-right))))))))
-
-;;;###autoload
-(defun split-window-sensibly-prefer-horizontal (&optional window norebalance)
-"Based on split-window-sensibly, but designed to prefer a horizontal split,
-i.e. windows tiled side-by-side. If norebalance then don't automatically rebalance windows after splitting.
-This is a wrapper around split-window-sensibly-prefer-horizontal-internal that adds the rebalancing functionality."
-(let ((window (split-window-sensibly-prefer-horizontal-internal window)))
-  (if window
-      (unless norebalance
-	(balance-windows)))))
-
 ;;;###autoload
 (defun jds~new-frame-or-new-window (&optional norebalance)
   "New Frame and Focus unless using EXWM then new window.
 If norebalance then don't automatically rebalance windows after split."
   (if (frame-parameter (selected-frame) 'exwm-active)
       (progn
-	(let ((split-width-threshold 150)
-	      (split-height-threshold 20))
-	  (if (not (split-window-sensibly-prefer-horizontal nil norebalance))
-	      (unless norebalance 
-		(split-window-right)
-		(balance-windows))))
-	(other-window 1))
+        (unless (jds/window-split-auto t norebalance)
+          (jds/window-split-right t norebalance))
+        (selected-window))
     (select-frame (make-frame))))
 
 ;; make sure window really closes when killing exwm buffer

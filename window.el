@@ -89,32 +89,21 @@
 
 ;;;###autoload
 (defun aw-move-window-split-fair (window)
-  "Like the default aw-move-window but splits based on target window dimension.
-Controlled by `aw-fair-aspect-ratio'."
-  (let ((buffer (current-buffer))
-	(w (window-body-width window))
-	(h (window-body-height window)))
+  "Move current buffer to WINDOW using the standard split policy."
+  (let ((buffer (current-buffer)))
+    (switch-to-buffer (other-buffer))
     (aw-switch-to-window window)
-    (if (< (* h aw-fair-aspect-ratio) w)
-	(aw-split-window-horz window)
-      (aw-split-window-vert window))
-    (call-interactively #'other-window)
+    (jds/window-split-auto t nil window)
     (switch-to-buffer buffer)))
 
 
 ;;;###autoload
 (defun aw-delete-and-move-window-split-fair (window)
-  "Like the default aw-move-window but splits based on target window dimension.
-Controlled by `aw-fair-aspect-ratio'."
-  (let ((buffer (current-buffer))
-	(w (window-body-width window))
-	(h (window-body-height window)))
+  "Delete current window, then move current buffer to WINDOW using standard split policy."
+  (let ((buffer (current-buffer)))
     (delete-window)
     (aw-switch-to-window window)
-    (if (< (* h aw-fair-aspect-ratio) w)
-	(aw-split-window-horz window)
-      (aw-split-window-vert window))
-    (call-interactively #'other-window)
+    (jds/window-split-auto t nil window)
     (switch-to-buffer buffer)))
 
 
@@ -133,8 +122,7 @@ Switch the current window to the previous buffer."
   (let ((buffer (current-buffer)))
     (switch-to-buffer (other-buffer))
     (aw-switch-to-window window)
-    (split-window-right)
-    (call-interactively #'other-window)
+    (jds/window-split-right t nil window)
     (switch-to-buffer buffer)))
 
 ;;;###autoload
@@ -143,8 +131,7 @@ Switch the current window to the previous buffer."
   (let ((buffer (current-buffer)))
     (switch-to-buffer (other-buffer))
     (aw-switch-to-window window)
-    (split-window-below)
-    (call-interactively #'other-window)
+    (jds/window-split-below t nil window)
     (switch-to-buffer buffer)))
 
 
@@ -154,8 +141,7 @@ Switch the current window to the previous buffer."
   (let ((buffer (current-buffer)))
     (delete-window)
     (aw-switch-to-window window)
-    (split-window-right)
-    (call-interactively #'other-window)
+    (jds/window-split-right t nil window)
     (switch-to-buffer buffer)))
 
 ;;;###autoload
@@ -164,8 +150,7 @@ Switch the current window to the previous buffer."
   (let ((buffer (current-buffer)))
     (delete-window)
     (aw-switch-to-window window)
-    (split-window-below)
-    (call-interactively #'other-window)
+    (jds/window-split-below t nil window)
     (switch-to-buffer buffer)))
 
 ;; from here https://github.com/abo-abo/ace-window/issues/125
