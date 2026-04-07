@@ -166,12 +166,18 @@
  :keymaps '(ess-r-mode-map emacs-lisp-mode-map vterm-mode-map)
  "'" #'claude-code-ide-menu)
 
+;; not mature enough yet
+;; (use-package codex-ide
+;;   :straight (:type git :host github :repo "dgillis/codex-ide")
+;;   :bind ("C-c C-;" . codex-ide-menu))
+
+
 (jds/localleader-def
- :keymaps '(LaTeX-mode-map)
- "d"  '(:ignore t :which-key "ai")
- "dr" #'jds/gptel-rewrite               ; rewrite selection
- "dc" #'jds/gptel-rewrite-with-context  ; rewrite with full doc context
- "dd" #'jds/gptel-draft-at-point) ; draft new content at point
+  :keymaps '(LaTeX-mode-map)
+  "d"  '(:ignore t :which-key "ai")
+  "dr" #'jds/gptel-rewrite		; rewrite selection
+  "dc" #'jds/gptel-rewrite-with-context	; rewrite with full doc context
+  "dd" #'jds/gptel-draft-at-point) ; draft new content at point
 
 (provide 'ai)
 
