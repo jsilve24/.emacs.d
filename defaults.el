@@ -16,10 +16,11 @@
 
 (add-hook 'emacs-startup-hook #'efs/display-startup-time)
 
-;; More performant rapid scrolling over unfontified regions. May cause brief
-;; spells of inaccurate syntax highlighting right after scrolling, which should
-;; quickly self-correct.
-(setq fast-but-imprecise-scrolling t)
+;; When non-nil, Emacs scrolls more aggressively through unfontified regions
+;; and may briefly show stale or incomplete syntax highlighting. Keeping this
+;; nil favors visual correctness. Set it back to t to restore the prior,
+;; more speed-oriented behavior.
+(setq fast-but-imprecise-scrolling nil)
 
 ;; Resizing the Emacs frame can be a terribly expensive part of changing the
 ;; font. By inhibiting this, we halve startup times, particularly when we use
@@ -38,8 +39,10 @@
         gcmh-high-cons-threshold (* 16 1024 1024))
   (gcmh-mode 1))
 
-;; Emacs "updates" its ui more often than it needs to, so slow it down slightly
-(setq idle-update-delay 1.0)  ; default is 0.5
+;; Controls how quickly Emacs performs certain idle-time UI updates. 0.5 is the
+;; default and keeps redisplay reasonably responsive. Set this back to 1.0 to
+;; restore the prior, more delayed update cadence.
+(setq idle-update-delay 0.5)
 
 ;; PGTK builds only: this timeout adds latency to frame operations, like
 ;; `make-frame-invisible', which are frequently called without a guard because
@@ -48,9 +51,11 @@
 ;; `company-box', and `posframe') feel much snappier. See emacs-lsp/lsp-ui#613.
 (setq pgtk-wait-for-event-timeout 0.001)
 
-;; Introduced in Emacs HEAD (b2f8c9f), this inhibits fontification while
-;; receiving input, which should help a little with scrolling performance.
-(setq redisplay-skip-fontification-on-input t)
+;; When non-nil, Emacs may skip some fontification work while you are actively
+;; providing input, which can improve responsiveness at the cost of temporary
+;; visual inconsistency. Keeping this nil favors stable rendering. Set it back
+;; to t to restore the prior behavior.
+(setq redisplay-skip-fontification-on-input nil)
 
 ;; Reduce *Message* noise at startup. An empty scratch buffer (or the dashboard)
 ;; is more than enough.
