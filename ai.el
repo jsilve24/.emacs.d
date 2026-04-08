@@ -167,6 +167,36 @@
 (use-package agent-shell
   :ensure t
   :config
+  (defun jds/agent-shell-backtab-dwim ()
+    "Move to the previous completion candidate, or start completion."
+    (interactive)
+    (condition-case nil
+        (if (and (fboundp 'corfu-previous)
+                 (bound-and-true-p corfu-mode)
+                 (boundp 'corfu--index)
+                 corfu--index)
+            (corfu-previous)
+          (completion-at-point))
+      (error (completion-at-point))))
+
+  (defun jds/agent-shell-evil-setup ()
+    "Install ergonomic Evil bindings for `agent-shell-mode'."
+    ;; Insert state should feel like composing in a shell/editor.
+    (evil-local-set-key 'insert (kbd "RET") #'newline)
+    (evil-local-set-key 'insert (kbd "C-<return>") #'comint-send-input)
+    (evil-local-set-key 'insert (kbd "<tab>") #'completion-at-point)
+    (evil-local-set-key 'insert (kbd "<backtab>") #'jds/agent-shell-backtab-dwim)
+    (evil-local-set-key 'insert (kbd "M-p") #'agent-shell-previous-input)
+    (evil-local-set-key 'insert (kbd "M-n") #'agent-shell-next-input)
+    ;; Normal state should focus on sending and transcript navigation.
+    (evil-local-set-key 'normal (kbd "RET") #'comint-send-input)
+    (evil-local-set-key 'normal (kbd "<tab>") #'agent-shell-next-item)
+    (evil-local-set-key 'normal (kbd "<backtab>") #'agent-shell-previous-item)
+    (evil-local-set-key 'normal (kbd "g]") #'agent-shell-next-item)
+    (evil-local-set-key 'normal (kbd "g[") #'agent-shell-previous-item)
+    (evil-local-set-key 'normal (kbd "M-p") #'agent-shell-previous-input)
+    (evil-local-set-key 'normal (kbd "M-n") #'agent-shell-next-input))
+
   (setq agent-shell-openai-authentication
 	(agent-shell-openai-make-authentication :login t)
 	agent-shell-preferred-agent-config 'codex
@@ -177,9 +207,7 @@
 	;; Show context pressure in long-running coding sessions.
 	agent-shell-show-context-usage-indicator 'detailed
 	agent-shell-show-usage-at-turn-end t)
-  ;; Evil state-specific RET behavior: insert mode = newline, normal mode = send
-  (evil-define-key 'insert agent-shell-mode-map (kbd "RET") #'newline)
-  (evil-define-key 'normal agent-shell-mode-map (kbd "RET") #'comint-send-input)
+  (add-hook 'agent-shell-mode-hook #'jds/agent-shell-evil-setup)
   ;; Configure *agent-shell-diff* buffers to start in Emacs state
   (add-hook 'diff-mode-hook
 	    (lambda ()
