@@ -179,5 +179,7 @@
   "dc" #'jds/gptel-rewrite-with-context	; rewrite with full doc context
   "dd" #'jds/gptel-draft-at-point) ; draft new content at point
 
+(load-config "ai-email.el")
+
 (provide 'ai)
 
