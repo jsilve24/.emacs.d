@@ -197,6 +197,14 @@
     (evil-local-set-key 'normal (kbd "M-p") #'agent-shell-previous-input)
     (evil-local-set-key 'normal (kbd "M-n") #'agent-shell-next-input))
 
+  (defun jds/agent-shell-viewport-view-evil-setup ()
+    "Install Evil bindings for `agent-shell-viewport-view-mode'."
+    (evil-normal-state))
+
+  (defun jds/agent-shell-viewport-edit-evil-setup ()
+    "Install Evil bindings for `agent-shell-viewport-edit-mode'."
+    (evil-insert-state))
+
   (setq agent-shell-openai-authentication
 	(agent-shell-openai-make-authentication :login t)
 	agent-shell-preferred-agent-config 'codex
@@ -207,7 +215,44 @@
 	;; Show context pressure in long-running coding sessions.
 	agent-shell-show-context-usage-indicator 'detailed
 	agent-shell-show-usage-at-turn-end t)
+
+  (defun jds/agent-shell-dwim (&optional arg)
+    "Start `agent-shell', prompting for provider with prefix ARG."
+    (interactive "P")
+    (let ((agent-shell-preferred-agent-config
+           (if arg nil agent-shell-preferred-agent-config)))
+      (call-interactively #'agent-shell)))
+
+  (evil-set-initial-state 'agent-shell-viewport-view-mode 'normal)
+  (evil-set-initial-state 'agent-shell-viewport-edit-mode 'insert)
+  (evil-define-key 'normal agent-shell-viewport-view-mode-map
+    (kbd "RET") #'agent-shell-viewport-reply
+    (kbd "<tab>") #'agent-shell-viewport-next-item
+    (kbd "<backtab>") #'agent-shell-viewport-previous-item
+    (kbd "n") #'agent-shell-viewport-next-page
+    (kbd "p") #'agent-shell-viewport-previous-page
+    (kbd "r") #'agent-shell-viewport-reply
+    (kbd "g]") #'agent-shell-viewport-next-item
+    (kbd "g[") #'agent-shell-viewport-previous-item
+    (kbd "o") #'agent-shell-other-buffer
+    (kbd "?") #'agent-shell-viewport-help-menu
+    (kbd "q") #'bury-buffer)
+  (evil-define-key 'insert agent-shell-viewport-edit-mode-map
+    (kbd "C-<return>") #'agent-shell-viewport-compose-send
+    (kbd "<tab>") #'completion-at-point
+    (kbd "<backtab>") #'jds/agent-shell-backtab-dwim
+    (kbd "M-p") #'agent-shell-viewport-previous-history
+    (kbd "M-n") #'agent-shell-viewport-next-history)
+  (evil-define-key 'normal agent-shell-viewport-edit-mode-map
+    (kbd "RET") #'agent-shell-viewport-compose-send
+    (kbd "q") #'agent-shell-viewport-compose-cancel
+    (kbd "o") #'agent-shell-other-buffer)
+
   (add-hook 'agent-shell-mode-hook #'jds/agent-shell-evil-setup)
+  (add-hook 'agent-shell-viewport-view-mode-hook
+            #'jds/agent-shell-viewport-view-evil-setup)
+  (add-hook 'agent-shell-viewport-edit-mode-hook
+            #'jds/agent-shell-viewport-edit-evil-setup)
   ;; Configure *agent-shell-diff* buffers to start in Emacs state
   (add-hook 'diff-mode-hook
 	    (lambda ()

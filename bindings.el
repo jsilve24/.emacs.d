@@ -485,7 +485,7 @@
 ;; AI/gptel bindings
 (jds/leader-def
   "d" '(:ignore t :which-key "AI")
-  "dd" #'agent-shell
+  "dd" #'jds/agent-shell-dwim
   "dD" #'agent-shell-openai-start-codex
   "dg" #'gptel
   "do" #'agent-shell-other-buffer
