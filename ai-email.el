@@ -529,9 +529,26 @@
      buf pos (jds/ai-email--sanitize-response response)))
    (t nil)))
 
-(defun jds/ai-email--handle-scheduling-response
-    (response info prompt system buf pos &optional retries-left)
-  "Handle scheduling RESPONSE, retrying once if the model returns planning text."
+(defun jds/ai-email--request-inserting-response
+    (prompt system buf callback &optional tools)
+  "Run `gptel-request' for PROMPT and insert into BUF via CALLBACK.
+TOOLS, when non-nil, are bound for the request."
+  (let ((gptel-include-reasoning nil)
+        (gptel-use-tools (and tools t))
+        (gptel-tools tools))
+    (gptel-request prompt
+                   :system system
+                   :stream nil
+                   :buffer buf
+                   :callback callback)))
+
+(defun jds/ai-email--handle-retrying-insert-response
+    (response info prompt system buf pos retries-left retry-system-suffix invalid-message
+              &optional tools)
+  "Handle RESPONSE for insert-at-point flows that may need one retry.
+RETRY-SYSTEM-SUFFIX is appended to SYSTEM for the retry request when the model
+returns planning text. INVALID-MESSAGE is shown if the model still fails after
+retries. TOOLS, when non-nil, are provided on the retry request."
   (cond
    ((not response)
     (message "gptel error: %s" (plist-get info :status)))
@@ -539,30 +556,55 @@
     (let ((clean (jds/ai-email--sanitize-response response)))
       (if (and (> (or retries-left 0) 0)
                (jds/ai-email--planning-response-p clean))
-          (let ((gptel-include-reasoning nil)
-                (gptel-use-tools t)
-                (gptel-tools (list jds~gptel-find-free-times-tool)))
+          (progn
             (jds/ai-email--delete-leading-planning-text buf pos)
-            (gptel-request
+            (jds/ai-email--request-inserting-response
              prompt
-             :system (concat
-                      system
-                      "\nYour previous response was invalid because it described what you would do instead of drafting the email.\n"
-                      "You have already checked availability.\n"
-                      "Write the email now.\n"
-                      "If you propose times, they must be exact slot display strings returned by find_free_times and copied verbatim.")
-             :stream nil
-             :buffer buf
-             :callback
+             (concat system retry-system-suffix)
+             buf
              (lambda (response info)
-               (jds/ai-email--handle-scheduling-response
-               response info prompt system buf pos (1- retries-left)))))
+               (jds/ai-email--handle-retrying-insert-response
+                response info prompt system buf pos (1- retries-left)
+                retry-system-suffix invalid-message tools))
+             tools))
         (if (jds/ai-email--planning-response-p clean)
             (progn
               (jds/ai-email--delete-leading-planning-text buf pos)
-              (message "Scheduling draft suppressed: model returned planning text instead of an email."))
+              (message "%s" invalid-message))
           (jds/ai-email--insert-response-at-point buf pos clean)))))
    (t nil)))
+
+(defun jds/ai-email--mu4e-message-metadata (&optional msg)
+  "Return plist with sender and subject metadata for MSG at point."
+  (let* ((message (or msg (mu4e-message-at-point)))
+         (from-c (car (mu4e-message-field message :from))))
+    (list :message message
+          :from (or (plist-get from-c :name)
+                    (plist-get from-c :email)
+                    "Unknown")
+          :subject (or (mu4e-message-field message :subject) "(no subject)"))))
+
+(defun jds/ai-email--compose-mu4e-reply-with-ai (prompt-builder system callback &optional tools)
+  "Compose a mu4e reply and invoke AI with PROMPT-BUILDER and CALLBACK.
+PROMPT-BUILDER is called with the compose buffer contents and should return the
+prompt text. CALLBACK receives RESPONSE, INFO, prompt, SYSTEM, buffer and
+marker. TOOLS, when non-nil, are passed to the request."
+  (let (hook-fn)
+    (setq hook-fn
+          (lambda ()
+            (remove-hook 'mu4e-compose-mode-hook hook-fn)
+            (let* ((buf (current-buffer))
+                   (content (buffer-substring-no-properties (point-min) (point-max)))
+                   (prompt (funcall prompt-builder content)))
+              (message-goto-body)
+              (let ((pos (copy-marker (point))))
+                (jds/ai-email--request-inserting-response
+                 prompt system buf
+                 (lambda (response info)
+                   (funcall callback response info prompt system buf pos))
+                 tools)))))
+    (add-hook 'mu4e-compose-mode-hook hook-fn)
+    (jds/mu4e-compose-reply)))
 
 
 ;;; AI capture from email --------------------------------------------------
@@ -1019,34 +1061,19 @@ Return a marker at the inserted heading."
 (defun jds/mu4e-ai-draft-reply ()
   "Reply to message at point with an AI-drafted body."
   (interactive)
-  (let* ((msg      (mu4e-message-at-point))
-         (from-c   (car (mu4e-message-field msg :from)))
-         (from-str (or (plist-get from-c :name) (plist-get from-c :email) "Unknown"))
-         (subject  (or (mu4e-message-field msg :subject) "(no subject)"))
-         hook-fn)
-    (setq hook-fn
-          (lambda ()
-            (remove-hook 'mu4e-compose-mode-hook hook-fn)
-            (let* ((buf     (current-buffer))
-                   (content (buffer-substring-no-properties (point-min) (point-max)))
-                   (prompt  (format "Draft a professional reply to this email from %s (subject: \"%s\").\nCompose buffer (includes quoted original):\n\n%s\n\nReturn only the reply body text."
-                                    from-str subject content)))
-              (message-goto-body)
-              (let ((pos (copy-marker (point))))
-                (let ((gptel-include-reasoning nil))
-                  (gptel-request prompt
-                                 :system (concat
-                                          "You are a professional email assistant. Write clear, concise replies.\n"
-                                          "Return only the reply body text.\n"
-                                          "Do not include a subject line, commentary, reasoning, tool narration, or code fences.")
-                                 :stream nil
-                                 :buffer buf
-                                 :callback
-                                 (lambda (response info)
-                                   (jds/ai-email--insert-if-final-string
-                                    response info buf pos))))))))
-    (add-hook 'mu4e-compose-mode-hook hook-fn)
-    (jds/mu4e-compose-reply)))
+  (pcase-let* ((`(:from ,from-str :subject ,subject . ,_) (jds/ai-email--mu4e-message-metadata))
+               (system (concat
+                        "You are a professional email assistant. Write clear, concise replies.\n"
+                        "Return only the reply body text.\n"
+                        "Do not include a subject line, commentary, reasoning, tool narration, or code fences.")))
+    (jds/ai-email--compose-mu4e-reply-with-ai
+     (lambda (content)
+       (format
+        "Draft a professional reply to this email from %s (subject: \"%s\").\nCompose buffer (includes quoted original):\n\n%s\n\nReturn only the reply body text."
+        from-str subject content))
+     system
+     (lambda (response info _prompt _system buf pos)
+       (jds/ai-email--insert-if-final-string response info buf pos)))))
 
 
 ;;; AI scheduling reply ----------------------------------------------------
@@ -1102,38 +1129,16 @@ Return a marker at the inserted heading."
 (defun jds/ai-email--handle-availability-snippet-response
     (response info prompt system buf pos &optional retries-left)
   "Handle standalone availability snippet RESPONSE."
-  (cond
-   ((not response)
-    (message "gptel error: %s" (plist-get info :status)))
-   ((stringp response)
-    (let ((clean (jds/ai-email--sanitize-response response)))
-      (if (and (> (or retries-left 0) 0)
-               (jds/ai-email--planning-response-p clean))
-          (let ((gptel-include-reasoning nil)
-                (gptel-use-tools t)
-                (gptel-tools (list jds~gptel-find-free-times-tool)))
-            (jds/ai-email--delete-leading-planning-text buf pos)
-            (gptel-request
-             prompt
-             :system (concat
-                      system
-                      "Return only the availability snippet. No greeting, commentary, reasoning, tool narration, or code fences.\n"
-                      "Your previous response was invalid because it described what you would do instead of returning the snippet.\n"
-                      "You have already checked availability.\n"
-                      "Write the snippet now.\n"
-                      "If you list times, they must be exact slot display strings returned by find_free_times or grouped availability windows that preserve the returned day/date text and exact start/end times.")
-             :stream nil
-             :buffer buf
-             :callback
-             (lambda (response info)
-               (jds/ai-email--handle-availability-snippet-response
-                response info prompt system buf pos (1- retries-left)))))
-        (if (jds/ai-email--planning-response-p clean)
-            (progn
-              (jds/ai-email--delete-leading-planning-text buf pos)
-              (message "Availability snippet suppressed: model returned planning text instead of the snippet."))
-          (jds/ai-email--insert-response-at-point buf pos clean)))))
-   (t nil)))
+  (jds/ai-email--handle-retrying-insert-response
+   response info prompt system buf pos retries-left
+   (concat
+    "Return only the availability snippet. No greeting, commentary, reasoning, tool narration, or code fences.\n"
+    "Your previous response was invalid because it described what you would do instead of returning the snippet.\n"
+    "You have already checked availability.\n"
+    "Write the snippet now.\n"
+    "If you list times, they must be exact slot display strings returned by find_free_times or grouped availability windows that preserve the returned day/date text and exact start/end times.")
+   "Availability snippet suppressed: model returned planning text instead of the snippet."
+   (list jds~gptel-find-free-times-tool)))
 
 (defun jds/ai-email-insert-availability-snippet ()
   "Insert a formatted availability snippet at point."
@@ -1145,62 +1150,49 @@ Return a marker at the inserted heading."
          (system (concat
                   (jds/ai-email--scheduling-system-prompt)
                   "Return only the availability snippet. No greeting, commentary, reasoning, tool narration, or code fences.\n")))
-    (let ((gptel-include-reasoning nil)
-          (gptel-use-tools t)
-          (gptel-tools (list jds~gptel-find-free-times-tool)))
-      (gptel-request prompt
-                     :system system
-                     :stream nil
-                     :buffer buf
-                     :callback
-                     (lambda (response info)
-                       (jds/ai-email--handle-availability-snippet-response
-                        response info prompt system buf pos 1))))))
+    (jds/ai-email--request-inserting-response
+     prompt system buf
+     (lambda (response info)
+       (jds/ai-email--handle-availability-snippet-response
+        response info prompt system buf pos 1))
+     (list jds~gptel-find-free-times-tool))))
 
 (defun jds/mu4e-ai-scheduling-reply ()
   "Reply to message at point with an AI-drafted scheduling response.
 Prompts for custom context. Uses validated availability slots rather than raw calendar dumps."
   (interactive)
   (let* ((ctx      (jds/ai-email--read-scheduling-context))
-         (msg      (mu4e-message-at-point))
-         (from-c   (car (mu4e-message-field msg :from)))
-         (from-str (or (plist-get from-c :name) (plist-get from-c :email) "Unknown"))
-         (subject  (or (mu4e-message-field msg :subject) "(no subject)"))
+         (meta     (jds/ai-email--mu4e-message-metadata))
+         (from-str (plist-get meta :from))
+         (subject  (plist-get meta :subject))
          (system   (concat
                     (jds/ai-email--scheduling-system-prompt)
-                    "Return only the reply body text. No subject line, commentary, reasoning, tool narration, or code fences."))
-         hook-fn)
-    (setq hook-fn
-          (lambda ()
-            (remove-hook 'mu4e-compose-mode-hook hook-fn)
-            (let* ((buf     (current-buffer))
-                   (content (buffer-substring-no-properties (point-min) (point-max)))
-                   (prompt  (format
-                             (concat
-                              "Draft a scheduling reply for this email from %s (subject: \"%s\").%s\n"
-                              "Compose buffer (includes quoted original):\n\n%s\n\n"
-                              "If you propose times, call find_free_times first.\n"
-                              "Prefer summarizing returned availability windows verbatim, and include multiple days when possible.\n"
-                              "When listing availability windows, group them by day using one bullet per day, at most 2 windows per bullet, in this exact format: Thursday, April 9: 9:00--10:00 AM; 10:30 AM--1:00 PM. Do not repeat the date within a bullet, do not use the word \"between\", do not add prose inside bullets, and keep each bullet to one line.\n"
-                              "Return only the reply body.")
-                             from-str subject
-                             (jds/ai-email--scheduling-context-suffix ctx)
-                             content)))
-              (message-goto-body)
-              (let ((pos (copy-marker (point))))
-                (let ((gptel-include-reasoning nil)
-                      (gptel-use-tools t)
-                      (gptel-tools (list jds~gptel-find-free-times-tool)))
-                  (gptel-request prompt
-                                 :system system
-                                 :stream nil
-                                 :buffer buf
-                                 :callback
-                                 (lambda (response info)
-                                   (jds/ai-email--handle-scheduling-response
-                                    response info prompt system buf pos 1))))))))
-    (add-hook 'mu4e-compose-mode-hook hook-fn)
-    (jds/mu4e-compose-reply)))
+                    "Return only the reply body text. No subject line, commentary, reasoning, tool narration, or code fences.")))
+    (jds/ai-email--compose-mu4e-reply-with-ai
+     (lambda (content)
+       (format
+        (concat
+         "Draft a scheduling reply for this email from %s (subject: \"%s\").%s\n"
+         "Compose buffer (includes quoted original):\n\n%s\n\n"
+         "If you propose times, call find_free_times first.\n"
+         "Prefer summarizing returned availability windows verbatim, and include multiple days when possible.\n"
+         "When listing availability windows, group them by day using one bullet per day, at most 2 windows per bullet, in this exact format: Thursday, April 9: 9:00--10:00 AM; 10:30 AM--1:00 PM. Do not repeat the date within a bullet, do not use the word \"between\", do not add prose inside bullets, and keep each bullet to one line.\n"
+         "Return only the reply body.")
+        from-str subject
+        (jds/ai-email--scheduling-context-suffix ctx)
+        content))
+     system
+     (lambda (response info prompt system buf pos)
+       (jds/ai-email--handle-retrying-insert-response
+        response info prompt system buf pos 1
+        (concat
+         "\nYour previous response was invalid because it described what you would do instead of drafting the email.\n"
+         "You have already checked availability.\n"
+         "Write the email now.\n"
+         "If you propose times, they must be exact slot display strings returned by find_free_times and copied verbatim.")
+        "Scheduling draft suppressed: model returned planning text instead of an email."
+        (list jds~gptel-find-free-times-tool)))
+     (list jds~gptel-find-free-times-tool))))
 
 
 ;;; Keybindings ------------------------------------------------------------
