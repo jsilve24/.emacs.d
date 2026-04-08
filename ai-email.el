@@ -1324,10 +1324,13 @@ Prompts for custom context. Uses validated availability slots rather than raw ca
 
 ;;; AI Thread Summarization ------------------------------------------------
 
-(defun jds/ai-email--thread-id (msg)
-  "Return the thread-id string for MSG, or nil."
-  (when-let ((thread (mu4e-message-field msg :thread)))
-    (plist-get thread :thread-id)))
+(defun jds/ai-email--thread-query-id (msg)
+  "Return the best ID for a `thread:' mu query for MSG.
+Prefers the thread-id from the :thread plist (the thread root);
+falls back to the message's own :message-id, which mu also accepts."
+  (or (when-let ((thread (mu4e-message-field msg :thread)))
+        (plist-get thread :thread-id))
+      (mu4e-message-field msg :message-id)))
 
 (defun jds/ai-email--mu-binary ()
   "Return the path to the mu executable, or nil if not found."
@@ -1341,17 +1344,17 @@ Prompts for custom context. Uses validated availability slots rather than raw ca
   "Return a date-sorted list of message plists for MSG's thread.
 Uses the mu CLI to query the index.  Returns nil if mu is unavailable
 or the thread cannot be found."
-  (let* ((mu-bin (jds/ai-email--mu-binary))
-         (thread-id (jds/ai-email--thread-id msg)))
+  (let* ((mu-bin   (jds/ai-email--mu-binary))
+         (query-id (jds/ai-email--thread-query-id msg)))
     (unless mu-bin
       (user-error "mu binary not found; cannot collect thread messages"))
-    (unless thread-id
-      (user-error "Message has no thread-id"))
+    (unless query-id
+      (user-error "Message has no message-id; cannot identify thread"))
     (let ((messages nil))
       (with-temp-buffer
         (let ((exit-code
                (call-process mu-bin nil t nil
-                             "find" (format "thread:%s" thread-id)
+                             "find" (format "thread:%s" query-id)
                              "--format=sexp")))
           (when (= exit-code 0)
             (goto-char (point-min))
