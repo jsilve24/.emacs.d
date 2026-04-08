@@ -24,8 +24,7 @@
  "C-;" #'embark-act
  "C-:" #'embark-dwim
  "C-<" #'lispyville-barf
- "C->" #'lispyville-slurp
- "C-<tab>" #'completion-at-point)
+ "C->" #'lispyville-slurp)
 
 (general-define-key
  :keymaps '(insert normal override)

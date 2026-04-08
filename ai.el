@@ -186,10 +186,12 @@
     (evil-local-set-key 'insert (kbd "C-<return>") #'comint-send-input)
     (evil-local-set-key 'insert (kbd "<tab>") #'completion-at-point)
     (evil-local-set-key 'insert (kbd "<backtab>") #'jds/agent-shell-backtab-dwim)
+    (evil-local-set-key 'insert (kbd "C-<tab>") #'agent-shell-cycle-session-mode)
     (evil-local-set-key 'insert (kbd "M-p") #'agent-shell-previous-input)
     (evil-local-set-key 'insert (kbd "M-n") #'agent-shell-next-input)
     ;; Normal state should focus on sending and transcript navigation.
     (evil-local-set-key 'normal (kbd "RET") #'comint-send-input)
+    (evil-local-set-key 'normal (kbd "C-<tab>") #'agent-shell-cycle-session-mode)
     (evil-local-set-key 'normal (kbd "<tab>") #'agent-shell-next-item)
     (evil-local-set-key 'normal (kbd "<backtab>") #'agent-shell-previous-item)
     (evil-local-set-key 'normal (kbd "g]") #'agent-shell-next-item)
@@ -261,7 +263,9 @@
   (add-hook 'diff-mode-hook
 	    (lambda ()
 	      (when (string-match-p "\\*agent-shell-diff\\*" (buffer-name))
-		(evil-emacs-state)))))
+		(evil-emacs-state)
+		(local-set-key (kbd "C-c C-c") #'agent-shell-diff-accept-all)
+		(local-set-key (kbd "C-c C-k") #'agent-shell-diff-reject-all)))))
 
 
 ;;; bindings -------------------------------------------------------------------
