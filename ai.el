@@ -139,8 +139,7 @@
   (defun jds/ess-command (cmd)
     "Run CMD synchronously in R and return output string."
     (with-current-buffer (get-buffer "*R*")
-      (let ((result (ess-string-command cmd)))
-        result)))
+      (ess-string-command cmd)))
 
   (claude-code-ide-make-tool
    :function #'jds/ess-command
@@ -198,15 +197,23 @@
     (evil-local-set-key 'normal (kbd "M-p") #'agent-shell-previous-input)
     (evil-local-set-key 'normal (kbd "M-n") #'agent-shell-next-input))
 
-  (defun jds/agent-shell-viewport-view-evil-setup ()
-    "Install Evil bindings for `agent-shell-viewport-view-mode'."
-    (evil-normal-state))
+  (defun jds/agent-shell-remap-permission-keys (text)
+    "Make `C-c C-c' allow and `C-c C-k' reject in permission prompt TEXT."
+    (let ((pos 0))
+      (while (< pos (length text))
+        (let* ((next-pos (or (next-single-property-change pos 'keymap text)
+                             (length text)))
+               (keymap (get-text-property pos 'keymap text)))
+          (when keymap
+            (let ((accept-command (lookup-key keymap (kbd "y")))
+                  (reject-command (lookup-key keymap (kbd "C-c C-c"))))
+              (when reject-command
+                (define-key keymap (kbd "C-c C-k") reject-command))
+              (when accept-command
+                (define-key keymap (kbd "C-c C-c") accept-command))))
+          (setq pos next-pos))))
+    text)
 
-  (defun jds/agent-shell-viewport-edit-evil-setup ()
-    "Install Evil bindings for `agent-shell-viewport-edit-mode'."
-    (evil-insert-state))
-
-  
 
   (setq agent-shell-openai-authentication
 	(agent-shell-openai-make-authentication :login t)
@@ -252,19 +259,14 @@
     (kbd "RET") #'agent-shell-viewport-compose-send
     (kbd "q") #'agent-shell-viewport-compose-cancel
     (kbd "o") #'agent-shell-other-buffer)
+  (define-key agent-shell-diff-mode-map (kbd "C-c C-c") #'agent-shell-diff-accept-all)
+  (define-key agent-shell-diff-mode-map (kbd "C-c C-k") #'agent-shell-diff-reject-all)
+  (advice-add 'agent-shell--make-tool-call-permission-text :around
+              (lambda (orig-fn &rest args)
+                (jds/agent-shell-remap-permission-keys (apply orig-fn args))))
 
   (add-hook 'agent-shell-mode-hook #'jds/agent-shell-evil-setup)
-  (add-hook 'agent-shell-viewport-view-mode-hook
-            #'jds/agent-shell-viewport-view-evil-setup)
-  (add-hook 'agent-shell-viewport-edit-mode-hook
-            #'jds/agent-shell-viewport-edit-evil-setup)
-  ;; Configure *agent-shell-diff* buffers to start in Emacs state
-  (add-hook 'diff-mode-hook
-	    (lambda ()
-	      (when (string-match-p "\\*agent-shell-diff\\*" (buffer-name))
-		(evil-emacs-state)
-		(local-set-key (kbd "C-c C-c") #'agent-shell-diff-accept-all)
-		(local-set-key (kbd "C-c C-k") #'agent-shell-diff-reject-all)))))
+  (add-hook 'agent-shell-diff-mode-hook #'evil-emacs-state))
 
 
 ;;; bindings -------------------------------------------------------------------
