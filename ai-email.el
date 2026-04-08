@@ -1322,19 +1322,244 @@ Prompts for custom context. Uses validated availability slots rather than raw ca
      (list jds~gptel-find-free-times-tool))))
 
 
+;;; AI Thread Summarization ------------------------------------------------
+
+(defun jds/ai-email--thread-id (msg)
+  "Return the thread-id string for MSG, or nil."
+  (when-let ((thread (mu4e-message-field msg :thread)))
+    (plist-get thread :thread-id)))
+
+(defun jds/ai-email--mu-binary ()
+  "Return the path to the mu executable, or nil if not found."
+  (or (and (boundp 'mu4e-mu-binary)
+           (stringp mu4e-mu-binary)
+           (file-executable-p mu4e-mu-binary)
+           mu4e-mu-binary)
+      (executable-find "mu")))
+
+(defun jds/ai-email--collect-thread-plists (msg)
+  "Return a date-sorted list of message plists for MSG's thread.
+Uses the mu CLI to query the index.  Returns nil if mu is unavailable
+or the thread cannot be found."
+  (let* ((mu-bin (jds/ai-email--mu-binary))
+         (thread-id (jds/ai-email--thread-id msg)))
+    (unless mu-bin
+      (user-error "mu binary not found; cannot collect thread messages"))
+    (unless thread-id
+      (user-error "Message has no thread-id"))
+    (let ((messages nil))
+      (with-temp-buffer
+        (let ((exit-code
+               (call-process mu-bin nil t nil
+                             "find" (format "thread:%s" thread-id)
+                             "--format=sexp")))
+          (when (= exit-code 0)
+            (goto-char (point-min))
+            (while (< (point) (point-max))
+              (condition-case nil
+                  (push (read (current-buffer)) messages)
+                (error (forward-line 1)))))))
+      (sort messages
+            (lambda (a b)
+              (let ((da (plist-get a :date))
+                    (db (plist-get b :date)))
+                (< (float-time da) (float-time db))))))))
+
+(defconst jds/ai-email--thread-msg-max-chars 3000
+  "Maximum characters to include from each individual message body.")
+
+(defconst jds/ai-email--thread-total-max-chars 24000
+  "Maximum total characters for the combined thread text sent to AI.")
+
+(defun jds/ai-email--get-message-body (msg)
+  "Return the plain-text body of MSG.
+Tries `mu4e-view-message-text' first; falls back to reading the
+raw file past the first blank line."
+  (condition-case nil
+      (mu4e-view-message-text msg)
+    (error
+     (let ((path (mu4e-message-field msg :path)))
+       (when (and path (file-exists-p path))
+         (with-temp-buffer
+           (insert-file-contents path)
+           (goto-char (point-min))
+           (if (search-forward "\n\n" nil t)
+               (buffer-substring-no-properties (point) (point-max))
+             "")))))))
+
+(defun jds/ai-email--format-one-thread-message (msg)
+  "Return a formatted header+body string for one thread MSG."
+  (let* ((from-c  (car (mu4e-message-field msg :from)))
+         (from    (or (plist-get from-c :name)
+                      (plist-get from-c :email)
+                      "Unknown"))
+         (date    (format-time-string "%Y-%m-%d %H:%M"
+                                      (mu4e-message-field msg :date)))
+         (subject (or (mu4e-message-field msg :subject) "(no subject)"))
+         (msgid   (or (mu4e-message-field msg :message-id) ""))
+         (body    (string-trim (or (jds/ai-email--get-message-body msg) "")))
+         (body    (if (> (length body) jds/ai-email--thread-msg-max-chars)
+                      (concat (substring body 0 jds/ai-email--thread-msg-max-chars)
+                              "\n[... truncated ...]")
+                    body)))
+    (format "From: %s\nDate: %s\nSubject: %s\nMessage-ID: %s\n\n%s"
+            from date subject msgid body)))
+
+(defun jds/ai-email--build-thread-prompt (messages)
+  "Build the AI prompt from a list of mu4e message plists MESSAGES."
+  (let* ((formatted (mapcar #'jds/ai-email--format-one-thread-message messages))
+         (joined    (string-join formatted "\n\n---\n\n"))
+         (joined    (if (> (length joined) jds/ai-email--thread-total-max-chars)
+                        (concat (substring joined 0 jds/ai-email--thread-total-max-chars)
+                                "\n\n[... thread truncated due to length ...]")
+                      joined)))
+    (format "Summarize this email thread (%d message(s)):\n\n%s"
+            (length messages) joined)))
+
+(defun jds/ai-email--thread-summary-system-prompt ()
+  "Return the system prompt for thread summarization."
+  (concat
+   "You analyze email threads and extract structured summaries.\n"
+   "Return JSON only. No commentary, no markdown code fences.\n"
+   "Treat the most recent messages as highest priority.\n"
+   "The JSON schema is:\n"
+   "{\n"
+   "  \"summary\": string,\n"
+   "  \"open_questions\": [{\"text\": string, \"msgid\": optional string}],\n"
+   "  \"commitments\": [{\"who\": string, \"what\": string, \"msgid\": optional string}],\n"
+   "  \"participants\": [string]\n"
+   "}\n"
+   "summary: 2-4 sentences on the main topic, current state, and resolved decisions.\n"
+   "open_questions: only unresolved questions requiring action; include message-id of the message that raised the question when available.\n"
+   "commitments: explicit commitments by any party; include message-id where the commitment appears when available.\n"
+   "participants: list as \"Name <email>\" for each unique sender.\n"
+   "When unsure about a question or commitment, omit it rather than guessing."))
+
+(define-derived-mode jds/ai-email-thread-summary-mode org-mode "AI-Thread"
+  "Read-only org buffer for AI-generated email thread summaries."
+  (setq-local header-line-format "AI Thread Summary  |  q: close")
+  (read-only-mode 1))
+
+(defun jds/ai-email--thread-summary-buffer-name (msg)
+  "Return a buffer name for the thread summary of MSG."
+  (format "*AI Thread Summary: %s*"
+          (truncate-string-to-width
+           (or (mu4e-message-field msg :subject) "(no subject)") 50 nil nil t)))
+
+(defun jds/ai-email--create-thread-summary-buffer (msg parsed message-count)
+  "Pop an org buffer with the thread summary for MSG from PARSED JSON."
+  (let* ((summary      (alist-get 'summary      parsed))
+         (questions    (alist-get 'open_questions parsed))
+         (commitments  (alist-get 'commitments   parsed))
+         (participants (alist-get 'participants  parsed))
+         (subject      (or (mu4e-message-field msg :subject) "(no subject)"))
+         (buf          (generate-new-buffer
+                        (jds/ai-email--thread-summary-buffer-name msg))))
+    (with-current-buffer buf
+      (jds/ai-email-thread-summary-mode)
+      (read-only-mode -1)
+
+      (insert (format "#+TITLE: Thread Summary: %s\n" subject))
+      (insert "#+STARTUP: showall\n")
+      (insert (format "\n/%d messages/\n\n" message-count))
+
+      (insert "* Summary\n")
+      (insert (or (jds/ai-email--string-or-nil summary) "/No summary returned./") "\n\n")
+
+      (insert "* Open Questions\n")
+      (if (null questions)
+          (insert "/None identified./\n\n")
+        (dolist (q (if (listp questions) questions '()))
+          (let ((text  (jds/ai-email--string-or-nil (alist-get 'text  q)))
+                (msgid (jds/ai-email--string-or-nil (alist-get 'msgid q))))
+            (when text
+              (insert (format "- %s" text))
+              (when msgid
+                (insert (format "  [[mu4e:msgid:%s][↗]]" msgid)))
+              (insert "\n"))))
+        (insert "\n"))
+
+      (insert "* Commitments / Action Items\n")
+      (if (null commitments)
+          (insert "/None identified./\n\n")
+        (dolist (c (if (listp commitments) commitments '()))
+          (let ((who   (jds/ai-email--string-or-nil (alist-get 'who   c)))
+                (what  (jds/ai-email--string-or-nil (alist-get 'what  c)))
+                (msgid (jds/ai-email--string-or-nil (alist-get 'msgid c))))
+            (when what
+              (insert (format "- %s%s"
+                              (if who (format "*%s*: " who) "")
+                              what))
+              (when msgid
+                (insert (format "  [[mu4e:msgid:%s][↗]]" msgid)))
+              (insert "\n"))))
+        (insert "\n"))
+
+      (insert "* Participants\n")
+      (if (null participants)
+          (insert "/None identified./\n")
+        (dolist (p (if (listp participants) participants '()))
+          (when (jds/ai-email--string-or-nil p)
+            (insert (format "- %s\n" p)))))
+
+      (goto-char (point-min))
+      (read-only-mode 1)
+      (evil-local-set-key 'normal (kbd "q") #'bury-buffer))
+    (pop-to-buffer buf)))
+
+(defun jds/mu4e-ai-summarize-thread ()
+  "Summarize the email thread at point using AI.
+Collects all messages in the thread via the mu index, sends them to
+the AI, and displays a structured org-mode summary buffer."
+  (interactive)
+  (let* ((msg (mu4e-message-at-point t)))
+    (unless msg
+      (user-error "No message at point"))
+    (message "Collecting thread messages...")
+    (let* ((messages (jds/ai-email--collect-thread-plists msg))
+           (count    (length messages)))
+      (if (zerop count)
+          (message "No messages found for this thread (is mu indexed?)")
+        (message "Summarizing thread (%d message(s)) with AI..." count)
+        (let* ((prompt (jds/ai-email--build-thread-prompt messages))
+               (system (jds/ai-email--thread-summary-system-prompt))
+               (origin (current-buffer)))
+          (let ((gptel-include-reasoning nil))
+            (gptel-request
+             prompt
+             :system system
+             :stream nil
+             :buffer origin
+             :callback
+             (lambda (response info)
+               (if (not response)
+                   (message "gptel error: %s" (plist-get info :status))
+                 (condition-case err
+                     (jds/ai-email--create-thread-summary-buffer
+                      msg
+                      (jds/ai-email--parse-json-response response)
+                      count)
+                   (error
+                    (message "Thread summary parse error: %s"
+                             (error-message-string err)))))))))))))
+
+
 ;;; Keybindings ------------------------------------------------------------
 
 ;; ca = compose with AI draft
 ;; cA = compose with AI scheduling assistant
+;; cS = summarize thread
 (evil-collection-define-key 'normal 'mu4e-headers-mode-map
   "ca" #'jds/mu4e-ai-draft-reply
   "cA" #'jds/mu4e-ai-scheduling-reply
-  "cl" #'jds/mu4e-ai-extract-captures)
+  "cl" #'jds/mu4e-ai-extract-captures
+  "cS" #'jds/mu4e-ai-summarize-thread)
 
 (evil-collection-define-key 'normal 'mu4e-view-mode-map
   "ca" #'jds/mu4e-ai-draft-reply
   "cA" #'jds/mu4e-ai-scheduling-reply
-  "cl" #'jds/mu4e-ai-extract-captures)
+  "cl" #'jds/mu4e-ai-extract-captures
+  "cS" #'jds/mu4e-ai-summarize-thread)
 
 (provide 'ai-email)
 ;;; ai-email.el ends here
