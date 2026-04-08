@@ -30,3 +30,5 @@
 /tree-sitter/
 *.elc
 /.agent-shell/
+/agent/
+/.codex
