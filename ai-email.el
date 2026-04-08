@@ -575,10 +575,14 @@ Each value is \"zoom\", \"in_person\", or \"either\"."
      buf pos (jds/ai-email--sanitize-response response)))
    (t nil)))
 
+(defvar jds/ai-email-last-prompt nil
+  "Full prompt sent in the most recent AI email request, for debugging.")
+
 (defun jds/ai-email--request-inserting-response
     (prompt system buf callback &optional tools)
   "Run `gptel-request' for PROMPT and insert into BUF via CALLBACK.
 TOOLS, when non-nil, are bound for the request."
+  (setq jds/ai-email-last-prompt prompt)
   (let ((gptel-include-reasoning nil)
         (gptel-use-tools (and tools t))
         (gptel-tools tools))
