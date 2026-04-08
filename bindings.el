@@ -113,7 +113,7 @@
    ((yas-active-snippets) (yas-next-field))
    ((and (looking-back "[^ \t\n]" 1)
 	 (completion-at-point))  nil)
-   ((jds/jump-delim) nil)
+   ((and (texmathp) (jds/jump-delim)) nil)
    ((and (string= major-mode "ess-r-mode") (looking-back "[^\s]"))
     (ess-indent-command))
    ((indent-for-tab-command nil))))
