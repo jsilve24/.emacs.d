@@ -173,8 +173,7 @@
     (condition-case nil
         (if (and (fboundp 'corfu-previous)
                  (bound-and-true-p corfu-mode)
-                 (boundp 'corfu--index)
-                 corfu--index)
+                 (bound-and-true-p corfu--candidates))
             (corfu-previous)
           (completion-at-point))
       (error (completion-at-point))))
