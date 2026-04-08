@@ -205,8 +205,12 @@
     "Install Evil bindings for `agent-shell-viewport-edit-mode'."
     (evil-insert-state))
 
+  
+
   (setq agent-shell-openai-authentication
 	(agent-shell-openai-make-authentication :login t)
+	agent-shell-anthropic-authentication
+	(agent-shell-anthropic-make-authentication :login t)
 	agent-shell-preferred-agent-config 'codex
 	;; Make active selections the first thing carried into prompts.
 	agent-shell-context-sources '(region files error line)
