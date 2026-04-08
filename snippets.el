@@ -245,6 +245,7 @@ escape."
   (aas-set-snippets 'org-mode
     ";lo" #'jds~org-agenda-link
     ";lr" #'org-roam-node-insert
+    ";schedule" #'jds/ai-email-insert-availability-snippet
     ";sq" (jds~yas-lambda-expand "#+BEGIN_QUOTE\n$0\n#+END_QUOTE")
     ";sr" (jds~yas-lambda-expand "#+begin_src R :exports ${1:$$(yas-choose-value '(\"both\" \"code\" \"results\" \"none\"))} :session \"*R*\" :results output \n$0\n#+end_src")
     ";sb" (jds~yas-lambda-expand "#+begin_src bibtex\n$0\n#+end_src")
@@ -343,6 +344,9 @@ escape."
   (aas-set-snippets 'org-msg-edit-mode
     :cond #'message--in-tocc-p
     "; " (lambda () (interactive) (insert ", ") (completion-at-point)))
+
+  (aas-set-snippets 'org-msg-edit-mode
+    ";schedule" #'jds/ai-email-insert-availability-snippet)
 
   ;; latex autoactivating snippets
 

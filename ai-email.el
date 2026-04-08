@@ -1051,39 +1051,123 @@ Return a marker at the inserted heading."
 
 ;;; AI scheduling reply ----------------------------------------------------
 
+(defun jds/ai-email--read-scheduling-context ()
+  "Prompt for scheduling context shared by scheduling helpers."
+  (read-string "Scheduling context (priority, duration, notes): "))
+
+(defun jds/ai-email--scheduling-system-prompt ()
+  "Return the shared system prompt for scheduling-related assistants."
+  (let* ((today-time (current-time))
+         (today (format-time-string "%Y-%m-%d (%A, %B %d, %Y)" today-time))
+         (default-start (jds/org-calendar--format-date today-time))
+         (default-end (jds/org-calendar--format-date
+                       (time-add today-time
+                                 (days-to-time jds/scheduling-default-search-days)))))
+    (concat
+     "You are a scheduling assistant helping draft meeting emails.\n"
+     "Today is " today ".\n"
+     "If the thread gives no date range, use "
+     default-start " through " default-end ".\n"
+     "If the meeting length is unspecified, assume 30 minutes.\n\n"
+     "Scheduling preferences:\n"
+     "- Tuesdays & Thursdays: prefer in-person meetings.\n"
+     "- Mondays, Wednesdays & Fridays: prefer Zoom meetings.\n\n"
+     "Before proposing times, you must call find_free_times.\n"
+     "Prefer availability_windows when they give a clearer summary than isolated slots.\n"
+     "If one day has several adjacent openings, summarize them as windows.\n"
+     "When listing availability windows, group them by day using one bullet per day and at most 2 windows per bullet.\n"
+     "Format exactly like this: Thursday, April 9: 9:00--10:00 AM; 10:30 AM--1:00 PM\n"
+     "Do not repeat the date within a bullet, use the word \"between,\" add prose inside bullets, or make bullets longer than one line.\n"
+     "For these grouped availability bullets only, you may reformat availability_windows into that layout, but preserve the returned day/date text and exact start/end times.\n"
+     "When offering options, prefer coverage across multiple days instead of concentrating everything on one day.\n"
+     "Otherwise use returned display strings verbatim. Do not infer weekdays, do date arithmetic, invent times, invent meeting modes, or restate returned times in different words.\n")))
+
+(defun jds/ai-email--scheduling-context-suffix (ctx)
+  "Return a formatted context suffix for scheduling prompt text from CTX."
+  (if (string-empty-p ctx)
+      ""
+    (format "\nContext: %s" ctx)))
+
+(defun jds/ai-email--availability-snippet-prompt (ctx)
+  "Return the standalone availability prompt text for CTX."
+  (format
+   (concat
+    "Write a concise availability snippet I can paste into a message.%s\n"
+    "Call find_free_times before answering.\n"
+    "Prefer summarizing returned availability windows verbatim, and include multiple days when possible.\n"
+    "When listing availability windows, group them by day using one bullet per day, at most 2 windows per bullet, in this exact format: Thursday, April 9: 9:00--10:00 AM; 10:30 AM--1:00 PM. Do not repeat the date within a bullet, do not use the word \"between\", do not add prose inside bullets, and keep each bullet to one line.\n"
+    "Return only the availability snippet.")
+   (jds/ai-email--scheduling-context-suffix ctx)))
+
+(defun jds/ai-email--handle-availability-snippet-response
+    (response info prompt system buf pos &optional retries-left)
+  "Handle standalone availability snippet RESPONSE."
+  (cond
+   ((not response)
+    (message "gptel error: %s" (plist-get info :status)))
+   ((stringp response)
+    (let ((clean (jds/ai-email--sanitize-response response)))
+      (if (and (> (or retries-left 0) 0)
+               (jds/ai-email--planning-response-p clean))
+          (let ((gptel-include-reasoning nil)
+                (gptel-use-tools t)
+                (gptel-tools (list jds~gptel-find-free-times-tool)))
+            (jds/ai-email--delete-leading-planning-text buf pos)
+            (gptel-request
+             prompt
+             :system (concat
+                      system
+                      "Return only the availability snippet. No greeting, commentary, reasoning, tool narration, or code fences.\n"
+                      "Your previous response was invalid because it described what you would do instead of returning the snippet.\n"
+                      "You have already checked availability.\n"
+                      "Write the snippet now.\n"
+                      "If you list times, they must be exact slot display strings returned by find_free_times or grouped availability windows that preserve the returned day/date text and exact start/end times.")
+             :stream nil
+             :buffer buf
+             :callback
+             (lambda (response info)
+               (jds/ai-email--handle-availability-snippet-response
+                response info prompt system buf pos (1- retries-left)))))
+        (if (jds/ai-email--planning-response-p clean)
+            (progn
+              (jds/ai-email--delete-leading-planning-text buf pos)
+              (message "Availability snippet suppressed: model returned planning text instead of the snippet."))
+          (jds/ai-email--insert-response-at-point buf pos clean)))))
+   (t nil)))
+
+(defun jds/ai-email-insert-availability-snippet ()
+  "Insert a formatted availability snippet at point."
+  (interactive)
+  (let* ((ctx (jds/ai-email--read-scheduling-context))
+         (buf (current-buffer))
+         (pos (copy-marker (point)))
+         (prompt (jds/ai-email--availability-snippet-prompt ctx))
+         (system (concat
+                  (jds/ai-email--scheduling-system-prompt)
+                  "Return only the availability snippet. No greeting, commentary, reasoning, tool narration, or code fences.\n")))
+    (let ((gptel-include-reasoning nil)
+          (gptel-use-tools t)
+          (gptel-tools (list jds~gptel-find-free-times-tool)))
+      (gptel-request prompt
+                     :system system
+                     :stream nil
+                     :buffer buf
+                     :callback
+                     (lambda (response info)
+                       (jds/ai-email--handle-availability-snippet-response
+                        response info prompt system buf pos 1))))))
+
 (defun jds/mu4e-ai-scheduling-reply ()
   "Reply to message at point with an AI-drafted scheduling response.
 Prompts for custom context. Uses validated availability slots rather than raw calendar dumps."
   (interactive)
-  (let* ((ctx      (read-string "Scheduling context (priority, duration, notes): "))
+  (let* ((ctx      (jds/ai-email--read-scheduling-context))
          (msg      (mu4e-message-at-point))
          (from-c   (car (mu4e-message-field msg :from)))
          (from-str (or (plist-get from-c :name) (plist-get from-c :email) "Unknown"))
          (subject  (or (mu4e-message-field msg :subject) "(no subject)"))
-         (today-time (current-time))
-         (today    (format-time-string "%Y-%m-%d (%A, %B %d, %Y)" today-time))
-         (default-start (jds/org-calendar--format-date today-time))
-         (default-end (jds/org-calendar--format-date
-                       (time-add today-time
-                                 (days-to-time jds/scheduling-default-search-days))))
          (system   (concat
-                    "You are a scheduling assistant helping draft meeting emails.\n"
-                    "Today is " today ".\n"
-                    "If the thread gives no date range, use "
-                    default-start " through " default-end ".\n"
-                    "If the meeting length is unspecified, assume 30 minutes.\n\n"
-                    "Scheduling preferences:\n"
-                    "- Tuesdays & Thursdays: prefer in-person meetings.\n"
-                    "- Mondays, Wednesdays & Fridays: prefer Zoom meetings.\n\n"
-                    "Before proposing times, you must call find_free_times.\n"
-                    "Prefer availability_windows when they give a clearer summary than isolated slots.\n"
-                    "If one day has several adjacent openings, summarize them as windows.\n"
-                    "When listing availability windows, group them by day using one bullet per day and at most 2 windows per bullet.\n"
-                    "Format exactly like this: Thursday, April 9: 9:00--10:00 AM; 10:30 AM--1:00 PM\n"
-                    "Do not repeat the date within a bullet, use the word \"between,\" add prose inside bullets, or make bullets longer than one line.\n"
-                    "For these grouped availability bullets only, you may reformat availability_windows into that layout, but preserve the returned day/date text and exact start/end times.\n"
-                    "When offering options, prefer coverage across multiple days instead of concentrating everything on one day.\n"
-                    "Otherwise use returned display strings verbatim. Do not infer weekdays, do date arithmetic, invent times, invent meeting modes, or restate returned times in different words.\n"
+                    (jds/ai-email--scheduling-system-prompt)
                     "Return only the reply body text. No subject line, commentary, reasoning, tool narration, or code fences."))
          hook-fn)
     (setq hook-fn
@@ -1100,8 +1184,7 @@ Prompts for custom context. Uses validated availability slots rather than raw ca
                               "When listing availability windows, group them by day using one bullet per day, at most 2 windows per bullet, in this exact format: Thursday, April 9: 9:00--10:00 AM; 10:30 AM--1:00 PM. Do not repeat the date within a bullet, do not use the word \"between\", do not add prose inside bullets, and keep each bullet to one line.\n"
                               "Return only the reply body.")
                              from-str subject
-                             (if (string-empty-p ctx) ""
-                               (format "\nContext: %s" ctx))
+                             (jds/ai-email--scheduling-context-suffix ctx)
                              content)))
               (message-goto-body)
               (let ((pos (copy-marker (point))))

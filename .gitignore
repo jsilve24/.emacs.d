@@ -28,3 +28,4 @@
 /wget-log
 /etc/transient/
 /tree-sitter/
+*.elc
