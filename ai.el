@@ -162,9 +162,37 @@
    :args '((:name "pattern" :type string :description "Regex pattern to search")))
   )
 
+;;; agent-shell ----------------------------------------------------------------
+
+(use-package agent-shell
+  :ensure t
+  :config
+  (setq agent-shell-openai-authentication
+	(agent-shell-openai-make-authentication :login t)
+	agent-shell-preferred-agent-config 'codex
+	;; Make active selections the first thing carried into prompts.
+	agent-shell-context-sources '(region files error line)
+	;; Prefer the compose/viewport flow over raw shell insertion.
+	agent-shell-prefer-viewport-interaction nil
+	;; Show context pressure in long-running coding sessions.
+	agent-shell-show-context-usage-indicator 'detailed
+	agent-shell-show-usage-at-turn-end t)
+  ;; Evil state-specific RET behavior: insert mode = newline, normal mode = send
+  (evil-define-key 'insert agent-shell-mode-map (kbd "RET") #'newline)
+  (evil-define-key 'normal agent-shell-mode-map (kbd "RET") #'comint-send-input)
+  ;; Configure *agent-shell-diff* buffers to start in Emacs state
+  (add-hook 'diff-mode-hook
+	    (lambda ()
+	      (when (string-match-p "\\*agent-shell-diff\\*" (buffer-name))
+		(evil-emacs-state)))))
+
+
+;;; bindings -------------------------------------------------------------------
+
+
 (jds/localleader-def
- :keymaps '(ess-r-mode-map emacs-lisp-mode-map vterm-mode-map)
- "'" #'claude-code-ide-menu)
+  :keymaps '(ess-r-mode-map emacs-lisp-mode-map vterm-mode-map)
+  "'" #'claude-code-ide-menu)
 
 ;; not mature enough yet
 ;; (use-package codex-ide
@@ -182,4 +210,3 @@
 (load-config "ai-email.el")
 
 (provide 'ai)
-

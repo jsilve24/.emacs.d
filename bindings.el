@@ -485,11 +485,15 @@
 ;; AI/gptel bindings
 (jds/leader-def
   "d" '(:ignore t :which-key "AI")
-  ;; "dd" #'gptel
-  "dd" #'gptel
-  "dD" #'gptel-agent
-  "ds" #'gptel-send
-  "d+" #'gptel-add
+  "dd" #'agent-shell
+  "dD" #'agent-shell-openai-start-codex
+  "dg" #'gptel
+  "do" #'agent-shell-other-buffer
+  "dp" #'agent-shell-prompt-compose
+  "dR" #'agent-shell-send-region
+  "ds" #'agent-shell-send-dwim
+  ; "ds" #'gptel-send
+  ; "d+" #'gptel-add
   "dm" #'gptel-menu
   "dr" #'gptel-rewrite
   "da" #'gptel-aibo
