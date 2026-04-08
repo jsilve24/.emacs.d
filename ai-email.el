@@ -29,9 +29,9 @@
 (defcustom jds/scheduling-weekday-mode-alist
   '((0 . "either")
     (1 . "zoom")
-    (2 . "in_person")
+    (2 . "either")
     (3 . "zoom")
-    (4 . "in_person")
+    (4 . "either")
     (5 . "zoom")
     (6 . "either"))
   "Alist mapping `decoded-time-weekday' index to preferred meeting mode.
