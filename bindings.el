@@ -605,8 +605,8 @@
  "zs"  #'xref-find-references
  "zl"  #'evil-lion-left
  "zL"  #'evil-lion-right
- "zn"  #'flymake-goto-next-error
- "zN"  #'flymake-goto-prev-error)
+ "]e"  #'flymake-goto-next-error
+ "[e"  #'flymake-goto-prev-error)
 
 (general-define-key
  :keymaps 'org-mode-map

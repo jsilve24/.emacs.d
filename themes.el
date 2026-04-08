@@ -23,6 +23,9 @@
 ;; (set-face-attribute 'variable-pitch nil :font "Cantarell"
 ;;                     :height jds/default-variable-font-size :weight 'regular)
 
+;; Emoji font fallback
+(set-fontset-font t 'emoji "Noto Color Emoji" nil 'prepend)
+
 
 ;;; main themes
 
