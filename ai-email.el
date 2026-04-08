@@ -1058,9 +1058,23 @@ Return a marker at the inserted heading."
 
 ;;; AI email reply ---------------------------------------------------------
 
-(defun jds/mu4e-ai-draft-reply ()
-  "Reply to message at point with an AI-drafted body."
-  (interactive)
+(defvar jds/ai-email-reply-instruction-history nil
+  "Minibuffer history for custom AI email reply instructions.")
+
+(defun jds/ai-email--read-reply-instructions ()
+  "Return optional custom instructions for an AI email reply."
+  (let ((instructions
+         (read-string "Reply instructions (optional): "
+                      nil
+                      'jds/ai-email-reply-instruction-history)))
+    (unless (string-empty-p (string-trim instructions))
+      (string-trim instructions))))
+
+(defun jds/mu4e-ai-draft-reply (&optional custom-instructions)
+  "Reply to message at point with an AI-drafted body.
+
+When CUSTOM-INSTRUCTIONS is non-nil, include it as extra drafting guidance."
+  (interactive (list (jds/ai-email--read-reply-instructions)))
   (pcase-let* ((`(:from ,from-str :subject ,subject . ,_) (jds/ai-email--mu4e-message-metadata))
                (system (concat
                         "You are a professional email assistant. Write clear, concise replies.\n"
@@ -1069,8 +1083,13 @@ Return a marker at the inserted heading."
     (jds/ai-email--compose-mu4e-reply-with-ai
      (lambda (content)
        (format
-        "Draft a professional reply to this email from %s (subject: \"%s\").\nCompose buffer (includes quoted original):\n\n%s\n\nReturn only the reply body text."
-        from-str subject content))
+        "Draft a professional reply to this email from %s (subject: \"%s\").%s\nCompose buffer (includes quoted original):\n\n%s\n\nReturn only the reply body text."
+        from-str
+        subject
+        (if custom-instructions
+            (format "\nAdditional instructions: %s" custom-instructions)
+          "")
+        content))
      system
      (lambda (response info _prompt _system buf pos)
        (jds/ai-email--insert-if-final-string response info buf pos)))))
