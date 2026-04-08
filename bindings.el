@@ -173,9 +173,10 @@
  "wf" #'make-frame
  ;; "wT" #'jds/window-go-home
  "wu" #'winner-undo
- "wR" #'winner-redo
+ "wr" #'winner-redo
  "wd" #'evil-window-delete
  "wD" #'kill-buffer-and-window
+ "wq" #'kill-buffer-and-window
  "w=" #'balance-windows
  "wv" #'jds/window-split-right
  "wV" #'+evil/window-vsplit-and-follow
@@ -183,11 +184,6 @@
  "wS" #'+evil/window-split-and-follow
  "wh" #'evil-window-left
  "wj" #'evil-window-down
- "wk" #'evil-window-up
- "wl" #'evil-window-right
- "wh" #'evil-window-left
- "wj" #'evil-window-down
- "wq" #'kill-buffer-and-window
  "wk" #'evil-window-up
  "wl" #'evil-window-right
  "wH" #'+evil/window-move-left
