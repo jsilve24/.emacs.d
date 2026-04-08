@@ -539,7 +539,8 @@
     (let ((clean (jds/ai-email--sanitize-response response)))
       (if (and (> (or retries-left 0) 0)
                (jds/ai-email--planning-response-p clean))
-          (let ((gptel-use-tools t)
+          (let ((gptel-include-reasoning nil)
+                (gptel-use-tools t)
                 (gptel-tools (list jds~gptel-find-free-times-tool)))
             (jds/ai-email--delete-leading-planning-text buf pos)
             (gptel-request
@@ -583,17 +584,18 @@
                                     from-str subject content)))
               (message-goto-body)
               (let ((pos (copy-marker (point))))
-                (gptel-request prompt
-                               :system (concat
-                                        "You are a professional email assistant. Write clear, concise replies.\n"
-                                        "Return only the reply body text.\n"
-                                        "Do not include a subject line, commentary, reasoning, tool narration, or code fences.")
-                               :stream nil
-                               :buffer buf
-                               :callback
-                               (lambda (response info)
-                                 (jds/ai-email--insert-if-final-string
-                                  response info buf pos)))))))
+                (let ((gptel-include-reasoning nil))
+                  (gptel-request prompt
+                                 :system (concat
+                                          "You are a professional email assistant. Write clear, concise replies.\n"
+                                          "Return only the reply body text.\n"
+                                          "Do not include a subject line, commentary, reasoning, tool narration, or code fences.")
+                                 :stream nil
+                                 :buffer buf
+                                 :callback
+                                 (lambda (response info)
+                                   (jds/ai-email--insert-if-final-string
+                                    response info buf pos))))))))
     (add-hook 'mu4e-compose-mode-hook hook-fn)
     (jds/mu4e-compose-reply)))
 
@@ -616,23 +618,24 @@ Prompts for custom context. Uses validated availability slots rather than raw ca
                        (time-add today-time
                                  (days-to-time jds/scheduling-default-search-days))))
          (system   (concat
-                    "You are a scheduling assistant helping to respond to emails about meetings.\n"
+                    "You are a scheduling assistant helping draft meeting emails.\n"
                     "Today is " today ".\n"
-                    "If no specific date range is provided in the thread, use this exact fallback window: "
+                    "If the thread gives no date range, use "
                     default-start " through " default-end ".\n"
                     "If the meeting length is unspecified, assume 30 minutes.\n\n"
-                    "My scheduling preferences:\n"
-                    "- Tuesdays & Thursdays: on campus, so prefer in-person meetings.\n"
-                    "- Mondays, Wednesdays & Fridays: remote, so prefer Zoom meetings.\n\n"
-                    "When proposing times, you must call the find_free_times tool first.\n"
-                    "Prefer summarizing availability using the tool's availability_windows values when they give a clearer answer than listing isolated starts.\n"
-                    "If one day has several adjacent openings, summarize them as windows rather than listing every 30-minute start on that day.\n"
+                    "Scheduling preferences:\n"
+                    "- Tuesdays & Thursdays: prefer in-person meetings.\n"
+                    "- Mondays, Wednesdays & Fridays: prefer Zoom meetings.\n\n"
+                    "Before proposing times, you must call find_free_times.\n"
+                    "Prefer availability_windows when they give a clearer summary than isolated slots.\n"
+                    "If one day has several adjacent openings, summarize them as windows.\n"
+                    "When listing availability windows, group them by day using one bullet per day and at most 2 windows per bullet.\n"
+                    "Format exactly like this: Thursday, April 9: 9:00--10:00 AM; 10:30 AM--1:00 PM\n"
+                    "Do not repeat the date within a bullet, use the word \"between,\" add prose inside bullets, or make bullets longer than one line.\n"
+                    "For these grouped availability bullets only, you may reformat availability_windows into that layout, but preserve the returned day/date text and exact start/end times.\n"
                     "When offering options, prefer coverage across multiple days instead of concentrating everything on one day.\n"
-                    "Use only exact display strings returned by the tool, copied verbatim.\n"
-                    "Do not infer weekdays, do date arithmetic, invent new times, invent meeting modes, or restate a returned time or window in different words.\n"
-                    "Your job is only to choose among returned options and draft the email wording.\n"
-                    "Return only the reply body text.\n"
-                    "Do not include a subject line, commentary, reasoning, tool narration, or code fences."))
+                    "Otherwise use returned display strings verbatim. Do not infer weekdays, do date arithmetic, invent times, invent meeting modes, or restate returned times in different words.\n"
+                    "Return only the reply body text. No subject line, commentary, reasoning, tool narration, or code fences."))
          hook-fn)
     (setq hook-fn
           (lambda ()
@@ -645,6 +648,7 @@ Prompts for custom context. Uses validated availability slots rather than raw ca
                               "Compose buffer (includes quoted original):\n\n%s\n\n"
                               "If you propose times, call find_free_times first.\n"
                               "Prefer summarizing returned availability windows verbatim, and include multiple days when possible.\n"
+                              "When listing availability windows, group them by day using one bullet per day, at most 2 windows per bullet, in this exact format: Thursday, April 9: 9:00--10:00 AM; 10:30 AM--1:00 PM. Do not repeat the date within a bullet, do not use the word \"between\", do not add prose inside bullets, and keep each bullet to one line.\n"
                               "Return only the reply body.")
                              from-str subject
                              (if (string-empty-p ctx) ""
@@ -652,7 +656,8 @@ Prompts for custom context. Uses validated availability slots rather than raw ca
                              content)))
               (message-goto-body)
               (let ((pos (copy-marker (point))))
-                (let ((gptel-use-tools t)
+                (let ((gptel-include-reasoning nil)
+                      (gptel-use-tools t)
                       (gptel-tools (list jds~gptel-find-free-times-tool)))
                   (gptel-request prompt
                                  :system system
