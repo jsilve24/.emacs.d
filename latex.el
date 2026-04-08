@@ -195,10 +195,55 @@
   (save-buffer)
   (call-interactively #'TeX-command-run-all))
 
+;;; setup latexdiff
+
+(use-package latexdiff
+  :straight (:type git :host github :repo "galaunay/latexdiff.el")
+  :defer t
+  :config
+  (defun jds/latexdiff-vc--compile-with-current (REV)
+    "Generate diff of current file against REV and compile PDF inside the diff directory."
+    (let* ((file (file-name-base))
+           (diff-dir (format "%sdiff%s" default-directory REV)))
+      (latexdiff--check-if-installed)
+      (setq latexdiff-runningp t)
+      (message "[%s] Generating latex diff with %s" file REV)
+      (let ((process
+             (start-process
+              "latexdiff" " *latexdiff*" "/bin/sh" "-c"
+              (format "yes X | latexdiff-vc --dir --force --git %s -r %s %s.tex > latexdiff.log 2>&1 && cd %s && pdflatex %s.tex >> ../latexdiff.log 2>&1 ;"
+                      (mapconcat #'shell-quote-argument latexdiff-vc-args " ")
+                      (shell-quote-argument REV)
+                      (shell-quote-argument file)
+                      (shell-quote-argument diff-dir)
+                      (shell-quote-argument file)))))
+        (process-put process 'diff-dir diff-dir)
+        (process-put process 'file file)
+        (process-put process 'rev1 "current")
+        (process-put process 'rev2 REV)
+        (set-process-sentinel process #'latexdiff-vc--latexdiff-sentinel)
+        diff-dir)))
+
+  (defun jds/latexdiff-vc ()
+    "Run latexdiff-vc, compiling the diff PDF inside the diff directory.
+Sets TEXINPUTS so pdflatex can find class/style/input files from the project root."
+    (interactive)
+    (let* ((process-environment
+            (cons (format "TEXINPUTS=%s//:"
+                          (file-name-directory (buffer-file-name)))
+                  process-environment))
+           (commits (latexdiff--get-commit-hash-alist))
+           (commit (completing-read "Choose a commit: " commits))
+           (commit-hash (cdr (assoc commit commits))))
+      (jds/latexdiff-vc--compile-with-current commit-hash))))
+
 ;;; keybindings
 
 (jds/localleader-def
   :keymaps 'LaTeX-mode-map
+  "d" '(:ignore t :which-key "diff")
+  "df" #'latexdiff
+  "dv" #'jds/latexdiff-vc
   "m" #'jds/tex-command-run-all-and-save
   "e" #'LaTeX-environment
   "s" #'LaTeX-section
