@@ -26,6 +26,20 @@
 (defvar jds/scheduling-default-search-days 14
   "Default scheduling search horizon in days when the model needs a fallback window.")
 
+(defcustom jds/scheduling-weekday-mode-alist
+  '((0 . "either")
+    (1 . "zoom")
+    (2 . "in_person")
+    (3 . "zoom")
+    (4 . "in_person")
+    (5 . "zoom")
+    (6 . "either"))
+  "Alist mapping `decoded-time-weekday' index to preferred meeting mode.
+0=Sunday, 1=Monday, ..., 6=Saturday.
+Each value is \"zoom\", \"in_person\", or \"either\"."
+  :type '(alist :key-type integer :value-type string)
+  :group 'jds/scheduling)
+
 (defun jds/org-calendar--file-mtime (file)
   (file-attribute-modification-time (file-attributes file)))
 
@@ -115,6 +129,23 @@
                    (member tag '("cancelled" "canceled" "reminder" "personal")))
                  tags))))
 
+(defun jds/org-calendar--advance-by-repeater (time value unit)
+  "Advance TIME by VALUE UNITs using exact calendar arithmetic."
+  (pcase unit
+    ('hour  (time-add time (seconds-to-time (* value 3600))))
+    ('day   (time-add time (days-to-time value)))
+    ('week  (time-add time (days-to-time (* 7 value))))
+    ('month (pcase-let ((`(,sec ,min ,hour ,day ,month ,year . ,_)
+                         (decode-time time)))
+              (let* ((raw-month (+ month value))
+                     (new-year  (+ year (/ (1- raw-month) 12)))
+                     (new-month (1+ (mod (1- raw-month) 12))))
+                (encode-time sec min hour day new-month new-year))))
+    ('year  (pcase-let ((`(,sec ,min ,hour ,day ,month ,year . ,_)
+                         (decode-time time)))
+              (encode-time sec min hour day month (+ year value))))
+    (_      nil)))
+
 (defun jds/org-calendar--parse-file-events (file)
   "Return cached list of timed calendar event plists for FILE."
   (let* ((mtime  (jds/org-calendar--file-mtime file))
@@ -149,14 +180,30 @@
                    (when range
                      (pcase-let ((`(,start . ,end) range))
                        (when (time-less-p start end)
-                         (push (list :file-name  (file-name-nondirectory file)
-                                     :title      (org-element-property :raw-value headline)
-                                     :todo       (org-element-property :todo-keyword headline)
-                                     :path       (jds/org-calendar--headline-path headline)
-                                     :timestamp  (org-element-property :raw-value ts)
-                                     :start      start
-                                     :end        end)
-                               events)))))))))
+                         (let ((file-name (file-name-nondirectory file))
+                               (title     (org-element-property :raw-value headline))
+                               (todo      (org-element-property :todo-keyword headline))
+                               (path      (jds/org-calendar--headline-path headline))
+                               (ts-raw    (org-element-property :raw-value ts))
+                               (rep-type  (org-element-property :repeater-type ts))
+                               (rep-val   (org-element-property :repeater-value ts))
+                               (rep-unit  (org-element-property :repeater-unit ts)))
+                           (push (list :file-name file-name :title title :todo todo
+                                       :path path :timestamp ts-raw :start start :end end)
+                                 events)
+                           (when (and rep-type rep-val rep-unit (> rep-val 0))
+                             (let* ((duration   (time-subtract end start))
+                                    (horizon    (time-add (current-time) (days-to-time 365)))
+                                    (next-start (jds/org-calendar--advance-by-repeater
+                                                 start rep-val rep-unit)))
+                               (while (and next-start (time-less-p next-start horizon))
+                                 (let ((next-end (time-add next-start duration)))
+                                   (push (list :file-name file-name :title title :todo todo
+                                               :path path :timestamp ts-raw
+                                               :start next-start :end next-end)
+                                         events))
+                                 (setq next-start (jds/org-calendar--advance-by-repeater
+                                                   next-start rep-val rep-unit)))))))))))))))
         (puthash key events jds/org-calendar-cache)
         events)))))
 
@@ -203,10 +250,8 @@
 
 (defun jds/org-calendar--day-mode (day-time)
   "Return preferred meeting mode for DAY-TIME."
-  (pcase (decoded-time-weekday (decode-time day-time))
-    ((or 2 4) "in_person")
-    ((or 1 3 5) "zoom")
-    (_ "either")))
+  (let ((dow (decoded-time-weekday (decode-time day-time))))
+    (or (alist-get dow jds/scheduling-weekday-mode-alist) "either")))
 
 (defun jds/org-calendar--mode-label (mode)
   "Return human-readable label for MODE."
@@ -381,6 +426,7 @@
        ("duration_minutes" . ,duration)
        ("count_requested" . ,slot-count)
        ("count_returned" . ,(length candidates))
+       ("no_availability" . ,(if (null candidates) t :json-false))
        ("mode_preference" . ,mode-pref)
        ("time_of_day_preference" . ,time-pref)
        ("availability_windows" . ,(vconcat window-summaries))
@@ -696,6 +742,30 @@ marker. TOOLS, when non-nil, are passed to the request."
                    (string-to-number (match-string 3 text))
                    (string-to-number (match-string 2 text))
                    (string-to-number (match-string 1 text))))
+     ;; ISO 8601 with timezone: YYYY-MM-DDTHH:MM[:SS](Z|+HH:MM|-HH:MM)
+     ((string-match
+       (concat "\\`\\([0-9]\\{4\\}\\)-\\([0-9]\\{2\\}\\)-\\([0-9]\\{2\\}\\)"
+               "[T ]\\([0-9]\\{2\\}\\):\\([0-9]\\{2\\}\\)\\(?::\\([0-9]\\{2\\}\\)\\)?"
+               "\\(Z\\|[+-][0-9]\\{2\\}:[0-9]\\{2\\}\\)\\'")
+       text)
+      (let* ((tz-str (match-string 7 text))
+             (tz-offset-secs
+              (if (equal tz-str "Z") 0
+                (let* ((sign (if (string-prefix-p "-" tz-str) -1 1))
+                       (hh   (string-to-number (substring tz-str 1 3)))
+                       (mm   (string-to-number (substring tz-str 4 6))))
+                  (* sign (+ (* hh 3600) (* mm 60))))))
+             (utc-epoch (- (float-time
+                            (encode-time
+                             (string-to-number (or (match-string 6 text) "0"))
+                             (string-to-number (match-string 5 text))
+                             (string-to-number (match-string 4 text))
+                             (string-to-number (match-string 3 text))
+                             (string-to-number (match-string 2 text))
+                             (string-to-number (match-string 1 text))
+                             0))
+                           tz-offset-secs)))
+        (encode-time (decode-time utc-epoch))))
      (t nil))))
 
 (defun jds/ai-email--all-day-range-string (start end)
@@ -861,6 +931,8 @@ marker. TOOLS, when non-nil, are passed to the request."
 
 (defun jds/ai-email--append-entry-to-file (file entry &optional headline)
   "Append ENTRY to FILE, optionally as a child of HEADLINE.
+ENTRY may be a string or a function (STARS) -> string, where STARS is a
+string of `*' characters at the correct child heading level.
 Return a marker at the inserted heading."
   (with-current-buffer (find-file-noselect (expand-file-name file))
     (unless (derived-mode-p 'org-mode)
@@ -868,21 +940,27 @@ Return a marker at the inserted heading."
     (save-excursion
       (let (marker)
         (if headline
-            (let ((target (or (org-find-exact-headline-in-buffer headline)
-                              (save-excursion
-                                (goto-char (point-max))
-                                (unless (bolp) (insert "\n"))
-                                (insert "* " headline "\n")
-                                (org-find-exact-headline-in-buffer headline)))))
+            (let* ((target (or (org-find-exact-headline-in-buffer headline)
+                               (save-excursion
+                                 (goto-char (point-max))
+                                 (unless (bolp) (insert "\n"))
+                                 (insert "* " headline "\n")
+                                 (org-find-exact-headline-in-buffer headline))))
+                   (child-stars (save-excursion
+                                  (goto-char target)
+                                  (make-string (1+ (org-outline-level)) ?*)))
+                   (resolved-entry (if (functionp entry)
+                                       (funcall entry child-stars)
+                                     entry)))
               (goto-char target)
               (org-end-of-subtree t t)
               (unless (bolp) (insert "\n"))
               (setq marker (copy-marker (point) t))
-              (insert entry))
+              (insert resolved-entry))
           (goto-char (point-max))
           (unless (bolp) (insert "\n"))
           (setq marker (copy-marker (point) t))
-          (insert entry))
+          (insert (if (functionp entry) (funcall entry "*") entry)))
         (save-buffer)
         marker))))
 
@@ -901,10 +979,11 @@ Return a marker at the inserted heading."
   (setq org-capture-last-stored-marker
         (jds/ai-email--append-entry-to-file
          jds/ai-email-capture-calendar-file
-         (concat "** " (jds/ai-email--sanitize-heading-text title) "\n"
-                 " " (jds/ai-email--event-timestamp-string start end all-day) "\n"
-                 (if (string-empty-p body) "" (concat body "\n"))
-                 " " message-link "\n")
+         (lambda (stars)
+           (concat stars " " (jds/ai-email--sanitize-heading-text title) "\n"
+                   " " (jds/ai-email--event-timestamp-string start end all-day) "\n"
+                   (if (string-empty-p body) "" (concat body "\n"))
+                   " " message-link "\n"))
          jds/ai-email-capture-calendar-headline)))
 
 (defun jds/ai-email--review-event-start-end ()
@@ -1101,6 +1180,31 @@ When CUSTOM-INSTRUCTIONS is non-nil, include it as extra drafting guidance."
   "Prompt for scheduling context shared by scheduling helpers."
   (read-string "Scheduling context (priority, duration, notes): "))
 
+(defun jds/ai-email--scheduling-preferences-text ()
+  "Return scheduling preference lines derived from `jds/scheduling-weekday-mode-alist'."
+  (let* ((day-names ["Sundays" "Mondays" "Tuesdays" "Wednesdays"
+                     "Thursdays" "Fridays" "Saturdays"])
+         (zoom-days nil)
+         (inperson-days nil))
+    (dolist (pair jds/scheduling-weekday-mode-alist)
+      (let ((dow (car pair))
+            (mode (cdr pair)))
+        (cond
+         ((equal mode "zoom")      (push (aref day-names dow) zoom-days))
+         ((equal mode "in_person") (push (aref day-names dow) inperson-days)))))
+    (let ((lines nil))
+      (when inperson-days
+        (push (format "- %s: prefer in-person meetings.\n"
+                      (string-join (nreverse inperson-days) " & "))
+              lines))
+      (when zoom-days
+        (push (format "- %s: prefer Zoom meetings.\n"
+                      (string-join (nreverse zoom-days) " & "))
+              lines))
+      (if lines
+          (concat "Scheduling preferences:\n" (string-join (nreverse lines) ""))
+        ""))))
+
 (defun jds/ai-email--scheduling-system-prompt ()
   "Return the shared system prompt for scheduling-related assistants."
   (let* ((today-time (current-time))
@@ -1108,16 +1212,15 @@ When CUSTOM-INSTRUCTIONS is non-nil, include it as extra drafting guidance."
          (default-start (jds/org-calendar--format-date today-time))
          (default-end (jds/org-calendar--format-date
                        (time-add today-time
-                                 (days-to-time jds/scheduling-default-search-days)))))
+                                 (days-to-time jds/scheduling-default-search-days))))
+         (prefs (jds/ai-email--scheduling-preferences-text)))
     (concat
      "You are a scheduling assistant helping draft meeting emails.\n"
      "Today is " today ".\n"
      "If the thread gives no date range, use "
      default-start " through " default-end ".\n"
      "If the meeting length is unspecified, assume 30 minutes.\n\n"
-     "Scheduling preferences:\n"
-     "- Tuesdays & Thursdays: prefer in-person meetings.\n"
-     "- Mondays, Wednesdays & Fridays: prefer Zoom meetings.\n\n"
+     (when (not (string-empty-p prefs)) (concat prefs "\n"))
      "Before proposing times, you must call find_free_times.\n"
      "Prefer availability_windows when they give a clearer summary than isolated slots.\n"
      "If one day has several adjacent openings, summarize them as windows.\n"
@@ -1126,7 +1229,8 @@ When CUSTOM-INSTRUCTIONS is non-nil, include it as extra drafting guidance."
      "Do not repeat the date within a bullet, use the word \"between,\" add prose inside bullets, or make bullets longer than one line.\n"
      "For these grouped availability bullets only, you may reformat availability_windows into that layout, but preserve the returned day/date text and exact start/end times.\n"
      "When offering options, prefer coverage across multiple days instead of concentrating everything on one day.\n"
-     "Otherwise use returned display strings verbatim. Do not infer weekdays, do date arithmetic, invent times, invent meeting modes, or restate returned times in different words.\n")))
+     "Otherwise use returned display strings verbatim. Do not infer weekdays, do date arithmetic, invent times, invent meeting modes, or restate returned times in different words.\n"
+     "If the tool returns no_availability: true, tell the user there are no free slots in that window and ask them to specify a different date range. Do not propose any times.\n")))
 
 (defun jds/ai-email--scheduling-context-suffix (ctx)
   "Return a formatted context suffix for scheduling prompt text from CTX."
