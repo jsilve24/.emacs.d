@@ -181,15 +181,20 @@ item to existing references drawer."
   (org-roam-bibtex-mode))
 
 (use-package org-noter
-  :config
-  ;; (evil-collection-define-key 'normal 'org-noter-notes-mode-map
-  ;; (kbd "C-.") #'org-noter-sync-current-note)
+  :commands (org-noter
+             org-noter-sync-current-note
+             org-noter-insert-note
+             org-noter-set-start-location)
+  :init
   (defun jds~org-noter-bindings ()
     (evil-local-set-key 'normal (kbd "C-.") #'org-noter-sync-current-note))
   (add-hook 'org-noter-notes-mode-hook #'jds~org-noter-bindings)
   (setq org-noter-notes-search-path '("~/Dropbox/org/roam/references/notes/")
-	org-noter-always-create-frame nil
-	org-noter-kill-frame-at-session-end nil)
+        org-noter-always-create-frame nil
+        org-noter-kill-frame-at-session-end nil)
+  :config
+  ;; (evil-collection-define-key 'normal 'org-noter-notes-mode-map
+  ;; (kbd "C-.") #'org-noter-sync-current-note)
 
 
   ;; fix bug in org-noter: https://github.com/weirdNox/org-noter/issues/125
@@ -311,10 +316,11 @@ With a prefix ARG, remove start location."
   (with-eval-after-load 'pdf-annot
     (add-hook 'pdf-annot-activate-handler-functions #'org-noter-pdftools-jump-to-note)))
 
-(general-def
-  :keymaps 'org-noter-doc-mode-map
-  "M-i" #'org-noter-insert-note
-  "M-I" #'org-noter-pdftools-insert-precise-note)
+(with-eval-after-load 'org-noter
+  (general-def
+    :keymaps 'org-noter-doc-mode-map
+    "M-i" #'org-noter-insert-note
+    "M-I" #'org-noter-pdftools-insert-precise-note))
 
 (jds/localleader-def
   :keymaps 'org-mode-map
