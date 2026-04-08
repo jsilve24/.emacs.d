@@ -203,7 +203,7 @@ Each value is \"zoom\", \"in_person\", or \"either\"."
                                                :start next-start :end next-end)
                                          events))
                                  (setq next-start (jds/org-calendar--advance-by-repeater
-                                                   next-start rep-val rep-unit)))))))))))))))
+                                                   next-start rep-val rep-unit))))))))))))))
         (puthash key events jds/org-calendar-cache)
         events)))))
 
