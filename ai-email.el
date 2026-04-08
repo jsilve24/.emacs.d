@@ -54,6 +54,10 @@
   (1+ (- (time-to-days (jds/org-calendar--day-start end))
          (time-to-days (jds/org-calendar--day-start start)))))
 
+(defun jds/org-calendar--next-day (time)
+  "Return the start of the day after TIME."
+  (time-add (jds/org-calendar--day-start time) (days-to-time 1)))
+
 (defun jds/org-calendar--timestamp-to-time-range (ts)
   "Return (START . END) time values for org-element timestamp TS."
   (let* ((syear  (org-element-property :year-start ts))
@@ -65,10 +69,19 @@
          (emonth (or (org-element-property :month-end ts) smonth))
          (eday   (or (org-element-property :day-end ts) sday))
          (ehour  (or (org-element-property :hour-end ts) shour))
-         (emin   (or (org-element-property :minute-end ts) smin)))
-    (when (and shour smin ehour emin)
+         (emin   (or (org-element-property :minute-end ts) smin))
+         (ts-type (org-element-property :type ts)))
+    (cond
+     ((and shour smin ehour emin)
       (cons (encode-time 0 smin shour sday smonth syear)
-            (encode-time 0 emin ehour eday emonth eyear)))))
+            (encode-time 0 emin ehour eday emonth eyear)))
+     ;; Treat all-day active ranges like <2026-04-09 Thu>--<2026-04-12 Sun>
+     ;; as blocking the full span of covered days.
+     ((eq ts-type 'active-range)
+      (let ((start (encode-time 0 0 0 sday smonth syear))
+            (end   (jds/org-calendar--next-day
+                    (encode-time 0 0 0 eday emonth eyear))))
+        (cons start end))))))
 
 (defun jds/org-calendar--time-overlaps-p (a-start a-end b-start b-end)
   "Whether [A-START, A-END) overlaps [B-START, B-END)."
