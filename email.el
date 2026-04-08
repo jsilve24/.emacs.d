@@ -56,6 +56,7 @@
 	mu4e-headers-thread-connection-prefix '("│" . "│ "))
 
   (setq mu4e-view-actions '(("capture message" . mu4e-action-capture-message)
+			    ("AI extract todos/events" . jds/mu4e-ai-extract-captures)
 			    ("browser view" . mu4e-action-view-in-browser)
 			    ("thread view" . mu4e-action-show-thread)))
 
@@ -421,4 +422,3 @@ mu4e-headers-goto-message-id."
 
 (provide 'config-email)
 ;;; email.el ends here
-
