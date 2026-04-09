@@ -236,7 +236,10 @@
 	   "* %? \n %U")
 	  ("P" "Protocol")
 	  ("Pw" "Capture Website" entry (file "~/Dropbox/org/inbox.org")
-	   "* TODO %:annotation \n %i %?")))
+	   "* TODO %:annotation \n %i %?")
+	  ("r" "reading list" entry (file "~/Dropbox/org/readinglist.org")
+	   "* TODO %a\n%U"
+	   :immediate-finish t)))
 
   ;; From here :   https://www.reddit.com/r/orgmode/comments/1i3np2x/comment/m8dli2w/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button
   (defun jds/org-capture-meeting-timestamp (&optional duration)

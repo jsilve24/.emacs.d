@@ -362,6 +362,7 @@
   "z" #'zoxide-find-file
   "Z" #'zoxide-cd
   "g" #'magit-status
+  "r" #'elfeed
   "m" #'jds/mu4e-goto-todays-headers
   "M" #'(lambda (&optional arg) (interactive "P")
 	  (jds~new-frame-or-new-window arg)
