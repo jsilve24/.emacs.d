@@ -219,6 +219,8 @@
 	(agent-shell-openai-make-authentication :login t)
 	agent-shell-anthropic-authentication
 	(agent-shell-anthropic-make-authentication :login t)
+	agent-shell-google-authentication
+	(agent-shell-google-make-authentication :login t)
 	agent-shell-preferred-agent-config 'codex
 	;; Make active selections the first thing carried into prompts.
 	agent-shell-context-sources '(region files error line)
