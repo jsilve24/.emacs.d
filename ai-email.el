@@ -1324,9 +1324,21 @@ Prompts for custom context. Uses validated availability slots rather than raw ca
 
 ;;; AI Thread Summarization ------------------------------------------------
 
-(defun jds/ai-email--thread-query-id (msg)
-  "Return the message ID used to collect MSG's full thread via mu."
-  (mu4e-message-field msg :message-id))
+(defun jds/ai-email--thread-query-ids (msg)
+  "Return candidate message IDs for collecting MSG's thread via mu.
+Starts with MSG's own Message-ID, then falls back to reply ancestry
+headers for messages that are visible in mu4e before indexing catches
+up with the newest message."
+  (delete-dups
+   (delq nil
+         (append
+          (list (let ((msgid (mu4e-message-field msg :message-id)))
+                  (unless (string-empty-p msgid) msgid))
+                (let ((parent (mu4e-message-field msg :in-reply-to)))
+                  (unless (string-empty-p parent) parent)))
+          (let ((refs (mu4e-message-field-raw msg :references)))
+            (when (listp refs)
+              (seq-filter #'identity refs)))))))
 
 (defun jds/ai-email--mu-binary ()
   "Return the path to the mu executable, or nil if not found."
@@ -1342,32 +1354,66 @@ Prompts for custom context. Uses validated availability slots rather than raw ca
        (keywordp (car value))
        (plist-member value :message-id)))
 
+(defun jds/ai-email--dedupe-messages-by-id (messages)
+  "Return MESSAGES with duplicate Message-IDs removed.
+Messages without a Message-ID are kept."
+  (let ((seen (make-hash-table :test #'equal))
+        (result nil))
+    (dolist (message messages)
+      (let ((msgid (mu4e-message-field message :message-id)))
+        (if (or (not msgid) (string-empty-p msgid))
+            (push message result)
+          (unless (gethash msgid seen)
+            (puthash msgid t seen)
+            (push message result)))))
+    (nreverse result)))
+
+(defun jds/ai-email--query-thread-plists (mu-bin query-id)
+  "Return thread messages from MU-BIN for QUERY-ID, or nil on failure."
+  (let ((messages nil))
+    (with-temp-buffer
+      (let ((exit-code
+             (call-process mu-bin nil t nil
+                           "find"
+                           "--include-related"
+                           "--format=sexp"
+                           (format "msgid:%s" query-id))))
+        (when (= exit-code 0)
+          (goto-char (point-min))
+          (while (< (point) (point-max))
+            (condition-case nil
+                (let ((entry (read (current-buffer))))
+                  (when (jds/ai-email--mu-message-plist-p entry)
+                    (push entry messages)))
+              (error (forward-line 1)))))))
+    messages))
+
 (defun jds/ai-email--collect-thread-plists (msg)
   "Return a date-sorted list of message plists for MSG's thread.
 Uses the mu CLI to query the index.  Returns nil if mu is unavailable
 or the thread cannot be found."
-  (let* ((mu-bin   (jds/ai-email--mu-binary))
-         (query-id (jds/ai-email--thread-query-id msg)))
+  (let* ((mu-bin    (jds/ai-email--mu-binary))
+         (query-ids (jds/ai-email--thread-query-ids msg)))
     (unless mu-bin
       (user-error "mu binary not found; cannot collect thread messages"))
-    (unless query-id
-      (user-error "Message has no message-id; cannot identify thread"))
-    (let ((messages nil))
-      (with-temp-buffer
-        (let ((exit-code
-               (call-process mu-bin nil t nil
-                             "find"
-                             "--include-related"
-                             "--format=sexp"
-                             (format "msgid:%s" query-id))))
-          (when (= exit-code 0)
-            (goto-char (point-min))
-            (while (< (point) (point-max))
-              (condition-case nil
-                  (let ((entry (read (current-buffer))))
-                    (when (jds/ai-email--mu-message-plist-p entry)
-                      (push entry messages)))
-                (error (forward-line 1)))))))
+    (unless query-ids
+      (user-error "Message has no usable Message-ID or References headers"))
+    (let* ((messages (seq-some
+                      (lambda (query-id)
+                        (let ((thread (jds/ai-email--query-thread-plists mu-bin query-id)))
+                          (when thread thread)))
+                      query-ids))
+           (current-id (mu4e-message-field msg :message-id)))
+      (when (and msg
+                 (or (null messages)
+                     (string-empty-p current-id)
+                     (not (seq-some
+                           (lambda (entry)
+                             (string= (mu4e-message-field entry :message-id)
+                                      current-id))
+                           messages))))
+        (push msg messages))
+      (setq messages (jds/ai-email--dedupe-messages-by-id messages))
       (sort messages
             (lambda (a b)
               (let ((da (plist-get a :date))
