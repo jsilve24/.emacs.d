@@ -33,19 +33,45 @@
 (defvar jds/elfeed-min-score 0
   "Minimum elfeed-score value required in the default Elfeed view.")
 
+(defconst jds/elfeed-score-filter-regexp
+  "\\(?:^\\|[[:space:]]+\\)\\(\\^[+-]?[0-9]+\\)\\(?:[[:space:]]+\\|$\\)"
+  "Regexp matching a custom Elfeed score filter token like `^-3'.")
+
+(defun jds/elfeed-search-score-threshold (&optional filter)
+  "Return the score threshold requested by FILTER, or nil if absent."
+  (when-let* ((filter (or filter elfeed-search-filter))
+              (token (and (string-match jds/elfeed-score-filter-regexp filter)
+                          (match-string 1 filter))))
+    (string-to-number (substring token 1))))
+
+(defun jds/elfeed-strip-score-filter (filter)
+  "Remove custom score filter tokens from FILTER."
+  (string-trim
+   (replace-regexp-in-string jds/elfeed-score-filter-regexp " " filter)))
+
+(defun jds/elfeed-search-parse-filter-with-score (orig-fn filter)
+  "Allow FILTER to contain custom score threshold tokens like `^-3'."
+  (funcall orig-fn (jds/elfeed-strip-score-filter filter)))
+
 (defun jds/elfeed-default-search-p ()
   "Return non-nil when Elfeed is showing the default inbox-style filter."
   (string= elfeed-search-filter (default-value 'elfeed-search-filter)))
 
+(defun jds/elfeed-effective-min-score ()
+  "Return the active Elfeed score threshold for the current search."
+  (or (jds/elfeed-search-score-threshold)
+      (and (jds/elfeed-default-search-p)
+           jds/elfeed-min-score)))
+
 (defun jds/elfeed-filter-by-score ()
-  "Hide low-score entries only in the default Elfeed search view."
-  (when (and (featurep 'elfeed-score)
-             (jds/elfeed-default-search-p))
+  "Hide low-score entries according to the current search filter."
+  (when-let* ((min-score (and (featurep 'elfeed-score)
+                              (jds/elfeed-effective-min-score))))
     (setq elfeed-search-entries
           (seq-filter
            (lambda (entry)
              (>= (elfeed-score-scoring-get-score-from-entry entry)
-                 jds/elfeed-min-score))
+                 min-score))
            elfeed-search-entries))))
 
 (defun jds/elfeed-search-print-entry (entry)
@@ -103,6 +129,8 @@
   (setq elfeed-db-directory
         (expand-file-name "var/elfeed" user-emacs-directory))
   (setq elfeed-search-print-entry-function #'jds/elfeed-search-print-entry)
+  (advice-add 'elfeed-search-parse-filter :around
+              #'jds/elfeed-search-parse-filter-with-score)
   (advice-add 'elfeed-search--update-list :after #'jds/elfeed-filter-by-score)
 
   (advice-add 'elfeed-feed-title :around #'jds/elfeed-feed-title-short)
