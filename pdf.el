@@ -123,7 +123,8 @@ definition of INTERACTIVE-P."
   ;; prefix-argument to select which printer to use
   "p" #'ph-pdf-misc-print-document
   "P" #'transient-extras-lp-menu
-  "l" #'pdf-annot-list-annotations)
+  "l" #'pdf-annot-list-annotations
+  "S" #'jds/pdf-ai-summarize-to-roam-at-point)
 
 (general-define-key
  :states '(normal)
