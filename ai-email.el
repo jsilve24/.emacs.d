@@ -1324,14 +1324,6 @@ Prompts for custom context. Uses validated availability slots rather than raw ca
 
 ;;; AI Thread Summarization ------------------------------------------------
 
-(defun jds/ai-email--thread-query-id (msg)
-  "Return the best ID for a `thread:' mu query for MSG.
-Prefers the thread-id from the :thread plist (the thread root);
-falls back to the message's own :message-id, which mu also accepts."
-  (or (when-let ((thread (mu4e-message-field msg :thread)))
-        (plist-get thread :thread-id))
-      (mu4e-message-field msg :message-id)))
-
 (defun jds/ai-email--mu-binary ()
   "Return the path to the mu executable, or nil if not found."
   (or (and (boundp 'mu4e-mu-binary)
@@ -1342,26 +1334,30 @@ falls back to the message's own :message-id, which mu also accepts."
 
 (defun jds/ai-email--collect-thread-plists (msg)
   "Return a date-sorted list of message plists for MSG's thread.
-Uses the mu CLI to query the index.  Returns nil if mu is unavailable
-or the thread cannot be found."
-  (let* ((mu-bin   (jds/ai-email--mu-binary))
-         (query-id (jds/ai-email--thread-query-id msg)))
+Uses `mu find msgid:ID --include-related' so the query works
+regardless of whether MSG is the thread root or a reply."
+  (let* ((mu-bin (jds/ai-email--mu-binary))
+         (msgid  (mu4e-message-field msg :message-id)))
     (unless mu-bin
       (user-error "mu binary not found; cannot collect thread messages"))
-    (unless query-id
+    (unless msgid
       (user-error "Message has no message-id; cannot identify thread"))
     (let ((messages nil))
       (with-temp-buffer
-        (let ((exit-code
-               (call-process mu-bin nil t nil
-                             "find" (format "thread:%s" query-id)
-                             "--format=sexp")))
-          (when (= exit-code 0)
-            (goto-char (point-min))
-            (while (< (point) (point-max))
-              (condition-case nil
-                  (push (read (current-buffer)) messages)
-                (error (forward-line 1)))))))
+        ;; Redirect stderr to /dev/null so error text doesn't
+        ;; pollute the sexp stream we parse below.
+        (call-process mu-bin nil (list t nil) nil
+                      "find" (format "msgid:%s" msgid)
+                      "--include-related"
+                      "--format=sexp")
+        (goto-char (point-min))
+        (while (< (point) (point-max))
+          (condition-case nil
+              (let ((obj (read (current-buffer))))
+                ;; Accept only plists (lists starting with a keyword).
+                (when (and (listp obj) obj (keywordp (car obj)))
+                  (push obj messages)))
+            (error (forward-line 1)))))
       (sort messages
             (lambda (a b)
               (let ((da (plist-get a :date))
