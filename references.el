@@ -224,10 +224,13 @@ a string specifying full filepath."
 
 (defun jds~pdf-ai-find-pdf (citekey)
   "Return full path to PDF for CITEKEY, or nil if not found.
-Tries citar-get-files first, then constructs expected path from citar-library-paths."
-  (or (seq-find (lambda (f)
-                  (string= "pdf" (downcase (or (file-name-extension f) ""))))
-                (citar-get-files citekey))
+Tries citar-get-files first (which returns a hash-table keyed by citekey),
+then constructs the expected path from citar-library-paths."
+  (or (when-let* ((tbl   (citar-get-files citekey))
+                  (files (gethash citekey tbl)))
+        (seq-find (lambda (f)
+                    (string= "pdf" (downcase (or (file-name-extension f) ""))))
+                  files))
       (let ((expected (expand-file-name (concat citekey ".pdf")
                                         (car citar-library-paths))))
         (when (file-exists-p expected) expected))))
