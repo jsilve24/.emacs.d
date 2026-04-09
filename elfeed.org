@@ -1,0 +1,28 @@
+* Feeds                                                       :elfeed:
+
+** StatsML                                                  :statsml:
+*** PMLR                                                   
+**** https://proceedings.mlr.press/rss.xml
+*** JSS                                                   :software:
+**** https://www.jstatsoft.org/index.php/jss/gateway/plugin/WebFeedGatewayPlugin/rss2
+*** JRSSB                                                  
+**** https://academic.oup.com/rss/site_6513/advanceAccess_4147.xml
+*** AnnualReviewStats
+**** https://www.annualreviews.org/rss/content/journals/statistics/latestarticles?fmt=rss
+*** JASA
+**** https://www.tandfonline.com/feed/rss/uasa20
+*** arXiv stat.ME
+**** https://arxiv.org/rss/stat.ME
+*** arXiv stat.ML
+**** https://arxiv.org/rss/stat.ML
+*** arXiv cs.LG
+**** https://arxiv.org/rss/cs.LG
+*** PMLR                                               :proceedings:
+**** https://proceedings.mlr.press/rss.xml
+** CompBio                                                  :compbio:
+*** NatureMethods
+**** https://www.nature.com/nmeth.rss
+*** arXiv q-bio.GN
+**** https://arxiv.org/rss/q-bio.GN
+*** arXiv q-bio.QM
+**** https://arxiv.org/rss/q-bio.QM

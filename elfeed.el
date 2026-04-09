@@ -30,6 +30,24 @@
           (elfeed-meta feed :title)
           (elfeed-feed-title feed)))))
 
+(defvar jds/elfeed-min-score 0
+  "Minimum elfeed-score value required in the default Elfeed view.")
+
+(defun jds/elfeed-default-search-p ()
+  "Return non-nil when Elfeed is showing the default inbox-style filter."
+  (string= elfeed-search-filter (default-value 'elfeed-search-filter)))
+
+(defun jds/elfeed-filter-by-score ()
+  "Hide low-score entries only in the default Elfeed search view."
+  (when (and (featurep 'elfeed-score)
+             (jds/elfeed-default-search-p))
+    (setq elfeed-search-entries
+          (seq-filter
+           (lambda (entry)
+             (>= (elfeed-score-scoring-get-score-from-entry entry)
+                 jds/elfeed-min-score))
+           elfeed-search-entries))))
+
 (defun jds/elfeed-search-print-entry (entry)
   "Print ENTRY to the search buffer using abbreviated feed names."
   (let* ((date (elfeed-search-format-date (elfeed-entry-date entry)))
@@ -59,13 +77,33 @@
     (when tags
       (insert "(" tags-str ")"))))
 
+(defun jds/elfeed-search-mark-read-and-next ()
+  "Mark the current Elfeed search entry read and advance one line."
+  (interactive)
+  (elfeed-search-untag-all-unread))
+
+(defun jds/elfeed-show-mark-read-and-next ()
+  "Mark the current Elfeed show entry read and display the next entry."
+  (interactive)
+  (let ((entry elfeed-show-entry)
+        next-entry)
+    (elfeed-untag entry 'unread)
+    (with-current-buffer (elfeed-search-buffer)
+      (elfeed-search-update-entry entry)
+      (forward-line 1)
+      (setq next-entry (elfeed-search-selected :ignore-region)))
+    (if (elfeed-entry-p next-entry)
+        (elfeed-show-entry next-entry)
+      (funcall elfeed-show-entry-delete))))
+
 (use-package elfeed
   :config
   (setq elfeed-use-curl t)
-  (setq elfeed-search-filter "@2-weeks-ago +unread #5")
+  (setq elfeed-search-filter "@2-weeks-ago +unread")
   (setq elfeed-db-directory
         (expand-file-name "var/elfeed" user-emacs-directory))
   (setq elfeed-search-print-entry-function #'jds/elfeed-search-print-entry)
+  (advice-add 'elfeed-search--update-list :after #'jds/elfeed-filter-by-score)
 
   (advice-add 'elfeed-feed-title :around #'jds/elfeed-feed-title-short)
 
@@ -74,9 +112,7 @@
     ;; F = follow links (same as mu4e-headers F)
     "F"  #'link-hint-open-link
     ;; d = mark read and advance (cf. mu4e d = mark trash and advance)
-    "d"  (lambda () (interactive)
-           (elfeed-search-untag-all-unread)
-           (forward-line 1))
+    "d"  #'jds/elfeed-search-mark-read-and-next
     ;; R = refresh feeds (cf. mu4e gr / R for reindex)
     "R"  #'elfeed-search-update--force
     ;; ! / ? = mark read / mark unread (cf. mu4e ! / ?)
@@ -85,6 +121,7 @@
 
   ;; mu4e-like bindings in show (view) view
   (evil-collection-define-key 'normal 'elfeed-show-mode-map
+    "d"  #'jds/elfeed-show-mark-read-and-next
     "F"  #'link-hint-open-link))
 
 ;; prevent org-element hooks firing on the score file buffer
@@ -105,7 +142,7 @@
   :after elfeed
   :config
   (setq rmh-elfeed-org-files
-        (list (expand-file-name "elfeed.org" org-directory)))
+        (list (expand-file-name "elfeed.org" user-emacs-directory)))
   (elfeed-org))
 
 ;;; localleader bindings (mirrors mu4e localleader pattern)
