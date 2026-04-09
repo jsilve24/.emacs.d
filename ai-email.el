@@ -1426,6 +1426,21 @@ or the thread cannot be found."
 (defconst jds/ai-email--thread-total-max-chars 24000
   "Maximum total characters for the combined thread text sent to AI.")
 
+(defun jds/ai-email--select-thread-messages-for-prompt (messages)
+  "Return the newest MESSAGES that fit the prompt size budget."
+  (let ((selected nil)
+        (total 0))
+    (dolist (msg (reverse messages))
+      (let* ((formatted (jds/ai-email--format-one-thread-message msg))
+             (separator-cost (if selected 7 0))
+             (message-cost (+ separator-cost (length formatted))))
+        (when (or (null selected)
+                  (<= (+ total message-cost)
+                      jds/ai-email--thread-total-max-chars))
+          (push msg selected)
+          (setq total (+ total message-cost)))))
+    selected))
+
 (defun jds/ai-email--get-message-body (msg)
   "Return the plain-text body of MSG.
 Tries `mu4e-view-message-text' first; falls back to reading the
@@ -1462,14 +1477,15 @@ raw file past the first blank line."
 
 (defun jds/ai-email--build-thread-prompt (messages)
   "Build the AI prompt from a list of mu4e message plists MESSAGES."
-  (let* ((formatted (mapcar #'jds/ai-email--format-one-thread-message messages))
-         (joined    (string-join formatted "\n\n---\n\n"))
-         (joined    (if (> (length joined) jds/ai-email--thread-total-max-chars)
-                        (concat (substring joined 0 jds/ai-email--thread-total-max-chars)
-                                "\n\n[... thread truncated due to length ...]")
-                      joined)))
-    (format "Summarize this email thread (%d message(s)):\n\n%s"
-            (length messages) joined)))
+  (let* ((selected (jds/ai-email--select-thread-messages-for-prompt messages))
+         (omitted  (- (length messages) (length selected)))
+         (formatted (mapcar #'jds/ai-email--format-one-thread-message selected))
+         (joined   (string-join formatted "\n\n---\n\n"))
+         (prefix   (if (> omitted 0)
+                       (format "Older messages omitted due to length: %d\n\n" omitted)
+                     "")))
+    (format "Summarize this email thread (%d message(s)):\n\n%s%s"
+            (length messages) prefix joined)))
 
 (defun jds/ai-email--thread-summary-system-prompt ()
   "Return the system prompt for thread summarization."
