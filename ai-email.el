@@ -1449,11 +1449,69 @@ raw file past the first blank line."
   (setq-local header-line-format "AI Thread Summary  |  q: close")
   (read-only-mode 1))
 
+(define-derived-mode jds/ai-email-zoom-summary-mode org-mode "AI-Zoom"
+  "Read-only org buffer for AI-generated Zoom meeting summaries."
+  (setq-local header-line-format "AI Zoom Summary  |  q: close")
+  (read-only-mode 1))
+
 (defun jds/ai-email--thread-summary-buffer-name (msg)
   "Return a buffer name for the thread summary of MSG."
   (format "*AI Thread Summary: %s*"
           (truncate-string-to-width
            (or (mu4e-message-field msg :subject) "(no subject)") 50 nil nil t)))
+
+(defun jds/ai-email--zoom-summary-buffer-name (msg)
+  "Return a buffer name for the Zoom summary of MSG."
+  (format "*AI Zoom Summary: %s*"
+          (truncate-string-to-width
+           (or (mu4e-message-field msg :subject) "(no subject)") 50 nil nil t)))
+
+(defun jds/ai-email--zoom-summary-system-prompt ()
+  "Return the system prompt for compact Zoom meeting-asset summaries."
+  (concat
+   "You condense Zoom meeting asset emails into very short meeting-note summaries.\n"
+   "Return plain Org text only. No markdown fences, no preamble.\n"
+   "Ignore email boilerplate, social links, feedback prompts, and repeated section headings.\n"
+   "Prioritize substantive project discussion, decisions, unresolved questions, and concrete next steps.\n"
+   "Omit incidental personal chatter unless it materially affects follow-up.\n"
+   "Write for a 60-second skim before the next meeting.\n"
+   "Keep the total output under 160 words.\n"
+   "Use this exact structure:\n"
+   "* Main points\n"
+   "- bullet\n"
+   "- bullet\n"
+   "* Next steps\n"
+   "- bullet\n"
+   "- bullet\n"
+   "If there are no clear next steps, write '- None noted.' under that heading.\n"
+   "Use crisp, specific bullets rather than generic abstractions."))
+
+(defun jds/ai-email--build-zoom-summary-prompt (msg)
+  "Build the AI prompt for compacting a Zoom meeting asset MSG."
+  (let* ((subject (or (mu4e-message-field msg :subject) "(no subject)"))
+         (body (string-trim (or (jds/ai-email--get-message-body msg) ""))))
+    (format
+     (concat
+      "Condense this Zoom meeting asset email into a short summary suitable for meeting notes.\n\n"
+      "Subject: %s\n\n"
+      "%s")
+     subject
+     body)))
+
+(defun jds/ai-email--create-zoom-summary-buffer (msg response)
+  "Pop an org buffer with compact Zoom summary RESPONSE for MSG."
+  (let ((buf (generate-new-buffer (jds/ai-email--zoom-summary-buffer-name msg))))
+    (with-current-buffer buf
+      (jds/ai-email-zoom-summary-mode)
+      (read-only-mode -1)
+      (insert (format "#+TITLE: Zoom Summary: %s\n\n"
+                      (or (mu4e-message-field msg :subject) "(no subject)")))
+      (insert (string-trim (or response "")))
+      (insert "\n")
+      (goto-char (point-min))
+      (read-only-mode 1)
+      (evil-local-set-key 'normal (kbd "q") #'bury-buffer))
+    (pop-to-buffer buf)))
 
 (defun jds/ai-email--create-thread-summary-buffer (msg parsed message-count)
   "Pop an org buffer with the thread summary for MSG from PARSED JSON."
@@ -1551,6 +1609,30 @@ the AI, and displays a structured org-mode summary buffer."
                    (error
                     (message "Thread summary parse error: %s"
                              (error-message-string err)))))))))))))
+
+(defun jds/mu4e-ai-compact-zoom-meeting-assets ()
+  "Compact the Zoom meeting asset email at point into short meeting notes."
+  (interactive)
+  (let* ((msg (mu4e-message-at-point t)))
+    (unless msg
+      (user-error "No message at point"))
+    (message "Summarizing Zoom meeting assets...")
+    (let* ((prompt (jds/ai-email--build-zoom-summary-prompt msg))
+           (system (jds/ai-email--zoom-summary-system-prompt))
+           (origin (current-buffer)))
+      (let ((gptel-include-reasoning nil))
+        (gptel-request
+         prompt
+         :system system
+         :stream nil
+         :buffer origin
+         :callback
+         (lambda (response info)
+           (if (not response)
+               (message "gptel error: %s" (plist-get info :status))
+             (jds/ai-email--create-zoom-summary-buffer
+              msg
+              (jds/ai-email--sanitize-response response)))))))))
 
 
 ;;; Keybindings ------------------------------------------------------------
