@@ -176,7 +176,7 @@
 ;;; localleader bindings (mirrors mu4e localleader pattern)
 (jds/localleader-def
   :keymaps '(elfeed-search-mode-map elfeed-show-mode-map)
-  "l" (lambda () (interactive)
-        (org-store-link nil t)
-        (org-capture nil "r"))
+  "l" #'jds/elfeed-capture-reading-list
   "u" #'elfeed-update)
+
+(load (expand-file-name "elfeed-ai" user-emacs-directory) nil t)
