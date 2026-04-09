@@ -1325,12 +1325,8 @@ Prompts for custom context. Uses validated availability slots rather than raw ca
 ;;; AI Thread Summarization ------------------------------------------------
 
 (defun jds/ai-email--thread-query-id (msg)
-  "Return the best ID for a `thread:' mu query for MSG.
-Prefers the thread-id from the :thread plist (the thread root);
-falls back to the message's own :message-id, which mu also accepts."
-  (or (when-let ((thread (mu4e-message-field msg :thread)))
-        (plist-get thread :thread-id))
-      (mu4e-message-field msg :message-id)))
+  "Return the message ID used to collect MSG's full thread via mu."
+  (mu4e-message-field msg :message-id))
 
 (defun jds/ai-email--mu-binary ()
   "Return the path to the mu executable, or nil if not found."
@@ -1339,6 +1335,12 @@ falls back to the message's own :message-id, which mu also accepts."
            (file-executable-p mu4e-mu-binary)
            mu4e-mu-binary)
       (executable-find "mu")))
+
+(defun jds/ai-email--mu-message-plist-p (value)
+  "Return non-nil when VALUE looks like a mu message plist."
+  (and (listp value)
+       (keywordp (car value))
+       (plist-member value :message-id)))
 
 (defun jds/ai-email--collect-thread-plists (msg)
   "Return a date-sorted list of message plists for MSG's thread.
@@ -1354,13 +1356,17 @@ or the thread cannot be found."
       (with-temp-buffer
         (let ((exit-code
                (call-process mu-bin nil t nil
-                             "find" (format "thread:%s" query-id)
-                             "--format=sexp")))
+                             "find"
+                             "--include-related"
+                             "--format=sexp"
+                             (format "msgid:%s" query-id))))
           (when (= exit-code 0)
             (goto-char (point-min))
             (while (< (point) (point-max))
               (condition-case nil
-                  (push (read (current-buffer)) messages)
+                  (let ((entry (read (current-buffer))))
+                    (when (jds/ai-email--mu-message-plist-p entry)
+                      (push entry messages)))
                 (error (forward-line 1)))))))
       (sort messages
             (lambda (a b)
