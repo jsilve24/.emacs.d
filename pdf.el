@@ -124,6 +124,7 @@ definition of INTERACTIVE-P."
   "p" #'ph-pdf-misc-print-document
   "P" #'transient-extras-lp-menu
   "l" #'pdf-annot-list-annotations
+  "s" #'jds/pdf-ai-summarize-at-point
   "S" #'jds/pdf-ai-summarize-to-roam-at-point)
 
 (general-define-key

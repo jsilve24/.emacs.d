@@ -126,47 +126,43 @@ Returns empty string on failure."
 (use-package pdf-drop-mode
   :straight (pdf-drop-mode :type git :host github :repo "rougier/pdf-drop-mode")
   :config
-  ;; Track file awaiting async AI BibTeX insertion
-  (defvar jds~pdf-ai-pending-file nil
-    "Absolute path of PDF awaiting AI-based BibTeX lookup.")
-
-  ;; Async callback: insert AI BibTeX into .bib file, then move the PDF
-  (defun jds~pdf-ai-bibtex-callback (response info)
-    "Handle gptel response: insert BibTeX into bibliography and move pending PDF."
+  ;; Async callback: insert AI BibTeX into .bib file, then move FILE.
+  (defun jds~pdf-ai-bibtex-callback (file response info)
+    "Handle gptel RESPONSE for FILE by inserting BibTeX and moving the PDF."
     (if (not response)
-        (progn
-          (message "AI BibTeX lookup failed: %s" (plist-get info :status))
-          (setq jds~pdf-ai-pending-file nil))
+        (message "AI BibTeX lookup failed for %s: %s"
+                 (file-name-nondirectory file)
+                 (plist-get info :status))
       (let* ((bib-start (and (string-match "@[a-zA-Z]+{" response)
                              (match-beginning 0)))
              (bibtex    (if bib-start (substring response bib-start) response))
-             (pending   jds~pdf-ai-pending-file)
              (bib-file  zotra-default-bibliography))
-        (setq jds~pdf-ai-pending-file nil)
         (condition-case err
-            (progn
+            (let (key)
               (with-current-buffer (find-file-noselect bib-file)
                 (goto-char (point-max))
                 (unless (bolp) (insert "\n"))
                 (let ((entry-start (point)))
                   (insert bibtex "\n")
                   (goto-char entry-start)
-                  (bibtex-clean-entry t)   ; triggers jds~bibtex-store-latest-key-hook-function
+                  (bibtex-clean-entry t)
+                  (setq key (cdr (assoc "=key=" (bibtex-parse-entry t))))
                   (bibtex-sort-buffer)
                   (save-buffer)))
-              (if (and pending jds~bibtex-clean-latest-stored-key)
+              (if key
                   (progn
-                    (message "AI BibTeX added: %s" jds~bibtex-clean-latest-stored-key)
-                    (jds/dired-add-file-to-bib jds~bibtex-clean-latest-stored-key pending))
-                (message "AI BibTeX inserted; could not move file (no key).")))
+                    (message "AI BibTeX added: %s" key)
+                    (jds/dired-add-file-to-bib key file))
+                (message "AI BibTeX inserted for %s; could not determine key"
+                         (file-name-nondirectory file))))
           (error (message "Error processing AI BibTeX: %s" (error-message-string err)))))))
 
-  ;; Called when DOI lookup fails or when no DOI is found at all
+  ;; Called when DOI/arXiv lookup fails or when no identifier is found at all.
   (defun jds/pdf-drop-ai-bibtex-fallback (file title)
     "Use AI to identify paper in FILE and create a BibTeX entry.
 TITLE is the PDF metadata title (may be nil or empty)."
-    (setq jds~pdf-ai-pending-file (expand-file-name file))
-    (message "DOI lookup failed; asking AI to identify paper...")
+    (message "Identifier lookup failed for %s; asking AI to identify paper..."
+             (file-name-nondirectory file))
     (let* ((text   (jds/pdf-extract-text-pages file 4))
            (prompt (format "I need a BibTeX bibliography entry for this academic paper.\n%s\n\nText from the first pages:\n---\n%s\n---\n\nReturn ONLY a single complete BibTeX entry starting with @. No explanation, no markdown fences."
                            (if (and title (not (string-empty-p (string-trim (or title "")))))
@@ -175,7 +171,8 @@ TITLE is the PDF metadata title (may be nil or empty)."
                            text)))
       (gptel-request prompt
         :system "You are a bibliographic assistant. Return only a single complete BibTeX entry."
-        :callback #'jds~pdf-ai-bibtex-callback)))
+        :callback (lambda (response info)
+                    (jds~pdf-ai-bibtex-callback file response info)))))
 
   ;; When DOI found but zotra lookup fails, fall back to AI
   (defun jds/pdf-drop-mode-call-zotra (file doi)
@@ -186,25 +183,41 @@ TITLE is the PDF metadata title (may be nil or empty)."
         (error
          (jds/pdf-drop-ai-bibtex-fallback file doi-string)))))
   (setq pdf-drop-search-hook #'jds/pdf-drop-mode-call-zotra)
+  (setq pdf-drop-search-methods '(doi/metadata doi/content arxiv/content)))
 
-  ;; When no DOI at all is extracted, use AI instead of the default title prompt
-  (when (boundp 'pdf-drop-title-hook)
-    (setq pdf-drop-title-hook #'jds/pdf-drop-ai-bibtex-fallback)))
+(defun jds~pdf-drop-find-identifier (file)
+  "Return the first non-interactive identifier found for FILE.
+The return value is a cons like `(doi . VALUE)' or `(arxiv . VALUE)'."
+  (catch 'found
+    (dolist (method pdf-drop-search-methods)
+      (pcase method
+        ('doi/metadata
+         (when-let ((doi (pdf-drop-get-doi-from-metadata file)))
+           (when (pdf-drop-validate-doi doi)
+             (throw 'found `(doi . ,doi)))))
+        ('doi/content
+         (when-let ((doi (pdf-drop-get-doi-from-content file)))
+           (when (pdf-drop-validate-doi doi)
+             (throw 'found `(doi . ,doi)))))
+        ('arxiv/content
+         (when-let ((arxiv-id (pdf-drop-get-arxiv-id-from-content file)))
+           (when (pdf-drop-validate-arxiv-id arxiv-id)
+             (throw 'found `(arxiv . ,arxiv-id)))))))))
 
 ;;;###autoload
 (defun jds/pdf-drop-process ()
-  "Process PDF at point: look up BibTeX via DOI, fall back to AI if needed.
-When the DOI path succeeds synchronously, moves the file immediately.
-When the AI fallback is triggered (async), the callback moves the file."
+  "Process PDF at point: import by identifier, or fall back to AI."
   (interactive)
   (let ((filename (dired-copy-filename-as-kill 0)))
-    (setq jds~bibtex-clean-latest-stored-key nil)
-    (pdf-drop--process filename)
-    ;; Only move file here for the synchronous DOI path.
-    ;; AI fallback sets jds~pdf-ai-pending-file; callback handles the move.
-    (when (and jds~bibtex-clean-latest-stored-key
-               (not jds~pdf-ai-pending-file))
-      (jds/dired-add-file-to-bib jds~bibtex-clean-latest-stored-key filename))))
+    (if-let ((file-id (jds~pdf-drop-find-identifier filename)))
+        (let ((key (zotra-add-entry-from-search (cdr file-id))))
+          (if key
+              (jds/dired-add-file-to-bib key filename)
+            (user-error "Imported bibliography entry for %s but no key was returned"
+                        (file-name-nondirectory filename))))
+      (jds/pdf-drop-ai-bibtex-fallback
+       filename
+       (ignore-errors (pdf-drop-get-title-from-metadata filename))))))
 
 ;;;###autoload
 (defun jds/dired-add-file-to-bib (key file)
@@ -235,10 +248,80 @@ then constructs the expected path from citar-library-paths."
                                         (car citar-library-paths))))
         (when (file-exists-p expected) expected))))
 
+(define-derived-mode jds/pdf-ai-summary-mode org-mode "AI-PDF"
+  "Read-only org buffer for AI-generated PDF summaries."
+  (setq-local header-line-format "AI PDF Summary  |  q: close")
+  (read-only-mode 1))
+
+(defun jds~pdf-ai-summary-buffer-name (title)
+  "Return a buffer name for PDF summary TITLE."
+  (format "*AI PDF Summary: %s*"
+          (truncate-string-to-width (or title "(untitled)") 50 nil nil t)))
+
+(defun jds~pdf-ai-summary-title (file &optional citekey)
+  "Return a title for FILE, using CITEKEY metadata when available."
+  (or (when citekey
+        (when-let ((entry (ignore-errors (citar-get-entry citekey))))
+          (let ((title (citar-format--entry "${title}" entry)))
+            (unless (string-empty-p (string-trim (or title "")))
+              title))))
+      (file-name-base file)))
+
+(defun jds~pdf-ai-summary-authors (citekey)
+  "Return author text for CITEKEY, or nil if unavailable."
+  (when citekey
+    (when-let ((entry (ignore-errors (citar-get-entry citekey))))
+      (let ((authors (citar-format--entry "${author}" entry)))
+        (unless (string-empty-p (string-trim (or authors "")))
+          authors)))))
+
+(defun jds~pdf-ai-build-summary-prompt (file &optional citekey extra-instructions)
+  "Build the summary prompt for FILE.
+Uses CITEKEY metadata when available, and appends EXTRA-INSTRUCTIONS when set."
+  (let* ((title   (jds~pdf-ai-summary-title file citekey))
+         (authors (or (jds~pdf-ai-summary-authors citekey) "Unknown"))
+         (text    (jds/pdf-extract-text-pages file 8))
+         (extra   (when (and extra-instructions
+                             (not (string-empty-p (string-trim extra-instructions))))
+                    (format "\n\nAdditional instructions: %s" extra-instructions))))
+    (format "Write a structured research note for this academic paper in org-mode format.\n\nTitle: %s\nAuthors: %s\n\nInclude these sections as org headings:\n- Research Question\n- Methods\n- Key Findings\n- Contributions & Implications%s\n\nPaper text (first pages):\n---\n%s\n---\n\nReturn only org-mode text with * headings. No preamble or explanation."
+            title authors (or extra "") text)))
+
+(defun jds~pdf-ai-show-summary-buffer (file response &optional citekey)
+  "Display AI summary RESPONSE for FILE in a read-only org buffer."
+  (let ((title (jds~pdf-ai-summary-title file citekey))
+        (buf (generate-new-buffer
+              (jds~pdf-ai-summary-buffer-name
+               (jds~pdf-ai-summary-title file citekey)))))
+    (with-current-buffer buf
+      (jds/pdf-ai-summary-mode)
+      (read-only-mode -1)
+      (insert (format "#+TITLE: PDF Summary: %s\n\n" title))
+      (insert (string-trim (or response "")))
+      (insert "\n")
+      (goto-char (point-min))
+      (read-only-mode 1)
+      (evil-local-set-key 'normal (kbd "q") #'bury-buffer))
+    (pop-to-buffer buf)))
+
+(defun jds~pdf-ai-request-summary (file callback &optional citekey extra-instructions)
+  "Generate an AI summary for FILE and pass it to CALLBACK.
+When provided, CITEKEY and EXTRA-INSTRUCTIONS are used in the prompt."
+  (message "Generating AI summary for %s..." (file-name-nondirectory file))
+  (gptel-request
+   (jds~pdf-ai-build-summary-prompt file citekey extra-instructions)
+   :system "You are a research assistant. Produce structured org-mode notes for academic papers."
+   :callback (lambda (response info)
+               (if (not response)
+                   (message "AI summary failed: %s" (plist-get info :status))
+                 (funcall callback response)))))
+
 (defun jds~pdf-ai-summary-insert (citekey summary)
   "Create/open org-roam note for CITEKEY and append AI SUMMARY."
   (let* ((note-path (expand-file-name
-                     (concat (file-name-as-directory citar-org-roam-subdir)
+                     (concat (if citar-org-roam-subdir
+                                 (file-name-as-directory citar-org-roam-subdir)
+                               "")
                              citekey ".org")
                      org-roam-directory)))
     (unless (file-exists-p note-path)
@@ -267,22 +350,72 @@ to append to the summary request (e.g. \"focus on the statistical methods\")."
   (let ((pdf (jds~pdf-ai-find-pdf citekey)))
     (if (not pdf)
         (user-error "No PDF found for %s" citekey)
-      (message "Generating AI summary for %s..." citekey)
-      (let* ((text    (jds/pdf-extract-text-pages pdf 8))
-             (entry   (citar-get-entry citekey))
-             (title   (citar-format--entry "${title}"  entry))
-             (authors (citar-format--entry "${author}" entry))
-             (extra   (when (and extra-instructions
-                                 (not (string-empty-p (string-trim extra-instructions))))
-                        (format "\n\nAdditional instructions: %s" extra-instructions)))
-             (prompt  (format "Write a structured research note for this academic paper in org-mode format.\n\nTitle: %s\nAuthors: %s\n\nInclude these sections as org headings:\n- Research Question\n- Methods\n- Key Findings\n- Contributions & Implications%s\n\nPaper text (first pages):\n---\n%s\n---\n\nReturn only org-mode text with * headings. No preamble or explanation."
-                              title authors (or extra "") text)))
-        (gptel-request prompt
-          :system "You are a research assistant. Produce structured org-mode notes for academic papers."
-          :callback (lambda (response info)
-                      (if (not response)
-                          (message "AI summary failed: %s" (plist-get info :status))
-                        (jds~pdf-ai-summary-insert citekey response))))))))
+      (jds~pdf-ai-request-summary
+       pdf
+       (lambda (response)
+         (jds~pdf-ai-summary-insert citekey response))
+       citekey
+       extra-instructions))))
+
+;;;###autoload
+(defun jds/pdf-ai-summarize-reference (citekey &optional extra-instructions)
+  "Summarize the PDF for CITEKEY into a temporary read-only org buffer."
+  (interactive
+   (list (car (citar-select-refs :multiple nil))
+         (when current-prefix-arg
+           (read-string "Extra instructions for AI summary: "))))
+  (if-let ((pdf (jds~pdf-ai-find-pdf citekey)))
+      (jds~pdf-ai-request-summary
+       pdf
+       (lambda (response)
+         (jds~pdf-ai-show-summary-buffer pdf response citekey))
+       citekey
+       extra-instructions)
+    (user-error "No PDF found for %s" citekey)))
+
+;;;###autoload
+(defun jds/pdf-ai-summarize-file (file &optional extra-instructions)
+  "Summarize PDF FILE into a temporary read-only org buffer.
+With prefix argument \\[universal-argument], prompt for EXTRA-INSTRUCTIONS."
+  (interactive
+   (list (read-file-name "PDF: " nil nil t nil
+                         (lambda (f)
+                           (string= (downcase (or (file-name-extension f) ""))
+                                    "pdf")))
+         (when current-prefix-arg
+           (read-string "Extra instructions for AI summary: "))))
+  (unless (string= (downcase (or (file-name-extension file) "")) "pdf")
+    (user-error "Not a PDF file: %s" file))
+  (jds~pdf-ai-request-summary
+   file
+   (lambda (response)
+     (jds~pdf-ai-show-summary-buffer file response))
+   (file-name-base file)
+   extra-instructions))
+
+;;;###autoload
+(defun jds/pdf-ai-summarize-file-to-roam (file &optional extra-instructions)
+  "Summarize PDF FILE and append the result to the matching org-roam note."
+  (interactive
+   (list (read-file-name "PDF: " nil nil t nil
+                         (lambda (f)
+                           (string= (downcase (or (file-name-extension f) ""))
+                                    "pdf")))
+         (when current-prefix-arg
+           (read-string "Extra instructions for AI summary: "))))
+  (jds/pdf-ai-summarize-to-roam (file-name-base file) extra-instructions))
+
+;;;###autoload
+(defun jds/pdf-ai-summarize-at-point ()
+  "AI-summarize the PDF at point in dired or pdf-view-mode."
+  (interactive)
+  (let* ((file (cond
+                ((derived-mode-p 'dired-mode) (dired-get-filename))
+                ((derived-mode-p 'pdf-view-mode) (buffer-file-name))
+                (t (user-error "Not in dired or pdf-view-mode"))))
+         (extra (when current-prefix-arg
+                  (read-string "Extra instructions for AI summary: "))))
+    (jds/pdf-ai-summarize-file file extra)))
 
 ;;;###autoload
 (defun jds/pdf-ai-summarize-to-roam-at-point ()
@@ -306,7 +439,17 @@ With prefix argument \\[universal-argument], prompts for extra instructions."
   :keymaps 'dired-mode-map
   "r" #'jds/pdf-drop-process
   "f" #'jds/dired-add-file-to-bib
+  "s" #'jds/pdf-ai-summarize-at-point
   "S" #'jds/pdf-ai-summarize-to-roam-at-point)
+
+(with-eval-after-load 'embark
+  (define-key embark-file-map (kbd "m") #'jds/pdf-ai-summarize-file)
+  (define-key embark-file-map (kbd "A") #'jds/pdf-ai-summarize-file-to-roam)
+  (with-eval-after-load 'citar-embark
+    (define-key citar-embark-map (kbd "m") #'jds/pdf-ai-summarize-reference)
+    (define-key citar-embark-map (kbd "A") #'jds/pdf-ai-summarize-to-roam)
+    (define-key citar-embark-citation-map (kbd "m") #'jds/pdf-ai-summarize-reference)
+    (define-key citar-embark-citation-map (kbd "A") #'jds/pdf-ai-summarize-to-roam)))
 
 ;;; setup ebib -----------------------------------------------------------------
 
@@ -405,14 +548,9 @@ With prefix argument \\[universal-argument], prompts for extra instructions."
  ;; "r" #'jds/literate-bib-tangle-and-refresh
  ;; "o" #'jds/goto-global-org-bib
  ;; "i" #'jds/literate-bib-search
- "s" #'biblio-lookup
  "u" #'zotra-add-entry-from-url
- "S" #'zotra-add-entry-from-search
- ;; "s" #'org-bib-new-from-doi
- "a" #'jds/pdf-ai-summarize-to-roam)
+ "S" #'zotra-add-entry-from-search)
 
 (jds/localleader-def
   :keymaps '(org-mode-map LaTeX-mode-map)
   "c" jds/citation-map)
-
-

@@ -260,8 +260,7 @@ Sets TEXINPUTS so pdflatex can find class/style/input files from the project roo
 
 (jds/localleader-def
   :keymaps 'bibtex-mode-map
-  "c" '(:ignore t)
-  "cS" #'biblio-lookup)
+  "c" '(:ignore t))
 
 
 ;; some key bindings that should be in org and latex
@@ -276,4 +275,3 @@ Sets TEXINPUTS so pdflatex can find class/style/input files from the project roo
  :states 'normal
  "g" '(:ignore t :which-key "goto") 
  "gm" #'jds/avy-latex-math)
-
