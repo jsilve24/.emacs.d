@@ -172,12 +172,27 @@ When FEEDBACK is nil, remove ENTRY from the database."
                                 :context (jds/elfeed-entry-context entry))))))
     (jds/elfeed-write-reinforcement-events filtered)))
 
+(defun jds/elfeed-apply-feedback-tags (entry feedback)
+  "Synchronize ENTRY tags with FEEDBACK."
+  (elfeed-untag entry 'like 'dislike)
+  (pcase feedback
+    ('like (elfeed-tag entry 'like))
+    ('dislike (elfeed-tag entry 'dislike))))
+
+(defun jds/elfeed-refresh-entry (entry)
+  "Refresh ENTRY in the Elfeed search buffer when available."
+  (when (get-buffer elfeed-search-buffer)
+    (with-current-buffer elfeed-search-buffer
+      (elfeed-search-update-entry entry))))
+
 (defun jds/elfeed-record-feedback (feedback)
   "Persist FEEDBACK for the current Elfeed entry."
   (let ((entry (jds/elfeed-current-entry)))
     (unless (elfeed-entry-p entry)
       (user-error "No Elfeed entry at point"))
+    (jds/elfeed-apply-feedback-tags entry feedback)
     (jds/elfeed-upsert-feedback entry feedback)
+    (jds/elfeed-refresh-entry entry)
     (if feedback
         (message "Recorded Elfeed %s: %s"
                  feedback
