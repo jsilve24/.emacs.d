@@ -207,6 +207,53 @@ Expected format per line: phrase<TAB>id<TAB>title<TAB>rationale."
                       (string-trim (or (nth 3 parts) "")))
                 items))))))
 
+(defun jds/org-roam-ai--extract-org-id-links (response)
+  "Extract (ID TITLE) pairs from org links in RESPONSE."
+  (let ((start 0)
+        links)
+    (while (string-match "\\[\\[id:\\([^]]+\\)\\]\\[\\([^]]+\\)\\]\\]" response start)
+      (push (list (match-string 1 response)
+                  (match-string 2 response))
+            links)
+      (setq start (match-end 0)))
+    (nreverse links)))
+
+(defun jds/org-roam-ai--append-related-links (links)
+  "Append LINKS to a RELATED drawer.
+LINKS should be a list of (ID TITLE)."
+  (when links
+    (save-excursion
+      (goto-char (point-min))
+      (let* ((drawer-beg-regexp "^[ \t]*:RELATED:[ \t]*$")
+             (drawer-end-regexp "^[ \t]*:end:[ \t]*$")
+             (bound (save-excursion
+                      (if (search-forward-regexp org-heading-regexp nil t)
+                          (line-beginning-position)
+                        (buffer-end 1))))
+             (beg)
+             (end))
+        (when (search-forward-regexp drawer-beg-regexp bound t)
+          (setq beg (line-beginning-position))
+          (goto-char beg)
+          (when (search-forward-regexp drawer-end-regexp bound t)
+            (setq end (line-end-position))))
+        (unless (and beg end)
+          (goto-char (point-min))
+          (org-roam-end-of-meta-data)
+          (unless (bolp) (insert "\n"))
+          (org-insert-drawer nil "RELATED")
+          (setq beg (save-excursion
+                      (search-backward ":RELATED:")
+                      (line-beginning-position)))
+          (goto-char beg)
+          (search-forward-regexp drawer-end-regexp nil t)
+          (setq end (line-end-position)))
+        (goto-char end)
+        (end-of-line 0)
+        (dolist (item links)
+          (pcase-let ((`(,id ,title) item))
+            (insert "\n- [[id:" id "][" title "]]")))))))
+
 ;;;###autoload
 (defun jds/org-roam-ai-suggest-links (&optional ask-directive)
   "Suggest and insert sparse, high-value inline links in the current note."
@@ -243,7 +290,9 @@ Expected format per line: phrase<TAB>id<TAB>title<TAB>rationale."
            (message "org-roam-ai linking error: %s" (plist-get info :status))
          (with-current-buffer buf
            (let* ((plan (jds/org-roam-ai--parse-link-plan response))
-                  (applied 0))
+                  (fallback-links (jds/org-roam-ai--extract-org-id-links response))
+                  (applied 0)
+                  (related-added 0))
              (dolist (entry plan)
                (pcase-let ((`(,phrase ,id ,_title ,_why) entry))
                  (when (and (< applied jds/org-roam-ai-max-inline-links)
@@ -252,8 +301,25 @@ Expected format per line: phrase<TAB>id<TAB>title<TAB>rationale."
                             (or (jds/org-roam-ai--insert-inline-link-once phrase id)
                                 (jds/org-roam-ai--insert-inline-link-once _title id)))
                    (setq applied (1+ applied)))))
+             (when (< applied jds/org-roam-ai-max-inline-links)
+               (let ((remaining (- jds/org-roam-ai-max-inline-links applied))
+                     (to-append nil)
+                     (fallback-pool
+                      (or fallback-links
+                          (mapcar (lambda (entry)
+                                    (list (nth 1 entry) (nth 2 entry)))
+                                  plan))))
+                 (dolist (item fallback-pool)
+                   (when (> remaining 0)
+                     (pcase-let ((`(,id ,title) item))
+                       (push (list id title) to-append)
+                       (setq related-added (1+ related-added))
+                       (setq remaining (1- remaining)))))
+                 (setq to-append (nreverse to-append))
+                 (jds/org-roam-ai--append-related-links to-append)))
              (save-buffer)
-             (message "org-roam-ai added %d inline link(s)" applied))))))))
+             (message "org-roam-ai added %d inline link(s), %d related link(s)"
+                      applied related-added))))))))
 
 (defvar jds/org-roam-ai-mode-map
   (let ((map (make-sparse-keymap)))
