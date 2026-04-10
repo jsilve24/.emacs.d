@@ -178,7 +178,7 @@ Return non-nil if insertion happened."
   (save-excursion
     (goto-char (point-min))
     (let ((linked nil)
-          (case-fold-search nil))
+          (case-fold-search t))
       (while (and (not linked)
                   (search-forward phrase nil t))
         (let ((beg (match-beginning 0))
@@ -192,15 +192,19 @@ Return non-nil if insertion happened."
 (defun jds/org-roam-ai--parse-link-plan (response)
   "Parse RESPONSE into a list of (PHRASE ID TITLE RATIONALE).
 Expected format per line: phrase<TAB>id<TAB>title<TAB>rationale."
-  (let ((lines (split-string response "\n" t "[ \t\n\r]+"))
+  (let ((lines (split-string response "\n" t))
         items)
     (dolist (line lines (nreverse items))
-      (let ((parts (split-string line "\t")))
+      (let* ((clean-line (string-trim line))
+             (parts (split-string clean-line "\t"))
+             (parts (if (>= (length parts) 3)
+                        parts
+                      (split-string clean-line "|" t "[ \t]+"))))
         (when (>= (length parts) 3)
-          (push (list (nth 0 parts)
-                      (nth 1 parts)
-                      (nth 2 parts)
-                      (or (nth 3 parts) ""))
+          (push (list (string-trim (nth 0 parts))
+                      (string-trim (nth 1 parts))
+                      (string-trim (nth 2 parts))
+                      (string-trim (or (nth 3 parts) "")))
                 items))))))
 
 ;;;###autoload
@@ -245,7 +249,8 @@ Expected format per line: phrase<TAB>id<TAB>title<TAB>rationale."
                  (when (and (< applied jds/org-roam-ai-max-inline-links)
                             (not (string-empty-p phrase))
                             (not (string-empty-p id))
-                            (jds/org-roam-ai--insert-inline-link-once phrase id))
+                            (or (jds/org-roam-ai--insert-inline-link-once phrase id)
+                                (jds/org-roam-ai--insert-inline-link-once _title id)))
                    (setq applied (1+ applied)))))
              (save-buffer)
              (message "org-roam-ai added %d inline link(s)" applied))))))))
