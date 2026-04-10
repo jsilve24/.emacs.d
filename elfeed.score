@@ -64,8 +64,8 @@
   (:text "annualreviews.org.*statistics"   :value  5 :type r :attr u :comment "Annual Review of Stats")
   (:text "nature.com/nmeth"                :value  5 :type r :attr u :comment "Nature Methods")
   ;; arxiv penalties reflect expected yield by field
-  (:text "arxiv.org/rss/stat.ME"   :value -2 :type r :attr u :comment "arXiv stat.ME")
-  (:text "arxiv.org/rss/stat.ML"   :value -4 :type r :attr u :comment "arXiv stat.ML")
+  (:text "arxiv.org/rss/stat.ME"   :value -1 :type r :attr u :comment "arXiv stat.ME")
+  (:text "arxiv.org/rss/stat.ML"   :value -2 :type r :attr u :comment "arXiv stat.ML")
   (:text "arxiv.org/rss/cs.LG"     :value -6 :type r :attr u :comment "arXiv cs.LG")
   (:text "arxiv.org/rss/q-bio.GN"  :value -3 :type r :attr u :comment "arXiv q-bio.GN")
   (:text "arxiv.org/rss/q-bio.QM"  :value -4 :type r :attr u :comment "arXiv q-bio.QM"))

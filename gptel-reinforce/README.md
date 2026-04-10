@@ -2,9 +2,9 @@
 
 `gptel-reinforce` is a local Emacs package for improving text artifacts from feedback you record while working.
 
-It is not limited to prompts. An artifact can be a prompt, a code block, a rule set, a template, or a config snippet.
+An artifact can be an AI prompt, a code block, a rule set, a template, or a config snippet.
 
-Feedback is stored in SQLite. The editable artifact state lives in Org files under `~/.emacs.d/gptel-reinforce/`.
+Feedback is stored in SQLite. 
 
 ## Quick start
 
@@ -22,7 +22,7 @@ Register one database and one artifact:
  :name "mu4e-triage"
  :context-fn #'my-mu4e-context
  :db-path "~/.emacs.d/var/gptel-reinforce/mu4e-triage.sqlite"
- :root-dir "~/.emacs.d/gptel-reinforce/mu4e-triage/")
+ :root-dir "~/.emacs.d/var/gptel-reinforce/mu4e-triage/")
 
 (gptel-reinforce-register-artifact
  :name "collaborator-triage"

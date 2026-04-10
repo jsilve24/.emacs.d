@@ -182,7 +182,8 @@ When FORCE is non-nil, overwrite even if the artifact already has text."
    :name gptel-reinforce-elfeed-database-name
    :context-fn #'gptel-reinforce-elfeed-context
    :db-path (expand-file-name "var/gptel-reinforce/elfeed-ranking.sqlite" user-emacs-directory)
-   :root-dir (expand-file-name "gptel-reinforce/elfeed-ranking/" user-emacs-directory))
+   :root-dir (expand-file-name "var/gptel-reinforce/elfeed-ranking/" user-emacs-directory)
+   :legacy-root-dir "elfeed-ranking")
   (gptel-reinforce-register-artifact
    :name gptel-reinforce-elfeed-artifact-name
    :database gptel-reinforce-elfeed-database-name

@@ -108,6 +108,24 @@
     (make-directory dir t))
   dir)
 
+(defun gptel-reinforce--directory-empty-p (dir)
+  "Return non-nil when DIR has no entries besides dotfiles."
+  (null (directory-files dir nil directory-files-no-dot-files-regexp t)))
+
+(defun gptel-reinforce--maybe-migrate-root-dir (legacy-root-dir root-dir)
+  "Move LEGACY-ROOT-DIR to ROOT-DIR when migrating artifact storage.
+Migration only runs when LEGACY-ROOT-DIR exists and ROOT-DIR is absent or empty."
+  (when (and legacy-root-dir
+             (file-directory-p legacy-root-dir)
+             (not (file-equal-p legacy-root-dir root-dir))
+             (or (not (file-exists-p root-dir))
+                 (and (file-directory-p root-dir)
+                      (gptel-reinforce--directory-empty-p root-dir))))
+    (gptel-reinforce--ensure-directory (file-name-directory root-dir))
+    (when (file-directory-p root-dir)
+      (delete-directory root-dir))
+    (rename-file legacy-root-dir root-dir)))
+
 (defun gptel-reinforce--artifact-name (artifact)
   "Return the name of ARTIFACT."
   (if (gptel-reinforce-artifact-p artifact)
@@ -369,6 +387,9 @@ CURRENT-RECORD is the parsed current.org plist when already available."
                     (expand-file-name
                      (or (plist-get plist :root-dir) name)
                      gptel-reinforce-config-root)))
+         (legacy-root-dir (when-let* ((legacy (plist-get plist :legacy-root-dir)))
+                            (file-name-as-directory
+                             (expand-file-name legacy gptel-reinforce-config-root))))
          (database (gptel-reinforce-database-create
                     :name name
                     :context-fn context-fn
@@ -377,6 +398,7 @@ CURRENT-RECORD is the parsed current.org plist when already available."
     (unless (functionp context-fn)
       (user-error ":context-fn must be a function"))
     (gptel-reinforce--ensure-directory (file-name-directory db-path))
+    (gptel-reinforce--maybe-migrate-root-dir legacy-root-dir root-dir)
     (gptel-reinforce--ensure-directory root-dir)
     (puthash name database gptel-reinforce--databases)
     (gptel-reinforce-db-ensure-schema database)

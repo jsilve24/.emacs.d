@@ -70,6 +70,13 @@
   "Ensure `feedback_events' uses the simplified schema."
   (let ((columns (gptel-reinforce-db--column-names connection "feedback_events")))
     (unless (member "artifact_version_ref" columns)
+      (let ((version-source
+             (cond
+              ((member "artifact_version_id" columns)
+               "COALESCE(CAST(artifact_version_id AS TEXT), '')")
+              ((member "artifact_version_ref" columns)
+               "COALESCE(artifact_version_ref, '')")
+              (t "''"))))
       (sqlite-execute
        connection
        "ALTER TABLE feedback_events RENAME TO feedback_events_legacy")
@@ -91,21 +98,23 @@
         )")
       (sqlite-execute
        connection
-       "INSERT INTO feedback_events
-        (id, created_at, event_type, item_key, score, title, primary_text,
-         meta_json, note, artifact_name, artifact_version_ref, output_id)
-        SELECT id, created_at, event_type, item_key, score, title, primary_text,
-               meta_json, note, artifact_name,
-               COALESCE(CAST(artifact_version_id AS TEXT), ''),
-               output_id
-        FROM feedback_events_legacy")
+       (format
+        "INSERT INTO feedback_events
+         (id, created_at, event_type, item_key, score, title, primary_text,
+          meta_json, note, artifact_name, artifact_version_ref, output_id)
+         SELECT id, created_at, event_type, item_key, score, title, primary_text,
+                meta_json, note, artifact_name,
+                %s,
+                output_id
+         FROM feedback_events_legacy"
+        version-source))
       (sqlite-execute connection "DROP TABLE feedback_events_legacy")
       (sqlite-execute connection
                       "CREATE INDEX IF NOT EXISTS feedback_events_event_type_idx
                        ON feedback_events(event_type)")
       (sqlite-execute connection
                       "CREATE INDEX IF NOT EXISTS feedback_events_artifact_name_idx
-                       ON feedback_events(artifact_name)"))))
+                       ON feedback_events(artifact_name)")))))
 
 (defun gptel-reinforce-db--migrate-schema (connection)
   "Migrate CONNECTION to the simplified schema."

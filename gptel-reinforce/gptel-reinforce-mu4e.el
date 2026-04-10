@@ -40,7 +40,8 @@
    :name "mu4e-triage"
    :context-fn #'gptel-reinforce-mu4e-context
    :db-path (expand-file-name "var/gptel-reinforce/mu4e-triage.sqlite" user-emacs-directory)
-   :root-dir (expand-file-name "gptel-reinforce/mu4e-triage/" user-emacs-directory))
+   :root-dir (expand-file-name "var/gptel-reinforce/mu4e-triage/" user-emacs-directory)
+   :legacy-root-dir "mu4e-triage")
   (gptel-reinforce-register-artifact
    :name "collaborator-triage"
    :database "mu4e-triage"
