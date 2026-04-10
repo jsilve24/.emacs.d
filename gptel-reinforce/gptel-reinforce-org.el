@@ -117,6 +117,8 @@
           :updated-at (cdr (assoc "UPDATED_AT" properties))
           :auto-update (equal (cdr (assoc "AUTO_UPDATE" properties)) "t")
           :text (or (gptel-reinforce-org--extract-section body "Current Text") "")
+          :applied-summary
+          (or (gptel-reinforce-org--extract-section body "Applied Summary") "")
           :summarizer-user-prompt
           (or (gptel-reinforce-org--extract-section body "Summarizer User Prompt") "")
           :updater-user-prompt
@@ -142,6 +144,7 @@
   (let* ((artifact (gptel-reinforce-resolve-artifact artifact))
          (file (gptel-reinforce-artifact-current-file artifact))
          (text (or (plist-get plist :text) ""))
+         (applied-summary (or (plist-get plist :applied-summary) ""))
          (summarizer-user-prompt (or (plist-get plist :summarizer-user-prompt) ""))
          (updater-user-prompt (or (plist-get plist :updater-user-prompt) ""))
          (type (or (plist-get plist :type)
@@ -164,6 +167,8 @@
               ("AUTO_UPDATE" . ,(if auto-update "t" "nil"))))
            "* Current Text\n"
            (gptel-reinforce-org--indent-body text)
+           "\n\n* Applied Summary\n"
+           (gptel-reinforce-org--indent-body applied-summary)
            "\n\n* Summarizer User Prompt\n"
            (gptel-reinforce-org--indent-body summarizer-user-prompt)
            "\n\n* Updater User Prompt\n"

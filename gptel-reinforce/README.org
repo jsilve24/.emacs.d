@@ -387,6 +387,9 @@ Stores the active artifact text and metadata. Edit this file directly.
 * Current Text
  <artifact text — each line indented by one space>
 
+* Applied Summary
+ <snapshot of the feedback summary that was used in the last accepted update>
+
 * Summarizer User Prompt
  <optional guidance appended to the summarizer system prompt>
 
@@ -395,6 +398,8 @@ Stores the active artifact text and metadata. Edit this file directly.
 #+end_example
 
 Set =AUTO_UPDATE: t= to skip the diff review step during =gptel-reinforce-update=.
+
+=Applied Summary= is written automatically whenever an update is accepted. It holds a snapshot of =summary.org= at the moment of that acceptance. On the next =gptel-reinforce-update= call, the LLM sees both this snapshot ("already incorporated") and the current summary ("new since last update"), so it only acts on the delta. If you reject an update, =Applied Summary= is not changed — the next attempt still sees everything since the last accepted update.
 
 =VERSION_REF= is the basename of the history file for this version, e.g. =20240915T142300-my-artifact.org=. It is used to link output-feedback events back to the exact version.
 
@@ -547,11 +552,19 @@ Artifact type: code
 Current artifact text:
 <current contents of current.org * Current Text heading>
 
-Feedback summary:
+Feedback already incorporated in current version:
+<current contents of current.org * Applied Summary heading>
+(shows "(none — first update)" when empty)
+
+Latest feedback summary (may include new patterns since last update):
 <current contents of summary.org * Summary heading>
 
-Revise the artifact with the smallest useful change.
+Revise the artifact with the smallest useful change to reflect
+any new patterns in the latest summary not yet incorporated.
+Do not re-apply changes already present in the artifact.
 #+end_example
+
+The "already incorporated" section is the snapshot saved when the previous update was accepted. The "latest summary" is the full current =summary.org= body, which may have grown since then. The LLM can diff the two mentally and act only on the delta. If no update has ever been accepted, the incorporated section is empty and the full summary is treated as new.
 
 The system prompt is =gptel-reinforce-default-updater-prompt= plus any task-specific guidance from =:updater-user-prompt=.
 

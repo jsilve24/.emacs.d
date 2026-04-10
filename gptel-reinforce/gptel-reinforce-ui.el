@@ -244,6 +244,7 @@ Errors are surfaced after all hooks run."
            :artifact-type (or (plist-get current-record :type)
                               (gptel-reinforce-artifact-type artifact))
            :current-text (plist-get current-record :text)
+           :applied-summary-body (plist-get current-record :applied-summary)
            :summary-body (plist-get summary-record :body)
            :system-prompt
            (gptel-reinforce-artifact-effective-updater-prompt
@@ -272,6 +273,7 @@ Errors are surfaced after all hooks run."
               artifact
               :version-ref version-ref
               :text candidate-text
+              :applied-summary (plist-get summary-record :body)
               :summarizer-user-prompt (plist-get current-record :summarizer-user-prompt)
               :updater-user-prompt (plist-get current-record :updater-user-prompt)
               :type (or (plist-get current-record :type)

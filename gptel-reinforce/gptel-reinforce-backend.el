@@ -27,6 +27,7 @@
   artifact-name
   artifact-type
   current-text
+  applied-summary-body
   summary-body
   system-prompt)
 
@@ -96,25 +97,34 @@ package code."
 
 (defun gptel-reinforce-backend--update-user-prompt (request)
   "Build a user prompt string for update REQUEST."
-  (format
-   (string-join
-    '("Database: %s"
-      "Artifact: %s"
-      "Artifact type: %s"
-      ""
-      "Current artifact text:"
-      "%s"
-      ""
-      "Feedback summary:"
-      "%s"
-      ""
-      "Revise the artifact with the smallest useful change.")
-    "\n")
-   (gptel-reinforce-update-request-database-name request)
-   (gptel-reinforce-update-request-artifact-name request)
-   (or (gptel-reinforce-update-request-artifact-type request) "")
-   (or (gptel-reinforce-update-request-current-text request) "")
-   (or (gptel-reinforce-update-request-summary-body request) "")))
+  (let ((applied (string-trim
+                  (or (gptel-reinforce-update-request-applied-summary-body request)
+                      ""))))
+    (format
+     (string-join
+      '("Database: %s"
+        "Artifact: %s"
+        "Artifact type: %s"
+        ""
+        "Current artifact text:"
+        "%s"
+        ""
+        "Feedback already incorporated in current version:"
+        "%s"
+        ""
+        "Latest feedback summary (may include new patterns since last update):"
+        "%s"
+        ""
+        "Revise the artifact with the smallest useful change to reflect"
+        "any new patterns in the latest summary not yet incorporated."
+        "Do not re-apply changes already present in the artifact.")
+      "\n")
+     (gptel-reinforce-update-request-database-name request)
+     (gptel-reinforce-update-request-artifact-name request)
+     (or (gptel-reinforce-update-request-artifact-type request) "")
+     (or (gptel-reinforce-update-request-current-text request) "")
+     (if (string-empty-p applied) "(none — first update)" applied)
+     (or (gptel-reinforce-update-request-summary-body request) ""))))
 
 (defun gptel-reinforce-backend--sanitize-response (response)
   "Trim RESPONSE and drop simple Markdown fences."
