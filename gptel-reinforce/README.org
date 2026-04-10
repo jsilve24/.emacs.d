@@ -129,7 +129,10 @@ A *database* represents one application context — an RSS reader, email client,
 - A root directory for artifact org files
 - A *candidate function* that says whether this database applies right now and, if so, describes the current item
 
-Multiple artifacts can share one database.
+Multiple artifacts can share one database. The candidate function is the
+database's DWIM hook: it lets generic feedback commands choose the right
+database from the current buffer without forcing you to bind database-specific
+commands for every workflow.
 
 ** Artifacts
 
@@ -170,6 +173,11 @@ For the predefined elfeed integration you only ever use item feedback and none o
 
 A candidate function is called in the current buffer on every item-feedback command. It must return either nil or a candidate plist. Returning nil means "this database does not apply here right now."
 
+This is intentionally one step, not two. The function both decides whether the
+database is relevant and returns the context needed to record feedback. That
+keeps integrations simple and avoids splitting the same decision across
+\"applicability\" and \"context\" hooks.
+
 The candidate plist must contain =:context=. It may also include =:priority= and =:label=.
 
 | Candidate key | Type    | Description                                                   |
@@ -187,7 +195,11 @@ The =:context= plist must contain =:item-key=. All other context keys are option
 | =:primary-text= | string | Main content — excerpt, snippet, body        |
 | =:meta=         | plist  | Additional structured metadata (any keys)    |
 
-When several databases return candidates, =gptel-reinforce= chooses the one with the highest =:priority=. If priorities tie, it can prompt you to choose. The chooser uses =:label= when present.
+When several databases return candidates, =gptel-reinforce= chooses the one
+with the highest =:priority=. If priorities tie, it can prompt you to choose.
+The chooser uses =:label= when present. In practice that means most
+integrations can feel automatic, while still leaving an escape hatch for
+genuinely ambiguous buffers.
 
 * Commands
 
@@ -300,7 +312,9 @@ See the full key reference in [[*Appendix C: Configuration variables][Appendix C
 (define-key my-mode-map (kbd "C-c -") #'gptel-reinforce-dislike)
 #+end_src
 
-Or set the active database in a mode hook to override candidate-based selection entirely:
+Or set the active database in a mode hook to override candidate-based selection
+entirely. This is most useful when your workflow has one obvious database per
+buffer and you want to bypass candidate discovery altogether:
 
 #+begin_src emacs-lisp
 (add-hook 'my-mode-hook
@@ -507,6 +521,12 @@ The filename (without directory) becomes =VERSION_REF= in =current.org= and =art
 |-------------------------------+------------------------------------+----------------------------------------------|
 | =gptel-reinforce-state-root=  | =~/.emacs.d/var/gptel-reinforce/=  | Root for SQLite files and history snapshots  |
 | =gptel-reinforce-config-root= | =~/.emacs.d/var/gptel-reinforce/artifacts/= | Default root for artifact org files |
+
+=gptel-reinforce-config-root= defaults under =var/= on purpose: artifacts are
+runtime-managed state, not package source. Keeping them out of the
+=gptel-reinforce/= code directory avoids accidental commits of generated
+=current.org= and =summary.org= files when the package lives inside your Emacs
+config repo.
 
 ** Review
 
