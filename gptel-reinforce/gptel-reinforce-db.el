@@ -2,7 +2,7 @@
 
 ;;; Commentary:
 
-;; SQLite persistence for append-only feedback events.
+;; SQLite persistence for feedback events with per-target overwrite semantics.
 
 ;;; Code:
 
