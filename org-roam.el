@@ -44,7 +44,7 @@
   (org-roam-setup)
 
   ;; AI helpers that depend on org-roam being configured.
-  (require 'org-roam-ai))
+  (load (expand-file-name "org-roam-ai.el" user-emacs-directory) nil t))
 
 ;;;###autoload
 (defun jds~org-move-beyond-header ()
