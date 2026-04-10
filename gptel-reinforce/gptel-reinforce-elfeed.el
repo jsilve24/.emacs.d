@@ -133,9 +133,10 @@
           (elfeed-search-update--force))))))
 
 (defun gptel-reinforce-elfeed-validate-score-file (_artifact _current-record candidate-text)
-  "Return non-nil when CANDIDATE-TEXT parses as Lisp data."
-  (ignore (read-from-string candidate-text))
-  t)
+  "Return non-nil when CANDIDATE-TEXT parses as valid Lisp data."
+  (condition-case nil
+      (progn (read-from-string candidate-text) t)
+    (error nil)))
 
 (defun gptel-reinforce-elfeed-seed-score-file (&optional force)
   "Seed the predefined Elfeed artifact from `gptel-reinforce-elfeed-score-file'.
@@ -144,12 +145,14 @@ When FORCE is non-nil, overwrite even if the artifact already has text."
   (let* ((artifact (gptel-reinforce-resolve-artifact
                     gptel-reinforce-elfeed-artifact-name))
          (current (gptel-reinforce-org-read-current artifact))
-         (score-text (with-temp-buffer
-                       (insert-file-contents gptel-reinforce-elfeed-score-file)
-                       (buffer-string)))
+         (score-text (when (file-exists-p gptel-reinforce-elfeed-score-file)
+                       (with-temp-buffer
+                         (insert-file-contents gptel-reinforce-elfeed-score-file)
+                         (buffer-string))))
          (current-text (plist-get current :text)))
-    (when (or force
-              (string-empty-p (string-trim current-text)))
+    (when (and score-text
+               (or force
+                   (string-empty-p (string-trim current-text))))
       (when (and force (not (string-empty-p (string-trim current-text))))
         (gptel-reinforce-org-write-history-entry
          artifact

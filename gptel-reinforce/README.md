@@ -81,9 +81,11 @@ Each database has one SQLite file under `~/.emacs.d/var/gptel-reinforce/`.
 
 Each artifact gets:
 
-- `current.org`
-- `summary.org`
-- history snapshots under `~/.emacs.d/var/gptel-reinforce/<database>/history/`
+- `current.org` — under `~/.emacs.d/gptel-reinforce/<database>/<artifact>/`
+- `summary.org` — under `~/.emacs.d/gptel-reinforce/<database>/<artifact>/`
+- history snapshots under `~/.emacs.d/var/gptel-reinforce/<database>/history/<artifact>/`
+
+The predefined integrations (Elfeed, mu4e) override `:root-dir` to place all files under `~/.emacs.d/var/gptel-reinforce/` instead.
 
 `current.org` stores the active text and metadata, including the current history filename. `summary.org` stores the running summary plus `LAST_EVENT_ID`, so summarization only sees new feedback. Historical versions are kept as files under the database history directory for manual inspection.
 

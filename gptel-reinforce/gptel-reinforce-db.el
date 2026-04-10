@@ -23,9 +23,15 @@
   (let* ((database (gptel-reinforce-resolve-database database))
          (db-path (gptel-reinforce-database-db-path database)))
     (gptel-reinforce--ensure-directory (file-name-directory db-path))
-    (let ((connection (sqlite-open db-path)))
-      (gptel-reinforce-db--initialize connection)
-      connection)))
+    (let ((connection (sqlite-open db-path))
+          (ok nil))
+      (unwind-protect
+          (progn
+            (gptel-reinforce-db--initialize connection)
+            (setq ok t)
+            connection)
+        (unless ok
+          (sqlite-close connection))))))
 
 (defun gptel-reinforce-db--initialize (connection)
   "Create the required tables in CONNECTION."
@@ -71,12 +77,9 @@
   (let ((columns (gptel-reinforce-db--column-names connection "feedback_events")))
     (unless (member "artifact_version_ref" columns)
       (let ((version-source
-             (cond
-              ((member "artifact_version_id" columns)
-               "COALESCE(CAST(artifact_version_id AS TEXT), '')")
-              ((member "artifact_version_ref" columns)
-               "COALESCE(artifact_version_ref, '')")
-              (t "''"))))
+             (if (member "artifact_version_id" columns)
+                 "COALESCE(CAST(artifact_version_id AS TEXT), '')"
+               "''")))
       (sqlite-execute
        connection
        "ALTER TABLE feedback_events RENAME TO feedback_events_legacy")
