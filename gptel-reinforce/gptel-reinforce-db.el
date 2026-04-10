@@ -68,7 +68,10 @@
   (caar (sqlite-select connection "SELECT last_insert_rowid()")))
 
 (defun gptel-reinforce-db-record-feedback (database event)
-  "Insert feedback EVENT into DATABASE and return the new row id.
+  "Insert or update feedback EVENT in DATABASE and return the row id.
+
+If an existing row with the same item_key and event_type exists, it is
+overwritten (preserving its id).  Otherwise a new row is inserted.
 
 EVENT is a plist with these keys:
   :event-type   Required.  \"item-feedback\" or \"output-feedback\".
@@ -82,28 +85,48 @@ EVENT is a plist with these keys:
   :artifact-version-ref  History filename of the producing artifact version.
   :output-id    Opaque ID linking this event to a specific output region.
   :created-at   ISO-8601 timestamp; defaults to now."
-  (gptel-reinforce-db-with-connection database
-    (sqlite-execute
-     connection
-     "INSERT INTO feedback_events
-      (created_at, event_type, item_key, score, title, primary_text, meta_json,
-       note, artifact_name, artifact_version_ref, output_id)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-     (list (or (plist-get event :created-at) (gptel-reinforce--timestamp))
-           (or (plist-get event :event-type)
-               (user-error "Feedback event missing :event-type"))
-           (plist-get event :item-key)
-           (or (plist-get event :score)
-               (user-error "Feedback event missing :score"))
-           (plist-get event :title)
-           (plist-get event :primary-text)
-           (when-let* ((meta (plist-get event :meta)))
-             (gptel-reinforce-json-encode meta))
-           (plist-get event :note)
-           (plist-get event :artifact-name)
-           (plist-get event :artifact-version-ref)
-           (plist-get event :output-id)))
-    (gptel-reinforce-db--last-insert-id connection)))
+  (let ((event-type (or (plist-get event :event-type)
+                        (user-error "Feedback event missing :event-type")))
+        (score (or (plist-get event :score)
+                   (user-error "Feedback event missing :score")))
+        (item-key (plist-get event :item-key))
+        (title (plist-get event :title))
+        (primary-text (plist-get event :primary-text))
+        (meta-json (when-let* ((meta (plist-get event :meta)))
+                     (gptel-reinforce-json-encode meta)))
+        (note (plist-get event :note))
+        (artifact-name (plist-get event :artifact-name))
+        (artifact-version-ref (plist-get event :artifact-version-ref))
+        (output-id (plist-get event :output-id))
+        (created-at (or (plist-get event :created-at) (gptel-reinforce--timestamp))))
+    (gptel-reinforce-db-with-connection database
+      (let ((existing-id
+             (when item-key
+               (caar (sqlite-select
+                      connection
+                      "SELECT id FROM feedback_events WHERE item_key = ? AND event_type = ? LIMIT 1"
+                      (list item-key event-type))))))
+        (if existing-id
+            (progn
+              (sqlite-execute
+               connection
+               "UPDATE feedback_events
+                SET created_at = ?, score = ?, title = ?, primary_text = ?, meta_json = ?,
+                    note = ?, artifact_name = ?, artifact_version_ref = ?, output_id = ?
+                WHERE id = ?"
+               (list created-at score title primary-text meta-json
+                     note artifact-name artifact-version-ref output-id
+                     existing-id))
+              existing-id)
+          (sqlite-execute
+           connection
+           "INSERT INTO feedback_events
+            (created_at, event_type, item_key, score, title, primary_text, meta_json,
+             note, artifact_name, artifact_version_ref, output_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+           (list created-at event-type item-key score title primary-text meta-json
+                 note artifact-name artifact-version-ref output-id))
+          (gptel-reinforce-db--last-insert-id connection))))))
 
 (defun gptel-reinforce-db-feedback-since (database last-event-id artifact-name)
   "Return feedback events in DATABASE newer than LAST-EVENT-ID for ARTIFACT-NAME.

@@ -8,6 +8,7 @@ Feedback is stored locally in SQLite. No data leaves your machine except what yo
 
 - [[*Overview][Overview]]
 - [[*Quick start][Quick start]]
+- [[*Choosing database boundaries][Choosing database boundaries]]
 - [[*Core concepts][Core concepts]]
 - [[*Commands][Commands]]
 - [[*Predefined integrations][Predefined integrations]]
@@ -74,6 +75,43 @@ Then run the improvement loop:
 (gptel-reinforce-summarize "my-artifact")
 (gptel-reinforce-update "my-artifact")
 #+end_src
+
+* Choosing database boundaries
+
+The most important design choice is whether two artifacts should share *item
+feedback*.
+
+Use *one database with multiple artifacts* when the artifacts operate in the
+same domain and should learn from the same notion of /what matters/. In one
+database:
+
+- item-feedback is shared across all artifacts
+- output-feedback stays scoped to the artifact that produced the output
+
+Example: an email triage assistant might include a classifier, a summary
+artifact, and a reply-drafting artifact. You may want item feedback like "this
+thread mattered" to help the classifier and the summary prompt, while still
+keeping output feedback about a bad generated reply attached only to the reply
+artifact.
+
+Use *separate databases* when the artifacts should not share even domain-level
+item signal.
+
+Example: if you have one artifact for scheduling replies and another for email
+summarization, "this thread mattered" may be irrelevant or actively misleading
+when revising the scheduling-reply prompt. In that setup, two databases are
+usually cleaner: one for reply-generation artifacts and one for summarization
+artifacts.
+
+Rule of thumb:
+
+- Use item feedback when the artifact is learning what to notice, rank, select,
+  or prioritize in the underlying item.
+- Use output feedback when the artifact is learning how to phrase or structure
+  generated text.
+- If you mostly care about prompt quality and do not want item relevance to
+  influence updates, either use separate databases or configure your workflow so
+  you rely almost entirely on output feedback.
 
 For the predefined Elfeed integration ([[*Elfeed (elfeed-score integration)][details]]), just call:
 
