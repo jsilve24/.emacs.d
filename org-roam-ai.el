@@ -224,35 +224,42 @@ LINKS should be a list of (ID TITLE)."
   (when links
     (save-excursion
       (goto-char (point-min))
-      (let* ((drawer-beg-regexp "^[ \t]*:RELATED:[ \t]*$")
-             (drawer-end-regexp "^[ \t]*:end:[ \t]*$")
-             (bound (save-excursion
-                      (if (search-forward-regexp org-heading-regexp nil t)
-                          (line-beginning-position)
-                        (buffer-end 1))))
-             (beg)
-             (end))
-        (when (search-forward-regexp drawer-beg-regexp bound t)
+      (let* ((case-fold-search t)
+             (drawer-beg-regexp "^[ \t]*:RELATED:[ \t]*$")
+             (drawer-end-regexp "^[ \t]*:END:[ \t]*$")
+             (meta-bound (save-excursion
+                           (if (search-forward-regexp org-heading-regexp nil t)
+                               (line-beginning-position)
+                             (point-max))))
+             (inserted 0)
+             beg end)
+        ;; find existing RELATED drawer within metadata area
+        (when (search-forward-regexp drawer-beg-regexp meta-bound t)
           (setq beg (line-beginning-position))
           (goto-char beg)
-          (when (search-forward-regexp drawer-end-regexp bound t)
-            (setq end (line-end-position))))
+          (when (search-forward-regexp drawer-end-regexp meta-bound t)
+            (setq end (line-beginning-position))))
+        ;; create drawer if missing
         (unless (and beg end)
           (goto-char (point-min))
           (org-roam-end-of-meta-data)
           (unless (bolp) (insert "\n"))
-          (org-insert-drawer nil "RELATED")
+          (insert ":RELATED:\n:END:\n")
           (setq beg (save-excursion
                       (search-backward ":RELATED:")
                       (line-beginning-position)))
           (goto-char beg)
           (search-forward-regexp drawer-end-regexp nil t)
-          (setq end (line-end-position)))
+          (setq end (line-beginning-position)))
+        ;; insert list items immediately before :END:, skipping duplicates
         (goto-char end)
-        (end-of-line 0)
-        (dolist (item links)
+        (dolist (item links inserted)
           (pcase-let ((`(,id ,title) item))
-            (insert "\n- [[id:" id "][" title "]]")))))))
+            (unless (save-excursion
+                      (goto-char beg)
+                      (search-forward (format "[[id:%s][" id) end t))
+              (insert (format "- [[id:%s][%s]]\n" id title))
+              (setq inserted (1+ inserted)))))))))
 
 ;;;###autoload
 (defun jds/org-roam-ai-suggest-links (&optional ask-directive)
@@ -313,10 +320,11 @@ LINKS should be a list of (ID TITLE)."
                    (when (> remaining 0)
                      (pcase-let ((`(,id ,title) item))
                        (push (list id title) to-append)
-                       (setq related-added (1+ related-added))
                        (setq remaining (1- remaining)))))
                  (setq to-append (nreverse to-append))
-                 (jds/org-roam-ai--append-related-links to-append)))
+                 (setq related-added
+                       (+ related-added
+                          (jds/org-roam-ai--append-related-links to-append)))))
              (save-buffer)
              (message "org-roam-ai added %d inline link(s), %d related link(s)"
                       applied related-added))))))))
