@@ -34,7 +34,14 @@
                           :maildir (mu4e-message-field msg :maildir)))))))
 
 (defun gptel-reinforce-register-mu4e-module ()
-  "Register the predefined mu4e prompt setup."
+  "Register the predefined mu4e database and triage-prompt artifact.
+
+Creates a database named \"mu4e-triage\" with a context function that works
+in `mu4e-view-mode' and `mu4e-headers-mode'.
+
+Creates an artifact named \"collaborator-triage\" of type \"prompt\".  This
+is a passive artifact — the text lives in current.org and is used externally
+(e.g. copied into a gptel system prompt).  No hooks are registered."
   (interactive)
   (gptel-reinforce-register-database
    :name "mu4e-triage"

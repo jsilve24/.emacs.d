@@ -245,7 +245,9 @@ Migration only runs when LEGACY-ROOT-DIR exists and ROOT-DIR is absent or empty.
    (t (user-error "Expected an artifact name or artifact object"))))
 
 (defun gptel-reinforce-context-for-database (database)
-  "Run DATABASE's context function and normalize its result."
+  "Run DATABASE's context function and return the normalized context plist.
+Returns nil when the context function returns nil (not in a valid context).
+Signals `user-error' when the result is missing the required :item-key."
   (let* ((db (gptel-reinforce-resolve-database database))
          (context-fn (gptel-reinforce-database-context-fn db))
          (context (and context-fn (funcall context-fn))))
@@ -350,11 +352,13 @@ non-nil and resolution is ambiguous, ask the user."
      (gptel-reinforce-database-history-dir database))))
 
 (defun gptel-reinforce-artifact-effective-summarizer-prompt (artifact &optional current-record)
-  "Return ARTIFACT's summarizer prompt, appending any user prompt.
-CURRENT-RECORD is the parsed current.org plist when already available."
+  "Return ARTIFACT's effective summarizer system prompt.
+Appends task-specific user guidance when present.
+CURRENT-RECORD is the parsed current.org plist; when provided, its
+`* Summarizer User Prompt' section takes precedence over the artifact's
+registered :summarizer-user-prompt."
   (let* ((artifact (gptel-reinforce-resolve-artifact artifact))
-         (system (or (gptel-reinforce-artifact-summarizer-system-prompt artifact)
-                     gptel-reinforce-default-summarizer-prompt))
+         (system (gptel-reinforce-artifact-summarizer-system-prompt artifact))
          (user (or (plist-get current-record :summarizer-user-prompt)
                    (gptel-reinforce-artifact-summarizer-user-prompt artifact))))
     (if (string-empty-p (or user ""))
@@ -362,11 +366,13 @@ CURRENT-RECORD is the parsed current.org plist when already available."
       (format "%s\n\nAdditional task-specific guidance:\n%s" system user))))
 
 (defun gptel-reinforce-artifact-effective-updater-prompt (artifact &optional current-record)
-  "Return ARTIFACT's updater prompt, appending any user prompt.
-CURRENT-RECORD is the parsed current.org plist when already available."
+  "Return ARTIFACT's effective updater system prompt.
+Appends task-specific user guidance when present.
+CURRENT-RECORD is the parsed current.org plist; when provided, its
+`* Updater User Prompt' section takes precedence over the artifact's
+registered :updater-user-prompt."
   (let* ((artifact (gptel-reinforce-resolve-artifact artifact))
-         (system (or (gptel-reinforce-artifact-updater-system-prompt artifact)
-                     gptel-reinforce-default-updater-prompt))
+         (system (gptel-reinforce-artifact-updater-system-prompt artifact))
          (user (or (plist-get current-record :updater-user-prompt)
                    (gptel-reinforce-artifact-updater-user-prompt artifact))))
     (if (string-empty-p (or user ""))
@@ -374,7 +380,24 @@ CURRENT-RECORD is the parsed current.org plist when already available."
       (format "%s\n\nAdditional task-specific guidance:\n%s" system user))))
 
 (defun gptel-reinforce-register-database (&rest plist)
-  "Register a reinforcement database from PLIST."
+  "Register a reinforcement database from PLIST.
+
+Required keys:
+  :name       Unique string identifier for this database.
+  :context-fn Function called in the user's buffer to describe the current
+              item.  Must return a plist with at least :item-key (a stable
+              unique string) or nil when not applicable.  Optional plist
+              keys: :title, :primary-text, :meta.
+
+Optional keys:
+  :db-path        Path to the SQLite file.  Defaults to
+                  <state-root>/<name>.sqlite.
+  :root-dir       Root directory for artifact org files.  Defaults to
+                  <config-root>/<name>/.
+  :legacy-root-dir  Old root-dir path to migrate from on startup.
+
+Returns the created `gptel-reinforce-database' struct.
+Calling again with the same :name replaces the existing registration."
   (let* ((name (or (plist-get plist :name)
                    (user-error "Database registration requires :name")))
          (context-fn (or (plist-get plist :context-fn)
@@ -405,7 +428,39 @@ CURRENT-RECORD is the parsed current.org plist when already available."
     database))
 
 (defun gptel-reinforce-register-artifact (&rest plist)
-  "Register an artifact from PLIST."
+  "Register an artifact from PLIST.
+
+Required keys:
+  :name      Unique string identifier for this artifact.
+  :database  Name of the parent database (must already be registered).
+
+Optional keys:
+  :type       Informational type string: \"prompt\", \"code\", \"rules\", etc.
+              Passed to the LLM as context.
+  :auto-update  When non-nil, skip the diff review step during updates.
+                Can also be set per-artifact in current.org (AUTO_UPDATE: t).
+
+  :summarizer-system-prompt  Full system prompt for summarization.
+                             Defaults to `gptel-reinforce-default-summarizer-prompt'.
+  :summarizer-user-prompt    Task-specific guidance appended to the system
+                             prompt.  Defaults to \"\".  Can also be set in
+                             current.org under the * Summarizer User Prompt heading.
+  :updater-system-prompt     Full system prompt for artifact updates.
+                             Defaults to `gptel-reinforce-default-updater-prompt'.
+  :updater-user-prompt       Task-specific guidance appended to the system
+                             prompt.  Defaults to \"\".  Can also be set in
+                             current.org under the * Updater User Prompt heading.
+
+  :pre-update-hook   Function or list of functions called before applying an
+                     update.  Signature: (artifact current-record candidate-text).
+                     Return nil to reject the candidate.
+  :post-update-hook  Function or list of functions called after writing an
+                     accepted update.  Signature:
+                     (artifact version-ref current-record candidate-text).
+                     Errors are surfaced as warnings; all hooks run regardless.
+
+Returns the created `gptel-reinforce-artifact' struct.
+Calling again with the same :name replaces the existing registration."
   (let* ((name (or (plist-get plist :name)
                    (user-error "Artifact registration requires :name")))
          (database-name (or (plist-get plist :database)
@@ -449,8 +504,14 @@ CURRENT-RECORD is the parsed current.org plist when already available."
           :database database)))
 
 (defun gptel-reinforce-track-output-region (artifact start end &optional output-id)
-  "Annotate START..END as output produced by ARTIFACT.
-Return the provenance plist."
+  "Annotate the region START..END as output produced by ARTIFACT.
+Adds text properties recording the artifact name, current version reference,
+and database.  After annotation, `gptel-reinforce-like' and friends at that
+region automatically record output-feedback rather than item-feedback.
+Also sets `gptel-reinforce-last-output-provenance' as a buffer-local fallback.
+
+OUTPUT-ID is an optional opaque string; one is generated if omitted.
+Returns the provenance plist."
   (let* ((provenance (gptel-reinforce--output-provenance artifact output-id))
          (database (plist-get provenance :database)))
     (add-text-properties
@@ -463,7 +524,11 @@ Return the provenance plist."
     provenance))
 
 (defun gptel-reinforce-propertize-output (artifact text &optional output-id)
-  "Return TEXT with output provenance properties for ARTIFACT."
+  "Return a copy of TEXT annotated with output provenance for ARTIFACT.
+Like `gptel-reinforce-track-output-region' but for text not yet inserted
+into a buffer.  The returned string carries text properties recording the
+artifact name, version, and database.  Pass the result to
+`gptel-reinforce-like' and friends to record output-feedback."
   (let ((copy (copy-sequence text))
         (provenance (gptel-reinforce--output-provenance artifact output-id)))
     (add-text-properties

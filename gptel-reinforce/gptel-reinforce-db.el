@@ -136,8 +136,20 @@
   (caar (sqlite-select connection "SELECT last_insert_rowid()")))
 
 (defun gptel-reinforce-db-record-feedback (database event)
-  "Insert feedback EVENT into DATABASE and return the event id.
-EVENT is a plist."
+  "Insert feedback EVENT into DATABASE and return the new row id.
+
+EVENT is a plist with these keys:
+  :event-type   Required.  \"item-feedback\" or \"output-feedback\".
+  :score        Required.  Numeric score (e.g. -1, 0, 1, or any float).
+  :item-key     Stable unique identifier from the context function.
+  :title        Human-readable label for the item.
+  :primary-text Content excerpt for the item.
+  :meta         Plist of additional metadata; JSON-encoded for storage.
+  :note         Optional free-text note from the user.
+  :artifact-name      Artifact name (output-feedback only).
+  :artifact-version-ref  History filename of the producing artifact version.
+  :output-id    Opaque ID linking this event to a specific output region.
+  :created-at   ISO-8601 timestamp; defaults to now."
   (gptel-reinforce-db-with-connection database
     (sqlite-execute
      connection
@@ -162,7 +174,15 @@ EVENT is a plist."
     (gptel-reinforce-db--last-insert-id connection)))
 
 (defun gptel-reinforce-db-feedback-since (database last-event-id artifact-name)
-  "Return events in DATABASE newer than LAST-EVENT-ID for ARTIFACT-NAME."
+  "Return feedback events in DATABASE newer than LAST-EVENT-ID for ARTIFACT-NAME.
+Returns a list of event plists (see `gptel-reinforce-db-record-feedback').
+
+All item-feedback events in the database are included (they are database-
+scoped, so every artifact in the database shares item signal).
+Only output-feedback events whose artifact_name matches ARTIFACT-NAME are
+included (output-feedback is artifact-scoped).
+
+LAST-EVENT-ID is the LAST_EVENT_ID from summary.org; pass 0 to read all events."
   (gptel-reinforce-db-with-connection database
     (mapcar
        (lambda (row)

@@ -180,7 +180,22 @@ When FORCE is non-nil, overwrite even if the artifact already has text."
         version-ref))))
 
 (defun gptel-reinforce-register-elfeed-module ()
-  "Register the predefined Elfeed database and score-file artifact."
+  "Register the predefined Elfeed database and score-rule artifact.
+
+Creates a database named `gptel-reinforce-elfeed-database-name' with a
+context function that works in `elfeed-search-mode' and `elfeed-show-mode'.
+
+Creates an artifact named `gptel-reinforce-elfeed-artifact-name' of type
+\"code\" (the artifact text is an elfeed-score Lisp file).  The artifact
+has two hooks:
+  - A pre-update hook that validates the LLM output parses as Lisp.
+  - A post-update hook that writes accepted text back to
+    `gptel-reinforce-elfeed-score-file' and reloads elfeed-score.
+
+On first call, if `gptel-reinforce-elfeed-score-file' exists and the
+artifact text is empty, the artifact is seeded from that file automatically.
+Call `gptel-reinforce-elfeed-seed-score-file' with a non-nil argument to
+force re-seeding after editing the score file manually."
   (gptel-reinforce-register-database
    :name gptel-reinforce-elfeed-database-name
    :context-fn #'gptel-reinforce-elfeed-context

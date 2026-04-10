@@ -32,7 +32,17 @@
 
 (defcustom gptel-reinforce-backend-function
   #'gptel-reinforce-backend-send-with-gptel
-  "Function used to execute summarize and update requests."
+  "Function used to send summarize and update requests to an LLM.
+
+The function must accept two arguments: REQUEST and CALLBACK.
+REQUEST is either a `gptel-reinforce-summary-request' or a
+`gptel-reinforce-update-request' struct.  CALLBACK is a function
+of two arguments (RESPONSE INFO); RESPONSE is the response string
+on success, or nil on failure (with INFO containing a :status key).
+
+The default implementation uses `gptel-request' from the gptel package.
+Replace this to use a different LLM transport without changing any other
+package code."
   :group 'gptel-reinforce
   :type 'function)
 

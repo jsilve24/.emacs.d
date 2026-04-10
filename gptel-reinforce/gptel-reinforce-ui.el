@@ -184,8 +184,7 @@ Errors are surfaced after all hooks run."
             (rename-buffer
              (format "*gptel-reinforce diff: %s*"
                      (gptel-reinforce-artifact-name artifact))
-             t)
-            (diff-mode))
+             t))
           (display-buffer diff-buffer)
           (y-or-n-p
            (format "Accept update for %s? "
@@ -254,9 +253,7 @@ Errors are surfaced after all hooks run."
      request
      (lambda (response _info)
        (let* ((candidate-text response)
-              (auto-update (if (plist-member current-record :auto-update)
-                               (plist-get current-record :auto-update)
-                             (gptel-reinforce-artifact-auto-update artifact))))
+              (auto-update (plist-get current-record :auto-update)))
          (gptel-reinforce--run-pre-update-hooks artifact current-record candidate-text)
          (when (or auto-update
                    (gptel-reinforce--review-diff
