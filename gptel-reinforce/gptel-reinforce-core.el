@@ -36,6 +36,27 @@
   "Directory holding human-editable Org files."
   :type 'directory)
 
+(defcustom gptel-reinforce-summary-review-mode 'smerge
+  "How to review summary updates before writing them.
+
+When nil, apply summary updates immediately.  `diff' shows a read-only
+unified diff and asks for confirmation.  `smerge' opens an editable merge
+buffer so the candidate can be adjusted before it is written."
+  :type '(choice (const :tag "Apply immediately" nil)
+                 (const :tag "Unified diff" diff)
+                 (const :tag "Editable smerge buffer" smerge)))
+
+(defcustom gptel-reinforce-update-review-mode 'smerge
+  "How to review artifact updates before writing them.
+
+When nil, apply updates immediately.  `diff' shows a read-only unified diff
+and asks for confirmation.  `smerge' opens an editable merge buffer so the
+candidate can be adjusted before it is written.  Per-artifact AUTO_UPDATE
+still bypasses review entirely."
+  :type '(choice (const :tag "Apply immediately" nil)
+                 (const :tag "Unified diff" diff)
+                 (const :tag "Editable smerge buffer" smerge)))
+
 (defconst gptel-reinforce-default-summarizer-prompt
   (string-join
    '("You maintain a running summary of user feedback about a general text artifact."
@@ -437,22 +458,28 @@ Required keys:
 Optional keys:
   :type       Informational type string: \"prompt\", \"code\", \"rules\", etc.
               Passed to the LLM as context.
-  :auto-update  When non-nil, skip the diff review step during updates.
-                Can also be set per-artifact in current.org (AUTO_UPDATE: t).
+  :auto-update  When non-nil, skip the review step during updates.
+                Can also be set per-artifact in current.org (AUTO_UPDATE: t),
+                regardless of `gptel-reinforce-update-review-mode'.
 
   :summarizer-system-prompt  Full system prompt for summarization.
-                             Defaults to `gptel-reinforce-default-summarizer-prompt'.
+                             Defaults to
+                             `gptel-reinforce-default-summarizer-prompt'.
   :summarizer-user-prompt    Task-specific guidance appended to the system
                              prompt.  Defaults to \"\".  Can also be set in
-                             current.org under the * Summarizer User Prompt heading.
+                             current.org under the
+                             * Summarizer User Prompt heading.
   :updater-system-prompt     Full system prompt for artifact updates.
-                             Defaults to `gptel-reinforce-default-updater-prompt'.
+                             Defaults to
+                             `gptel-reinforce-default-updater-prompt'.
   :updater-user-prompt       Task-specific guidance appended to the system
                              prompt.  Defaults to \"\".  Can also be set in
-                             current.org under the * Updater User Prompt heading.
+                             current.org under the
+                             * Updater User Prompt heading.
 
   :pre-update-hook   Function or list of functions called before applying an
-                     update.  Signature: (artifact current-record candidate-text).
+                     update.  Signature:
+                     (artifact current-record candidate-text).
                      Return nil to reject the candidate.
   :post-update-hook  Function or list of functions called after writing an
                      accepted update.  Signature:

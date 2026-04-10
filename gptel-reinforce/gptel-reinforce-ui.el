@@ -7,11 +7,40 @@
 ;;; Code:
 
 (require 'diff)
+(require 'smerge-mode)
 (require 'subr-x)
 (require 'gptel-reinforce-core)
 (require 'gptel-reinforce-db)
 (require 'gptel-reinforce-org)
 (require 'gptel-reinforce-backend)
+
+(defvar-local gptel-reinforce--review-finished nil
+  "Non-nil when the current review buffer was accepted.")
+
+(defvar-local gptel-reinforce--review-canceled nil
+  "Non-nil when the current review buffer was canceled.")
+
+(defun gptel-reinforce-review-accept ()
+  "Finish the current review buffer and accept its contents."
+  (interactive)
+  (setq gptel-reinforce--review-finished t
+        gptel-reinforce--review-canceled nil)
+  (exit-recursive-edit))
+
+(defun gptel-reinforce-review-cancel ()
+  "Abort the current review buffer."
+  (interactive)
+  (setq gptel-reinforce--review-finished nil
+        gptel-reinforce--review-canceled t)
+  (exit-recursive-edit))
+
+(defvar gptel-reinforce-review-mode-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map text-mode-map)
+    (define-key map (kbd "C-c C-c") #'gptel-reinforce-review-accept)
+    (define-key map (kbd "C-c C-k") #'gptel-reinforce-review-cancel)
+    map)
+  "Keymap used while editing gptel-reinforce review buffers.")
 
 (defun gptel-reinforce--read-note (prefix)
   "Return a note when PREFIX is non-nil."
@@ -169,8 +198,8 @@ Errors are surfaced after all hooks run."
     (when first-error
       (signal (car first-error) (cdr first-error)))))
 
-(defun gptel-reinforce--review-diff (artifact old-text new-text)
-  "Show a diff for ARTIFACT and return non-nil when accepted."
+(defun gptel-reinforce--show-diff-review (title old-text new-text)
+  "Show a read-only diff for TITLE and return non-nil when accepted."
   (let* ((old-file (make-temp-file "gptel-reinforce-old-"))
          (new-file (make-temp-file "gptel-reinforce-new-"))
          (diff-buffer nil))
@@ -182,15 +211,66 @@ Errors are surfaced after all hooks run."
           (with-current-buffer diff-buffer
             (setq buffer-read-only t)
             (rename-buffer
-             (format "*gptel-reinforce diff: %s*"
-                     (gptel-reinforce-artifact-name artifact))
+             (format "*gptel-reinforce diff: %s*" title)
              t))
           (display-buffer diff-buffer)
-          (y-or-n-p
-           (format "Accept update for %s? "
-                   (gptel-reinforce-artifact-name artifact))))
+          (when (y-or-n-p (format "Accept update for %s? " title))
+            new-text))
       (ignore-errors (delete-file old-file))
       (ignore-errors (delete-file new-file)))))
+
+(defun gptel-reinforce--conflict-markers-present-p ()
+  "Return non-nil when the current buffer still contains merge markers."
+  (save-excursion
+    (goto-char (point-min))
+    (re-search-forward "^<<<<<<< " nil t)))
+
+(defun gptel-reinforce--show-smerge-review (title old-text new-text)
+  "Open an editable smerge buffer for TITLE and return the accepted text."
+  (let ((buffer (generate-new-buffer (format "*gptel-reinforce review: %s*" title))))
+    (unwind-protect
+        (with-current-buffer buffer
+          (erase-buffer)
+          (insert "<<<<<<< current\n")
+          (insert old-text)
+          (unless (or (string-empty-p old-text)
+                      (string-suffix-p "\n" old-text))
+            (insert "\n"))
+          (insert "=======\n")
+          (insert new-text)
+          (unless (or (string-empty-p new-text)
+                      (string-suffix-p "\n" new-text))
+            (insert "\n"))
+          (insert ">>>>>>> candidate\n")
+          (text-mode)
+          (use-local-map gptel-reinforce-review-mode-map)
+          (setq-local header-line-format
+                      "Resolve/edit, then C-c C-c to apply or C-c C-k to cancel")
+          (setq-local gptel-reinforce--review-finished nil)
+          (setq-local gptel-reinforce--review-canceled nil)
+          (goto-char (point-min))
+          (smerge-mode 1)
+          (display-buffer buffer)
+          (recursive-edit)
+          (when gptel-reinforce--review-finished
+            (when (and (gptel-reinforce--conflict-markers-present-p)
+                       (not (y-or-n-p
+                             (format "Merge markers remain in %s. Apply anyway? "
+                                     title))))
+              (setq gptel-reinforce--review-finished nil))
+            (when gptel-reinforce--review-finished
+              (buffer-substring-no-properties (point-min) (point-max)))))
+      (when (buffer-live-p buffer)
+        (kill-buffer buffer)))))
+
+(defun gptel-reinforce--review-text (title old-text new-text review-mode)
+  "Review NEW-TEXT against OLD-TEXT for TITLE using REVIEW-MODE.
+Return the accepted text, or nil when rejected."
+  (pcase review-mode
+    ('nil new-text)
+    ('diff (gptel-reinforce--show-diff-review title old-text new-text))
+    ('smerge (gptel-reinforce--show-smerge-review title old-text new-text))
+    (_ (user-error "Unsupported review mode: %S" review-mode))))
 
 (defun gptel-reinforce-summarize (artifact)
   "Summarize new feedback for ARTIFACT."
@@ -225,10 +305,16 @@ Errors are surfaced after all hooks run."
         (gptel-reinforce-backend-send
          request
          (lambda (response _info)
-           (gptel-reinforce-org-write-summary artifact response target-event-id)
-           (message "Updated summary for %s through event %s"
-                    (gptel-reinforce-artifact-name artifact)
-                    target-event-id)))))))
+           (when-let* ((summary-body
+                        (gptel-reinforce--review-text
+                         (format "%s summary" (gptel-reinforce-artifact-name artifact))
+                         (plist-get summary-record :body)
+                         response
+                         gptel-reinforce-summary-review-mode)))
+             (gptel-reinforce-org-write-summary artifact summary-body target-event-id)
+             (message "Updated summary for %s through event %s"
+                      (gptel-reinforce-artifact-name artifact)
+                      target-event-id))))))))
 
 (defun gptel-reinforce-update (artifact)
   "Update ARTIFACT from its current summary."
@@ -254,17 +340,21 @@ Errors are surfaced after all hooks run."
      request
      (lambda (response _info)
        (let* ((candidate-text response)
-              (auto-update (plist-get current-record :auto-update)))
-         (gptel-reinforce--run-pre-update-hooks artifact current-record candidate-text)
-         (when (or auto-update
-                   (gptel-reinforce--review-diff
-                    artifact
-                    (plist-get current-record :text)
-                    candidate-text))
+              (auto-update (plist-get current-record :auto-update))
+              (approved-text
+               (if auto-update
+                   candidate-text
+                  (gptel-reinforce--review-text
+                   (gptel-reinforce-artifact-name artifact)
+                   (plist-get current-record :text)
+                   candidate-text
+                   gptel-reinforce-update-review-mode))))
+         (when approved-text
+           (gptel-reinforce--run-pre-update-hooks artifact current-record approved-text)
            (let ((version-ref
                   (gptel-reinforce-org-write-history-entry
                    artifact
-                   candidate-text
+                   approved-text
                    :type (or (plist-get current-record :type)
                              (gptel-reinforce-artifact-type artifact))
                    :summary-event-ref (or (plist-get summary-record :last-event-id) 0)
@@ -272,7 +362,7 @@ Errors are surfaced after all hooks run."
              (gptel-reinforce-org-write-current
               artifact
               :version-ref version-ref
-              :text candidate-text
+              :text approved-text
               :applied-summary (plist-get summary-record :body)
               :summarizer-user-prompt (plist-get current-record :summarizer-user-prompt)
               :updater-user-prompt (plist-get current-record :updater-user-prompt)
@@ -286,7 +376,7 @@ Errors are surfaced after all hooks run."
               artifact
               version-ref
               current-record
-              candidate-text))))))))
+              approved-text))))))))
 
 (provide 'gptel-reinforce-ui)
 
