@@ -8,6 +8,187 @@
 (require 'org-element)
 (require 'subr-x)
 
+(declare-function gptel-reinforce-set-active-database "gptel-reinforce" (database))
+(declare-function gptel-reinforce-track-output-region "gptel-reinforce" (artifact start end &optional output-id))
+(declare-function gptel-reinforce-register-database "gptel-reinforce" (&rest plist))
+(declare-function gptel-reinforce-register-artifact "gptel-reinforce" (&rest plist))
+
+(defconst jds/ai-email-reinforce-reply-database "ai-email-reply"
+  "Reinforcement database for AI email reply workflows.")
+
+(defconst jds/ai-email-reinforce-summary-database "ai-email-summary"
+  "Reinforcement database for AI email summarization workflows.")
+
+(defconst jds/ai-email-reinforce-reply-artifact "ai-email-reply"
+  "Artifact name for standard AI email replies.")
+
+(defconst jds/ai-email-reinforce-scheduling-reply-artifact "ai-email-scheduling-reply"
+  "Artifact name for AI scheduling replies.")
+
+(defconst jds/ai-email-reinforce-thread-summary-artifact "ai-email-thread-summary"
+  "Artifact name for AI thread summaries.")
+
+(defconst jds/ai-email-reinforce-zoom-summary-artifact "ai-email-zoom-summary"
+  "Artifact name for AI Zoom summaries.")
+
+(defconst jds/ai-email-reinforce-artifact-root
+  (expand-file-name "var/gptel-reinforce/artifacts/" user-emacs-directory)
+  "Root directory for ai-email gptel-reinforce artifact state.")
+
+(defun jds/ai-email--reinforce-root-dir (database-name)
+  "Return the artifact root directory for DATABASE-NAME."
+  (expand-file-name database-name jds/ai-email-reinforce-artifact-root))
+
+(defconst jds/ai-email--reinforce-reply-summarizer-guidance
+  (concat
+   "For this reply-writing workflow, treat output-feedback events as the primary signal.\n"
+   "Item-feedback is weak background context only and should usually be ignored unless it clearly repeats a stable, reply-relevant pattern.\n"
+   "Focus on what users liked or disliked about the generated reply text itself: tone, structure, directness, completeness, and actionability.")
+  "Summarizer guidance for AI email reply artifacts.")
+
+(defconst jds/ai-email--reinforce-reply-updater-guidance
+  (concat
+   "Update this reply prompt mainly from output-feedback evidence.\n"
+   "Treat item-feedback as low-priority background signal and ignore it when it would push the prompt away from better reply phrasing or structure.\n"
+   "Prefer small edits that improve clarity, tone, and usefulness of generated replies.")
+  "Updater guidance for AI email reply artifacts.")
+
+(defconst jds/ai-email--reinforce-summary-summarizer-guidance
+  (concat
+   "For this summarization workflow, treat output-feedback events as the primary signal.\n"
+   "Item-feedback is weak background context only and should usually be ignored unless it clearly identifies a recurring summarization failure.\n"
+   "Focus on what users liked or disliked about the generated summary text itself: coverage, salience, brevity, structure, and correctness.")
+  "Summarizer guidance for AI email summary artifacts.")
+
+(defconst jds/ai-email--reinforce-summary-updater-guidance
+  (concat
+   "Update this summarization prompt mainly from output-feedback evidence.\n"
+   "Treat item-feedback as low-priority background signal and ignore it when it would blur the prompt across unrelated summary cases.\n"
+   "Prefer small edits that improve summary quality, not domain ranking behavior.")
+  "Updater guidance for AI email summary artifacts.")
+
+(defvar jds/ai-email--reinforce-registered nil
+  "Whether `ai-email.el' has registered its gptel-reinforce integration.")
+
+(defvar-local jds/ai-email-reinforce-database nil
+  "Buffer-local ai-email reinforcement database name.")
+
+(defvar-local jds/ai-email-reinforce-context nil
+  "Buffer-local item context used by ai-email reinforcement candidates.")
+
+(defun jds/ai-email--reinforce-candidate (database-name)
+  "Return a reinforcement candidate for DATABASE-NAME in the current buffer."
+  (when (and jds/ai-email-reinforce-context
+             (equal jds/ai-email-reinforce-database database-name))
+    (list :priority 100
+          :label (format "ai-email %s" database-name)
+          :context jds/ai-email-reinforce-context)))
+
+(defun jds/ai-email--reinforce-reply-candidate ()
+  "Return the ai-email reply reinforcement candidate for the current buffer."
+  (jds/ai-email--reinforce-candidate jds/ai-email-reinforce-reply-database))
+
+(defun jds/ai-email--reinforce-summary-candidate ()
+  "Return the ai-email summary reinforcement candidate for the current buffer."
+  (jds/ai-email--reinforce-candidate jds/ai-email-reinforce-summary-database))
+
+(defun jds/ai-email--reinforce-context-only (database-name)
+  "Return ai-email reinforcement context for DATABASE-NAME in the current buffer."
+  (when (equal jds/ai-email-reinforce-database database-name)
+    jds/ai-email-reinforce-context))
+
+(defun jds/ai-email--reinforce-reply-context ()
+  "Return the ai-email reply reinforcement context for the current buffer."
+  (jds/ai-email--reinforce-context-only jds/ai-email-reinforce-reply-database))
+
+(defun jds/ai-email--reinforce-summary-context ()
+  "Return the ai-email summary reinforcement context for the current buffer."
+  (jds/ai-email--reinforce-context-only jds/ai-email-reinforce-summary-database))
+
+(defun jds/ai-email--reinforce-context-for-message (msg workflow)
+  "Return a minimal reinforcement context for MSG and WORKFLOW."
+  (let* ((message-id (or (mu4e-message-field msg :message-id) ""))
+         (subject (or (mu4e-message-field msg :subject) "(no subject)"))
+         (item-key (if (string-empty-p message-id)
+                       (format "ai-email:%s:%s"
+                               workflow
+                               (secure-hash
+                                'sha1
+                                (format "%s|%s|%s"
+                                        workflow
+                                        subject
+                                        (mu4e-message-field msg :date))))
+                     (format "ai-email:%s:%s" workflow message-id))))
+    (list :item-key item-key
+          :title subject
+          :meta (list :workflow workflow
+                      :message-id (unless (string-empty-p message-id) message-id)))))
+
+(defun jds/ai-email--reinforce-setup-buffer (buffer database context)
+  "Attach ai-email reinforcement DATABASE and CONTEXT to BUFFER."
+  (when (buffer-live-p buffer)
+    (with-current-buffer buffer
+      (setq-local jds/ai-email-reinforce-database database)
+      (setq-local jds/ai-email-reinforce-context context)
+      (when (fboundp 'gptel-reinforce-set-active-database)
+        (gptel-reinforce-set-active-database database)))))
+
+(defun jds/ai-email--reinforce-track-output-region (buffer artifact start end)
+  "Track BUFFER region START..END as ARTIFACT output when available."
+  (when (and (buffer-live-p buffer)
+             (fboundp 'gptel-reinforce-track-output-region)
+             (< start end))
+    (with-current-buffer buffer
+      (gptel-reinforce-track-output-region artifact start end))))
+
+(defun jds/ai-email--register-reinforce-integration ()
+  "Register ai-email databases and artifacts with gptel-reinforce."
+  (when (and (featurep 'gptel-reinforce)
+             (not jds/ai-email--reinforce-registered))
+    (gptel-reinforce-register-database
+     :name jds/ai-email-reinforce-reply-database
+     :root-dir (jds/ai-email--reinforce-root-dir
+                jds/ai-email-reinforce-reply-database)
+     :candidate-fn #'jds/ai-email--reinforce-reply-candidate
+     :context-fn #'jds/ai-email--reinforce-reply-context)
+    (gptel-reinforce-register-database
+     :name jds/ai-email-reinforce-summary-database
+     :root-dir (jds/ai-email--reinforce-root-dir
+                jds/ai-email-reinforce-summary-database)
+     :candidate-fn #'jds/ai-email--reinforce-summary-candidate
+     :context-fn #'jds/ai-email--reinforce-summary-context)
+    (gptel-reinforce-register-artifact
+     :name jds/ai-email-reinforce-reply-artifact
+     :database jds/ai-email-reinforce-reply-database
+     :type "prompt"
+     :summarizer-user-prompt jds/ai-email--reinforce-reply-summarizer-guidance
+     :updater-user-prompt jds/ai-email--reinforce-reply-updater-guidance)
+    (gptel-reinforce-register-artifact
+     :name jds/ai-email-reinforce-scheduling-reply-artifact
+     :database jds/ai-email-reinforce-reply-database
+     :type "prompt"
+     :summarizer-user-prompt jds/ai-email--reinforce-reply-summarizer-guidance
+     :updater-user-prompt jds/ai-email--reinforce-reply-updater-guidance)
+    (gptel-reinforce-register-artifact
+     :name jds/ai-email-reinforce-thread-summary-artifact
+     :database jds/ai-email-reinforce-summary-database
+     :type "prompt"
+     :summarizer-user-prompt jds/ai-email--reinforce-summary-summarizer-guidance
+     :updater-user-prompt jds/ai-email--reinforce-summary-updater-guidance)
+    (gptel-reinforce-register-artifact
+     :name jds/ai-email-reinforce-zoom-summary-artifact
+     :database jds/ai-email-reinforce-summary-database
+     :type "prompt"
+     :summarizer-user-prompt jds/ai-email--reinforce-summary-summarizer-guidance
+     :updater-user-prompt jds/ai-email--reinforce-summary-updater-guidance)
+    (setq jds/ai-email--reinforce-registered t)))
+
+(with-eval-after-load 'gptel-reinforce
+  (jds/ai-email--register-reinforce-integration))
+
+(when (featurep 'gptel-reinforce)
+  (jds/ai-email--register-reinforce-integration))
+
 (defvar jds/org-calendar-cache (make-hash-table :test #'equal)
   "Cache of parsed calendar events by file and modification time.")
 
@@ -537,14 +718,17 @@ Each value is \"zoom\", \"in_person\", or \"either\"."
         (point))))))
 
 (defun jds/ai-email--insert-response-at-point (buf pos text)
-  "Insert TEXT into BUF at POS, tolerating stale markers."
+  "Insert TEXT into BUF at POS, tolerating stale markers.
+Return (START . END) for the inserted text, or nil when nothing was inserted."
   (when (buffer-live-p buf)
     (with-current-buffer buf
       (goto-char (jds/ai-email--live-insertion-point buf pos))
-      (insert text "\n\n")
-      (when (and (markerp pos)
-                 (marker-buffer pos))
-        (set-marker pos nil)))))
+      (let ((start (point)))
+        (insert text "\n\n")
+        (prog1 (cons start (- (point) 2))
+          (when (and (markerp pos)
+                     (marker-buffer pos))
+            (set-marker pos nil)))))))
 
 (defun jds/ai-email--delete-leading-planning-text (buf pos)
   "Delete any model-inserted planning text starting at POS in BUF."
@@ -565,14 +749,19 @@ Each value is \"zoom\", \"in_person\", or \"either\"."
               (when (looking-at-p "\n\n")
                 (delete-region (point) (min (point-max) (+ (point) 2)))))))))))
 
-(defun jds/ai-email--insert-if-final-string (response info buf pos)
-  "Insert RESPONSE into BUF at POS when RESPONSE is the final string result."
+(defun jds/ai-email--insert-if-final-string (response info buf pos &optional artifact)
+  "Insert RESPONSE into BUF at POS when RESPONSE is the final string result.
+When ARTIFACT is non-nil, track the inserted output for reinforcement."
   (cond
    ((not response)
     (message "gptel error: %s" (plist-get info :status)))
    ((stringp response)
-    (jds/ai-email--insert-response-at-point
-     buf pos (jds/ai-email--sanitize-response response)))
+    (when-let ((region
+                (jds/ai-email--insert-response-at-point
+                 buf pos (jds/ai-email--sanitize-response response))))
+      (when artifact
+        (jds/ai-email--reinforce-track-output-region
+         buf artifact (car region) (cdr region)))))
    (t nil)))
 
 (defvar jds/ai-email-last-prompt nil
@@ -594,11 +783,12 @@ TOOLS, when non-nil, are bound for the request."
 
 (defun jds/ai-email--handle-retrying-insert-response
     (response info prompt system buf pos retries-left retry-system-suffix invalid-message
-              &optional tools)
+              &optional tools artifact)
   "Handle RESPONSE for insert-at-point flows that may need one retry.
 RETRY-SYSTEM-SUFFIX is appended to SYSTEM for the retry request when the model
 returns planning text. INVALID-MESSAGE is shown if the model still fails after
-retries. TOOLS, when non-nil, are provided on the retry request."
+retries. TOOLS, when non-nil, are provided on the retry request. When ARTIFACT
+is non-nil, track the inserted output for reinforcement."
   (cond
    ((not response)
     (message "gptel error: %s" (plist-get info :status)))
@@ -615,13 +805,16 @@ retries. TOOLS, when non-nil, are provided on the retry request."
              (lambda (response info)
                (jds/ai-email--handle-retrying-insert-response
                 response info prompt system buf pos (1- retries-left)
-                retry-system-suffix invalid-message tools))
+                retry-system-suffix invalid-message tools artifact))
              tools))
         (if (jds/ai-email--planning-response-p clean)
             (progn
               (jds/ai-email--delete-leading-planning-text buf pos)
               (message "%s" invalid-message))
-          (jds/ai-email--insert-response-at-point buf pos clean)))))
+          (when-let ((region (jds/ai-email--insert-response-at-point buf pos clean)))
+            (when artifact
+              (jds/ai-email--reinforce-track-output-region
+               buf artifact (car region) (cdr region))))))))
    (t nil)))
 
 (defun jds/ai-email--mu4e-message-metadata (&optional msg)
@@ -634,11 +827,13 @@ retries. TOOLS, when non-nil, are provided on the retry request."
                     "Unknown")
           :subject (or (mu4e-message-field message :subject) "(no subject)"))))
 
-(defun jds/ai-email--compose-mu4e-reply-with-ai (prompt-builder system callback &optional tools)
+(defun jds/ai-email--compose-mu4e-reply-with-ai
+    (prompt-builder system callback &optional tools reinforce-database reinforce-context)
   "Compose a mu4e reply and invoke AI with PROMPT-BUILDER and CALLBACK.
 PROMPT-BUILDER is called with the compose buffer contents and should return the
 prompt text. CALLBACK receives RESPONSE, INFO, prompt, SYSTEM, buffer and
-marker. TOOLS, when non-nil, are passed to the request."
+marker. TOOLS, when non-nil, are passed to the request. When REINFORCE-DATABASE
+and REINFORCE-CONTEXT are non-nil, attach them to the compose buffer."
   (let (hook-fn)
     (setq hook-fn
           (lambda ()
@@ -646,6 +841,9 @@ marker. TOOLS, when non-nil, are passed to the request."
             (let* ((buf (current-buffer))
                    (content (buffer-substring-no-properties (point-min) (point-max)))
                    (prompt (funcall prompt-builder content)))
+              (when (and reinforce-database reinforce-context)
+                (jds/ai-email--reinforce-setup-buffer
+                 buf reinforce-database reinforce-context))
               (message-goto-body)
               (let ((pos (copy-marker (point))))
                 (jds/ai-email--request-inserting-response
@@ -1158,11 +1356,14 @@ Return a marker at the inserted heading."
 
 When CUSTOM-INSTRUCTIONS is non-nil, include it as extra drafting guidance."
   (interactive (list (jds/ai-email--read-reply-instructions)))
-  (pcase-let* ((`(:from ,from-str :subject ,subject . ,_) (jds/ai-email--mu4e-message-metadata))
+  (pcase-let* ((`(:message ,message :from ,from-str :subject ,subject . ,_)
+                (jds/ai-email--mu4e-message-metadata))
                (system (concat
                         "You are a professional email assistant. Write clear, concise replies.\n"
                         "Return only the reply body text.\n"
-                        "Do not include a subject line, commentary, reasoning, tool narration, or code fences.")))
+                        "Do not include a subject line, commentary, reasoning, tool narration, or code fences."))
+               (context (jds/ai-email--reinforce-context-for-message
+                         message "reply")))
     (jds/ai-email--compose-mu4e-reply-with-ai
      (lambda (content)
        (format
@@ -1175,7 +1376,11 @@ When CUSTOM-INSTRUCTIONS is non-nil, include it as extra drafting guidance."
         content))
      system
      (lambda (response info _prompt _system buf pos)
-       (jds/ai-email--insert-if-final-string response info buf pos)))))
+       (jds/ai-email--insert-if-final-string
+        response info buf pos jds/ai-email-reinforce-reply-artifact))
+     nil
+     jds/ai-email-reinforce-reply-database
+     context)))
 
 
 ;;; AI scheduling reply ----------------------------------------------------
@@ -1290,8 +1495,11 @@ Prompts for custom context. Uses validated availability slots rather than raw ca
   (interactive)
   (let* ((ctx      (jds/ai-email--read-scheduling-context))
          (meta     (jds/ai-email--mu4e-message-metadata))
+         (message  (plist-get meta :message))
          (from-str (plist-get meta :from))
          (subject  (plist-get meta :subject))
+         (context  (jds/ai-email--reinforce-context-for-message
+                    message "scheduling-reply"))
          (system   (concat
                     (jds/ai-email--scheduling-system-prompt)
                     "Return only the reply body text. No subject line, commentary, reasoning, tool narration, or code fences.")))
@@ -1318,8 +1526,11 @@ Prompts for custom context. Uses validated availability slots rather than raw ca
          "Write the email now.\n"
          "If you propose times, they must be exact slot display strings returned by find_free_times and copied verbatim.")
         "Scheduling draft suppressed: model returned planning text instead of an email."
-        (list jds~gptel-find-free-times-tool)))
-     (list jds~gptel-find-free-times-tool))))
+        (list jds~gptel-find-free-times-tool)
+        jds/ai-email-reinforce-scheduling-reply-artifact))
+     (list jds~gptel-find-free-times-tool)
+     jds/ai-email-reinforce-reply-database
+     context)))
 
 
 ;;; AI Thread Summarization ------------------------------------------------
@@ -1566,10 +1777,17 @@ raw file past the first blank line."
     (with-current-buffer buf
       (jds/ai-email-zoom-summary-mode)
       (read-only-mode -1)
-      (insert (format "#+TITLE: Zoom Summary: %s\n\n"
-                      (or (mu4e-message-field msg :subject) "(no subject)")))
-      (insert (string-trim (or response "")))
-      (insert "\n")
+      (jds/ai-email--reinforce-setup-buffer
+       buf
+       jds/ai-email-reinforce-summary-database
+       (jds/ai-email--reinforce-context-for-message msg "zoom-summary"))
+      (let ((start (point)))
+        (insert (format "#+TITLE: Zoom Summary: %s\n\n"
+                        (or (mu4e-message-field msg :subject) "(no subject)")))
+        (insert (string-trim (or response "")))
+        (insert "\n")
+        (jds/ai-email--reinforce-track-output-region
+         buf jds/ai-email-reinforce-zoom-summary-artifact start (point)))
       (goto-char (point-min))
       (read-only-mode 1)
       (evil-local-set-key 'normal (kbd "q") #'bury-buffer))
@@ -1587,49 +1805,55 @@ raw file past the first blank line."
     (with-current-buffer buf
       (jds/ai-email-thread-summary-mode)
       (read-only-mode -1)
+      (jds/ai-email--reinforce-setup-buffer
+       buf
+       jds/ai-email-reinforce-summary-database
+       (jds/ai-email--reinforce-context-for-message msg "thread-summary"))
+      (let ((start (point)))
+        (insert (format "#+TITLE: Thread Summary: %s\n" subject))
+        (insert "#+STARTUP: showall\n")
+        (insert (format "\n/%d messages/\n\n" message-count))
 
-      (insert (format "#+TITLE: Thread Summary: %s\n" subject))
-      (insert "#+STARTUP: showall\n")
-      (insert (format "\n/%d messages/\n\n" message-count))
+        (insert "* Summary\n")
+        (insert (or (jds/ai-email--string-or-nil summary) "/No summary returned./") "\n\n")
 
-      (insert "* Summary\n")
-      (insert (or (jds/ai-email--string-or-nil summary) "/No summary returned./") "\n\n")
+        (insert "* Open Questions\n")
+        (if (null questions)
+            (insert "/None identified./\n\n")
+          (dolist (q (if (listp questions) questions '()))
+            (let ((text  (jds/ai-email--string-or-nil (alist-get 'text  q)))
+                  (msgid (jds/ai-email--string-or-nil (alist-get 'msgid q))))
+              (when text
+                (insert (format "- %s" text))
+                (when msgid
+                  (insert (format "  [[mu4e:msgid:%s][↗]]" msgid)))
+                (insert "\n"))))
+          (insert "\n"))
 
-      (insert "* Open Questions\n")
-      (if (null questions)
-          (insert "/None identified./\n\n")
-        (dolist (q (if (listp questions) questions '()))
-          (let ((text  (jds/ai-email--string-or-nil (alist-get 'text  q)))
-                (msgid (jds/ai-email--string-or-nil (alist-get 'msgid q))))
-            (when text
-              (insert (format "- %s" text))
-              (when msgid
-                (insert (format "  [[mu4e:msgid:%s][↗]]" msgid)))
-              (insert "\n"))))
-        (insert "\n"))
+        (insert "* Commitments / Action Items\n")
+        (if (null commitments)
+            (insert "/None identified./\n\n")
+          (dolist (c (if (listp commitments) commitments '()))
+            (let ((who   (jds/ai-email--string-or-nil (alist-get 'who   c)))
+                  (what  (jds/ai-email--string-or-nil (alist-get 'what  c)))
+                  (msgid (jds/ai-email--string-or-nil (alist-get 'msgid c))))
+              (when what
+                (insert (format "- %s%s"
+                                (if who (format "*%s*: " who) "")
+                                what))
+                (when msgid
+                  (insert (format "  [[mu4e:msgid:%s][↗]]" msgid)))
+                (insert "\n"))))
+          (insert "\n"))
 
-      (insert "* Commitments / Action Items\n")
-      (if (null commitments)
-          (insert "/None identified./\n\n")
-        (dolist (c (if (listp commitments) commitments '()))
-          (let ((who   (jds/ai-email--string-or-nil (alist-get 'who   c)))
-                (what  (jds/ai-email--string-or-nil (alist-get 'what  c)))
-                (msgid (jds/ai-email--string-or-nil (alist-get 'msgid c))))
-            (when what
-              (insert (format "- %s%s"
-                              (if who (format "*%s*: " who) "")
-                              what))
-              (when msgid
-                (insert (format "  [[mu4e:msgid:%s][↗]]" msgid)))
-              (insert "\n"))))
-        (insert "\n"))
-
-      (insert "* Participants\n")
-      (if (null participants)
-          (insert "/None identified./\n")
-        (dolist (p (if (listp participants) participants '()))
-          (when (jds/ai-email--string-or-nil p)
-            (insert (format "- %s\n" p)))))
+        (insert "* Participants\n")
+        (if (null participants)
+            (insert "/None identified./\n")
+          (dolist (p (if (listp participants) participants '()))
+            (when (jds/ai-email--string-or-nil p)
+              (insert (format "- %s\n" p)))))
+        (jds/ai-email--reinforce-track-output-region
+         buf jds/ai-email-reinforce-thread-summary-artifact start (point)))
 
       (goto-char (point-min))
       (read-only-mode 1)

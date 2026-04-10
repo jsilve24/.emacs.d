@@ -134,27 +134,6 @@ still bypasses review entirely."
   "Return non-nil when DIR has no entries besides dotfiles."
   (null (directory-files dir nil directory-files-no-dot-files-regexp t)))
 
-(defun gptel-reinforce--maybe-migrate-root-dir (legacy-root-dir root-dir)
-  "Move LEGACY-ROOT-DIR to ROOT-DIR when migrating artifact storage.
-Migration only runs when LEGACY-ROOT-DIR exists and ROOT-DIR is absent or empty."
-  (when (and legacy-root-dir
-             (file-directory-p legacy-root-dir)
-             (not (file-equal-p legacy-root-dir root-dir))
-             (or (not (file-exists-p root-dir))
-                 (and (file-directory-p root-dir)
-                      (gptel-reinforce--directory-empty-p root-dir))))
-    (gptel-reinforce--ensure-directory (file-name-directory root-dir))
-    (when (file-directory-p root-dir)
-      (delete-directory root-dir))
-    (rename-file legacy-root-dir root-dir)))
-
-(defun gptel-reinforce--default-legacy-root-dir (name)
-  "Return the pre-refactor artifact root path for database NAME."
-  (file-name-as-directory
-   (expand-file-name
-    name
-    (expand-file-name "gptel-reinforce/" user-emacs-directory))))
-
 (defun gptel-reinforce--artifact-name (artifact)
   "Return the name of ARTIFACT."
   (if (gptel-reinforce-artifact-p artifact)
@@ -478,7 +457,6 @@ Optional keys:
                   <state-root>/<name>.sqlite.
   :root-dir       Root directory for artifact org files.  Defaults to
                   <config-root>/<name>/.
-  :legacy-root-dir  Old root-dir path to migrate from on startup.
 
 Returns the created `gptel-reinforce-database' struct.
 Calling again with the same :name replaces the existing registration."
@@ -494,12 +472,6 @@ Calling again with the same :name replaces the existing registration."
                     (expand-file-name
                      (or (plist-get plist :root-dir) name)
                      gptel-reinforce-config-root)))
-         (legacy-root-dir
-          (file-name-as-directory
-           (expand-file-name
-            (or (plist-get plist :legacy-root-dir)
-                (gptel-reinforce--default-legacy-root-dir name))
-            gptel-reinforce-config-root)))
          (database (gptel-reinforce-database-create
                     :name name
                     :candidate-fn candidate-fn
@@ -508,7 +480,6 @@ Calling again with the same :name replaces the existing registration."
     (unless (functionp candidate-fn)
       (user-error ":candidate-fn must be a function"))
     (gptel-reinforce--ensure-directory (file-name-directory db-path))
-    (gptel-reinforce--maybe-migrate-root-dir legacy-root-dir root-dir)
     (gptel-reinforce--ensure-directory root-dir)
     (puthash name database gptel-reinforce--databases)
     (gptel-reinforce-db-ensure-schema database)

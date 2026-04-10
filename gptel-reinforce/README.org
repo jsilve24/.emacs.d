@@ -562,7 +562,6 @@ To swap the LLM transport entirely, set =gptel-reinforce-backend-function= to a 
 | =:candidate-fn=    | yes      | —                            | Function → nil or plist with =:context=, optional =:priority= and =:label= |
 | =:db-path=         | no       | =<state-root>/<name>.sqlite= | SQLite file path                          |
 | =:root-dir=        | no       | =<config-root>/<name>/=      | Root directory for artifact org files     |
-| =:legacy-root-dir= | no       | old =~/.emacs.d/gptel-reinforce/<name>/= path | Old root-dir path; migrated automatically |
 
 *** =gptel-reinforce-register-artifact= keys
 

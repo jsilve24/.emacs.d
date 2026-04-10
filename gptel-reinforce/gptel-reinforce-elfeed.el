@@ -213,8 +213,7 @@ force re-seeding after editing the score file manually."
    :name gptel-reinforce-elfeed-database-name
    :candidate-fn #'gptel-reinforce-elfeed-candidate
    :db-path (expand-file-name "elfeed-ranking.sqlite" gptel-reinforce-state-root)
-   :root-dir (expand-file-name "elfeed-ranking/" gptel-reinforce-config-root)
-   :legacy-root-dir "elfeed-ranking")
+   :root-dir (expand-file-name "elfeed-ranking/" gptel-reinforce-config-root))
   (gptel-reinforce-register-artifact
    :name gptel-reinforce-elfeed-artifact-name
    :database gptel-reinforce-elfeed-database-name
