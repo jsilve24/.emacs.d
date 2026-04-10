@@ -33,7 +33,7 @@
   :type 'directory)
 
 (defcustom gptel-reinforce-config-root
-  (expand-file-name "gptel-reinforce/" user-emacs-directory)
+  (expand-file-name "var/gptel-reinforce/artifacts/" user-emacs-directory)
   "Directory holding human-editable Org files."
   :type 'directory)
 
@@ -147,6 +147,13 @@ Migration only runs when LEGACY-ROOT-DIR exists and ROOT-DIR is absent or empty.
     (when (file-directory-p root-dir)
       (delete-directory root-dir))
     (rename-file legacy-root-dir root-dir)))
+
+(defun gptel-reinforce--default-legacy-root-dir (name)
+  "Return the pre-refactor artifact root path for database NAME."
+  (file-name-as-directory
+   (expand-file-name
+    name
+    (expand-file-name "gptel-reinforce/" user-emacs-directory))))
 
 (defun gptel-reinforce--artifact-name (artifact)
   "Return the name of ARTIFACT."
@@ -487,9 +494,12 @@ Calling again with the same :name replaces the existing registration."
                     (expand-file-name
                      (or (plist-get plist :root-dir) name)
                      gptel-reinforce-config-root)))
-         (legacy-root-dir (when-let* ((legacy (plist-get plist :legacy-root-dir)))
-                            (file-name-as-directory
-                             (expand-file-name legacy gptel-reinforce-config-root))))
+         (legacy-root-dir
+          (file-name-as-directory
+           (expand-file-name
+            (or (plist-get plist :legacy-root-dir)
+                (gptel-reinforce--default-legacy-root-dir name))
+            gptel-reinforce-config-root)))
          (database (gptel-reinforce-database-create
                     :name name
                     :candidate-fn candidate-fn

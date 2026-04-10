@@ -506,7 +506,7 @@ The filename (without directory) becomes =VERSION_REF= in =current.org= and =art
 | Variable                      | Default                            | Description                                  |
 |-------------------------------+------------------------------------+----------------------------------------------|
 | =gptel-reinforce-state-root=  | =~/.emacs.d/var/gptel-reinforce/=  | Root for SQLite files and history snapshots  |
-| =gptel-reinforce-config-root= | =~/.emacs.d/gptel-reinforce/=      | Default root for artifact org files          |
+| =gptel-reinforce-config-root= | =~/.emacs.d/var/gptel-reinforce/artifacts/= | Default root for artifact org files |
 
 ** Review
 
@@ -542,7 +542,7 @@ To swap the LLM transport entirely, set =gptel-reinforce-backend-function= to a 
 | =:candidate-fn=    | yes      | —                            | Function → nil or plist with =:context=, optional =:priority= and =:label= |
 | =:db-path=         | no       | =<state-root>/<name>.sqlite= | SQLite file path                          |
 | =:root-dir=        | no       | =<config-root>/<name>/=      | Root directory for artifact org files     |
-| =:legacy-root-dir= | no       | nil                          | Old root-dir path; migrated automatically |
+| =:legacy-root-dir= | no       | old =~/.emacs.d/gptel-reinforce/<name>/= path | Old root-dir path; migrated automatically |
 
 *** =gptel-reinforce-register-artifact= keys
 
