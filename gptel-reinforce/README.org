@@ -51,7 +51,7 @@ Register a database and then register an artifact associated with that database:
 #+begin_src emacs-lisp
 (gptel-reinforce-register-database
  :name "my-db"
- :context-fn #'my-context-fn)
+ :candidate-fn #'my-candidate-fn)
 
 (gptel-reinforce-register-artifact
  :name "my-artifact"
@@ -127,7 +127,7 @@ A *database* represents one application context — an RSS reader, email client,
 
 - A SQLite file at =<state-root>/<name>.sqlite= for all feedback events
 - A root directory for artifact org files
-- A *context function* that describes what the user is looking at right now
+- A *candidate function* that says whether this database applies right now and, if so, describes the current item
 
 Multiple artifacts can share one database.
 
@@ -166,9 +166,19 @@ After that, =gptel-reinforce-like= and friends at that region automatically reco
 
 For the predefined elfeed integration you only ever use item feedback and none of this applies. Output feedback is only relevant if you build a custom workflow where an artifact generates text displayed to the user (i.e., LLM text completion).
 
-** Context functions
+** Candidate functions
 
-A context function describes what the user is looking at right now. It is called on every feedback command. It must return a plist or nil. The only required key is =:item-key= — a stable string that uniquely identifies the item. All other keys are optional:
+A candidate function is called in the current buffer on every item-feedback command. It must return either nil or a candidate plist. Returning nil means "this database does not apply here right now."
+
+The candidate plist must contain =:context=. It may also include =:priority= and =:label=.
+
+| Candidate key | Type    | Description                                                   |
+|---------------+---------+---------------------------------------------------------------|
+| =:context=    | plist   | *Required.* Item context used when recording feedback         |
+| =:priority=   | integer | Optional. Higher numbers win when multiple databases match    |
+| =:label=      | string  | Optional. Human-readable name shown in the chooser            |
+
+The =:context= plist must contain =:item-key=. All other context keys are optional:
 
 | Key             | Type   | Description                                  |
 |-----------------+--------+----------------------------------------------|
@@ -177,7 +187,7 @@ A context function describes what the user is looking at right now. It is called
 | =:primary-text= | string | Main content — excerpt, snippet, body        |
 | =:meta=         | plist  | Additional structured metadata (any keys)    |
 
-Return nil when not in a valid context. The feedback command will skip this database or prompt the user to choose one.
+When several databases return candidates, =gptel-reinforce= chooses the one with the highest =:priority=. If priorities tie, it can prompt you to choose. The chooser uses =:label= when present.
 
 * Commands
 
@@ -185,7 +195,7 @@ Return nil when not in a valid context. The feedback command will skip this data
 
 All feedback commands accept =C-u= as a prefix to prompt for an optional note.
 
-The base commands (=gptel-reinforce-like=, =-dislike=, =-neutral=, =-score=) auto-detect context: if point is inside annotated LLM output they record output-feedback against that artifact; otherwise they record item-feedback against the current item. These are the ones you typically bind to keys — they do the right thing in both contexts.
+The base commands (=gptel-reinforce-like=, =-dislike=, =-neutral=, =-score=) auto-detect context: if point is inside annotated LLM output they record output-feedback against that artifact; otherwise they ask the registered databases for item candidates and use the highest-priority match. These are the ones you typically bind to keys — they do the right thing in both contexts.
 
 The =-item= variants (=gptel-reinforce-like-item=, etc.) always record item-feedback regardless of where point is. Use them when you are inside annotated output but want to rate the underlying item rather than the output. =gptel-reinforce-score-output= always records output-feedback. It looks for provenance first at point (text properties), then falls back to the most recently tracked output in the current buffer (=gptel-reinforce-last-output-provenance=). It errors only if neither exists — meaning =gptel-reinforce-track-output-region= was never called in this buffer, so there is genuinely no record of which artifact or version produced the output.
 
@@ -209,7 +219,7 @@ The =-item= variants (=gptel-reinforce-like-item=, etc.) always record item-feed
 
 ** Utility
 
-*=gptel-reinforce-set-active-database DATABASE=* — pins a database to the current buffer. Feedback commands normally auto-detect which database applies by calling every registered context function and using whichever returns a non-nil result. This works fine when you are in an Elfeed buffer because that context function returns nil everywhere else. But if you register a custom database whose context function is broad (e.g., it returns something in any buffer, or in all Org files), auto-detection may pick the wrong database or prompt you to choose every time. Pinning a database with =set-active-database= bypasses auto-detection entirely for that buffer. The typical use is in a mode hook:
+*=gptel-reinforce-set-active-database DATABASE=* — pins a database to the current buffer. Feedback commands normally auto-detect by asking every registered database for a candidate, then choosing the highest-priority match. If you want a buffer-local override regardless of candidate priority, pin the database explicitly. The typical use is in a mode hook:
 
 #+begin_src emacs-lisp
 (add-hook 'my-special-mode-hook
@@ -233,7 +243,7 @@ Tracks your thumbs-up/thumbs-down feedback on RSS entries and uses it to iterati
 
 *Reload*: after an accepted update, the post-update hook writes the new text to =gptel-reinforce-elfeed-score-file= and calls =elfeed-score-load-score-file=, so scoring takes effect immediately without restarting Emacs.
 
-The context function works in both =elfeed-search-mode= and =elfeed-show-mode=, so you can give feedback from the search list or from inside an entry.
+The Elfeed candidate function works in both =elfeed-search-mode= and =elfeed-show-mode=, so you can give feedback from the search list or from inside an entry.
 
 To re-seed the artifact from the score file after editing it manually:
 
@@ -243,29 +253,32 @@ To re-seed the artifact from the score file after editing it manually:
 
 * Writing your own integration
 
-** 1. Write a context function
+** 1. Write a candidate function
 
-The context function is called in the user's current buffer on every feedback command. Return a plist or nil.
+The candidate function is called in the user's current buffer on every item-feedback command. Return nil when this database does not apply. Return a candidate plist when it does.
 
 #+begin_src emacs-lisp
-(defun my-context ()
-  "Return context for my-mode, or nil when not applicable."
+(defun my-candidate ()
+  "Return a candidate for my-mode, or nil when not applicable."
   (when (derived-mode-p 'my-mode)
     (when-let* ((item (my-current-item)))
-      (list :item-key     (my-item-id item)     ; required — must be stable
-            :title        (my-item-title item)  ; shown in echo area
-            :primary-text (my-item-body item)   ; sent to the LLM
-            :meta         (list :source (my-item-source item))))))
+      (list :priority 10
+            :label "My mode"
+            :context
+            (list :item-key     (my-item-id item)     ; required — must be stable
+                  :title        (my-item-title item)  ; shown in echo area
+                  :primary-text (my-item-body item)   ; sent to the LLM
+                  :meta         (list :source (my-item-source item)))))))
 #+end_src
 
-Guard with =(featurep ...)= and =(derived-mode-p ...)= so the function returns nil cleanly in unrelated buffers. =:item-key= should be a stable identifier that doesn't change across sessions — a URL, message-id, hash, etc.
+Guard with =(featurep ...)= and =(derived-mode-p ...)= so the function returns nil cleanly in unrelated buffers. =:item-key= should be a stable identifier that doesn't change across sessions — a URL, message-id, hash, etc. Use =:priority= only when multiple databases may plausibly apply in the same buffer and one should win by default.
 
 ** 2. Register the database and artifact
 
 #+begin_src emacs-lisp
 (gptel-reinforce-register-database
  :name "my-db"             ; required — unique string key
- :context-fn #'my-context) ; required
+ :candidate-fn #'my-candidate) ; required
 
 (gptel-reinforce-register-artifact
  :name "my-artifact"       ; required — unique within the database
@@ -285,7 +298,7 @@ See the full key reference in [[*Appendix C: Configuration variables][Appendix C
 (define-key my-mode-map (kbd "C-c -") #'gptel-reinforce-dislike)
 #+end_src
 
-Or set the active database in a mode hook to resolve ambiguity when multiple databases are registered:
+Or set the active database in a mode hook to override candidate-based selection entirely:
 
 #+begin_src emacs-lisp
 (add-hook 'my-mode-hook
@@ -374,11 +387,11 @@ Each database has one SQLite file. The only table is =feedback_events=. Rows are
 | =id=                   | INTEGER | no   | Primary key, monotonically increasing                         |
 | =created_at=           | TEXT    | no   | ISO-8601 timestamp                                            |
 | =event_type=           | TEXT    | no   | ="item-feedback"= or ="output-feedback"=                      |
-| =item_key=             | TEXT    | yes  | Stable identifier from the context function                   |
+| =item_key=             | TEXT    | yes  | Stable identifier from the candidate context                  |
 | =score=                | REAL    | no   | Numeric score (−1 / 0 / +1 or any float)                     |
 | =title=                | TEXT    | yes  | Human-readable label at feedback time                         |
 | =primary_text=         | TEXT    | yes  | Content excerpt at feedback time                              |
-| =meta_json=            | TEXT    | yes  | JSON-encoded =:meta= plist from the context function          |
+| =meta_json=            | TEXT    | yes  | JSON-encoded =:meta= plist from the candidate context         |
 | =note=                 | TEXT    | yes  | Optional free-text note attached by the user                  |
 | =artifact_name=        | TEXT    | yes  | Non-null only for ="output-feedback"= events                  |
 | =artifact_version_ref= | TEXT    | yes  | History filename of the artifact version that produced output |
@@ -522,7 +535,7 @@ To swap the LLM transport entirely, set =gptel-reinforce-backend-function= to a 
 | Key                | Required | Default                      | Description                               |
 |--------------------+----------+------------------------------+-------------------------------------------|
 | =:name=            | yes      | —                            | Unique string identifier                  |
-| =:context-fn=      | yes      | —                            | Function → context plist or nil           |
+| =:candidate-fn=    | yes      | —                            | Function → nil or plist with =:context=, optional =:priority= and =:label= |
 | =:db-path=         | no       | =<state-root>/<name>.sqlite= | SQLite file path                          |
 | =:root-dir=        | no       | =<config-root>/<name>/=      | Root directory for artifact org files     |
 | =:legacy-root-dir= | no       | nil                          | Old root-dir path; migrated automatically |

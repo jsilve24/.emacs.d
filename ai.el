@@ -95,7 +95,7 @@
 ;;; gptel-reinforce ------------------------------------------------------------
 (add-to-list 'load-path (expand-file-name "gptel-reinforce" user-emacs-directory))
 (require 'gptel-reinforce)
-(gptel-reinforce-register-elfeed-module)
+(require 'gptel-reinforce-elfeed)
 
 
 ;;; gptel-quick ----------------------------------------------------------------

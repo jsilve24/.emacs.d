@@ -1,6 +1,6 @@
 ;;; elfeed.el --- elfeed config -*- lexical-binding: t -*-
 
-(gptel-reinforce-register-elfeed-module)
+(require 'gptel-reinforce-elfeed)
 
 ;; Short display names keyed by URL substring — edit here to rename feeds
 (defvar jds/elfeed-feed-short-names

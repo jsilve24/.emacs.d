@@ -121,6 +121,13 @@
                    :authors (gptel-reinforce-elfeed-entry-authors entry)
                    :score-at-capture score)))))
 
+(defun gptel-reinforce-elfeed-candidate ()
+  "Return the current Elfeed reinforcement candidate, or nil."
+  (when-let* ((context (gptel-reinforce-elfeed-context)))
+    (list :context context
+          :priority 100
+          :label "Elfeed ranking")))
+
 (defun gptel-reinforce-elfeed-apply-score-file (_artifact _version-ref _current-record candidate-text)
   "Write CANDIDATE-TEXT to `gptel-reinforce-elfeed-score-file' and reload it."
   (gptel-reinforce--ensure-directory
@@ -189,7 +196,7 @@ When FORCE is non-nil, overwrite even if the artifact already has text."
   "Register the predefined Elfeed database and score-rule artifact.
 
 Creates a database named `gptel-reinforce-elfeed-database-name' with a
-context function that works in `elfeed-search-mode' and `elfeed-show-mode'.
+candidate function that works in `elfeed-search-mode' and `elfeed-show-mode'.
 
 Creates an artifact named `gptel-reinforce-elfeed-artifact-name' of type
 \"code\" (the artifact text is an elfeed-score Lisp file).  The artifact
@@ -204,7 +211,7 @@ Call `gptel-reinforce-elfeed-seed-score-file' with a non-nil argument to
 force re-seeding after editing the score file manually."
   (gptel-reinforce-register-database
    :name gptel-reinforce-elfeed-database-name
-   :context-fn #'gptel-reinforce-elfeed-context
+   :candidate-fn #'gptel-reinforce-elfeed-candidate
    :db-path (expand-file-name "elfeed-ranking.sqlite" gptel-reinforce-state-root)
    :root-dir (expand-file-name "elfeed-ranking/" gptel-reinforce-config-root)
    :legacy-root-dir "elfeed-ranking")
@@ -223,6 +230,8 @@ force re-seeding after editing the score file manually."
    :post-update-hook #'gptel-reinforce-elfeed-apply-score-file)
   (gptel-reinforce-elfeed-seed-score-file)
   t)
+
+(gptel-reinforce-register-elfeed-module)
 
 (provide 'gptel-reinforce-elfeed)
 

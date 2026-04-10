@@ -14,6 +14,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'seq)
 (require 'subr-x)
 (require 'json)
 
@@ -90,7 +91,7 @@ still bypasses review entirely."
 (cl-defstruct (gptel-reinforce-database
                (:constructor gptel-reinforce-database-create))
   name
-  context-fn
+  candidate-fn
   db-path
   root-dir)
 
@@ -231,6 +232,15 @@ Migration only runs when LEGACY-ROOT-DIR exists and ROOT-DIR is absent or empty.
     (gptel-reinforce--alist-to-plist context))
    (t (user-error "Context function must return a plist or alist"))))
 
+(defun gptel-reinforce--candidate-plist (candidate)
+  "Normalize CANDIDATE to a plist."
+  (cond
+   ((null candidate) nil)
+   ((and (listp candidate) (keywordp (car-safe candidate))) candidate)
+   ((and (listp candidate) (consp (car-safe candidate)))
+    (gptel-reinforce--alist-to-plist candidate))
+   (t (user-error "Candidate function must return a plist or alist"))))
+
 (defun gptel-reinforce-get-database (name)
   "Return the registered database NAME."
   (gethash name gptel-reinforce--databases))
@@ -265,66 +275,109 @@ Migration only runs when LEGACY-ROOT-DIR exists and ROOT-DIR is absent or empty.
         (user-error "Unknown artifact: %s" artifact)))
    (t (user-error "Expected an artifact name or artifact object"))))
 
-(defun gptel-reinforce-context-for-database (database)
-  "Run DATABASE's context function and return the normalized context plist.
-Returns nil when the context function returns nil (not in a valid context).
-Signals `user-error' when the result is missing the required :item-key."
+(defun gptel-reinforce-candidate-for-database (database)
+  "Return DATABASE's candidate plist for the current buffer, or nil.
+The candidate plist must include a :context plist with at least :item-key.
+Optional keys include :priority and :label."
   (let* ((db (gptel-reinforce-resolve-database database))
-         (context-fn (gptel-reinforce-database-context-fn db))
-         (context (and context-fn (funcall context-fn))))
-    (when context
-      (setq context (gptel-reinforce--context-plist context))
-      (unless (plist-get context :item-key)
-        (user-error "Context for %s did not include :item-key"
-                    (gptel-reinforce-database-name db))))
-    context))
+         (candidate-fn (gptel-reinforce-database-candidate-fn db))
+         (candidate (and candidate-fn (funcall candidate-fn))))
+    (when candidate
+      (setq candidate (gptel-reinforce--candidate-plist candidate))
+      (let ((context (gptel-reinforce--context-plist
+                      (plist-get candidate :context))))
+        (unless context
+          (user-error "Candidate for %s did not include :context"
+                      (gptel-reinforce-database-name db)))
+        (unless (plist-get context :item-key)
+          (user-error "Context for %s did not include :item-key"
+                      (gptel-reinforce-database-name db)))
+        (list :database db
+              :context context
+              :priority (or (plist-get candidate :priority) 0)
+              :label (or (plist-get candidate :label)
+                         (gptel-reinforce-database-name db)))))))
 
-(defun gptel-reinforce-detect-databases ()
-  "Return a list of (DATABASE . CONTEXT) pairs available at point."
+(defun gptel-reinforce-detect-database-candidates ()
+  "Return candidate plists for databases available at point.
+Candidates are sorted by descending priority, then by database name."
   (let (matches)
     (maphash
      (lambda (_name db)
        (condition-case nil
-           (when-let* ((context (gptel-reinforce-context-for-database db)))
-             (push (cons db context) matches))
+           (when-let* ((candidate (gptel-reinforce-candidate-for-database db)))
+             (push candidate matches))
          (error nil)))
      gptel-reinforce--databases)
-    (nreverse matches)))
+    (sort matches
+          (lambda (left right)
+            (let ((left-priority (plist-get left :priority))
+                  (right-priority (plist-get right :priority)))
+              (if (/= left-priority right-priority)
+                  (> left-priority right-priority)
+                (string<
+                 (gptel-reinforce-database-name (plist-get left :database))
+                 (gptel-reinforce-database-name (plist-get right :database)))))))))
+
+(defun gptel-reinforce--choose-database-candidate (candidates)
+  "Prompt for one of CANDIDATES and return the selected candidate plist."
+  (let* ((choices
+          (mapcar
+           (lambda (candidate)
+             (let ((db (plist-get candidate :database)))
+               (cons (format "%s [%s]"
+                             (plist-get candidate :label)
+                             (gptel-reinforce-database-name db))
+                     candidate)))
+           candidates))
+         (default (caar choices))
+         (selection (completing-read "Database: " choices nil t nil nil default)))
+    (or (cdr (assoc selection choices))
+        (user-error "Unknown database selection: %s" selection))))
 
 (defun gptel-reinforce-resolve-database-and-context (&optional database prompt)
   "Return a (DATABASE . CONTEXT) pair.
-If DATABASE is nil, infer it from the current context.  When PROMPT is
-non-nil and resolution is ambiguous, ask the user."
+If DATABASE is nil, infer it from the current buffer by collecting
+database candidates and choosing the highest-priority match.  When
+PROMPT is non-nil and several candidates tie for top priority, ask
+the user to choose among them."
   (cond
    (database
-    (let ((db (gptel-reinforce-resolve-database database)))
-      (cons db (gptel-reinforce-context-for-database db))))
+    (let* ((candidate (gptel-reinforce-candidate-for-database database))
+           (db (gptel-reinforce-resolve-database database)))
+      (cons db (plist-get candidate :context))))
    ((and gptel-reinforce-active-database
          (gptel-reinforce-get-database gptel-reinforce-active-database))
-    (let ((db (gptel-reinforce-get-database gptel-reinforce-active-database)))
-      (cons db (gptel-reinforce-context-for-database db))))
+    (let* ((db (gptel-reinforce-get-database gptel-reinforce-active-database))
+           (candidate (gptel-reinforce-candidate-for-database db)))
+      (cons db (plist-get candidate :context))))
    (t
-    (let ((matches (gptel-reinforce-detect-databases)))
+    (let ((matches (gptel-reinforce-detect-database-candidates)))
       (pcase matches
         (`nil
          (if prompt
              (let* ((name (completing-read "Database: "
                                            (gptel-reinforce-list-databases)
                                            nil t))
+                    (candidate (gptel-reinforce-candidate-for-database name))
                     (db (gptel-reinforce-resolve-database name)))
-               (cons db (gptel-reinforce-context-for-database db)))
+               (cons db (plist-get candidate :context)))
            (cons nil nil)))
-        (`((,db . ,context)) (cons db context))
+        (`(,candidate) (cons (plist-get candidate :database)
+                             (plist-get candidate :context)))
         (_
-         (if prompt
-             (let* ((choices (mapcar (lambda (entry)
-                                       (gptel-reinforce-database-name (car entry)))
-                                     matches))
-                    (name (completing-read "Database: " choices nil t))
-                    (db (gptel-reinforce-resolve-database name)))
-               (cons db (or (cdr (assoc db matches))
-                            (gptel-reinforce-context-for-database db))))
-           (car matches))))))))
+         (let* ((top-priority (plist-get (car matches) :priority))
+                (top-matches
+                 (seq-take-while
+                  (lambda (candidate)
+                    (= (plist-get candidate :priority) top-priority))
+                  matches))
+                (selected
+                 (if (and prompt (> (length top-matches) 1))
+                     (gptel-reinforce--choose-database-candidate top-matches)
+                   (car matches))))
+           (cons (plist-get selected :database)
+                 (plist-get selected :context)))))))))
 
 ;;;###autoload
 (defun gptel-reinforce-set-active-database (database)
@@ -406,10 +459,12 @@ registered :updater-user-prompt."
 
 Required keys:
   :name       Unique string identifier for this database.
-  :context-fn Function called in the user's buffer to describe the current
-              item.  Must return a plist with at least :item-key (a stable
-              unique string) or nil when not applicable.  Optional plist
-              keys: :title, :primary-text, :meta.
+  :candidate-fn Function called in the user's buffer to describe the current
+                candidate.  Must return nil when not applicable, or a plist
+                with at least :context.  The context must be a plist with at
+                least :item-key (a stable unique string).  Optional candidate
+                keys: :priority, :label.  When several databases return
+                candidates, higher priority wins; ties can prompt.
 
 Optional keys:
   :db-path        Path to the SQLite file.  Defaults to
@@ -422,8 +477,8 @@ Returns the created `gptel-reinforce-database' struct.
 Calling again with the same :name replaces the existing registration."
   (let* ((name (or (plist-get plist :name)
                    (user-error "Database registration requires :name")))
-         (context-fn (or (plist-get plist :context-fn)
-                         (user-error "Database registration requires :context-fn")))
+         (candidate-fn (or (plist-get plist :candidate-fn)
+                           (user-error "Database registration requires :candidate-fn")))
          (db-path (expand-file-name
                    (or (plist-get plist :db-path)
                        (format "%s.sqlite" name))
@@ -437,11 +492,11 @@ Calling again with the same :name replaces the existing registration."
                              (expand-file-name legacy gptel-reinforce-config-root))))
          (database (gptel-reinforce-database-create
                     :name name
-                    :context-fn context-fn
+                    :candidate-fn candidate-fn
                     :db-path db-path
                     :root-dir root-dir)))
-    (unless (functionp context-fn)
-      (user-error ":context-fn must be a function"))
+    (unless (functionp candidate-fn)
+      (user-error ":candidate-fn must be a function"))
     (gptel-reinforce--ensure-directory (file-name-directory db-path))
     (gptel-reinforce--maybe-migrate-root-dir legacy-root-dir root-dir)
     (gptel-reinforce--ensure-directory root-dir)

@@ -31,7 +31,10 @@
   "Register a test database with NAME, DB-PATH, and ROOT-DIR."
   (gptel-reinforce-register-database
    :name (or name "test-db")
-   :context-fn (lambda () '(:item-key "item-1" :title "Item"))
+   :candidate-fn (lambda ()
+                   '(:context (:item-key "item-1" :title "Item")
+                     :priority 0
+                     :label "Test DB"))
    :db-path (or db-path (expand-file-name "test-db.sqlite" gptel-reinforce-state-root))
    :root-dir (or root-dir (expand-file-name "test-db/" gptel-reinforce-config-root))))
 
