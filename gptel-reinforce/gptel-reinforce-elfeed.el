@@ -123,6 +123,8 @@
 
 (defun gptel-reinforce-elfeed-apply-score-file (_artifact _version-ref _current-record candidate-text)
   "Write CANDIDATE-TEXT to `gptel-reinforce-elfeed-score-file' and reload it."
+  (gptel-reinforce--ensure-directory
+   (file-name-directory gptel-reinforce-elfeed-score-file))
   (with-temp-file gptel-reinforce-elfeed-score-file
     (insert candidate-text))
   (when (featurep 'elfeed-score)
@@ -203,8 +205,8 @@ force re-seeding after editing the score file manually."
   (gptel-reinforce-register-database
    :name gptel-reinforce-elfeed-database-name
    :context-fn #'gptel-reinforce-elfeed-context
-   :db-path (expand-file-name "var/gptel-reinforce/elfeed-ranking.sqlite" user-emacs-directory)
-   :root-dir (expand-file-name "var/gptel-reinforce/elfeed-ranking/" user-emacs-directory)
+   :db-path (expand-file-name "elfeed-ranking.sqlite" gptel-reinforce-state-root)
+   :root-dir (expand-file-name "elfeed-ranking/" gptel-reinforce-config-root)
    :legacy-root-dir "elfeed-ranking")
   (gptel-reinforce-register-artifact
    :name gptel-reinforce-elfeed-artifact-name

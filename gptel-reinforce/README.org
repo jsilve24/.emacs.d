@@ -31,6 +31,13 @@ Artifacts improve gradually, driven by real usage rather than one-shot prompting
 
 * Quick start
 
+Requirements:
+
+- Emacs 29.1 or newer, built with SQLite support
+- [[https://github.com/karthink/gptel][gptel]] 0.9.9.4 or newer
+
+If your Emacs was built without SQLite support, loading =gptel-reinforce= will fail with a clear error because feedback storage depends on the built-in =sqlite= module.
+
 Load the package:
 
 #+begin_src emacs-lisp

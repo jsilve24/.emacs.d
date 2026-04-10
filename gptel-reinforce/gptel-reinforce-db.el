@@ -57,76 +57,7 @@
   (sqlite-execute connection
                   "CREATE INDEX IF NOT EXISTS feedback_events_artifact_name_idx
                    ON feedback_events(artifact_name)")
-  (gptel-reinforce-db--migrate-schema connection))
-
-(defun gptel-reinforce-db--table-exists-p (connection table)
-  "Return non-nil when TABLE exists in CONNECTION."
-  (> (caar
-      (sqlite-select
-       connection
-       "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = ?"
-       (list table)))
-     0))
-
-(defun gptel-reinforce-db--column-names (connection table)
-  "Return a list of column names for TABLE in CONNECTION."
-  (mapcar #'cadr
-          (sqlite-select connection (format "PRAGMA table_info(%s)" table))))
-
-(defun gptel-reinforce-db--migrate-feedback-events (connection)
-  "Ensure `feedback_events' uses the simplified schema."
-  (let ((columns (gptel-reinforce-db--column-names connection "feedback_events")))
-    (unless (member "artifact_version_ref" columns)
-      (let ((version-source
-             (if (member "artifact_version_id" columns)
-                 "COALESCE(CAST(artifact_version_id AS TEXT), '')"
-               "''")))
-      (sqlite-execute
-       connection
-       "ALTER TABLE feedback_events RENAME TO feedback_events_legacy")
-      (sqlite-execute
-       connection
-       "CREATE TABLE feedback_events (
-          id INTEGER PRIMARY KEY,
-          created_at TEXT NOT NULL,
-          event_type TEXT NOT NULL,
-          item_key TEXT,
-          score REAL NOT NULL,
-          title TEXT,
-          primary_text TEXT,
-          meta_json TEXT,
-          note TEXT,
-          artifact_name TEXT,
-          artifact_version_ref TEXT,
-          output_id TEXT
-        )")
-      (sqlite-execute
-       connection
-       (format
-        "INSERT INTO feedback_events
-         (id, created_at, event_type, item_key, score, title, primary_text,
-          meta_json, note, artifact_name, artifact_version_ref, output_id)
-         SELECT id, created_at, event_type, item_key, score, title, primary_text,
-                meta_json, note, artifact_name,
-                %s,
-                output_id
-         FROM feedback_events_legacy"
-        version-source))
-      (sqlite-execute connection "DROP TABLE feedback_events_legacy")
-      (sqlite-execute connection
-                      "CREATE INDEX IF NOT EXISTS feedback_events_event_type_idx
-                       ON feedback_events(event_type)")
-      (sqlite-execute connection
-                      "CREATE INDEX IF NOT EXISTS feedback_events_artifact_name_idx
-                       ON feedback_events(artifact_name)")))))
-
-(defun gptel-reinforce-db--migrate-schema (connection)
-  "Migrate CONNECTION to the simplified schema."
-  (gptel-reinforce-db--migrate-feedback-events connection)
-  (when (gptel-reinforce-db--table-exists-p connection "item_state")
-    (sqlite-execute connection "DROP TABLE item_state"))
-  (when (gptel-reinforce-db--table-exists-p connection "artifact_versions")
-    (sqlite-execute connection "DROP TABLE artifact_versions")))
+  connection)
 
 (defun gptel-reinforce-db-ensure-schema (database)
   "Ensure DATABASE's SQLite file exists and has the expected schema."

@@ -3,7 +3,7 @@
 ;; Author: Justin Silverman <justinsilverman@psu.edu>
 ;; Maintainer: Justin Silverman <justinsilverman@psu.edu>
 ;; Version: 0.1.0
-;; Package-Requires: ((emacs "30.1") (gptel "0"))
+;; Package-Requires: ((emacs "29.1") (gptel "0.9.9.4"))
 ;; Keywords: tools, convenience, ai
 
 ;;; Commentary:
