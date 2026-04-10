@@ -1,0 +1,113 @@
+:PROPERTIES:
+:DATABASE: elfeed-ranking
+:ARTIFACT: elfeed-score-rules
+:TYPE: code
+:VERSION_REF: 20260410T131957-elfeed-score-rules.org
+:UPDATED_AT: 2026-04-10T13:19:57-0400
+:AUTO_UPDATE: nil
+:END:
+
+* Current Text
+ ;;; Elfeed score file                                     -*- lisp -*-
+ ((version 10)
+  ("title"
+   ;; ---- Tier 1: core niche (+10) ----
+   (:text "partial.identif"         :value 10 :type r :comment "partial identification / partially identified")
+  (:text "uncertainty.quantif"     :value 10 :type r :comment "uncertainty quantification")
+   (:text "biological.scale"        :value 10 :type r)
+   (:text "scale.reliant\\|scale reliant" :value 10 :type r :comment "scale-reliant inference")
+   (:text "compositional.data"      :value 10 :type r)
+   (:text "differential.abundance"  :value 10 :type r)
+   (:text "absolute.abundance\\|absolute abundance" :value 10 :type r)
+   (:text "microbial.load\\|microbial load" :value 10 :type r)
+   (:text "quantitative.microbiome\\|quantitative microbiome" :value 10 :type r)
+   (:text "microbiome"              :value 10 :type r)
+   (:text "perturb.seq"             :value 10 :type r :comment "Perturb-seq")
+   (:text "single.cell\\|scRNA"     :value 10 :type r :comment "single-cell genomics")
+   (:text "normalizing.flow"        :value 10 :type r)
+   (:text "distribution.shift"      :value 10 :type r)
+   (:text "domain.generaliz"        :value 10 :type r :comment "domain generalization / generalizability")
+   (:text "pseudoreplication"       :value 10 :type r)
+   ;; ---- Tier 2: adjacent interests (+5) ----
+   (:text "bayesian"                :value  5 :type r)
+   (:text "variational.inference"   :value  5 :type r)
+   (:text "diffusion.model"         :value  5 :type r)
+   (:text "diffusion\\|denois"      :value  4 :type r :comment "diffusion / denoising models")
+   (:text "rectified.flow\\|rectified flow" :value 5 :type r)
+   (:text "flow.matching\\|flow matching" :value 5 :type r)
+   (:text "score.matching\\|score matching" :value 4 :type r)
+   (:text "optimal.transport\\|optimal transport" :value 4 :type r)
+   (:text "schrodinger.bridge\\|schrödinger bridge\\|schrodinger bridge" :value 4 :type r)
+   (:text "calibrat"                :value  5 :type r :comment "calibration / calibrated")
+   (:text "sensitivity.analysis"    :value  5 :type r)
+   (:text "weak.identif\\|weakly.identif" :value 5 :type r)
+   (:text "set.identif"             :value  5 :type r)
+   (:text "identifiab"              :value  5 :type r)
+   (:text "latent.variable"         :value  5 :type r)
+   (:text "measurement.error"       :value  5 :type r)
+   (:text "model.misspecif"         :value  5 :type r)
+   (:text "causal.discovery\\|causal discovery" :value 5 :type r)
+   (:text "confounding\\|unobserved.confounding" :value 5 :type r)
+   (:text "semiparametric"          :value  5 :type r)
+   (:text "conformal"               :value  5 :type r :comment "conformal prediction")
+   (:text "generative.model"        :value  5 :type r)
+   (:text "deep.generative"         :value  5 :type r)
+   (:text "genomics\\|bioinformatics" :value 5 :type r)
+   (:text "rna.seq\\|rnaseq\\|scrna" :value 5 :type r)
+   (:text "crispr"                  :value  5 :type r)
+   (:text "spatial.transcriptomics\\|spatial.omics" :value 5 :type r)
+   (:text "multimodal"              :value  3 :type r)
+   (:text "high.throughput"         :value  5 :type r)
+   (:text "reproducib"              :value  5 :type r :comment "reproducibility / reproducible")
+   (:text "batch.effect\\|batch effect" :value 5 :type r)
+   (:text "batch.correction\\|batch correction" :value 5 :type r)
+   (:text "harmoniz\\|integration"  :value  5 :type r)
+   (:text "domain.adaptation\\|domain adaptation" :value 5 :type r)
+   (:text "zero.inflat\\|zero inflat" :value 5 :type r)
+   (:text "overdispersion\\|over-dispersion" :value 5 :type r)
+   (:text "differential.expression" :value  4 :type r)
+   (:text "benchmark\\|benchmarking\\|pitfalls\\|replicab" :value 4 :type r))
+  ("feed"
+   ;; curated journals: base +5 so all entries pass threshold
+   (:text "academic.oup.com/rss/site_6513"  :value  5 :type r :attr u :comment "JRSSB")
+   (:text "tandfonline.com/feed/rss/uasa20" :value  5 :type r :attr u :comment "JASA")
+   (:text "annualreviews.org.*statistics"   :value  5 :type r :attr u :comment "Annual Review of Stats")
+   (:text "nature.com/nmeth"                :value  5 :type r :attr u :comment "Nature Methods")
+   ;; arxiv penalties reflect expected yield by field
+   (:text "arxiv.org/rss/stat.ME"   :value -2 :type r :attr u :comment "arXiv stat.ME")
+   (:text "arxiv.org/rss/stat.ML"   :value -4 :type r :attr u :comment "arXiv stat.ML")
+   (:text "arxiv.org/rss/cs.LG"     :value -6 :type r :attr u :comment "arXiv cs.LG")
+   (:text "arxiv.org/rss/q-bio.GN"  :value -3 :type r :attr u :comment "arXiv q-bio.GN")
+   (:text "arxiv.org/rss/q-bio.QM"  :value -4 :type r :attr u :comment "arXiv q-bio.QM"))
+  ("title-or-content"
+   (:text "partial.identif"         :title-value 10 :content-value 5 :type r)
+   (:text "measurement.error"       :title-value  6 :content-value 4 :type r)
+   (:text "distribution.shift\\|covariate.shift\\|concept.shift" :title-value 8 :content-value 4 :type r)
+   (:text "class.conditional.coverage\\|conditional coverage" :title-value 7 :content-value 4 :type r)
+   (:text "batch.effect\\|harmoniz\\|domain adaptation" :title-value 7 :content-value 4 :type r))
+  ("content")
+  ("tag")
+  ("authors"
+   (:text "Silverman"    :value 12 :type s)
+   (:text "Gloor"        :value 10 :type s)
+   (:text "Aitchison"    :value 10 :type s)
+   (:text "Gustafson"    :value  8 :type s)
+   (:text "Greenland"    :value  8 :type s)
+   (:text "Chernozhukov" :value  7 :type s)
+   (:text "Angelopoulos" :value  6 :type s)
+   (:text "Dawid"        :value  6 :type s)
+   (:text "Gelman"       :value  5 :type s)
+   (:text "Callahan"     :value  5 :type s)
+   (:text "McLaren"      :value  5 :type s)
+   (:text "Kharchenko"   :value  5 :type s)
+   (:text "Heimberg"     :value  5 :type s))
+  ("link")
+  ("udf")
+  (mark nil)
+  ("adjust-tags"))
+
+* Summarizer User Prompt
+ Prefer stable scoring rules for research papers, methods, and high-value feeds.
+
+* Updater User Prompt
+ Keep the score file readable and prefer conservative edits.

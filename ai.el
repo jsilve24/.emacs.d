@@ -92,7 +92,12 @@
                         (insert response)
                         (set-marker pos nil))))))))
 
+;;; gptel-reinforce ------------------------------------------------------------
+(add-to-list 'load-path (expand-file-name "gptel-reinforce" user-emacs-directory))
+(require 'gptel-reinforce)
 
+
+;;; gptel-quick ----------------------------------------------------------------
 (use-package gptel-quick
   :straight (gptel-quick :type git :host github :repo "karthink/gptel-quick")
   :config

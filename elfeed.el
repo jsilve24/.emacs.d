@@ -1,5 +1,7 @@
 ;;; elfeed.el --- elfeed config -*- lexical-binding: t -*-
 
+(gptel-reinforce-register-elfeed-module)
+
 ;; Short display names keyed by URL substring — edit here to rename feeds
 (defvar jds/elfeed-feed-short-names
   '(("uasa20"           . "JASA")
@@ -122,6 +124,16 @@
         (elfeed-show-entry next-entry)
       (funcall elfeed-show-entry-delete))))
 
+(defun jds/elfeed-capture-reading-list (prefix)
+  "Store the current Elfeed entry as a reading-list item.
+With PREFIX, prompt for a note while recording positive feedback."
+  (interactive "P")
+  (require 'ol)
+  (require 'org-capture)
+  (gptel-reinforce-like prefix "elfeed-ranking")
+  (org-store-link nil t)
+  (org-capture nil "r"))
+
 (use-package elfeed
   :config
   (setq elfeed-use-curl t)
@@ -179,4 +191,12 @@
   "l" #'jds/elfeed-capture-reading-list
   "u" #'elfeed-update)
 
-(load (expand-file-name "elfeed-ai" user-emacs-directory) nil t)
+(with-eval-after-load 'elfeed
+  (evil-collection-define-key 'normal 'elfeed-search-mode-map
+    "+" #'gptel-reinforce-like
+    "-" #'gptel-reinforce-dislike
+    "0" #'gptel-reinforce-neutral)
+  (evil-collection-define-key 'normal 'elfeed-show-mode-map
+    "+" #'gptel-reinforce-like
+    "-" #'gptel-reinforce-dislike
+    "0" #'gptel-reinforce-neutral))
