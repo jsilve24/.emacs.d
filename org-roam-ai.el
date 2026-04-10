@@ -34,7 +34,8 @@ When nil, use the active `gptel-model'."
 (defcustom jds/org-roam-ai-linking-system-prompt
   (concat
    "You suggest concept links for an org-roam note. "
-   "Output only Org list items in this exact form: - [[id:ID][TITLE]] :: rationale")
+   "Prefer adding links to existing phrases already present in the note. "
+   "Be sparing and only choose high-value links.")
   "System prompt used when proposing concept links."
   :type 'string
   :group 'jds/org-roam-ai)
@@ -49,6 +50,11 @@ When nil, use the active `gptel-model'."
   "Prefer high-signal conceptual links and avoid weak or redundant links."
   "Default user directive used for link suggestion when no prefix arg is supplied."
   :type 'string
+  :group 'jds/org-roam-ai)
+
+(defcustom jds/org-roam-ai-max-inline-links 4
+  "Maximum number of inline links to add per suggestion run."
+  :type 'integer
   :group 'jds/org-roam-ai)
 
 (defun jds/org-roam-ai--in-roam-file-p ()
@@ -159,9 +165,47 @@ it appends a new section at point."
                     (org-roam-node-title n)))
           (org-roam-node-list)))
 
+(defun jds/org-roam-ai--point-in-org-link-p (pos)
+  "Return non-nil when POS is inside an Org link."
+  (save-excursion
+    (goto-char pos)
+    (let ((context (org-element-context)))
+      (eq (org-element-type context) 'link))))
+
+(defun jds/org-roam-ai--insert-inline-link-once (phrase id)
+  "Link one unlinked occurrence of PHRASE to org-roam node ID.
+Return non-nil if insertion happened."
+  (save-excursion
+    (goto-char (point-min))
+    (let ((linked nil)
+          (case-fold-search nil))
+      (while (and (not linked)
+                  (search-forward phrase nil t))
+        (let ((beg (match-beginning 0))
+              (end (match-end 0)))
+          (unless (or (jds/org-roam-ai--point-in-org-link-p beg)
+                      (jds/org-roam-ai--point-in-org-link-p end))
+            (replace-match (format "[[id:%s][%s]]" id phrase) t t)
+            (setq linked t))))
+      linked)))
+
+(defun jds/org-roam-ai--parse-link-plan (response)
+  "Parse RESPONSE into a list of (PHRASE ID TITLE RATIONALE).
+Expected format per line: phrase<TAB>id<TAB>title<TAB>rationale."
+  (let ((lines (split-string response "\n" t "[ \t\n\r]+"))
+        items)
+    (dolist (line lines (nreverse items))
+      (let ((parts (split-string line "\t")))
+        (when (>= (length parts) 3)
+          (push (list (nth 0 parts)
+                      (nth 1 parts)
+                      (nth 2 parts)
+                      (or (nth 3 parts) ""))
+                items))))))
+
 ;;;###autoload
 (defun jds/org-roam-ai-suggest-links (&optional ask-directive)
-  "Suggest concept links for current note and insert suggestions at point."
+  "Suggest and insert sparse, high-value inline links in the current note."
   (interactive "P")
   (unless (jds/org-roam-ai--in-roam-file-p)
     (user-error "This command is intended for org-roam files"))
@@ -174,12 +218,19 @@ it appends a new section at point."
          (content (buffer-substring-no-properties (point-min) (point-max)))
          (candidates (string-join (jds/org-roam-ai--node-candidates-for-linking) "\n"))
          (prompt (format
-                  "%s\n\nDirective: %s\n\nCurrent note:\n%s\n\nAvailable nodes (id | title):\n%s\n\nPick the most relevant links and return only Org list items."
+                  (concat
+                   "%s\n\nDirective: %s\n\nCurrent note:\n%s\n\nAvailable nodes (id | title):\n%s\n\n"
+                   "Task:\n"
+                   "1) Choose at most %d helpful links.\n"
+                   "2) Prioritize phrases that already appear verbatim in the note body.\n"
+                   "3) Avoid overwhelming the text; skip weak links.\n"
+                   "4) Return ONLY tab-separated lines in this format:\n"
+                   "phrase<TAB>id<TAB>title<TAB>brief rationale\n")
                   (jds/org-roam-ai--node-context)
                   directive
                   content
-                  candidates))
-         (insert-point (point-marker)))
+                  candidates
+                  jds/org-roam-ai-max-inline-links)))
     (jds/org-roam-ai--request
      prompt
      jds/org-roam-ai-linking-system-prompt
@@ -187,11 +238,17 @@ it appends a new section at point."
        (if (not response)
            (message "org-roam-ai linking error: %s" (plist-get info :status))
          (with-current-buffer buf
-           (goto-char insert-point)
-           (insert "\n* AI link suggestions\n" response "\n")
-           (set-marker insert-point nil)
-           (save-buffer)
-           (message "org-roam-ai link suggestions inserted")))))))
+           (let* ((plan (jds/org-roam-ai--parse-link-plan response))
+                  (applied 0))
+             (dolist (entry plan)
+               (pcase-let ((`(,phrase ,id ,_title ,_why) entry))
+                 (when (and (< applied jds/org-roam-ai-max-inline-links)
+                            (not (string-empty-p phrase))
+                            (not (string-empty-p id))
+                            (jds/org-roam-ai--insert-inline-link-once phrase id))
+                   (setq applied (1+ applied)))))
+             (save-buffer)
+             (message "org-roam-ai added %d inline link(s)" applied))))))))
 
 (defvar jds/org-roam-ai-mode-map
   (let ((map (make-sparse-keymap)))
