@@ -57,6 +57,12 @@
   (sqlite-execute connection
                   "CREATE INDEX IF NOT EXISTS feedback_events_artifact_name_idx
                    ON feedback_events(artifact_name)")
+  (sqlite-execute connection
+                  "CREATE INDEX IF NOT EXISTS feedback_events_item_key_idx
+                   ON feedback_events(item_key)")
+  (sqlite-execute connection
+                  "CREATE INDEX IF NOT EXISTS feedback_events_output_id_idx
+                   ON feedback_events(output_id)")
   connection)
 
 (defun gptel-reinforce-db-ensure-schema (database)
@@ -70,13 +76,15 @@
 (defun gptel-reinforce-db-record-feedback (database event)
   "Insert or update feedback EVENT in DATABASE and return the row id.
 
-If an existing row with the same item_key and event_type exists, it is
-overwritten (preserving its id).  Otherwise a new row is inserted.
+Item feedback overwrites any existing row with the same item_key.
+Output feedback overwrites any existing row with the same output_id.
+In both cases the existing row id is preserved.  Otherwise a new row is
+inserted.
 
 EVENT is a plist with these keys:
   :event-type   Required.  \"item-feedback\" or \"output-feedback\".
   :score        Required.  Numeric score (e.g. -1, 0, 1, or any float).
-  :item-key     Stable unique identifier from the context function.
+  :item-key     Stable unique identifier from the candidate context.
   :title        Human-readable label for the item.
   :primary-text Content excerpt for the item.
   :meta         Plist of additional metadata; JSON-encoded for storage.
@@ -101,11 +109,22 @@ EVENT is a plist with these keys:
         (created-at (or (plist-get event :created-at) (gptel-reinforce--timestamp))))
     (gptel-reinforce-db-with-connection database
       (let ((existing-id
-             (when item-key
+             (cond
+              ((and (string= event-type "output-feedback") output-id)
                (caar (sqlite-select
                       connection
-                      "SELECT id FROM feedback_events WHERE item_key = ? AND event_type = ? LIMIT 1"
-                      (list item-key event-type))))))
+                      "SELECT id FROM feedback_events
+                       WHERE output_id = ? AND event_type = 'output-feedback'
+                       LIMIT 1"
+                      (list output-id))))
+              ((and (string= event-type "item-feedback") item-key)
+               (caar (sqlite-select
+                      connection
+                      "SELECT id FROM feedback_events
+                       WHERE item_key = ? AND event_type = 'item-feedback'
+                       LIMIT 1"
+                      (list item-key))))
+              (t nil))))
         (if existing-id
             (progn
               (sqlite-execute

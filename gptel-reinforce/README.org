@@ -199,6 +199,8 @@ The base commands (=gptel-reinforce-like=, =-dislike=, =-neutral=, =-score=) aut
 
 The =-item= variants (=gptel-reinforce-like-item=, etc.) always record item-feedback regardless of where point is. Use them when you are inside annotated output but want to rate the underlying item rather than the output. =gptel-reinforce-score-output= always records output-feedback. It looks for provenance first at point (text properties), then falls back to the most recently tracked output in the current buffer (=gptel-reinforce-last-output-provenance=). It errors only if neither exists — meaning =gptel-reinforce-track-output-region= was never called in this buffer, so there is genuinely no record of which artifact or version produced the output.
 
+Repeated feedback overwrites the previous score for the same target instead of creating duplicates. For items, the key is =:item-key=. For outputs, the key is =:output-id=.
+
 | Command                         | Score | Target                             |
 |---------------------------------+-------+------------------------------------|
 | =gptel-reinforce-like=          | +1    | Output at point, else current item |
@@ -378,7 +380,7 @@ For text not inserted into a buffer, use =gptel-reinforce-propertize-output= to 
 
 * Appendix A: Database schema
 
-Each database has one SQLite file. The only table is =feedback_events=. Rows are never updated or deleted — the table is append-only.
+Each database has one SQLite file. The only table is =feedback_events=. Feedback is de-duplicated per target: item feedback overwrites the existing row for the same =item_key=, and output feedback overwrites the existing row for the same =output_id=. New targets create new rows.
 
 ** =feedback_events=
 
@@ -401,6 +403,8 @@ Each database has one SQLite file. The only table is =feedback_events=. Rows are
 
 - =feedback_events_event_type_idx= on =event_type=
 - =feedback_events_artifact_name_idx= on =artifact_name=
+- =feedback_events_item_key_idx= on =item_key=
+- =feedback_events_output_id_idx= on =output_id=
 
 ** Summarization query
 

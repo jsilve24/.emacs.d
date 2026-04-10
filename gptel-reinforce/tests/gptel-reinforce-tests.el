@@ -140,6 +140,78 @@
           (buffer-string))
         "((bar . 2))\n")))))
 
+(ert-deftest gptel-reinforce-resolve-database-prefers-highest-priority-candidate ()
+  (gptel-reinforce-test-with-temp-env
+    (gptel-reinforce-register-database
+     :name "low"
+     :candidate-fn (lambda ()
+                     '(:context (:item-key "item-low" :title "Low")
+                       :priority 1
+                       :label "Low priority")))
+    (gptel-reinforce-register-database
+     :name "high"
+     :candidate-fn (lambda ()
+                     '(:context (:item-key "item-high" :title "High")
+                       :priority 10
+                       :label "High priority")))
+    (pcase-let ((`(,db . ,context)
+                 (gptel-reinforce-resolve-database-and-context nil nil)))
+      (should (equal (gptel-reinforce-database-name db) "high"))
+      (should (equal (plist-get context :item-key) "item-high")))))
+
+(ert-deftest gptel-reinforce-db-overwrites-item-feedback-for-same-item ()
+  (gptel-reinforce-test-with-temp-env
+    (gptel-reinforce-test--register-database)
+    (let ((first-id
+           (gptel-reinforce-db-record-feedback
+            "test-db"
+            '(:event-type "item-feedback"
+              :item-key "item-1"
+              :score 1
+              :title "First")))
+          (second-id
+           (gptel-reinforce-db-record-feedback
+            "test-db"
+            '(:event-type "item-feedback"
+              :item-key "item-1"
+              :score -1
+              :title "Second"))))
+      (should (= first-id second-id))
+      (should (= 1 (gptel-reinforce-db-feedback-event-count "test-db")))
+      (let ((event (car (gptel-reinforce-db-feedback-since "test-db" 0 nil))))
+        (should (= (plist-get event :score) -1))
+        (should (equal (plist-get event :title) "Second"))))))
+
+(ert-deftest gptel-reinforce-db-overwrites-output-feedback-for-same-output ()
+  (gptel-reinforce-test-with-temp-env
+    (gptel-reinforce-test--register-database)
+    (let ((first-id
+           (gptel-reinforce-db-record-feedback
+            "test-db"
+            '(:event-type "output-feedback"
+              :item-key "item-1"
+              :artifact-name "artifact-1"
+              :artifact-version-ref "v1"
+              :output-id "output-1"
+              :score 1
+              :title "First output")))
+          (second-id
+           (gptel-reinforce-db-record-feedback
+            "test-db"
+            '(:event-type "output-feedback"
+              :item-key "item-1"
+              :artifact-name "artifact-1"
+              :artifact-version-ref "v1"
+              :output-id "output-1"
+              :score 0
+              :title "Updated output"))))
+      (should (= first-id second-id))
+      (should (= 1 (gptel-reinforce-db-feedback-event-count "test-db")))
+      (let ((event (car (gptel-reinforce-db-feedback-since "test-db" 0 "artifact-1"))))
+        (should (= (plist-get event :score) 0))
+        (should (equal (plist-get event :output-id) "output-1"))
+        (should (equal (plist-get event :title) "Updated output"))))))
+
 (provide 'gptel-reinforce-tests)
 
 ;;; gptel-reinforce-tests.el ends here
