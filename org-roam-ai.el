@@ -181,11 +181,14 @@ Return non-nil if insertion happened."
           (case-fold-search t))
       (while (and (not linked)
                   (search-forward phrase nil t))
-        (let ((beg (match-beginning 0))
-              (end (match-end 0)))
+        (let* ((end (point))
+               (beg (- end (length phrase)))
+               (matched-text (buffer-substring-no-properties beg end)))
           (unless (or (jds/org-roam-ai--point-in-org-link-p beg)
                       (jds/org-roam-ai--point-in-org-link-p end))
-            (replace-match (format "[[id:%s][%s]]" id phrase) t t)
+            (delete-region beg end)
+            (goto-char beg)
+            (insert (format "[[id:%s][%s]]" id matched-text))
             (setq linked t))))
       linked)))
 
@@ -218,6 +221,19 @@ Expected format per line: phrase<TAB>id<TAB>title<TAB>rationale."
       (setq start (match-end 0)))
     (nreverse links)))
 
+(defun jds/org-roam-ai--response-link-candidates (response)
+  "Return linking candidates parsed from RESPONSE.
+Prefer explicit tab-separated plans, but fall back to org-link titles so
+inline insertion still runs when the model replies with raw links."
+  (let ((plan (jds/org-roam-ai--parse-link-plan response))
+        (fallback-links (jds/org-roam-ai--extract-org-id-links response)))
+    (if plan
+        plan
+      (mapcar (lambda (item)
+                (pcase-let ((`(,id ,title) item))
+                  (list title id title "")))
+              fallback-links))))
+
 (defun jds/org-roam-ai--append-related-links (links)
   "Append LINKS to a RELATED drawer.
 LINKS should be a list of (ID TITLE)."
@@ -232,6 +248,7 @@ LINKS should be a list of (ID TITLE)."
                                (line-beginning-position)
                              (point-max))))
              (inserted 0)
+             (seen-ids (make-hash-table :test #'equal))
              beg end)
         ;; find existing RELATED drawer within metadata area
         (when (search-forward-regexp drawer-beg-regexp meta-bound t)
@@ -251,14 +268,17 @@ LINKS should be a list of (ID TITLE)."
           (goto-char beg)
           (search-forward-regexp drawer-end-regexp nil t)
           (setq end (line-beginning-position)))
+        (save-excursion
+          (goto-char beg)
+          (while (re-search-forward "\\[\\[id:\\([^]]+\\)\\]\\[" end t)
+            (puthash (match-string 1) t seen-ids)))
         ;; insert list items immediately before :END:, skipping duplicates
         (goto-char end)
         (dolist (item links inserted)
           (pcase-let ((`(,id ,title) item))
-            (unless (save-excursion
-                      (goto-char beg)
-                      (search-forward (format "[[id:%s][" id) end t))
+            (unless (gethash id seen-ids)
               (insert (format "- [[id:%s][%s]]\n" id title))
+              (puthash id t seen-ids)
               (setq inserted (1+ inserted)))))))))
 
 ;;;###autoload
@@ -296,27 +316,27 @@ LINKS should be a list of (ID TITLE)."
        (if (not response)
            (message "org-roam-ai linking error: %s" (plist-get info :status))
          (with-current-buffer buf
-           (let* ((plan (jds/org-roam-ai--parse-link-plan response))
-                  (fallback-links (jds/org-roam-ai--extract-org-id-links response))
+           (let* ((plan (jds/org-roam-ai--response-link-candidates response))
                   (applied 0)
-                  (related-added 0))
+                  (related-added 0)
+                  (unmatched nil))
              (dolist (entry plan)
                (pcase-let ((`(,phrase ,id ,_title ,_why) entry))
-                 (when (and (< applied jds/org-roam-ai-max-inline-links)
-                            (not (string-empty-p phrase))
-                            (not (string-empty-p id))
-                            (or (jds/org-roam-ai--insert-inline-link-once phrase id)
-                                (jds/org-roam-ai--insert-inline-link-once _title id)))
-                   (setq applied (1+ applied)))))
+                 (cond
+                  ((or (>= applied jds/org-roam-ai-max-inline-links)
+                       (string-empty-p id))
+                   nil)
+                  ((or (and (not (string-empty-p phrase))
+                            (jds/org-roam-ai--insert-inline-link-once phrase id))
+                       (and (not (string-empty-p _title))
+                            (jds/org-roam-ai--insert-inline-link-once _title id)))
+                   (setq applied (1+ applied)))
+                  (t
+                   (push (list id _title) unmatched)))))
              (when (< applied jds/org-roam-ai-max-inline-links)
                (let ((remaining (- jds/org-roam-ai-max-inline-links applied))
-                     (to-append nil)
-                     (fallback-pool
-                      (or fallback-links
-                          (mapcar (lambda (entry)
-                                    (list (nth 1 entry) (nth 2 entry)))
-                                  plan))))
-                 (dolist (item fallback-pool)
+                     (to-append nil))
+                 (dolist (item (nreverse unmatched))
                    (when (> remaining 0)
                      (pcase-let ((`(,id ,title) item))
                        (push (list id title) to-append)
