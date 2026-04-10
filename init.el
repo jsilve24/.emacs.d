@@ -59,7 +59,6 @@
 (load-config "autoloads/references.el")
 (load-config "ssh.el")
 (load-config "org-roam.el")
-(load-config "org-roam-ai.el")
 (load-config "lsp.el")
 (load-config "treesitter.el")
 (load-config "autoloads/avy-tex-math.el")

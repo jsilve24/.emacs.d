@@ -41,7 +41,10 @@
 	(lambda ()
 	  (not (member "ROAM_EXCLUDE" (org-get-tags)))))
 
-  (org-roam-setup))
+  (org-roam-setup)
+
+  ;; AI helpers that depend on org-roam being configured.
+  (require 'org-roam-ai))
 
 ;;;###autoload
 (defun jds~org-move-beyond-header ()
