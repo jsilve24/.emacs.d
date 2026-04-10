@@ -107,6 +107,7 @@ When PREFIX is non-nil, prompt for a note.  Use PROVENANCE if supplied."
                event-id)
       event-id)))
 
+;;;###autoload
 (defun gptel-reinforce-score-output (prefix &optional score database provenance)
   "Record output feedback.
 With PREFIX, prompt for a note."
@@ -114,6 +115,7 @@ With PREFIX, prompt for a note."
   (let ((score (or score (read-number "Output score: "))))
     (gptel-reinforce--record-output-feedback score prefix provenance database)))
 
+;;;###autoload
 (defun gptel-reinforce-score-item (prefix &optional score database)
   "Record item feedback.
 With PREFIX, prompt for a note."
@@ -121,24 +123,28 @@ With PREFIX, prompt for a note."
   (let ((score (or score (read-number "Item score: "))))
     (gptel-reinforce--record-item-feedback score prefix database)))
 
+;;;###autoload
 (defun gptel-reinforce-like-item (prefix &optional database)
   "Record +1 item feedback.
 With PREFIX, prompt for a note."
   (interactive "P")
   (gptel-reinforce--record-item-feedback 1 prefix database))
 
+;;;###autoload
 (defun gptel-reinforce-dislike-item (prefix &optional database)
   "Record -1 item feedback.
 With PREFIX, prompt for a note."
   (interactive "P")
   (gptel-reinforce--record-item-feedback -1 prefix database))
 
+;;;###autoload
 (defun gptel-reinforce-neutral-item (prefix &optional database)
   "Record 0 item feedback.
 With PREFIX, prompt for a note."
   (interactive "P")
   (gptel-reinforce--record-item-feedback 0 prefix database))
 
+;;;###autoload
 (defun gptel-reinforce-like (prefix &optional database)
   "Record +1 feedback for the current output when available, else the current item.
 With PREFIX, prompt for a note."
@@ -147,6 +153,7 @@ With PREFIX, prompt for a note."
       (gptel-reinforce--record-output-feedback 1 prefix nil database)
     (gptel-reinforce--record-item-feedback 1 prefix database)))
 
+;;;###autoload
 (defun gptel-reinforce-dislike (prefix &optional database)
   "Record -1 feedback for the current output when available, else the current item.
 With PREFIX, prompt for a note."
@@ -155,6 +162,7 @@ With PREFIX, prompt for a note."
       (gptel-reinforce--record-output-feedback -1 prefix nil database)
     (gptel-reinforce--record-item-feedback -1 prefix database)))
 
+;;;###autoload
 (defun gptel-reinforce-neutral (prefix &optional database)
   "Record 0 feedback for the current output when available, else the current item.
 With PREFIX, prompt for a note."
@@ -163,6 +171,7 @@ With PREFIX, prompt for a note."
       (gptel-reinforce--record-output-feedback 0 prefix nil database)
     (gptel-reinforce--record-item-feedback 0 prefix database)))
 
+;;;###autoload
 (defun gptel-reinforce-score (prefix &optional score database)
   "Record numeric feedback for output when available, else for the current item.
 With PREFIX, prompt for a note."
@@ -272,6 +281,7 @@ Return the accepted text, or nil when rejected."
     ('smerge (gptel-reinforce--show-smerge-review title old-text new-text))
     (_ (user-error "Unsupported review mode: %S" review-mode))))
 
+;;;###autoload
 (defun gptel-reinforce-summarize (artifact)
   "Summarize new feedback for ARTIFACT."
   (interactive
@@ -316,6 +326,7 @@ Return the accepted text, or nil when rejected."
                       (gptel-reinforce-artifact-name artifact)
                       target-event-id))))))))
 
+;;;###autoload
 (defun gptel-reinforce-update (artifact)
   "Update ARTIFACT from its current summary."
   (interactive

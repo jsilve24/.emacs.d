@@ -164,7 +164,7 @@ The =-item= variants (=gptel-reinforce-like-item=, etc.) always record item-feed
 
 ** Utility
 
-*=gptel-reinforce-set-active-database DATABASE=* — pins a database to the current buffer. Feedback commands normally auto-detect which database applies by calling every registered context function and using whichever returns a non-nil result. This works fine when you are in an elfeed or mu4e buffer because those context functions return nil everywhere else. But if you register a custom database whose context function is broad (e.g., it returns something in any buffer, or in all Org files), auto-detection may pick the wrong database or prompt you to choose every time. Pinning a database with =set-active-database= bypasses auto-detection entirely for that buffer. The typical use is in a mode hook:
+*=gptel-reinforce-set-active-database DATABASE=* — pins a database to the current buffer. Feedback commands normally auto-detect which database applies by calling every registered context function and using whichever returns a non-nil result. This works fine when you are in an Elfeed buffer because that context function returns nil everywhere else. But if you register a custom database whose context function is broad (e.g., it returns something in any buffer, or in all Org files), auto-detection may pick the wrong database or prompt you to choose every time. Pinning a database with =set-active-database= bypasses auto-detection entirely for that buffer. The typical use is in a mode hook:
 
 #+begin_src emacs-lisp
 (add-hook 'my-special-mode-hook
@@ -195,16 +195,6 @@ To re-seed the artifact from the score file after editing it manually:
 #+begin_src emacs-lisp
 (gptel-reinforce-elfeed-seed-score-file 'force)
 #+end_src
-
-** Mu4e
-
-Improves a prompt for email triage.
-
-#+begin_src emacs-lisp
-(gptel-reinforce-register-mu4e-module)
-#+end_src
-
-The artifact is a ="prompt"= type. No hooks are needed — the text lives in =current.org= and you copy it into your triage workflow as needed.
 
 * Writing your own integration
 

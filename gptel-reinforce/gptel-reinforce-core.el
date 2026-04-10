@@ -326,6 +326,7 @@ non-nil and resolution is ambiguous, ask the user."
                             (gptel-reinforce-context-for-database db))))
            (car matches))))))))
 
+;;;###autoload
 (defun gptel-reinforce-set-active-database (database)
   "Set the buffer-local default DATABASE."
   (interactive

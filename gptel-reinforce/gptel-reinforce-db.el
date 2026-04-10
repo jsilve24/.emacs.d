@@ -7,7 +7,8 @@
 ;;; Code:
 
 (require 'cl-lib)
-(require 'sqlite)
+(unless (require 'sqlite nil t)
+  (error "gptel-reinforce requires Emacs with SQLite support"))
 (require 'gptel-reinforce-core)
 
 (defmacro gptel-reinforce-db-with-connection (database &rest body)

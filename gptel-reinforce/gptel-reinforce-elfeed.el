@@ -135,9 +135,12 @@
 (defun gptel-reinforce-elfeed-validate-score-file (_artifact _current-record candidate-text)
   "Return non-nil when CANDIDATE-TEXT parses as valid Lisp data."
   (condition-case nil
-      (progn (read-from-string candidate-text) t)
+      (progn
+        (ignore (read-from-string candidate-text))
+        t)
     (error nil)))
 
+;;;###autoload
 (defun gptel-reinforce-elfeed-seed-score-file (&optional force)
   "Seed the predefined Elfeed artifact from `gptel-reinforce-elfeed-score-file'.
 When FORCE is non-nil, overwrite even if the artifact already has text."
@@ -179,6 +182,7 @@ When FORCE is non-nil, overwrite even if the artifact already has text."
          :auto-update (plist-get current :auto-update))
         version-ref))))
 
+;;;###autoload
 (defun gptel-reinforce-register-elfeed-module ()
   "Register the predefined Elfeed database and score-rule artifact.
 
