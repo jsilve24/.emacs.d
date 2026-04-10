@@ -41,7 +41,10 @@
 	(lambda ()
 	  (not (member "ROAM_EXCLUDE" (org-get-tags)))))
 
-  (org-roam-setup))
+  (org-roam-setup)
+
+  ;; AI helpers that depend on org-roam being configured.
+  (load (expand-file-name "org-roam-ai.el" user-emacs-directory) nil t))
 
 ;;;###autoload
 (defun jds~org-move-beyond-header ()
