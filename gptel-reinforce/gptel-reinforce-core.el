@@ -32,11 +32,6 @@
   "Directory holding SQLite database files."
   :type 'directory)
 
-(defcustom gptel-reinforce-config-root
-  (expand-file-name "var/gptel-reinforce/artifacts/" user-emacs-directory)
-  "Directory holding human-editable Org files."
-  :type 'directory)
-
 (defcustom gptel-reinforce-summary-review-mode 'smerge
   "How to review summary updates before writing them.
 
@@ -92,6 +87,7 @@ still bypasses review entirely."
                (:constructor gptel-reinforce-database-create))
   name
   candidate-fn
+  context-fn
   db-path
   root-dir)
 
@@ -284,6 +280,27 @@ Optional keys include :priority and :label."
               :label (or (plist-get candidate :label)
                          (gptel-reinforce-database-name db)))))))
 
+(defun gptel-reinforce-context-for-database (database)
+  "Return DATABASE's item context plist for the current buffer, or nil.
+First use the database's candidate function when it yields a context.  If no
+candidate is available, or the candidate omits :context, fall back to the
+optional database context function."
+  (let* ((db (gptel-reinforce-resolve-database database))
+         (candidate-fn (gptel-reinforce-database-candidate-fn db))
+         (context-fn (gptel-reinforce-database-context-fn db))
+         (candidate (and candidate-fn
+                         (gptel-reinforce--candidate-plist
+                          (funcall candidate-fn))))
+         (context
+          (or (gptel-reinforce--context-plist (plist-get candidate :context))
+              (and context-fn
+                   (gptel-reinforce--context-plist (funcall context-fn))))))
+    (when context
+      (unless (plist-get context :item-key)
+        (user-error "Context for %s did not include :item-key"
+                    (gptel-reinforce-database-name db)))
+      context)))
+
 (defun gptel-reinforce-detect-database-candidates ()
   "Return candidate plists for databases available at point.
 Candidates are sorted by descending priority, then by database name."
@@ -381,9 +398,7 @@ the user to choose among them."
   (let* ((artifact (gptel-reinforce-resolve-artifact artifact))
          (database (gptel-reinforce-resolve-database
                     (gptel-reinforce-artifact-database artifact))))
-    (expand-file-name
-     (gptel-reinforce-artifact-name artifact)
-     (file-name-as-directory (gptel-reinforce-database-root-dir database)))))
+    (file-name-as-directory (gptel-reinforce-database-root-dir database))))
 
 (defun gptel-reinforce-artifact-current-file (artifact)
   "Return ARTIFACT's current.org path."
@@ -395,9 +410,9 @@ the user to choose among them."
 
 (defun gptel-reinforce-database-state-dir (database)
   "Return the var-state directory for DATABASE."
-  (let* ((database (gptel-reinforce-resolve-database database))
-         (db-path (gptel-reinforce-database-db-path database)))
-    (file-name-as-directory (file-name-sans-extension db-path))))
+  (file-name-as-directory
+   (gptel-reinforce-database-root-dir
+    (gptel-reinforce-resolve-database database))))
 
 (defun gptel-reinforce-database-history-dir (database)
   "Return the history directory for DATABASE."
@@ -408,9 +423,7 @@ the user to choose among them."
   "Return the history directory for ARTIFACT."
   (let* ((artifact (gptel-reinforce-resolve-artifact artifact))
          (database (gptel-reinforce-artifact-database artifact)))
-    (expand-file-name
-     (gptel-reinforce-artifact-name artifact)
-     (gptel-reinforce-database-history-dir database))))
+    (gptel-reinforce-database-history-dir database)))
 
 (defun gptel-reinforce-artifact-effective-summarizer-prompt (artifact &optional current-record)
   "Return ARTIFACT's effective summarizer system prompt.
@@ -454,9 +467,9 @@ Required keys:
 
 Optional keys:
   :db-path        Path to the SQLite file.  Defaults to
-                  <state-root>/<name>.sqlite.
+                  <state-root>/<name>/<name>.sqlite.
   :root-dir       Root directory for artifact org files.  Defaults to
-                  <config-root>/<name>/.
+                  <state-root>/<name>/.
 
 Returns the created `gptel-reinforce-database' struct.
 Calling again with the same :name replaces the existing registration."
@@ -464,21 +477,25 @@ Calling again with the same :name replaces the existing registration."
                    (user-error "Database registration requires :name")))
          (candidate-fn (or (plist-get plist :candidate-fn)
                            (user-error "Database registration requires :candidate-fn")))
-         (db-path (expand-file-name
-                   (or (plist-get plist :db-path)
-                       (format "%s.sqlite" name))
-                   gptel-reinforce-state-root))
+         (context-fn (plist-get plist :context-fn))
          (root-dir (file-name-as-directory
                     (expand-file-name
                      (or (plist-get plist :root-dir) name)
-                     gptel-reinforce-config-root)))
+                     gptel-reinforce-state-root)))
+         (db-path (expand-file-name
+                   (or (plist-get plist :db-path)
+                       (format "%s.sqlite" name))
+                   root-dir))
          (database (gptel-reinforce-database-create
                     :name name
                     :candidate-fn candidate-fn
+                    :context-fn context-fn
                     :db-path db-path
                     :root-dir root-dir)))
     (unless (functionp candidate-fn)
       (user-error ":candidate-fn must be a function"))
+    (unless (or (null context-fn) (functionp context-fn))
+      (user-error ":context-fn must be nil or a function"))
     (gptel-reinforce--ensure-directory (file-name-directory db-path))
     (gptel-reinforce--ensure-directory root-dir)
     (puthash name database gptel-reinforce--databases)

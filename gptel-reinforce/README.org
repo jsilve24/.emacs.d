@@ -125,8 +125,9 @@ For the predefined Elfeed integration ([[*Elfeed (elfeed-score integration)][det
 
 A *database* represents one application context — an RSS reader, email client, file navigator, etc. It owns:
 
-- A SQLite file at =<state-root>/<name>.sqlite= for all feedback events
-- A root directory for artifact org files
+- A directory at =<state-root>/<name>/=
+- A SQLite file at =<state-root>/<name>/<name>.sqlite= for all feedback events
+- A =current.org=, =summary.org=, and =history/= in that same directory
 - A *candidate function* that says whether this database applies right now and, if so, describes the current item
 
 Multiple artifacts can share one database. The candidate function is the
@@ -520,13 +521,6 @@ The filename (without directory) becomes =VERSION_REF= in =current.org= and =art
 | Variable                      | Default                            | Description                                  |
 |-------------------------------+------------------------------------+----------------------------------------------|
 | =gptel-reinforce-state-root=  | =~/.emacs.d/var/gptel-reinforce/=  | Root for SQLite files and history snapshots  |
-| =gptel-reinforce-config-root= | =~/.emacs.d/var/gptel-reinforce/artifacts/= | Default root for artifact org files |
-
-=gptel-reinforce-config-root= defaults under =var/= on purpose: artifacts are
-runtime-managed state, not package source. Keeping them out of the
-=gptel-reinforce/= code directory avoids accidental commits of generated
-=current.org= and =summary.org= files when the package lives inside your Emacs
-config repo.
 
 ** Review
 
@@ -560,8 +554,8 @@ To swap the LLM transport entirely, set =gptel-reinforce-backend-function= to a 
 |--------------------+----------+------------------------------+-------------------------------------------|
 | =:name=            | yes      | —                            | Unique string identifier                  |
 | =:candidate-fn=    | yes      | —                            | Function → nil or plist with =:context=, optional =:priority= and =:label= |
-| =:db-path=         | no       | =<state-root>/<name>.sqlite= | SQLite file path                          |
-| =:root-dir=        | no       | =<config-root>/<name>/=      | Root directory for artifact org files     |
+| =:db-path=         | no       | =<state-root>/<name>/<name>.sqlite= | SQLite file path                    |
+| =:root-dir=        | no       | =<state-root>/<name>/=       | Database root directory                    |
 
 *** =gptel-reinforce-register-artifact= keys
 

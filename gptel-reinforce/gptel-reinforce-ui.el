@@ -80,13 +80,17 @@ When PREFIX is non-nil, prompt for a note."
 When PREFIX is non-nil, prompt for a note.  Use PROVENANCE if supplied."
   (let* ((provenance (or provenance (gptel-reinforce-output-at-point)))
          (database-name (or database (plist-get provenance :database)))
-         (resolved (gptel-reinforce-resolve-database-and-context database-name t))
-         (db (car resolved))
-         (context (cdr resolved)))
+         (db (and database-name
+                  (gptel-reinforce-resolve-database database-name)))
+         (context (and db
+                       (gptel-reinforce-context-for-database db))))
     (unless provenance
       (user-error "No output provenance is available at point"))
     (unless db
       (user-error "Could not resolve a database"))
+    (unless context
+      (user-error "No item context is available for %s"
+                  (gptel-reinforce-database-name db)))
     (let* ((note (gptel-reinforce--read-note prefix))
            (event-id
             (gptel-reinforce-db-record-feedback

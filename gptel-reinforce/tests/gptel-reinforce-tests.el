@@ -20,7 +20,6 @@
   (declare (indent 0) (debug t))
   `(let* ((temp-dir (make-temp-file "gptel-reinforce-test-" t))
           (gptel-reinforce-state-root (expand-file-name "state/" temp-dir))
-          (gptel-reinforce-config-root (expand-file-name "config/" temp-dir))
           (gptel-reinforce--databases (make-hash-table :test #'equal))
           (gptel-reinforce--artifacts (make-hash-table :test #'equal)))
      (unwind-protect
@@ -29,14 +28,48 @@
 
 (defun gptel-reinforce-test--register-database (&optional name db-path root-dir)
   "Register a test database with NAME, DB-PATH, and ROOT-DIR."
-  (gptel-reinforce-register-database
-   :name (or name "test-db")
-   :candidate-fn (lambda ()
-                   '(:context (:item-key "item-1" :title "Item")
-                     :priority 0
-                     :label "Test DB"))
-   :db-path (or db-path (expand-file-name "test-db.sqlite" gptel-reinforce-state-root))
-   :root-dir (or root-dir (expand-file-name "test-db/" gptel-reinforce-config-root))))
+  (let ((args (list
+               :name (or name "test-db")
+               :candidate-fn (lambda ()
+                               '(:context (:item-key "item-1" :title "Item")
+                                 :priority 0
+                                 :label "Test DB")))))
+    (when db-path
+      (setq args (append args (list :db-path db-path))))
+    (when root-dir
+      (setq args (append args (list :root-dir root-dir))))
+    (apply #'gptel-reinforce-register-database args)))
+
+(ert-deftest gptel-reinforce-register-database-defaults-to-self-contained-dir ()
+  (gptel-reinforce-test-with-temp-env
+    (let* ((database (gptel-reinforce-test--register-database))
+           (root-dir (gptel-reinforce-database-root-dir database))
+           (db-path (gptel-reinforce-database-db-path database)))
+      (should (equal root-dir
+                     (expand-file-name "test-db/" gptel-reinforce-state-root)))
+      (should (equal db-path
+                     (expand-file-name "test-db.sqlite" root-dir)))
+      (should (file-exists-p db-path)))))
+
+(ert-deftest gptel-reinforce-artifact-files-live-at-database-root ()
+  (gptel-reinforce-test-with-temp-env
+    (let* ((database (gptel-reinforce-test--register-database))
+           (root-dir (gptel-reinforce-database-root-dir database)))
+      (gptel-reinforce-register-artifact
+       :name "artifact-1"
+       :database "test-db"
+       :type "prompt")
+      (should (equal (gptel-reinforce-artifact-dir "artifact-1") root-dir))
+      (should (equal (gptel-reinforce-artifact-current-file "artifact-1")
+                     (expand-file-name "current.org" root-dir)))
+      (should (equal (gptel-reinforce-artifact-summary-file "artifact-1")
+                     (expand-file-name "summary.org" root-dir)))
+      (should (equal (directory-file-name
+                      (gptel-reinforce-artifact-history-dir "artifact-1"))
+                     (directory-file-name
+                      (expand-file-name "history" root-dir))))
+      (should (file-exists-p (gptel-reinforce-artifact-current-file "artifact-1")))
+      (should (file-exists-p (gptel-reinforce-artifact-summary-file "artifact-1"))))))
 
 (ert-deftest gptel-reinforce-review-text-dispatches-modes ()
   (let ((diff-called nil)
@@ -112,7 +145,7 @@
 (ert-deftest gptel-reinforce-elfeed-register-module-seeds-current-text ()
   (gptel-reinforce-test-with-temp-env
     (let ((gptel-reinforce-elfeed-score-file
-           (expand-file-name "elfeed.score" gptel-reinforce-config-root)))
+           (expand-file-name "elfeed.score" temp-dir)))
       (make-directory (file-name-directory gptel-reinforce-elfeed-score-file) t)
       (with-temp-file gptel-reinforce-elfeed-score-file
         (insert "((title (:text \"lisp\") :value 10))\n"))
@@ -129,7 +162,7 @@
 (ert-deftest gptel-reinforce-elfeed-hooks-validate-and-write-score-file ()
   (gptel-reinforce-test-with-temp-env
     (let ((gptel-reinforce-elfeed-score-file
-           (expand-file-name "elfeed.score" gptel-reinforce-config-root)))
+           (expand-file-name "elfeed.score" temp-dir)))
       (should (gptel-reinforce-elfeed-validate-score-file nil nil "((foo . 1))"))
       (should-not (gptel-reinforce-elfeed-validate-score-file nil nil "((foo . 1)"))
       (gptel-reinforce-elfeed-apply-score-file nil nil nil "((bar . 2))\n")
@@ -158,6 +191,18 @@
                  (gptel-reinforce-resolve-database-and-context nil nil)))
       (should (equal (gptel-reinforce-database-name db) "high"))
       (should (equal (plist-get context :item-key) "item-high")))))
+
+(ert-deftest gptel-reinforce-context-for-database-falls-back-to-context-fn ()
+  (gptel-reinforce-test-with-temp-env
+    (gptel-reinforce-register-database
+     :name "ctx-db"
+     :candidate-fn (lambda ()
+                     '(:priority 5 :label "Context DB"))
+     :context-fn (lambda ()
+                   '(:item-key "item-from-context" :title "Context Title")))
+    (let ((context (gptel-reinforce-context-for-database "ctx-db")))
+      (should (equal (plist-get context :item-key) "item-from-context"))
+      (should (equal (plist-get context :title) "Context Title")))))
 
 (ert-deftest gptel-reinforce-db-overwrites-item-feedback-for-same-item ()
   (gptel-reinforce-test-with-temp-env

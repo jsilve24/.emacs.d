@@ -13,39 +13,47 @@
 (declare-function gptel-reinforce-register-database "gptel-reinforce" (&rest plist))
 (declare-function gptel-reinforce-register-artifact "gptel-reinforce" (&rest plist))
 
-(defconst jds/ai-email-reinforce-reply-database "ai-email-reply"
-  "Reinforcement database for AI email reply workflows.")
-
-(defconst jds/ai-email-reinforce-summary-database "ai-email-summary"
-  "Reinforcement database for AI email summarization workflows.")
-
 (defconst jds/ai-email-reinforce-reply-artifact "ai-email-reply"
   "Artifact name for standard AI email replies.")
+
+(defconst jds/ai-email-reinforce-reply-database
+  jds/ai-email-reinforce-reply-artifact
+  "Reinforcement database for standard AI email replies.")
 
 (defconst jds/ai-email-reinforce-scheduling-reply-artifact "ai-email-scheduling-reply"
   "Artifact name for AI scheduling replies.")
 
+(defconst jds/ai-email-reinforce-scheduling-reply-database
+  jds/ai-email-reinforce-scheduling-reply-artifact
+  "Reinforcement database for AI scheduling replies.")
+
 (defconst jds/ai-email-reinforce-thread-summary-artifact "ai-email-thread-summary"
   "Artifact name for AI thread summaries.")
+
+(defconst jds/ai-email-reinforce-thread-summary-database
+  jds/ai-email-reinforce-thread-summary-artifact
+  "Reinforcement database for AI thread summaries.")
 
 (defconst jds/ai-email-reinforce-zoom-summary-artifact "ai-email-zoom-summary"
   "Artifact name for AI Zoom summaries.")
 
-(defconst jds/ai-email-reinforce-artifact-root
-  (expand-file-name "var/gptel-reinforce/artifacts/" user-emacs-directory)
-  "Root directory for ai-email gptel-reinforce artifact state.")
-
-(defun jds/ai-email--reinforce-root-dir (database-name)
-  "Return the artifact root directory for DATABASE-NAME."
-  (expand-file-name database-name jds/ai-email-reinforce-artifact-root))
+(defconst jds/ai-email-reinforce-zoom-summary-database
+  jds/ai-email-reinforce-zoom-summary-artifact
+  "Reinforcement database for AI Zoom summaries.")
 
 (defconst jds/ai-email--reinforce-database-specs
   `((,jds/ai-email-reinforce-reply-database
      :candidate-fn jds/ai-email--reinforce-reply-candidate
      :context-fn jds/ai-email--reinforce-reply-context)
-    (,jds/ai-email-reinforce-summary-database
-     :candidate-fn jds/ai-email--reinforce-summary-candidate
-     :context-fn jds/ai-email--reinforce-summary-context))
+    (,jds/ai-email-reinforce-scheduling-reply-database
+     :candidate-fn jds/ai-email--reinforce-scheduling-reply-candidate
+     :context-fn jds/ai-email--reinforce-scheduling-reply-context)
+    (,jds/ai-email-reinforce-thread-summary-database
+     :candidate-fn jds/ai-email--reinforce-thread-summary-candidate
+     :context-fn jds/ai-email--reinforce-thread-summary-context)
+    (,jds/ai-email-reinforce-zoom-summary-database
+     :candidate-fn jds/ai-email--reinforce-zoom-summary-candidate
+     :context-fn jds/ai-email--reinforce-zoom-summary-context))
   "Database registrations for ai-email reinforcement workflows.")
 
 (defconst jds/ai-email--reinforce-reply-summarizer-guidance
@@ -83,17 +91,17 @@
      :summarizer-user-prompt ,jds/ai-email--reinforce-reply-summarizer-guidance
      :updater-user-prompt ,jds/ai-email--reinforce-reply-updater-guidance)
     (,jds/ai-email-reinforce-scheduling-reply-artifact
-     :database ,jds/ai-email-reinforce-reply-database
+     :database ,jds/ai-email-reinforce-scheduling-reply-database
      :type "prompt"
      :summarizer-user-prompt ,jds/ai-email--reinforce-reply-summarizer-guidance
      :updater-user-prompt ,jds/ai-email--reinforce-reply-updater-guidance)
     (,jds/ai-email-reinforce-thread-summary-artifact
-     :database ,jds/ai-email-reinforce-summary-database
+     :database ,jds/ai-email-reinforce-thread-summary-database
      :type "prompt"
      :summarizer-user-prompt ,jds/ai-email--reinforce-summary-summarizer-guidance
      :updater-user-prompt ,jds/ai-email--reinforce-summary-updater-guidance)
     (,jds/ai-email-reinforce-zoom-summary-artifact
-     :database ,jds/ai-email-reinforce-summary-database
+     :database ,jds/ai-email-reinforce-zoom-summary-database
      :type "prompt"
      :summarizer-user-prompt ,jds/ai-email--reinforce-summary-summarizer-guidance
      :updater-user-prompt ,jds/ai-email--reinforce-summary-updater-guidance))
@@ -120,9 +128,20 @@
   "Return the ai-email reply reinforcement candidate for the current buffer."
   (jds/ai-email--reinforce-candidate jds/ai-email-reinforce-reply-database))
 
-(defun jds/ai-email--reinforce-summary-candidate ()
-  "Return the ai-email summary reinforcement candidate for the current buffer."
-  (jds/ai-email--reinforce-candidate jds/ai-email-reinforce-summary-database))
+(defun jds/ai-email--reinforce-scheduling-reply-candidate ()
+  "Return the scheduling-reply reinforcement candidate for the current buffer."
+  (jds/ai-email--reinforce-candidate
+   jds/ai-email-reinforce-scheduling-reply-database))
+
+(defun jds/ai-email--reinforce-thread-summary-candidate ()
+  "Return the thread-summary reinforcement candidate for the current buffer."
+  (jds/ai-email--reinforce-candidate
+   jds/ai-email-reinforce-thread-summary-database))
+
+(defun jds/ai-email--reinforce-zoom-summary-candidate ()
+  "Return the zoom-summary reinforcement candidate for the current buffer."
+  (jds/ai-email--reinforce-candidate
+   jds/ai-email-reinforce-zoom-summary-database))
 
 (defun jds/ai-email--reinforce-context-only (database-name)
   "Return ai-email reinforcement context for DATABASE-NAME in the current buffer."
@@ -133,9 +152,20 @@
   "Return the ai-email reply reinforcement context for the current buffer."
   (jds/ai-email--reinforce-context-only jds/ai-email-reinforce-reply-database))
 
-(defun jds/ai-email--reinforce-summary-context ()
-  "Return the ai-email summary reinforcement context for the current buffer."
-  (jds/ai-email--reinforce-context-only jds/ai-email-reinforce-summary-database))
+(defun jds/ai-email--reinforce-scheduling-reply-context ()
+  "Return the ai-email scheduling-reply reinforcement context for the buffer."
+  (jds/ai-email--reinforce-context-only
+   jds/ai-email-reinforce-scheduling-reply-database))
+
+(defun jds/ai-email--reinforce-thread-summary-context ()
+  "Return the ai-email thread-summary reinforcement context for the buffer."
+  (jds/ai-email--reinforce-context-only
+   jds/ai-email-reinforce-thread-summary-database))
+
+(defun jds/ai-email--reinforce-zoom-summary-context ()
+  "Return the ai-email zoom-summary reinforcement context for the buffer."
+  (jds/ai-email--reinforce-context-only
+   jds/ai-email-reinforce-zoom-summary-database))
 
 (defun jds/ai-email--reinforce-context-for-message (msg workflow)
   "Return a minimal reinforcement context for MSG and WORKFLOW."
@@ -178,7 +208,6 @@
   (pcase-let ((`(,name . ,plist) spec))
     (apply #'gptel-reinforce-register-database
            :name name
-           :root-dir (jds/ai-email--reinforce-root-dir name)
            plist)))
 
 (defun jds/ai-email--register-reinforce-artifact (spec)
@@ -868,4 +897,3 @@ and REINFORCE-CONTEXT are non-nil, attach them to the compose buffer."
                  tools)))))
     (add-hook 'mu4e-compose-mode-hook hook-fn)
     (jds/mu4e-compose-reply)))
-

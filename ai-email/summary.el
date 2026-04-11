@@ -246,7 +246,7 @@ raw file past the first blank line."
       (read-only-mode -1)
       (jds/ai-email--reinforce-setup-buffer
        buf
-       jds/ai-email-reinforce-summary-database
+       jds/ai-email-reinforce-zoom-summary-database
        (jds/ai-email--reinforce-context-for-message msg "zoom-summary"))
       (let ((start (point)))
         (insert (format "#+TITLE: Zoom Summary: %s\n\n"
@@ -274,7 +274,7 @@ raw file past the first blank line."
       (read-only-mode -1)
       (jds/ai-email--reinforce-setup-buffer
        buf
-       jds/ai-email-reinforce-summary-database
+       jds/ai-email-reinforce-thread-summary-database
        (jds/ai-email--reinforce-context-for-message msg "thread-summary"))
       (let ((start (point)))
         (insert (format "#+TITLE: Thread Summary: %s\n" subject))

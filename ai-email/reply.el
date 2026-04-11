@@ -192,6 +192,5 @@ Prompts for custom context. Uses validated availability slots rather than raw ca
         (list jds~gptel-find-free-times-tool)
         jds/ai-email-reinforce-scheduling-reply-artifact))
      (list jds~gptel-find-free-times-tool)
-     jds/ai-email-reinforce-reply-database
+     jds/ai-email-reinforce-scheduling-reply-database
      context)))
-

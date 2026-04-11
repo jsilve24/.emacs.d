@@ -93,7 +93,26 @@
                         (set-marker pos nil))))))))
 
 ;;; gptel-reinforce ------------------------------------------------------------
-(add-to-list 'load-path (expand-file-name "gptel-reinforce" user-emacs-directory))
+(let* ((gptel-reinforce-dir
+        (expand-file-name "gptel-reinforce" user-emacs-directory))
+       ;; Local package development can leave dependents compiled against an
+       ;; older struct layout, which breaks startup before recompilation.
+       (stale-build-p
+        (catch 'stale
+          (dolist (source (directory-files gptel-reinforce-dir t "\\.el\\'"))
+            (let ((bytecode (concat source "c")))
+              (when (or (not (file-exists-p bytecode))
+                        (file-newer-than-file-p source bytecode))
+                (throw 'stale t))))
+          nil)))
+  (when stale-build-p
+    (dolist (bytecode (directory-files gptel-reinforce-dir t "\\.elc\\'"))
+      (delete-file bytecode))
+    (when-let* ((eln-cache-dir (expand-file-name "eln-cache" user-emacs-directory))
+                ((file-directory-p eln-cache-dir)))
+      (dolist (eln (directory-files-recursively eln-cache-dir "gptel-reinforce.*\\.eln\\'"))
+        (delete-file eln))))
+  (add-to-list 'load-path gptel-reinforce-dir))
 (require 'gptel-reinforce)
 (require 'gptel-reinforce-elfeed)
 
