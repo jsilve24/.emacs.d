@@ -28,69 +28,7 @@
 3. Use formal, precise academic prose appropriate for peer-reviewed journals.
 4. Match the style and register of the surrounding text.")
 
-  ;; --- Shared callback factory ---
-  (defun jds/gptel--replace-region-callback (start end)
-    "Return a gptel callback that replaces START..END with the response."
-    (let ((buf (current-buffer)))
-      (lambda (response info)
-        (if (not response)
-            (message "gptel error: %s" (plist-get info :status))
-          (with-current-buffer buf
-            (delete-region start end)
-            (goto-char start)
-            (insert response)
-            (set-marker start nil)
-            (set-marker end nil))))))
-
-  ;; --- Rewrite selection (no document context) ---
-  (defun jds/gptel-rewrite (directive)
-    "Rewrite the selected region according to DIRECTIVE."
-    (interactive "sDirective: ")
-    (unless (use-region-p) (user-error "Select a region first"))
-    (let* ((start  (copy-marker (region-beginning)))
-           (end    (copy-marker (region-end) t))
-           (text   (buffer-substring-no-properties start end))
-           (prompt (format "Directive: %s\n\nText to rewrite:\n\n%s" directive text)))
-      (gptel-request prompt
-        :system jds/gptel-latex-system
-        :buffer (current-buffer)
-        :callback (jds/gptel--replace-region-callback start end))))
-
-  ;; --- Rewrite with full document as context ---
-  (defun jds/gptel-rewrite-with-context (directive)
-    "Rewrite the selected region using DIRECTIVE, with the full buffer as context."
-    (interactive "sDirective: ")
-    (unless (use-region-p) (user-error "Select a region first"))
-    (let* ((start  (copy-marker (region-beginning)))
-           (end    (copy-marker (region-end) t))
-           (sel    (buffer-substring-no-properties start end))
-           (doc    (buffer-substring-no-properties (point-min) (point-max)))
-           (prompt (format "Full document for context:\n\n%s\n\n---\n\nDirective: %s\n\nRewrite this passage from the document above:\n\n%s"
-                           doc directive sel)))
-      (gptel-request prompt
-        :system jds/gptel-latex-system
-        :buffer (current-buffer)
-        :callback (jds/gptel--replace-region-callback start end))))
-
-  ;; --- Draft new content at point, doc as context ---
-  (defun jds/gptel-draft-at-point (prompt)
-    "Draft new LaTeX content at point based on PROMPT, using the buffer as context."
-    (interactive "sDraft: ")
-    (let* ((doc      (buffer-substring-no-properties (point-min) (point-max)))
-           (pos      (copy-marker (point)))
-           (buf      (current-buffer))
-           (full-prompt (format "Document context:\n\n%s\n\n---\n\nDraft the following in LaTeX, fitting the style and flow of the document above. Return only the LaTeX text:\n\n%s"
-                                doc prompt)))
-      (gptel-request full-prompt
-        :system jds/gptel-latex-system
-        :buffer buf
-        :callback (lambda (response info)
-                    (if (not response)
-                        (message "gptel error: %s" (plist-get info :status))
-                      (with-current-buffer buf
-                        (goto-char pos)
-                        (insert response)
-                        (set-marker pos nil))))))))
+)
 
 ;;; gptel-reinforce ------------------------------------------------------------
 (defun jds/gptel-reinforce-stale-build-p (dir)
@@ -123,6 +61,56 @@
 (require 'gptel-reinforce-elfeed)
 (setq gptel-reinforce-summary-review-mode 'edit
       gptel-reinforce-update-review-mode 'edit)
+
+;; --- LaTeX writing tools -----------------------------------------------------
+
+(gptel-reinforce-register-database
+  :name "latex-writing"
+  :candidate-fn (lambda ()
+                  (when (and (derived-mode-p 'LaTeX-mode) buffer-file-name)
+                    (list :context
+                          (list :item-key buffer-file-name
+                                :title (buffer-name))))))
+
+(gptel-reinforce-define-tool jds/gptel-rewrite
+  "Rewrite the selected region according to DIRECTIVE."
+  :args (directive)
+  :interactive "sDirective: "
+  :requires-region t
+  :database "latex-writing"
+  :system jds/gptel-latex-system
+  :prompt-fn (lambda (directive)
+               (format "Directive: %s\n\nText to rewrite:\n\n%s"
+                       directive
+                       (buffer-substring-no-properties
+                        (region-beginning) (region-end))))
+  :callback :replace-region)
+
+(gptel-reinforce-define-tool jds/gptel-rewrite-with-context
+  "Rewrite the selected region using DIRECTIVE, with the full buffer as context."
+  :args (directive)
+  :interactive "sDirective: "
+  :requires-region t
+  :database "latex-writing"
+  :system jds/gptel-latex-system
+  :prompt-fn (lambda (directive)
+               (format "Full document for context:\n\n%s\n\n---\n\nDirective: %s\n\nRewrite this passage from the document above:\n\n%s"
+                       (buffer-substring-no-properties (point-min) (point-max))
+                       directive
+                       (buffer-substring-no-properties (region-beginning) (region-end))))
+  :callback :replace-region)
+
+(gptel-reinforce-define-tool jds/gptel-draft-at-point
+  "Draft new LaTeX content at point based on PROMPT, using the buffer as context."
+  :args (prompt)
+  :interactive "sDraft: "
+  :database "latex-writing"
+  :system jds/gptel-latex-system
+  :prompt-fn (lambda (prompt)
+               (format "Document context:\n\n%s\n\n---\n\nDraft the following in LaTeX, fitting the style and flow of the document above. Return only the LaTeX text:\n\n%s"
+                       (buffer-substring-no-properties (point-min) (point-max))
+                       prompt))
+  :callback :insert-at-point)
 
 
 ;;; gptel-quick ----------------------------------------------------------------

@@ -12,6 +12,7 @@ Feedback is stored locally in SQLite. No data leaves your machine except what yo
 - [[*Core concepts][Core concepts]]
 - [[*Commands][Commands]]
 - [[*Predefined integrations][Predefined integrations]]
+- [[*Defining gptel tools][Defining gptel tools]]
 - [[*Writing your own integration][Writing your own integration]]
 - [[*Appendix A: Database schema][Appendix A: Database schema]]
 - [[*Appendix B: Org file formats][Appendix B: Org file formats]]
@@ -269,6 +270,184 @@ To re-seed the artifact from the score file after editing it manually:
 #+begin_src emacs-lisp
 (gptel-reinforce-elfeed-seed-score-file 'force)
 #+end_src
+
+* Defining gptel tools
+
+=gptel-reinforce-define-tool= simultaneously defines an interactive Emacs
+command and registers its system prompt as a gptel-reinforce artifact. The
+command reads the live artifact text at call time — so if the artifact has
+been improved via the feedback cycle, the very next invocation picks up the
+updated prompt automatically with no further configuration.
+
+** Quick example
+
+The simplest form requires no pre-registered database. One is created
+automatically, named =ARTIFACT-NAME-db=, with a buffer-tracking
+candidate function (=item-key= is =buffer-file-name= or =buffer-name=).
+
+#+begin_src emacs-lisp
+(gptel-reinforce-define-tool my/rewrite-selection
+  "Rewrite the selected region according to DIRECTIVE."
+  :args (directive)
+  :interactive "sDirective: "
+  :requires-region t
+  :system "You are a writing assistant. Rewrite the text as directed.
+Return only the revised text — no preamble or explanation."
+  :prompt-fn (lambda (directive)
+               (format "Directive: %s\n\nText:\n\n%s"
+                       directive
+                       (buffer-substring-no-properties
+                        (region-beginning) (region-end))))
+  :callback :replace-region)
+#+end_src
+
+After loading, =my/rewrite-selection= is available as an interactive
+command and =my/rewrite-selection= is registered as an artifact. Start the
+feedback loop immediately:
+
+#+begin_src emacs-lisp
+(gptel-reinforce-like)                             ; good rewrite
+(gptel-reinforce-dislike nil "too formal")         ; bad one, with a note
+(gptel-reinforce-summarize "my/rewrite-selection") ; fold in feedback
+(gptel-reinforce-update "my/rewrite-selection")    ; propose revised prompt
+#+end_src
+
+** Callbacks
+
+Three callback styles are supported.
+
+=:replace-region= — deletes the active region and replaces it with the
+response. The inserted text is automatically annotated with
+=gptel-reinforce-track-output-region= so output-feedback commands
+(=gptel-reinforce-like= at the inserted text) work immediately. Typically
+paired with =:requires-region t=.
+
+=:insert-at-point= — inserts the response at point. Also annotated
+automatically. Useful for drafting commands that don't target an existing
+selection.
+
+Custom callback — any function =(lambda (response info) ...)= matching the
+=gptel-request= contract. No automatic annotation; call
+=gptel-reinforce-track-output-region= yourself if you want output feedback.
+
+#+begin_src emacs-lisp
+;; Custom callback example — show response in a side buffer, annotate manually
+(gptel-reinforce-define-tool my/explain-region
+  "Explain the selected region in a side buffer."
+  :args ()
+  :interactive ""
+  :requires-region t
+  :system "You are a helpful explainer."
+  :prompt-fn (lambda ()
+               (format "Explain this:\n\n%s"
+                       (buffer-substring-no-properties
+                        (region-beginning) (region-end))))
+  :callback
+  (lambda (response info)
+    (if (not response)
+        (message "gptel error: %s" (plist-get info :status))
+      (with-current-buffer (get-buffer-create "*explanation*")
+        (erase-buffer)
+        (let ((start (point)))
+          (insert response)
+          (gptel-reinforce-track-output-region "my/explain-region" start (point)))
+        (display-buffer (current-buffer))))))
+#+end_src
+
+** Sharing a database across related tools
+
+When several tools operate on the same domain, sharing a database means
+item-feedback is shared across all artifacts during summarization. Register
+the database once, then pass =:database= to each tool definition.
+
+#+begin_src emacs-lisp
+(gptel-reinforce-register-database
+  :name "latex-writing"
+  :candidate-fn (lambda ()
+                  (when (and (derived-mode-p 'LaTeX-mode) buffer-file-name)
+                    (list :context
+                          (list :item-key buffer-file-name
+                                :title (buffer-name))))))
+
+(gptel-reinforce-define-tool my/latex-rewrite
+  "Rewrite selected LaTeX according to DIRECTIVE."
+  :args (directive)
+  :interactive "sDirective: "
+  :requires-region t
+  :database "latex-writing"
+  :system "You are an expert LaTeX writing assistant. Return only the revised text."
+  :prompt-fn (lambda (directive)
+               (format "Directive: %s\n\nText:\n\n%s"
+                       directive
+                       (buffer-substring-no-properties
+                        (region-beginning) (region-end))))
+  :callback :replace-region)
+
+(gptel-reinforce-define-tool my/latex-draft
+  "Draft new LaTeX at point based on PROMPT."
+  :args (prompt)
+  :interactive "sDraft: "
+  :database "latex-writing"
+  :system "You are an expert LaTeX writing assistant. Return only LaTeX text."
+  :prompt-fn (lambda (prompt)
+               (format "Document context:\n\n%s\n\n---\n\nDraft: %s"
+                       (buffer-substring-no-properties (point-min) (point-max))
+                       prompt))
+  :callback :insert-at-point)
+#+end_src
+
+Each tool gets its own artifact (=my/latex-rewrite= and =my/latex-draft=),
+so their system prompts evolve independently, but item feedback about the
+document is shared: thumbs-up on a LaTeX buffer contributes to both.
+
+** Overriding the auto-database candidate function
+
+When =:database= is omitted but the default buffer-tracking candidate
+function is too coarse, supply =:candidate-fn= to customise the
+auto-created database without calling =gptel-reinforce-register-database=
+separately.
+
+#+begin_src emacs-lisp
+(gptel-reinforce-define-tool my/latex-rewrite
+  "Rewrite selected LaTeX."
+  :args (directive)
+  :interactive "sDirective: "
+  :requires-region t
+  :candidate-fn (lambda ()
+                  (when (and (derived-mode-p 'LaTeX-mode) buffer-file-name)
+                    (list :context
+                          (list :item-key buffer-file-name
+                                :title (buffer-name)))))
+  :system "..."
+  :prompt-fn (lambda (directive) ...)
+  :callback :replace-region)
+#+end_src
+
+This creates a database named =my/latex-rewrite-db= with that candidate
+function. =:candidate-fn= is ignored when =:database= is supplied.
+
+** Full key reference
+
+| Key                          | Required | Default                              | Description                                                       |
+|------------------------------+----------+--------------------------------------+-------------------------------------------------------------------|
+| =:system=                    | yes      | —                                    | Initial system prompt. Stored as artifact text; used as fallback. |
+| =:prompt-fn=                 | yes      | —                                    | Lambda returning the user-prompt string. Receives the same args as the defun. May call region/buffer functions freely — runs synchronously before the request. |
+| =:callback=                  | yes      | —                                    | =:replace-region=, =:insert-at-point=, or a custom callback.     |
+| =:args=                      | no       | =()=                                 | Lambda list for the generated defun.                              |
+| =:interactive=               | no       | =""=                                 | Interactive spec string or form.                                  |
+| =:requires-region=           | no       | nil                                  | Add =(unless (use-region-p) (user-error ...))= guard.             |
+| =:stream=                    | no       | nil                                  | Passed as =:stream= to =gptel-request=.                           |
+| =:database=                  | no       | ARTIFACT-NAME + ="-db"=              | Name of a pre-registered database. Auto-created when omitted.     |
+| =:artifact-name=             | no       | =(symbol-name NAME)=                 | Override the artifact name string.                                |
+| =:candidate-fn=              | no       | buffer-tracking fn                   | Override the auto-database candidate function. Ignored when =:database= is supplied. |
+| =:type=                      | no       | nil                                  | Artifact type string: ="prompt"=, ="code"=, etc.                  |
+| =:auto-update=               | no       | nil                                  | Skip update review when t.                                        |
+| =:summarizer-system-prompt=  | no       | default prompt                       | Full system prompt for summarization.                             |
+| =:summarizer-user-prompt=    | no       | =""=                                 | Task-specific guidance appended to the summarizer prompt.         |
+| =:updater-system-prompt=     | no       | default prompt                       | Full system prompt for artifact updates.                          |
+| =:updater-user-prompt=       | no       | =""=                                 | Task-specific guidance appended to the updater prompt.            |
+| =:pre-update-hook=           | no       | nil                                  | Function or list called before applying update; return nil to reject. |
+| =:post-update-hook=          | no       | nil                                  | Function or list called after writing update.                     |
 
 * Writing your own integration
 
