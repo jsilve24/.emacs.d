@@ -253,12 +253,25 @@ a string specifying full filepath."
 (defvar-local jds/pdf-ai-reinforce-citekey nil
   "Buffer-local citekey for gptel-reinforce tracking in PDF summary buffers.")
 
+(defun jds/pdf-ai-reinforce--paper-meta (citekey)
+  "Return a plist of paper metadata for CITEKEY from bibtex-completion, or nil."
+  (when (and citekey (fboundp 'bibtex-completion-get-entry))
+    (when-let ((entry (ignore-errors (bibtex-completion-get-entry citekey))))
+      (let ((title   (bibtex-completion-get-value "title"   entry))
+            (year    (bibtex-completion-get-value "year"    entry))
+            (keywords (bibtex-completion-get-value "keywords" entry)))
+        (when (or title year keywords)
+          (list :paper-title title :year year :keywords keywords))))))
+
 (defun jds/pdf-ai-reinforce-candidate ()
   "Return a gptel-reinforce candidate for the current PDF summary buffer."
   (when jds/pdf-ai-reinforce-citekey
-    (list :context
-          (list :item-key (format "academic-paper:%s" jds/pdf-ai-reinforce-citekey)
-                :title jds/pdf-ai-reinforce-citekey))))
+    (let* ((meta (jds/pdf-ai-reinforce--paper-meta jds/pdf-ai-reinforce-citekey))
+           (title (or (plist-get meta :paper-title) jds/pdf-ai-reinforce-citekey)))
+      (list :context
+            (list :item-key (format "academic-paper:%s" jds/pdf-ai-reinforce-citekey)
+                  :title title
+                  :meta meta)))))
 
 (with-eval-after-load 'gptel-reinforce
   (gptel-reinforce-register-database

@@ -77,11 +77,13 @@ When nil, use the active `gptel-model'."
 (defun jds/org-roam-ai-reinforce-candidate ()
   "Return a gptel-reinforce candidate for the current org-roam buffer."
   (when (jds/org-roam-ai--in-roam-file-p)
-    (list :context
-          (list :item-key (or buffer-file-name (buffer-name))
-                :title (or (ignore-errors
-                             (org-roam-node-title (org-roam-node-at-point)))
-                           (buffer-name))))))
+    (let* ((node (ignore-errors (org-roam-node-at-point)))
+           (title (or (and node (org-roam-node-title node)) (buffer-name)))
+           (tags  (and node (org-roam-node-tags node))))
+      (list :context
+            (list :item-key (or buffer-file-name (buffer-name))
+                  :title title
+                  :meta (when tags (list :tags tags)))))))
 
 (with-eval-after-load 'gptel-reinforce
   (gptel-reinforce-register-database

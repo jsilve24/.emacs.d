@@ -239,6 +239,15 @@
           (setq-local jds/ai-email-capture-review-message-link
                       (jds/ai-email--message-link msg))
           (setq-local jds/ai-email-capture-review-source-scope source-scope)
+          ;; Wire up reinforce so like/dislike from the review buffer routes to
+          ;; the capture artifact.  Must be done here because this is where the
+          ;; review buffer is created; the request callback runs in a different
+          ;; buffer and cannot reach this buffer in advance.
+          (when (fboundp 'jds/ai-email--reinforce-setup-buffer)
+            (jds/ai-email--reinforce-setup-buffer
+             buf
+             jds/ai-email-reinforce-capture-database
+             (jds/ai-email--reinforce-context-for-message msg "capture")))
           (insert "#+TITLE: AI Email Capture Review\n")
           (insert "#+STARTUP: showall\n\n")
           (insert (format "Source: %s\n"
