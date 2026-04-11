@@ -2,6 +2,12 @@
 
 (require 'subr-x)
 
+(declare-function gptel-reinforce-register-database "gptel-reinforce" (&rest plist))
+(declare-function gptel-reinforce-register-artifact "gptel-reinforce" (&rest plist))
+(declare-function gptel-reinforce-set-active-database "gptel-reinforce" (database))
+(declare-function gptel-reinforce-track-output-region "gptel-reinforce" (artifact start end &optional output-id))
+(declare-function gptel-reinforce-tools--live-system "gptel-reinforce-tools" (artifact-name initial-system))
+
 (defgroup jds/org-roam-ai nil
   "AI-assisted workflows for org-roam."
   :group 'org-roam)
@@ -57,6 +63,48 @@ When nil, use the active `gptel-model'."
   :type 'integer
   :group 'jds/org-roam-ai)
 
+;;; gptel-reinforce integration -----------------------------------------------
+
+(defconst jds/org-roam-ai-reinforce-cleanup-artifact "org-roam-cleanup"
+  "Artifact name for the org-roam cleanup system prompt.")
+
+(defconst jds/org-roam-ai-reinforce-draft-artifact "org-roam-draft"
+  "Artifact name for the org-roam draft system prompt.")
+
+(defconst jds/org-roam-ai-reinforce-linking-artifact "org-roam-linking"
+  "Artifact name for the org-roam link-suggestion system prompt.")
+
+(defun jds/org-roam-ai-reinforce-candidate ()
+  "Return a gptel-reinforce candidate for the current org-roam buffer."
+  (when (jds/org-roam-ai--in-roam-file-p)
+    (list :context
+          (list :item-key (or buffer-file-name (buffer-name))
+                :title (or (ignore-errors
+                             (org-roam-node-title (org-roam-node-at-point)))
+                           (buffer-name))))))
+
+(with-eval-after-load 'gptel-reinforce
+  (gptel-reinforce-register-database
+   :name "org-roam"
+   :candidate-fn #'jds/org-roam-ai-reinforce-candidate)
+  (gptel-reinforce-register-artifact
+   :name jds/org-roam-ai-reinforce-cleanup-artifact
+   :database "org-roam"
+   :initial-text jds/org-roam-ai-cleanup-system-prompt
+   :type "prompt")
+  (gptel-reinforce-register-artifact
+   :name jds/org-roam-ai-reinforce-draft-artifact
+   :database "org-roam"
+   :initial-text jds/org-roam-ai-draft-system-prompt
+   :type "prompt")
+  (gptel-reinforce-register-artifact
+   :name jds/org-roam-ai-reinforce-linking-artifact
+   :database "org-roam"
+   :initial-text jds/org-roam-ai-linking-system-prompt
+   :type "prompt"))
+
+;;; ---------------------------------------------------------------------------
+
 (defun jds/org-roam-ai--in-roam-file-p ()
   "Return non-nil when current buffer is in `org-roam-directory'."
   (and (buffer-file-name)
@@ -74,13 +122,20 @@ When nil, use the active `gptel-model'."
                  "")))
     (format "Title: %s\nTags: %s\n" title tags)))
 
-(defun jds/org-roam-ai--request (prompt system callback)
-  "Send PROMPT and SYSTEM to gptel using CALLBACK."
+(defun jds/org-roam-ai--request (prompt system callback &optional artifact-name)
+  "Send PROMPT and SYSTEM to gptel using CALLBACK.
+When ARTIFACT-NAME is provided and gptel-reinforce is loaded, the live artifact
+text is used instead of SYSTEM (falling back to SYSTEM when the artifact is empty)."
   (unless (fboundp 'gptel-request)
     (user-error "gptel is not available"))
-  (let ((gptel-model (or jds/org-roam-ai-model gptel-model)))
+  (let* ((gptel-model (or jds/org-roam-ai-model gptel-model))
+         (live-system (if (and artifact-name (featurep 'gptel-reinforce))
+                          (gptel-reinforce-tools--live-system artifact-name system)
+                        system)))
+    (when (and (featurep 'gptel-reinforce) artifact-name)
+      (gptel-reinforce-set-active-database "org-roam"))
     (gptel-request prompt
-                   :system system
+                   :system live-system
                    :buffer (current-buffer)
                    :callback callback)))
 
@@ -114,10 +169,16 @@ When nil, use the active `gptel-model'."
          (with-current-buffer buf
            (let ((inhibit-read-only t))
              (erase-buffer)
-             (insert response)
+             (let ((start (point-marker)))
+               (insert response)
+               (when (fboundp 'gptel-reinforce-track-output-region)
+                 (gptel-reinforce-track-output-region
+                  jds/org-roam-ai-reinforce-cleanup-artifact start (point)))
+               (set-marker start nil))
              (goto-char (point-min))
              (save-buffer))
-           (message "org-roam-ai cleanup complete")))))))
+           (message "org-roam-ai cleanup complete"))))
+     jds/org-roam-ai-reinforce-cleanup-artifact)))
 
 ;;;###autoload
 (defun jds/org-roam-ai-draft-entry (instruction &optional ask-directive)
@@ -152,10 +213,16 @@ it appends a new section at point."
          (with-current-buffer buf
            (goto-char insert-point)
            (unless (bolp) (insert "\n"))
-           (insert response)
+           (let ((output-start (point-marker)))
+             (insert response)
+             (when (fboundp 'gptel-reinforce-track-output-region)
+               (gptel-reinforce-track-output-region
+                jds/org-roam-ai-reinforce-draft-artifact output-start (point)))
+             (set-marker output-start nil))
            (set-marker insert-point nil)
            (save-buffer)
-           (message "org-roam-ai draft inserted")))))))
+           (message "org-roam-ai draft inserted"))))
+     jds/org-roam-ai-reinforce-draft-artifact)))
 
 (defun jds/org-roam-ai--node-candidates-for-linking ()
   "Return a compact list of node candidates as strings for prompting."
@@ -347,7 +414,8 @@ LINKS should be a list of (ID TITLE)."
                           (jds/org-roam-ai--append-related-links to-append)))))
              (save-buffer)
              (message "org-roam-ai added %d inline link(s), %d related link(s)"
-                      applied related-added))))))))
+                      applied related-added)))))
+     jds/org-roam-ai-reinforce-linking-artifact)))
 
 (defvar jds/org-roam-ai-mode-map
   (let ((map (make-sparse-keymap)))

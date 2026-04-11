@@ -235,6 +235,41 @@ a string specifying full filepath."
 
 ;;; AI-powered org-roam note creation -----------------------------------------
 
+;;; gptel-reinforce integration for PDF summaries ----------------------------
+
+(declare-function gptel-reinforce-register-database "gptel-reinforce" (&rest plist))
+(declare-function gptel-reinforce-register-artifact "gptel-reinforce" (&rest plist))
+(declare-function gptel-reinforce-set-active-database "gptel-reinforce" (database))
+(declare-function gptel-reinforce-track-output-region "gptel-reinforce" (artifact start end &optional output-id))
+(declare-function gptel-reinforce-tools--live-system "gptel-reinforce-tools" (artifact-name initial-system))
+
+(defconst jds/pdf-ai-reinforce-artifact "academic-paper-summary"
+  "Artifact name for the AI PDF summary system prompt.")
+
+(defconst jds/pdf-ai-reinforce-system
+  "You are a research assistant. Produce structured org-mode notes for academic papers."
+  "Initial system prompt for AI PDF summaries.")
+
+(defvar-local jds/pdf-ai-reinforce-citekey nil
+  "Buffer-local citekey for gptel-reinforce tracking in PDF summary buffers.")
+
+(defun jds/pdf-ai-reinforce-candidate ()
+  "Return a gptel-reinforce candidate for the current PDF summary buffer."
+  (when jds/pdf-ai-reinforce-citekey
+    (list :context
+          (list :item-key (format "academic-paper:%s" jds/pdf-ai-reinforce-citekey)
+                :title jds/pdf-ai-reinforce-citekey))))
+
+(with-eval-after-load 'gptel-reinforce
+  (gptel-reinforce-register-database
+   :name "academic-papers"
+   :candidate-fn #'jds/pdf-ai-reinforce-candidate)
+  (gptel-reinforce-register-artifact
+   :name jds/pdf-ai-reinforce-artifact
+   :database "academic-papers"
+   :initial-text jds/pdf-ai-reinforce-system
+   :type "prompt"))
+
 (defun jds~pdf-ai-find-pdf (citekey)
   "Return full path to PDF for CITEKEY, or nil if not found.
 Tries citar-get-files first (which returns a hash-table keyed by citekey),
@@ -296,9 +331,15 @@ Uses CITEKEY metadata when available, and appends EXTRA-INSTRUCTIONS when set."
     (with-current-buffer buf
       (jds/pdf-ai-summary-mode)
       (read-only-mode -1)
+      (setq-local jds/pdf-ai-reinforce-citekey (or citekey (file-name-base file)))
+      (when (fboundp 'gptel-reinforce-set-active-database)
+        (gptel-reinforce-set-active-database "academic-papers"))
       (insert (format "#+TITLE: PDF Summary: %s\n\n" title))
-      (insert (string-trim (or response "")))
-      (insert "\n")
+      (let ((start (point)))
+        (insert (string-trim (or response "")))
+        (insert "\n")
+        (when (fboundp 'gptel-reinforce-track-output-region)
+          (gptel-reinforce-track-output-region jds/pdf-ai-reinforce-artifact start (point))))
       (goto-char (point-min))
       (read-only-mode 1)
       (evil-local-set-key 'normal (kbd "q") #'bury-buffer))
@@ -308,13 +349,17 @@ Uses CITEKEY metadata when available, and appends EXTRA-INSTRUCTIONS when set."
   "Generate an AI summary for FILE and pass it to CALLBACK.
 When provided, CITEKEY and EXTRA-INSTRUCTIONS are used in the prompt."
   (message "Generating AI summary for %s..." (file-name-nondirectory file))
-  (gptel-request
-   (jds~pdf-ai-build-summary-prompt file citekey extra-instructions)
-   :system "You are a research assistant. Produce structured org-mode notes for academic papers."
-   :callback (lambda (response info)
-               (if (not response)
-                   (message "AI summary failed: %s" (plist-get info :status))
-                 (funcall callback response)))))
+  (let ((system (if (featurep 'gptel-reinforce)
+                    (gptel-reinforce-tools--live-system
+                     jds/pdf-ai-reinforce-artifact jds/pdf-ai-reinforce-system)
+                  jds/pdf-ai-reinforce-system)))
+    (gptel-request
+     (jds~pdf-ai-build-summary-prompt file citekey extra-instructions)
+     :system system
+     :callback (lambda (response info)
+                 (if (not response)
+                     (message "AI summary failed: %s" (plist-get info :status))
+                   (funcall callback response))))))
 
 (defun jds~pdf-ai-summary-insert (citekey summary)
   "Create/open org-roam note for CITEKEY and append AI SUMMARY."

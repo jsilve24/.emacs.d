@@ -417,29 +417,17 @@ Return a marker at the inserted heading."
     (cons (mu4e-view-message-text msg) 'message)))
 
 (defun jds/ai-email--capture-system-prompt (today scope)
-  "Return the extraction system prompt for TODAY and SCOPE."
-  (concat
-   "You extract Org capture candidates from email text.\n"
-   "Today is " today ".\n"
-   "Return JSON only. No commentary, no markdown code fences.\n"
-   "Use the selected text or message body as the primary source.\n"
-   "If quoted prior-thread context is present, use it only when the current message clearly depends on it to confirm or clarify a todo or event.\n"
-   "Ignore dates, times, and deadlines mentioned in earlier emails when they are not materially relevant to the actionable item in the current message.\n"
-   "For events, only return candidates that are concrete enough to belong on a calendar. A mere proposal without clear acceptance is usually not enough.\n"
-   "For todos, only return actionable items for the user or explicit follow-up commitments by the user.\n"
-   "If the current message says something like \"that time works\" or \"let's do the second option,\" you may use prior quoted context to resolve the accepted event.\n"
-   "If the current message does not affirmatively confirm or commit to an earlier proposed event, do not capture it.\n"
-   "If a physical location or meeting link is explicitly present, include it.\n"
-   "For event titles, add a suffix like \"(zoom)\" or \"(in person)\" only when it adds useful context.\n"
-   "The JSON schema is:\n"
-   "{\n"
-   "  \"events\": [{\"title\": string, \"start\": \"YYYY-MM-DDTHH:MM\" or \"YYYY-MM-DD\", \"end\": optional same format, \"all_day\": boolean, \"modality\": optional \"zoom\"|\"in_person\"|\"unknown\", \"location\": optional string, \"conference_url\": optional string, \"notes\": optional string, \"evidence\": short string, \"uses_prior_context\": boolean}],\n"
-   "  \"todos\": [{\"title\": string, \"notes\": optional string, \"evidence\": short string}]\n"
-   "}\n"
-   (if (eq scope 'region)
-       "Only extract candidates supported by the selected region. Ignore any context outside it.\n"
-     "Treat the newest unquoted portion of the message as primary and older quoted text as supporting context only.\n")
-   "When unsure, return fewer candidates, not more."))
+  "Return the extraction system prompt for TODAY and SCOPE.
+The static rules portion is read from the live capture artifact when available,
+falling back to the initial text defined in `jds/ai-email--reinforce-capture-initial-text'."
+  (let ((base (or (and (fboundp 'jds/ai-email--capture-artifact-text)
+                       (jds/ai-email--capture-artifact-text))
+                  jds/ai-email--reinforce-capture-initial-text)))
+    (concat "Today is " today ".\n"
+            base "\n"
+            (if (eq scope 'region)
+                "Only extract candidates supported by the selected region. Ignore any context outside it.\n"
+              "Treat the newest unquoted portion of the message as primary and older quoted text as supporting context only.\n"))))
 
 (defun jds/mu4e-ai-extract-captures (&optional msg)
   "Extract todo and calendar capture candidates from MSG."

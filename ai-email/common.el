@@ -60,6 +60,13 @@ generation output."
   jds/ai-email-reinforce-zoom-summary-artifact
   "Reinforcement database for AI Zoom summaries.")
 
+(defconst jds/ai-email-reinforce-capture-artifact "ai-email-capture"
+  "Artifact name for AI email capture extraction.")
+
+(defconst jds/ai-email-reinforce-capture-database
+  jds/ai-email-reinforce-capture-artifact
+  "Reinforcement database for AI email capture extraction.")
+
 (defconst jds/ai-email--reinforce-database-specs
   `((,jds/ai-email-reinforce-reply-database
      :candidate-fn jds/ai-email--reinforce-reply-candidate
@@ -72,7 +79,10 @@ generation output."
      :context-fn jds/ai-email--reinforce-thread-summary-context)
     (,jds/ai-email-reinforce-zoom-summary-database
      :candidate-fn jds/ai-email--reinforce-zoom-summary-candidate
-     :context-fn jds/ai-email--reinforce-zoom-summary-context))
+     :context-fn jds/ai-email--reinforce-zoom-summary-context)
+    (,jds/ai-email-reinforce-capture-database
+     :candidate-fn jds/ai-email--reinforce-capture-candidate
+     :context-fn jds/ai-email--reinforce-capture-context))
   "Database registrations for ai-email reinforcement workflows.")
 
 (defconst jds/ai-email--reinforce-reply-summarizer-guidance
@@ -102,6 +112,40 @@ generation output."
    "Treat item-feedback as low-priority background signal and ignore it when it would blur the prompt across unrelated summary cases.\n"
    "Prefer small edits that improve summary quality, not domain ranking behavior.")
   "Updater guidance for AI email summary artifacts.")
+
+(defconst jds/ai-email--reinforce-capture-summarizer-guidance
+  (concat
+   "For this email-capture extraction workflow, treat output-feedback as the primary signal.\n"
+   "Focus on what users liked or disliked about the extracted candidates: precision, recall, accuracy of dates/times, and relevance of todos.")
+  "Summarizer guidance for AI email capture artifacts.")
+
+(defconst jds/ai-email--reinforce-capture-updater-guidance
+  (concat
+   "Update this extraction prompt mainly from output-feedback.\n"
+   "Prefer edits that improve the accuracy and relevance of extracted events and todos.\n"
+   "Do not alter the JSON schema or the dynamic date/scope instructions — those are injected at call time.")
+  "Updater guidance for AI email capture artifacts.")
+
+(defconst jds/ai-email--reinforce-capture-initial-text
+  (concat
+   "You extract Org capture candidates from email text.\n"
+   "Return JSON only. No commentary, no markdown code fences.\n"
+   "Use the selected text or message body as the primary source.\n"
+   "If quoted prior-thread context is present, use it only when the current message clearly depends on it to confirm or clarify a todo or event.\n"
+   "Ignore dates, times, and deadlines mentioned in earlier emails when they are not materially relevant to the actionable item in the current message.\n"
+   "For events, only return candidates that are concrete enough to belong on a calendar. A mere proposal without clear acceptance is usually not enough.\n"
+   "For todos, only return actionable items for the user or explicit follow-up commitments by the user.\n"
+   "If the current message says something like \"that time works\" or \"let's do the second option,\" you may use prior quoted context to resolve the accepted event.\n"
+   "If the current message does not affirmatively confirm or commit to an earlier proposed event, do not capture it.\n"
+   "If a physical location or meeting link is explicitly present, include it.\n"
+   "For event titles, add a suffix like \"(zoom)\" or \"(in person)\" only when it adds useful context.\n"
+   "The JSON schema is:\n"
+   "{\n"
+   "  \"events\": [{\"title\": string, \"start\": \"YYYY-MM-DDTHH:MM\" or \"YYYY-MM-DD\", \"end\": optional same format, \"all_day\": boolean, \"modality\": optional \"zoom\"|\"in_person\"|\"unknown\", \"location\": optional string, \"conference_url\": optional string, \"notes\": optional string, \"evidence\": short string, \"uses_prior_context\": boolean}],\n"
+   "  \"todos\": [{\"title\": string, \"notes\": optional string, \"evidence\": short string}]\n"
+   "}\n"
+   "When unsure, return fewer candidates, not more.")
+  "Initial artifact text for AI email capture extraction (static rules; date and scope injected at call time).")
 
 (defconst jds/ai-email--reinforce-scheduling-initial-text
   (string-join
@@ -143,6 +187,16 @@ generation output."
       (unless (string-empty-p text)
         text))))
 
+(defun jds/ai-email--capture-artifact-text ()
+  "Return the current text of the capture artifact, or nil when empty."
+  (when (featurep 'gptel-reinforce)
+    (when-let* ((artifact (gptel-reinforce-get-artifact
+                           jds/ai-email-reinforce-capture-artifact))
+                (current (gptel-reinforce-org-read-current artifact))
+                (text (string-trim (or (plist-get current :text) ""))))
+      (unless (string-empty-p text)
+        text))))
+
 (defconst jds/ai-email--reinforce-artifact-specs
   `((,jds/ai-email-reinforce-reply-artifact
      :database ,jds/ai-email-reinforce-reply-database
@@ -164,7 +218,13 @@ generation output."
      :database ,jds/ai-email-reinforce-zoom-summary-database
      :type "prompt"
      :summarizer-user-prompt ,jds/ai-email--reinforce-summary-summarizer-guidance
-     :updater-user-prompt ,jds/ai-email--reinforce-summary-updater-guidance))
+     :updater-user-prompt ,jds/ai-email--reinforce-summary-updater-guidance)
+    (,jds/ai-email-reinforce-capture-artifact
+     :database ,jds/ai-email-reinforce-capture-database
+     :type "prompt"
+     :initial-text ,jds/ai-email--reinforce-capture-initial-text
+     :summarizer-user-prompt ,jds/ai-email--reinforce-capture-summarizer-guidance
+     :updater-user-prompt ,jds/ai-email--reinforce-capture-updater-guidance))
   "Artifact registrations for ai-email reinforcement workflows.")
 
 (defvar jds/ai-email--reinforce-registered nil
@@ -203,6 +263,11 @@ generation output."
   (jds/ai-email--reinforce-candidate
    jds/ai-email-reinforce-zoom-summary-database))
 
+(defun jds/ai-email--reinforce-capture-candidate ()
+  "Return the capture reinforcement candidate for the current buffer."
+  (jds/ai-email--reinforce-candidate
+   jds/ai-email-reinforce-capture-database))
+
 (defun jds/ai-email--reinforce-context-only (database-name)
   "Return ai-email reinforcement context for DATABASE-NAME in the current buffer."
   (when (equal jds/ai-email-reinforce-database database-name)
@@ -226,6 +291,11 @@ generation output."
   "Return the ai-email zoom-summary reinforcement context for the buffer."
   (jds/ai-email--reinforce-context-only
    jds/ai-email-reinforce-zoom-summary-database))
+
+(defun jds/ai-email--reinforce-capture-context ()
+  "Return the ai-email capture reinforcement context for the buffer."
+  (jds/ai-email--reinforce-context-only
+   jds/ai-email-reinforce-capture-database))
 
 (defun jds/ai-email--reinforce-context-for-message (msg workflow)
   "Return a minimal reinforcement context for MSG and WORKFLOW."
