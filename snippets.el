@@ -223,6 +223,7 @@ escape."
 	      "./" (jds~aas-insert-math "\\oslash$0")
 	      ".+" (jds~aas-insert-math "\\oplus$0")
 	      ".-" (jds~aas-insert-math "\\ominus$0"))))
+  ;;; aas-snippets-begin
   (jds~aas-setup-insert-math 'org-mode)
   (jds~aas-setup-insert-math 'latex-mode)
   (jds~aas-setup-insert-math 'LaTeX-mode)
@@ -347,6 +348,8 @@ escape."
 
   (aas-set-snippets 'org-msg-edit-mode
     ";schedule" #'jds/ai-email-insert-availability-snippet)
+
+  ;;; aas-snippets-end
 
   ;; latex autoactivating snippets
 

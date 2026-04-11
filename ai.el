@@ -62,6 +62,57 @@
 (setq gptel-reinforce-summary-review-mode 'edit
       gptel-reinforce-update-review-mode 'edit)
 
+;;; aas snippets artifact -----------------------------------------------------
+
+(defconst jds/aas-snippets-artifact "aas-snippets"
+  "Artifact name for the aas snippet registration block.")
+
+(defconst jds/aas-snippets-file
+  (expand-file-name "snippets.el" user-emacs-directory)
+  "File containing the aas snippet definitions.")
+
+(defun jds/aas-snippets--read ()
+  "Extract the aas snippet registration block from `snippets.el'."
+  (with-temp-buffer
+    (insert-file-contents jds/aas-snippets-file)
+    (goto-char (point-min))
+    (when (search-forward ";;; aas-snippets-begin\n" nil t)
+      (let ((start (point)))
+        (when (search-forward "\n  ;;; aas-snippets-end" nil t)
+          (string-trim
+           (buffer-substring-no-properties start (match-beginning 0))))))))
+
+(defun jds/aas-snippets--write-back (text)
+  "Replace the aas snippet block in `snippets.el' with TEXT and re-eval."
+  (with-current-buffer (find-file-noselect jds/aas-snippets-file)
+    (save-excursion
+      (goto-char (point-min))
+      (when (search-forward ";;; aas-snippets-begin\n" nil t)
+        (let ((start (point)))
+          (when (search-forward "\n  ;;; aas-snippets-end" nil t)
+            (let ((end (match-beginning 0)))
+              (delete-region start end)
+              (goto-char start)
+              (insert (string-trim text)))))))
+    (save-buffer))
+  (condition-case err
+      (eval (read (format "(progn %s)" text)) t)
+    (error (message "aas-snippets update error: %s" (error-message-string err)))))
+
+(gptel-reinforce-register-database
+ :name "aas-snippets"
+ :candidate-fn (lambda ()
+                 (list :context
+                       (list :item-key "aas-snippets"
+                             :title "aas snippet definitions"))))
+
+(gptel-reinforce-register-artifact
+ :name jds/aas-snippets-artifact
+ :database "aas-snippets"
+ :type "code"
+ :initial-text (or (jds/aas-snippets--read) "")
+ :post-update-hook #'jds/aas-snippets--write-back)
+
 ;; --- LaTeX writing tools -----------------------------------------------------
 
 (gptel-reinforce-register-database
