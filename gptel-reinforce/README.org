@@ -232,6 +232,8 @@ Repeated feedback overwrites the previous score for the same target instead of c
 
 *=gptel-reinforce-update ARTIFACT=* — sends the current artifact text and =summary.org= to the LLM and requests a minimal revision. Review behavior is controlled by =gptel-reinforce-update-review-mode= and can be skipped per artifact with =AUTO_UPDATE: t= in =current.org=. Accepted revisions are written to the history directory and become the new =current.org=.
 
+*=gptel-reinforce-rollback ARTIFACT VERSION-REF=* — restores a prior history snapshot. Interactively, it prompts for an artifact and then offers the history entries via =completing-read= with timestamps, update mode, and a short excerpt. After you choose one, it reuses the normal review flow before writing a fresh history snapshot with =UPDATE_MODE= set to =rollback=. Rollback clears =Applied Summary= in =current.org= so the next update can safely re-apply the full current summary instead of assuming the rolled-back text already incorporated it.
+
 ** Utility
 
 *=gptel-reinforce-set-active-database DATABASE=* — pins a database to the current buffer. Feedback commands normally auto-detect by asking every registered database for a candidate, then choosing the highest-priority match. If you want a buffer-local override regardless of candidate priority, pin the database explicitly. The typical use is in a mode hook:

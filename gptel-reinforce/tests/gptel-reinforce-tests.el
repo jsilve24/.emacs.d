@@ -142,6 +142,67 @@
         (should (string-match-p "New signal" (plist-get current-record :applied-summary)))
         (should (stringp (plist-get current-record :version-ref)))))))
 
+(ert-deftest gptel-reinforce-history-entries-are-listed-newest-first ()
+  (gptel-reinforce-test-with-temp-env
+    (gptel-reinforce-test--register-database)
+    (gptel-reinforce-register-artifact :name "artifact-1" :database "test-db" :type "prompt")
+    (let* ((initial-version (plist-get (gptel-reinforce-org-read-current "artifact-1") :version-ref))
+           (_second-version
+            (gptel-reinforce-org-write-history-entry
+             "artifact-1"
+             "Second text"
+             :updated-at "2026-01-01T00:00:01+0000"
+             :update-mode "manual-approved"))
+           (entries (gptel-reinforce-org-list-history-entries "artifact-1")))
+      (should (= 2 (length entries)))
+      (should (equal (plist-get (car entries) :text) "Second text"))
+      (should (equal (plist-get (cadr entries) :version-ref) initial-version)))))
+
+(ert-deftest gptel-reinforce-rollback-restores-selected-history-and-runs-hooks ()
+  (gptel-reinforce-test-with-temp-env
+    (let (pre-text post-text rollback-source)
+      (gptel-reinforce-test--register-database)
+      (gptel-reinforce-register-artifact
+       :name "artifact-1"
+       :database "test-db"
+       :type "prompt"
+       :pre-update-hook (lambda (_artifact _current-record candidate-text)
+                          (setq pre-text candidate-text)
+                          t)
+       :post-update-hook
+       (lambda (artifact version-ref _current-record candidate-text)
+         (setq post-text candidate-text)
+         (setq rollback-source
+               (plist-get
+                (gptel-reinforce-org-read-history-entry artifact version-ref)
+                :rollback-source-version-ref))))
+      (gptel-reinforce-org-write-summary
+       "artifact-1"
+       "* Summary\n\nCurrent summary\n\n* Uncertainty\n\n- none\n\n* Notes\n"
+       3)
+      (let ((source-version
+             (gptel-reinforce-org-write-history-entry
+              "artifact-1"
+              "Rollback target text"
+              :updated-at "2026-01-01T00:00:02+0000"
+              :summary-event-ref 2
+              :update-mode "manual-approved")))
+        (cl-letf (((symbol-function 'gptel-reinforce--review-text)
+                   (lambda (&rest _args)
+                     "Rollback target text")))
+          (gptel-reinforce-rollback "artifact-1" source-version))
+        (let* ((current-record (gptel-reinforce-org-read-current "artifact-1"))
+               (new-version-ref (plist-get current-record :version-ref))
+               (history-entry (gptel-reinforce-org-read-history-entry "artifact-1" new-version-ref)))
+          (should (equal pre-text "Rollback target text"))
+          (should (equal post-text "Rollback target text"))
+          (should (equal rollback-source source-version))
+          (should (equal (plist-get current-record :text) "Rollback target text"))
+          (should (string-empty-p (plist-get current-record :applied-summary)))
+          (should (equal (plist-get history-entry :update-mode) "rollback"))
+          (should (equal (plist-get history-entry :summary-event-ref) 2))
+          (should-not (equal new-version-ref source-version)))))))
+
 (ert-deftest gptel-reinforce-elfeed-register-module-seeds-current-text ()
   (gptel-reinforce-test-with-temp-env
     (let ((gptel-reinforce-elfeed-score-file

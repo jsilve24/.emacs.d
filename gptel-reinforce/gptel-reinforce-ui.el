@@ -211,6 +211,39 @@ Errors are surfaced after all hooks run."
     (when first-error
       (signal (car first-error) (cdr first-error)))))
 
+(defun gptel-reinforce--apply-artifact-text (artifact current-record candidate-text &rest plist)
+  "Apply CANDIDATE-TEXT to ARTIFACT and return the new version ref.
+CURRENT-RECORD is the parsed current state.  Optional PLIST keys:
+:summary-event-ref, :applied-summary, :update-mode, and
+:rollback-source-version-ref."
+  (gptel-reinforce--run-pre-update-hooks artifact current-record candidate-text)
+  (let ((version-ref
+         (gptel-reinforce-org-write-history-entry
+          artifact
+          candidate-text
+          :type (or (plist-get current-record :type)
+                    (gptel-reinforce-artifact-type artifact))
+          :summary-event-ref (or (plist-get plist :summary-event-ref) 0)
+          :update-mode (or (plist-get plist :update-mode) "manual-approved")
+          :rollback-source-version-ref
+          (plist-get plist :rollback-source-version-ref))))
+    (gptel-reinforce-org-write-current
+     artifact
+     :version-ref version-ref
+     :text candidate-text
+     :applied-summary (or (plist-get plist :applied-summary) "")
+     :summarizer-user-prompt (plist-get current-record :summarizer-user-prompt)
+     :updater-user-prompt (plist-get current-record :updater-user-prompt)
+     :type (or (plist-get current-record :type)
+               (gptel-reinforce-artifact-type artifact))
+     :auto-update (plist-get current-record :auto-update))
+    (gptel-reinforce--run-post-update-hooks
+     artifact
+     version-ref
+     current-record
+     candidate-text)
+    version-ref))
+
 (defun gptel-reinforce--show-diff-review (title old-text new-text)
   "Show a read-only diff for TITLE and return non-nil when accepted."
   (let* ((old-file (make-temp-file "gptel-reinforce-old-"))
@@ -284,6 +317,44 @@ Return the accepted text, or nil when rejected."
     ('diff (gptel-reinforce--show-diff-review title old-text new-text))
     ('smerge (gptel-reinforce--show-smerge-review title old-text new-text))
     (_ (user-error "Unsupported review mode: %S" review-mode))))
+
+(defun gptel-reinforce--history-entry-excerpt (entry)
+  "Return a short one-line excerpt for history ENTRY."
+  (let* ((text (string-trim (or (plist-get entry :text) "")))
+         (line (car (split-string text "\n"))))
+    (truncate-string-to-width (or line "") 60 nil nil t)))
+
+(defun gptel-reinforce--read-history-version (artifact)
+  "Prompt for a history version for ARTIFACT and return its version ref."
+  (let* ((entries (gptel-reinforce-org-list-history-entries artifact))
+         (candidates (mapcar (lambda (entry)
+                               (cons (plist-get entry :version-ref) entry))
+                             entries)))
+    (unless candidates
+      (user-error "No history entries found for %s"
+                  (gptel-reinforce-artifact-name artifact)))
+    (let ((completion-extra-properties
+           `(:affixation-function
+             ,(lambda (versions)
+                (mapcar
+                 (lambda (version)
+                   (let* ((entry (alist-get version candidates nil nil #'equal))
+                          (updated-at (or (plist-get entry :updated-at) ""))
+                          (update-mode (or (plist-get entry :update-mode) ""))
+                          (excerpt (gptel-reinforce--history-entry-excerpt entry)))
+                     (list version
+                           ""
+                           (format "  %s  [%s]  %s"
+                                   updated-at
+                                   update-mode
+                                   excerpt))))
+                 versions)))))
+      (completing-read
+       (format "Rollback %s to version: "
+               (gptel-reinforce-artifact-name artifact))
+       candidates
+       nil
+       t))))
 
 ;;;###autoload
 (defun gptel-reinforce-summarize (artifact)
@@ -365,33 +436,55 @@ Return the accepted text, or nil when rejected."
                    candidate-text
                    gptel-reinforce-update-review-mode))))
          (when approved-text
-           (gptel-reinforce--run-pre-update-hooks artifact current-record approved-text)
            (let ((version-ref
-                  (gptel-reinforce-org-write-history-entry
+                  (gptel-reinforce--apply-artifact-text
                    artifact
+                   current-record
                    approved-text
-                   :type (or (plist-get current-record :type)
-                             (gptel-reinforce-artifact-type artifact))
                    :summary-event-ref (or (plist-get summary-record :last-event-id) 0)
+                   :applied-summary (plist-get summary-record :body)
                    :update-mode (if auto-update "auto-updated" "manual-approved"))))
-             (gptel-reinforce-org-write-current
-              artifact
-              :version-ref version-ref
-              :text approved-text
-              :applied-summary (plist-get summary-record :body)
-              :summarizer-user-prompt (plist-get current-record :summarizer-user-prompt)
-              :updater-user-prompt (plist-get current-record :updater-user-prompt)
-              :type (or (plist-get current-record :type)
-                        (gptel-reinforce-artifact-type artifact))
-              :auto-update auto-update)
              (message "Updated %s to version %s"
                       (gptel-reinforce-artifact-name artifact)
-                      version-ref)
-             (gptel-reinforce--run-post-update-hooks
+                      version-ref))))))))
+
+;;;###autoload
+(defun gptel-reinforce-rollback (artifact version-ref)
+  "Roll ARTIFACT back to VERSION-REF from artifact history."
+  (interactive
+   (let* ((artifact-name (completing-read
+                          "Artifact: "
+                          (gptel-reinforce-list-artifacts)
+                          nil t))
+          (artifact (gptel-reinforce-resolve-artifact artifact-name)))
+     (list artifact
+           (gptel-reinforce--read-history-version artifact))))
+  (let* ((artifact (gptel-reinforce-resolve-artifact artifact))
+         (current-record (gptel-reinforce-org-read-current artifact))
+         (history-entry (gptel-reinforce-org-read-history-entry artifact version-ref))
+         (target-text (plist-get history-entry :text))
+         (approved-text
+          (gptel-reinforce--review-text
+           (format "%s rollback to %s"
+                   (gptel-reinforce-artifact-name artifact)
+                   (plist-get history-entry :version-ref))
+           (plist-get current-record :text)
+           target-text
+           gptel-reinforce-update-review-mode)))
+    (when approved-text
+      (let ((new-version-ref
+             (gptel-reinforce--apply-artifact-text
               artifact
-              version-ref
               current-record
-              approved-text))))))))
+              approved-text
+              :summary-event-ref (plist-get history-entry :summary-event-ref)
+              :applied-summary ""
+              :update-mode "rollback"
+              :rollback-source-version-ref (plist-get history-entry :version-ref))))
+        (message "Rolled %s back to %s as new version %s"
+                 (gptel-reinforce-artifact-name artifact)
+                 (plist-get history-entry :version-ref)
+                 new-version-ref)))))
 
 (provide 'gptel-reinforce-ui)
 

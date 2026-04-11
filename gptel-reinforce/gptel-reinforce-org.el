@@ -202,9 +202,10 @@ Return the history file basename."
          (updated-at (or (plist-get plist :updated-at)
                          (gptel-reinforce--timestamp)))
          (summary-event-ref (plist-get plist :summary-event-ref))
+         (rollback-source-version-ref (plist-get plist :rollback-source-version-ref))
          (update-mode (or (plist-get plist :update-mode) "manual-approved"))
          (base-name (format "%s-%s.org"
-                            (format-time-string "%Y%m%dT%H%M%S")
+                            (format-time-string "%Y%m%dT%H%M%S%N")
                             (gptel-reinforce-artifact-name artifact)))
          (history-file (expand-file-name base-name history-dir))
          (content
@@ -217,6 +218,7 @@ Return the history file basename."
                              ""))
               ("UPDATED_AT" . ,updated-at)
               ("UPDATE_MODE" . ,update-mode)
+              ("ROLLBACK_SOURCE_VERSION_REF" . ,(or rollback-source-version-ref ""))
               ("SOURCE_SUMMARY_LAST_EVENT_ID" . ,(format "%s" (or summary-event-ref 0)))))
            "* Current Text\n"
            (gptel-reinforce-org--indent-body text)
@@ -224,6 +226,44 @@ Return the history file basename."
     (gptel-reinforce--ensure-directory history-dir)
     (gptel-reinforce-org--write-file history-file content)
     base-name))
+
+(defun gptel-reinforce-org-read-history-entry (artifact version-ref)
+  "Read ARTIFACT history entry VERSION-REF and return a plist.
+VERSION-REF may be a basename within the artifact history directory or an
+absolute file path."
+  (let* ((artifact (gptel-reinforce-resolve-artifact artifact))
+         (file (if (file-name-absolute-p version-ref)
+                   version-ref
+                 (expand-file-name version-ref
+                                   (gptel-reinforce-artifact-history-dir artifact))))
+         (content (or (gptel-reinforce-org--read-file file)
+                      (user-error "Unknown history entry: %s" version-ref)))
+         (properties (gptel-reinforce-org--parse-properties content))
+         (body (gptel-reinforce-org--body-after-properties content)))
+    (list :file file
+          :version-ref (file-name-nondirectory file)
+          :database (cdr (assoc "DATABASE" properties))
+          :artifact (cdr (assoc "ARTIFACT" properties))
+          :type (cdr (assoc "TYPE" properties))
+          :updated-at (cdr (assoc "UPDATED_AT" properties))
+          :update-mode (cdr (assoc "UPDATE_MODE" properties))
+          :rollback-source-version-ref
+          (cdr (assoc "ROLLBACK_SOURCE_VERSION_REF" properties))
+          :summary-event-ref
+          (when-let* ((value (cdr (assoc "SOURCE_SUMMARY_LAST_EVENT_ID" properties))))
+            (string-to-number value))
+          :text (or (gptel-reinforce-org--extract-section body "Current Text") ""))))
+
+(defun gptel-reinforce-org-list-history-entries (artifact)
+  "Return parsed history entries for ARTIFACT, newest first."
+  (let* ((artifact (gptel-reinforce-resolve-artifact artifact))
+         (history-dir (gptel-reinforce-artifact-history-dir artifact))
+         (files (when (file-directory-p history-dir)
+                  (directory-files history-dir t "\\.org\\'" t))))
+    (mapcar
+     (lambda (file)
+       (gptel-reinforce-org-read-history-entry artifact file))
+     (sort files #'string>))))
 
 (defun gptel-reinforce-org-initialize-artifact (artifact &optional initial-text)
   "Ensure ARTIFACT has current.org, summary.org, and archive state.
