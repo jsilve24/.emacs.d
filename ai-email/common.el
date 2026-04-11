@@ -8,10 +8,29 @@
 (require 'org-element)
 (require 'subr-x)
 
+(defgroup jds/ai-email nil
+  "AI email helpers and workflows."
+  :group 'applications
+  :prefix "jds/ai-email-")
+
+(defcustom jds/ai-email-debug-normalization nil
+  "When non-nil, log ai-email normalization traces for inspection.
+Only logs cases where the normalized output materially differs from the raw
+generation output."
+  :type 'boolean
+  :group 'jds/ai-email)
+
+(defcustom jds/ai-email-debug-buffer-name "*ai-email normalization debug*"
+  "Buffer name used for optional ai-email normalization debug logs."
+  :type 'string
+  :group 'jds/ai-email)
+
 (declare-function gptel-reinforce-set-active-database "gptel-reinforce" (database))
 (declare-function gptel-reinforce-track-output-region "gptel-reinforce" (artifact start end &optional output-id))
 (declare-function gptel-reinforce-register-database "gptel-reinforce" (&rest plist))
 (declare-function gptel-reinforce-register-artifact "gptel-reinforce" (&rest plist))
+(declare-function gptel-reinforce-get-artifact "gptel-reinforce-core" (name))
+(declare-function gptel-reinforce-org-read-current "gptel-reinforce-org" (artifact))
 
 (defconst jds/ai-email-reinforce-reply-artifact "ai-email-reply"
   "Artifact name for standard AI email replies.")
@@ -84,6 +103,46 @@
    "Prefer small edits that improve summary quality, not domain ranking behavior.")
   "Updater guidance for AI email summary artifacts.")
 
+(defconst jds/ai-email--reinforce-scheduling-initial-text
+  (string-join
+   '("You are an AI assistant helping compose email replies for scheduling discussions."
+     "Your goal is to generate natural, contextually aware responses that move scheduling forward efficiently."
+     ""
+     "## Core principles"
+     ""
+     "1. **Match conversational tone**: Write as if continuing a natural dialogue, not a formal template."
+     "   Avoid parroting back the user's internal notes or framing—extract only the practical information (dates, times, constraints)."
+     ""
+     "2. **Filter, don't list**: When someone has already proposed specific times or narrowed a window,"
+     "   respond with 1–2 concrete counter-proposals rather than exhaustively listing all availability."
+     "   Prioritize options that work best within their stated constraints."
+     ""
+     "3. **Avoid unnecessary formality**: Keep language conversational and direct."
+     "   Skip phrases like \"given the importance of this discussion\" unless they genuinely reflect the tone of the thread."
+     ""
+     "4. **Respect context**: Read the full conversation thread to understand what has already been discussed,"
+     "   rejected, or accepted. Avoid repeating information or options the other party has already addressed."
+     ""
+     "## When composing replies"
+     ""
+     "- Extract the user's actual availability/constraints, not their internal reasoning."
+     "- If multiple times are possible, lead with the strongest 1–2 options that fit the other person's apparent preferences."
+     "- Use simple, direct language (\"Does Tuesday at 2pm work?\" rather than \"I would be delighted if we could convene on Tuesday at 2pm\")."
+     "- If confirming a time, be brief and clear."
+     "- If proposing alternatives, explain why briefly (e.g., \"Tuesday works better for me than Wednesday\").")
+   "\n")
+  "Initial artifact text for the AI scheduling reply prompt.")
+
+(defun jds/ai-email--scheduling-artifact-text ()
+  "Return the current text of the scheduling reply artifact, or nil when empty."
+  (when (featurep 'gptel-reinforce)
+    (when-let* ((artifact (gptel-reinforce-get-artifact
+                           jds/ai-email-reinforce-scheduling-reply-artifact))
+                (current (gptel-reinforce-org-read-current artifact))
+                (text (string-trim (or (plist-get current :text) ""))))
+      (unless (string-empty-p text)
+        text))))
+
 (defconst jds/ai-email--reinforce-artifact-specs
   `((,jds/ai-email-reinforce-reply-artifact
      :database ,jds/ai-email-reinforce-reply-database
@@ -93,6 +152,7 @@
     (,jds/ai-email-reinforce-scheduling-reply-artifact
      :database ,jds/ai-email-reinforce-scheduling-reply-database
      :type "prompt"
+     :initial-text ,jds/ai-email--reinforce-scheduling-initial-text
      :summarizer-user-prompt ,jds/ai-email--reinforce-reply-summarizer-guidance
      :updater-user-prompt ,jds/ai-email--reinforce-reply-updater-guidance)
     (,jds/ai-email-reinforce-thread-summary-artifact
@@ -239,8 +299,11 @@
 (defvar jds/scheduling-workday-start-hour 9
   "Hour when the scheduling workday begins.")
 
-(defvar jds/scheduling-workday-end-hour 17
+(defvar jds/scheduling-workday-end-hour 16
   "Hour when the scheduling workday ends.")
+
+(defvar jds/scheduling-workday-end-minute 30
+  "Minute within `jds/scheduling-workday-end-hour' when the workday ends.")
 
 (defvar jds/scheduling-slot-increment-minutes 30
   "Granularity in minutes for suggested meeting starts.")
@@ -282,11 +345,11 @@ Each value is \"zoom\", \"in_person\", or \"either\"."
                 (decode-time time)))
     (encode-time 0 0 0 day month year)))
 
-(defun jds/org-calendar--at-hour (time hour)
-  "Return TIME's date at HOUR:00."
+(defun jds/org-calendar--at-hour (time hour &optional minute)
+  "Return TIME's date at HOUR:MINUTE (MINUTE defaults to 0)."
   (pcase-let* ((`(,_sec ,_min ,_hour ,day ,month ,year . ,_)
                 (decode-time time)))
-    (encode-time 0 0 hour day month year)))
+    (encode-time 0 (or minute 0) hour day month year)))
 
 (defun jds/org-calendar--days-between (start end)
   "Return number of whole days from START to END, inclusive."
@@ -488,6 +551,7 @@ Each value is \"zoom\", \"in_person\", or \"either\"."
 (defun jds/org-calendar--mode-matches-p (day-mode preference)
   "Whether DAY-MODE satisfies PREFERENCE."
   (or (equal preference "either")
+      (equal day-mode "either")
       (equal day-mode preference)))
 
 (defun jds/org-calendar--time-of-day-matches-p (time preference)
@@ -513,6 +577,38 @@ Each value is \"zoom\", \"in_person\", or \"either\"."
    " "
    (string-trim (format-time-string "%A, %B %e" time))))
 
+(defun jds/org-calendar--parse-clock-string (clock-string)
+  "Return (HOUR . MINUTE) for CLOCK-STRING in 24-hour HH:MM format."
+  (when (and (stringp clock-string)
+             (string-match
+              "\\`\\([01]?[0-9]\\|2[0-3]\\):\\([0-5][0-9]\\)\\'" clock-string))
+    (cons (string-to-number (match-string 1 clock-string))
+          (string-to-number (match-string 2 clock-string)))))
+
+(defun jds/org-calendar--minute-of-day (time)
+  "Return TIME as minutes since midnight."
+  (pcase-let ((`(,_sec ,min ,hour . ,_) (decode-time time)))
+    (+ (* hour 60) min)))
+
+(defun jds/org-calendar--time-constraints-match-p
+    (time exact-start earliest-start latest-start)
+  "Whether TIME satisfies the given optional start-time constraints.
+EXACT-START, EARLIEST-START, and LATEST-START are clock strings in HH:MM
+24-hour format."
+  (let* ((minute-of-day (jds/org-calendar--minute-of-day time))
+         (exact (when exact-start
+                  (jds/org-calendar--parse-clock-string exact-start)))
+         (earliest (when earliest-start
+                     (jds/org-calendar--parse-clock-string earliest-start)))
+         (latest (when latest-start
+                   (jds/org-calendar--parse-clock-string latest-start))))
+    (and (or (null exact)
+             (= minute-of-day (+ (* 60 (car exact)) (cdr exact))))
+         (or (null earliest)
+             (>= minute-of-day (+ (* 60 (car earliest)) (cdr earliest))))
+         (or (null latest)
+             (<= minute-of-day (+ (* 60 (car latest)) (cdr latest)))))))
+
 (defun jds/org-calendar--workday-p (day-time)
   "Whether DAY-TIME is a weekday."
   (pcase (decoded-time-weekday (decode-time day-time))
@@ -535,13 +631,16 @@ Each value is \"zoom\", \"in_person\", or \"either\"."
           (jds/org-calendar--mode-label mode)))
 
 (defun jds/org-calendar--generate-slots-for-window
-    (window-start window-end duration-seconds increment-seconds mode time-pref)
+    (window-start window-end duration-seconds increment-seconds mode time-pref
+                  &optional exact-start earliest-start latest-start)
   "Return candidate slots within WINDOW-START and WINDOW-END."
   (let ((slots nil)
         (slot-start window-start))
     (while (not (time-less-p window-end
                              (time-add slot-start duration-seconds)))
-      (when (jds/org-calendar--time-of-day-matches-p slot-start time-pref)
+      (when (and (jds/org-calendar--time-of-day-matches-p slot-start time-pref)
+                 (jds/org-calendar--time-constraints-match-p
+                  slot-start exact-start earliest-start latest-start))
         (let ((slot-end (time-add slot-start duration-seconds)))
           (push `(("start" . ,(jds/org-calendar--iso-datetime slot-start))
                   ("end" . ,(jds/org-calendar--iso-datetime slot-end))
@@ -552,11 +651,18 @@ Each value is \"zoom\", \"in_person\", or \"either\"."
     (nreverse slots)))
 
 (defun jds/org-calendar--free-windows-for-day
-    (day-start busy-intervals duration-seconds mode-preference time-preference)
-  "Return free windows and candidate slots for a single day."
+    (day-start busy-intervals duration-seconds mode-preference time-preference
+     &optional inperson-override exact-start earliest-start latest-start)
+  "Return free windows and candidate slots for a single day.
+When INPERSON-OVERRIDE is non-nil and the day's configured mode is \"zoom\",
+treat the day as \"in_person\" instead, allowing in-person slots to be generated."
   (let* ((work-start (jds/org-calendar--at-hour day-start jds/scheduling-workday-start-hour))
-         (work-end   (jds/org-calendar--at-hour day-start jds/scheduling-workday-end-hour))
-         (day-mode   (jds/org-calendar--day-mode day-start))
+         (work-end   (jds/org-calendar--at-hour day-start jds/scheduling-workday-end-hour
+                                                jds/scheduling-workday-end-minute))
+         (day-mode   (let ((raw (jds/org-calendar--day-mode day-start)))
+                       (if (and inperson-override (equal raw "zoom"))
+                           "in_person"
+                         raw)))
          (intervals  nil)
          (cursor     work-start)
          windows
@@ -594,7 +700,10 @@ Each value is \"zoom\", \"in_person\", or \"either\"."
                         duration-seconds
                         (* 60 jds/scheduling-slot-increment-minutes)
                         day-mode
-                        time-preference))))))
+                        time-preference
+                        exact-start
+                        earliest-start
+                        latest-start))))))
     (list :windows (nreverse summaries)
           :candidates candidates)))
 
@@ -614,7 +723,10 @@ Each value is \"zoom\", \"in_person\", or \"either\"."
     (nreverse selected)))
 
 (defun jds/find-free-times
-    (start_date end_date duration_minutes &optional count mode_preference time_of_day_preference)
+    (start_date end_date duration_minutes
+                &optional count mode_preference time_of_day_preference
+                inperson_on_zoom_days exact_start_time earliest_start_time
+                latest_start_time)
   "Return validated free meeting slots as structured JSON."
   (let* ((start-time (jds/org-calendar--day-start
                       (jds/org-calendar--parse-date start_date)))
@@ -624,6 +736,9 @@ Each value is \"zoom\", \"in_person\", or \"either\"."
          (slot-count (max 1 (truncate (or count jds/scheduling-default-slot-count))))
          (mode-pref  (or mode_preference "either"))
          (time-pref  (or time_of_day_preference "either"))
+         (inperson-override (and inperson_on_zoom_days
+                                 (not (eq inperson_on_zoom_days :json-false))
+                                 (not (equal inperson_on_zoom_days "false"))))
          (duration-seconds (* 60 duration))
          (events (jds/org-calendar--events-in-range start-time end-time))
          (busy-intervals (mapcar (lambda (ev)
@@ -636,8 +751,10 @@ Each value is \"zoom\", \"in_person\", or \"either\"."
     (dotimes (offset days)
       (let* ((day-start (time-add start-time (days-to-time offset)))
              (day-availability
-              (jds/org-calendar--free-windows-for-day
-               day-start busy-intervals duration-seconds mode-pref time-pref)))
+             (jds/org-calendar--free-windows-for-day
+               day-start busy-intervals duration-seconds mode-pref time-pref
+               inperson-override exact_start_time earliest_start_time
+               latest_start_time)))
         (push (plist-get day-availability :candidates) candidates-by-day)
         (setq window-summaries
               (nconc window-summaries
@@ -654,6 +771,9 @@ Each value is \"zoom\", \"in_person\", or \"either\"."
        ("no_availability" . ,(if (null candidates) t :json-false))
        ("mode_preference" . ,mode-pref)
        ("time_of_day_preference" . ,time-pref)
+       ("exact_start_time" . ,(or exact_start_time json-null))
+       ("earliest_start_time" . ,(or earliest_start_time json-null))
+       ("latest_start_time" . ,(or latest_start_time json-null))
        ("availability_windows" . ,(vconcat window-summaries))
        ("candidates" . ,(vconcat candidates))))))
 
@@ -668,7 +788,11 @@ Each value is \"zoom\", \"in_person\", or \"either\"."
           '(:name "duration_minutes" :type number :description "Requested meeting length in minutes")
           '(:name "count" :type number :optional t :description "Maximum number of candidate slots to return")
           '(:name "mode_preference" :type string :optional t :description "Meeting mode preference: zoom, in_person, or either")
-          '(:name "time_of_day_preference" :type string :optional t :description "Time preference: morning, afternoon, or either"))
+          '(:name "time_of_day_preference" :type string :optional t :description "Time preference: morning, afternoon, or either")
+          '(:name "inperson_on_zoom_days" :type boolean :optional t :description "When true, treat zoom-preferred days (normally Mon/Wed/Fri) as available for in-person meetings. Use only when the user has explicitly said in-person is acceptable on those days.")
+          '(:name "exact_start_time" :type string :optional t :description "Exact requested slot start time in 24-hour HH:MM format, for requests like 'at 3pm'.")
+          '(:name "earliest_start_time" :type string :optional t :description "Lower bound on slot start time in 24-hour HH:MM format, for requests like 'after 1pm'.")
+          '(:name "latest_start_time" :type string :optional t :description "Upper bound on slot start time in 24-hour HH:MM format, for requests like 'before 4pm' or 'by 1pm'."))
    :function #'jds/find-free-times)
   "Gptel tool for scheduling against validated org calendar availability.")
 
@@ -689,64 +813,244 @@ Each value is \"zoom\", \"in_person\", or \"either\"."
   (when (string-match "<reply>\\([[:ascii:][:nonascii:]\n\r\t[:space:]]*?\\)</reply>" text)
     (string-trim (match-string 1 text))))
 
-(defun jds/ai-email--strip-internal-preface (text)
-  "Strip common AI planning prefaces from TEXT."
-  (let ((clean (string-trim text)))
-    (dolist (pattern '("\\`I['’]ll help you draft[^.\n]*\\(?:[.\n]+\\)"
-                       "\\`Let me [^.\n]*\\(?:[.\n]+\\)"
-                       "\\`First,? I['’]ll [^.\n]*\\(?:[.\n]+\\)"
-                       "\\`I['’]ll [^.\n]*check your calendar[^.\n]*\\(?:[.\n]+\\)"
-                       "\\`I(?: am|'m) [^.\n]*check[^.\n]*\\(?:[.\n]+\\)"))
-      (setq clean (replace-regexp-in-string pattern "" clean)))
-    (string-trim clean)))
+(defun jds/ai-email--reply-wrapper-prefix-p (text)
+  "Whether TEXT is a wrapper prefix like \"Here's your reply:\"."
+  (let ((clean (downcase (string-trim (or text "")))))
+    (or (string-match-p
+         (rx string-start
+             (or "here's your reply"
+                 "here is your reply"
+                 "here's the reply"
+                 "here is the reply"
+                 "draft reply"
+                 "reply")
+             (? ":")
+             string-end)
+         clean)
+        (string-match-p
+         (rx string-start
+             (or "here's your email"
+                 "here is your email"
+                 "here's the email"
+                 "here is the email"
+                 "email draft")
+             (? ":")
+             string-end)
+         clean))))
+
+(defun jds/ai-email--extract-final-email-shaped-draft (text)
+  "Return the last email-shaped draft in TEXT when one is clearly embedded.
+This handles model outputs that contain an earlier draft followed by a more
+complete final draft starting with a greeting line."
+  (let ((case-fold-search t)
+        (start nil))
+    (with-temp-buffer
+      (insert (or text ""))
+      (goto-char (point-min))
+      (while (re-search-forward
+              (rx line-start
+                  (* blank)
+                  (or "hi" "hello" "dear")
+                  (+ (not (any "\n")))
+                  line-end)
+              nil t)
+        (setq start (match-beginning 0)))
+      (when (and start
+                 (> start (point-min))
+                 (save-excursion
+                   (goto-char start)
+                   (re-search-forward
+                    (rx line-start
+                        (* blank)
+                        (or "best,"
+                            "best regards,"
+                            "regards,"
+                            "sincerely,"
+                            "thanks,"
+                            "thank you,"
+                            "cheers,")
+                        (* blank)
+                        line-end)
+                    nil t)))
+        (string-trim
+         (buffer-substring-no-properties start (point-max)))))))
+
+(defun jds/ai-email--count-line-matches (text regexp)
+  "Return the number of lines in TEXT matching REGEXP."
+  (let ((count 0))
+    (with-temp-buffer
+      (insert (or text ""))
+      (goto-char (point-min))
+      (while (re-search-forward regexp nil t)
+        (setq count (1+ count))))
+    count))
+
+(defun jds/ai-email--reply-has-multiple-drafts-p (text)
+  "Return non-nil when TEXT appears to contain more than one reply draft."
+  (let* ((clean (jds/ai-email--strip-code-fences text))
+         (tagged (jds/ai-email--extract-tagged-reply clean))
+         (body (string-trim (or tagged clean)))
+         (case-fold-search t)
+         (greeting-re (rx line-start
+                          (* blank)
+                          (or "hi" "hello" "dear")
+                          (+ (not (any "\n")))
+                          line-end))
+         (signoff-re (rx line-start
+                         (* blank)
+                         (or "best,"
+                             "best regards,"
+                             "regards,"
+                             "sincerely,"
+                             "thanks,"
+                             "thank you,"
+                             "cheers,")
+                         (* blank)
+                         line-end))
+         (greeting-count (jds/ai-email--count-line-matches body greeting-re))
+         (signoff-count (jds/ai-email--count-line-matches body signoff-re))
+         (first-greeting-pos
+          (with-temp-buffer
+            (insert body)
+            (goto-char (point-min))
+            (when (re-search-forward greeting-re nil t)
+              (match-beginning 0))))
+         (trailing-after-signoff
+          (with-temp-buffer
+            (insert body)
+            (goto-char (point-min))
+            (when (re-search-forward signoff-re nil t)
+              (forward-line 1)
+              ;; Skip the sender-name line if present, then inspect anything after it.
+              (when (looking-at (rx (* blank) (+ (not (any "\n"))) line-end))
+                (forward-line 1))
+              (string-trim
+               (buffer-substring-no-properties (point) (point-max)))))))
+    (or (> greeting-count 1)
+        (> signoff-count 1)
+        (and trailing-after-signoff
+             (not (string-empty-p trailing-after-signoff)))
+        (and first-greeting-pos
+             (> first-greeting-pos (point-min))
+             (not (string-empty-p
+                   (string-trim
+                    (substring body (point-min) first-greeting-pos))))
+             (> signoff-count 0)))))
 
 (defun jds/ai-email--sanitize-response (response)
-  "Return only the intended email body from RESPONSE."
+  "Return lightly cleaned RESPONSE text.
+This is a deterministic fallback used before and after AI normalization."
   (let* ((clean  (jds/ai-email--strip-code-fences response))
          (tagged (jds/ai-email--extract-tagged-reply clean)))
     (setq clean (or tagged clean))
-    (setq clean (jds/ai-email--strip-internal-preface clean))
+    (setq clean (or (jds/ai-email--extract-final-email-shaped-draft clean)
+                    clean))
     (string-trim clean)))
 
-(defun jds/ai-email--planning-response-p (text)
-  "Whether TEXT looks like internal planning text rather than an email reply."
-  (let ((clean (downcase (string-trim (or text "")))))
-    (or (string-empty-p clean)
-        (string-match-p
-         (rx string-start
-             (or "i'll check"
-                 "i will check"
-                 "let me check"
-                 "i'll look"
-                 "i will look"
-                 "let me look")
-             (+ nonl))
-         clean)
-        (string-match-p
-         (rx string-start
-             (or "i'll review"
-                 "i will review"
-                 "let me review")
-             (+ nonl))
-         clean)
-        (string-match-p
-         (rx string-start
-             (or "checking the calendar"
-                 "reviewing the calendar"
-                 "looking at the calendar"))
-         clean)
-        (string-match-p
-         (rx string-start
-             (or "i'll search"
-                 "i will search"
-                 "let me search"
-                 "searching for available"
-                 "searching for"
-                 "i'll find"
-                 "i will find"
-                 "finding available")
-             (+ nonl))
-         clean))))
+(defconst jds/ai-email--normalizer-system-prompt
+  (concat
+   "You normalize raw AI outputs into final user-facing text.\n"
+   "Follow the prompt exactly.\n"
+   "Return only the requested final content.\n"
+   "Do not include commentary, reasoning, analysis, tool narration, or markdown fences.")
+  "Shared system prompt for ai-email normalization passes.")
+
+(defvar jds/ai-email-last-raw-response nil
+  "Raw text returned by the most recent ai-email generation pass.")
+
+(defvar jds/ai-email-last-normalization-prompt nil
+  "Prompt sent in the most recent ai-email normalization pass.")
+
+(defvar jds/ai-email-last-normalized-response nil
+  "Final text returned by the most recent ai-email normalization pass.")
+
+(defvar jds/ai-email--pending-compose-request nil
+  "Pending ai-email compose request consumed by the next mu4e compose buffer.
+This stores a plist with :prompt-builder, :system, :callback, :tools,
+:reinforce-database, and :reinforce-context.")
+
+(defun jds/ai-email--materially-different-text-p (a b)
+  "Return non-nil when A and B differ after light cleanup."
+  (not (equal (jds/ai-email--sanitize-response a)
+              (jds/ai-email--sanitize-response b))))
+
+(defun jds/ai-email--log-normalization-debug
+    (raw-output normalized-text normalization-prompt generation-prompt generation-system)
+  "Append a normalization debug record when configured."
+  (when (and jds/ai-email-debug-normalization
+             (jds/ai-email--materially-different-text-p raw-output normalized-text))
+    (with-current-buffer (get-buffer-create jds/ai-email-debug-buffer-name)
+      (goto-char (point-max))
+      (insert (format "* %s\n" (format-time-string "%Y-%m-%d %H:%M:%S %z")))
+      (insert "** Generation System\n")
+      (insert (or generation-system "") "\n\n")
+      (insert "** Generation Prompt\n")
+      (insert (or generation-prompt "") "\n\n")
+      (insert "** Raw Output\n")
+      (insert (or raw-output "") "\n\n")
+      (insert "** Normalization Prompt\n")
+      (insert (or normalization-prompt "") "\n\n")
+      (insert "** Normalized Output\n")
+      (insert (or normalized-text "") "\n\n"))))
+
+(defun jds/ai-email--valid-normalized-text-p (text)
+  "Return non-nil when TEXT is a non-empty normalized result."
+  (not (string-empty-p (string-trim (or text "")))))
+
+(defun jds/ai-email--valid-reply-text-p (text)
+  "Return non-nil when TEXT looks like a usable reply body.
+When RAW-RESPONSE is provided, reject outputs that still contain multiple
+plausible reply drafts."
+  (let ((clean (string-trim (or text ""))))
+    (and (not (string-empty-p clean))
+         (not (jds/ai-email--reply-wrapper-prefix-p clean)))))
+
+(defun jds/ai-email--valid-final-reply-text-p (text &optional raw-response)
+  "Return non-nil when TEXT is a usable single final reply body."
+  (let ((clean (string-trim (or text ""))))
+    (and (not (string-empty-p clean))
+         (not (jds/ai-email--reply-wrapper-prefix-p clean))
+         (not (jds/ai-email--reply-has-multiple-drafts-p
+               (or raw-response clean))))))
+
+(defun jds/ai-email--call-validator (validator clean response)
+  "Call VALIDATOR on CLEAN and RESPONSE, tolerating one-argument validators."
+  (condition-case nil
+      (funcall validator clean response)
+    (wrong-number-of-arguments
+     (funcall validator clean))))
+
+(defun jds/ai-email--build-normalization-prompt
+    (raw-output target-description return-instructions extra-rules
+                &optional generation-prompt generation-system)
+  "Return a normalization prompt for RAW-OUTPUT.
+TARGET-DESCRIPTION describes the desired artifact. RETURN-INSTRUCTIONS state
+the exact required output format. EXTRA-RULES is appended when non-nil.
+GENERATION-PROMPT and GENERATION-SYSTEM provide the original drafting intent."
+  (with-temp-buffer
+    (insert (format "Normalize the following raw AI output into %s.\n"
+                    target-description))
+    (insert "Keep only the single final user-facing result.\n")
+    (insert "Remove reasoning, self-corrections, tool narration, scratch work, duplicate drafts, and option lists not meant for the recipient.\n")
+    (insert "If multiple plausible drafts appear, keep the best final draft rather than merging them.\n")
+    (insert "Preserve concrete dates, times, names, and commitments from the chosen final draft.\n")
+    (when (and generation-system
+               (not (string-empty-p (string-trim generation-system))))
+      (insert "Original generation system instructions:\n<generation_system>\n")
+      (insert generation-system)
+      (insert "\n</generation_system>\n"))
+    (when (and generation-prompt
+               (not (string-empty-p (string-trim generation-prompt))))
+      (insert "Original generation prompt:\n<generation_prompt>\n")
+      (insert generation-prompt)
+      (insert "\n</generation_prompt>\n"))
+    (when (and extra-rules (not (string-empty-p (string-trim extra-rules))))
+      (insert (string-trim extra-rules) "\n"))
+    (insert return-instructions "\n\n")
+    (insert "<raw_output>\n")
+    (insert (or raw-output ""))
+    (insert "\n</raw_output>\n")
+    (buffer-string)))
 
 (defun jds/ai-email--live-insertion-point (buf pos)
   "Return a safe insertion point in BUF based on marker POS."
@@ -774,46 +1078,11 @@ Return (START . END) for the inserted text, or nil when nothing was inserted."
                      (marker-buffer pos))
             (set-marker pos nil)))))))
 
-(defun jds/ai-email--delete-leading-planning-text (buf pos)
-  "Delete any model-inserted planning text starting at POS in BUF."
-  (when (buffer-live-p buf)
-    (with-current-buffer buf
-      (let* ((start (jds/ai-email--live-insertion-point buf pos))
-             (end (save-excursion
-                    (goto-char start)
-                    (if (search-forward "\n\n" nil t)
-                        (match-beginning 0)
-                      (point-max)))))
-        (when (< start end)
-          (let ((candidate (string-trim
-                            (buffer-substring-no-properties start end))))
-            (when (jds/ai-email--planning-response-p candidate)
-              (delete-region start end)
-              (goto-char start)
-              (when (looking-at-p "\n\n")
-                (delete-region (point) (min (point-max) (+ (point) 2)))))))))))
-
-(defun jds/ai-email--insert-if-final-string (response info buf pos &optional artifact)
-  "Insert RESPONSE into BUF at POS when RESPONSE is the final string result.
-When ARTIFACT is non-nil, track the inserted output for reinforcement."
-  (cond
-   ((not response)
-    (message "gptel error: %s" (plist-get info :status)))
-   ((stringp response)
-    (when-let ((region
-                (jds/ai-email--insert-response-at-point
-                 buf pos (jds/ai-email--sanitize-response response))))
-      (when artifact
-        (jds/ai-email--reinforce-track-output-region
-         buf artifact (car region) (cdr region)))))
-   (t nil)))
-
 (defvar jds/ai-email-last-prompt nil
   "Full prompt sent in the most recent AI email request, for debugging.")
 
-(defun jds/ai-email--request-inserting-response
-    (prompt system buf callback &optional tools)
-  "Run `gptel-request' for PROMPT and insert into BUF via CALLBACK.
+(defun jds/ai-email--request-response (prompt system buf callback &optional tools)
+  "Run `gptel-request' for PROMPT in BUF via CALLBACK.
 TOOLS, when non-nil, are bound for the request."
   (setq jds/ai-email-last-prompt prompt)
   (let ((gptel-include-reasoning nil)
@@ -825,41 +1094,141 @@ TOOLS, when non-nil, are bound for the request."
                    :buffer buf
                    :callback callback)))
 
-(defun jds/ai-email--handle-retrying-insert-response
-    (response info prompt system buf pos retries-left retry-system-suffix invalid-message
-              &optional tools artifact)
-  "Handle RESPONSE for insert-at-point flows that may need one retry.
-RETRY-SYSTEM-SUFFIX is appended to SYSTEM for the retry request when the model
-returns planning text. INVALID-MESSAGE is shown if the model still fails after
-retries. TOOLS, when non-nil, are provided on the retry request. When ARTIFACT
-is non-nil, track the inserted output for reinforcement."
-  (cond
-   ((not response)
-    (message "gptel error: %s" (plist-get info :status)))
-   ((stringp response)
-    (let ((clean (jds/ai-email--sanitize-response response)))
-      (if (and (> (or retries-left 0) 0)
-               (jds/ai-email--planning-response-p clean))
-          (progn
-            (jds/ai-email--delete-leading-planning-text buf pos)
-            (jds/ai-email--request-inserting-response
-             prompt
-             (concat system retry-system-suffix)
-             buf
-             (lambda (response info)
-               (jds/ai-email--handle-retrying-insert-response
-                response info prompt system buf pos (1- retries-left)
-                retry-system-suffix invalid-message tools artifact))
-             tools))
-        (if (jds/ai-email--planning-response-p clean)
-            (progn
-              (jds/ai-email--delete-leading-planning-text buf pos)
-              (message "%s" invalid-message))
-          (when-let ((region (jds/ai-email--insert-response-at-point buf pos clean)))
-            (when artifact
-              (jds/ai-email--reinforce-track-output-region
-               buf artifact (car region) (cdr region))))))))
-   (t nil)))
+(defun jds/ai-email--normalize-response
+    (raw-output buf callback normalization-spec &optional retries-left)
+  "Normalize RAW-OUTPUT in BUF, then call CALLBACK with the final text.
+NORMALIZATION-SPEC is a plist with keys:
+:target-description, :return-instructions, :extra-rules, :extractor,
+:validator, :invalid-message, and optional :system."
+  (let* ((extractor (or (plist-get normalization-spec :extractor)
+                        #'jds/ai-email--sanitize-response))
+         (validator (or (plist-get normalization-spec :validator)
+                        #'jds/ai-email--valid-normalized-text-p))
+         (prompt (jds/ai-email--build-normalization-prompt
+                  raw-output
+                  (plist-get normalization-spec :target-description)
+                  (plist-get normalization-spec :return-instructions)
+                  (plist-get normalization-spec :extra-rules)
+                  (plist-get normalization-spec :generation-prompt)
+                  (plist-get normalization-spec :generation-system)))
+         (system (or (plist-get normalization-spec :system)
+                     jds/ai-email--normalizer-system-prompt))
+         (invalid-message (or (plist-get normalization-spec :invalid-message)
+                              "Normalization failed: model returned invalid text."))
+         (retry-extra
+          "Your previous normalization was invalid. Return only the final normalized content now."))
+    (setq jds/ai-email-last-normalization-prompt prompt)
+    (jds/ai-email--request-response
+     prompt system buf
+     (lambda (response info)
+       (cond
+        ((not response)
+         (message "gptel normalization error: %s" (plist-get info :status)))
+        ((stringp response)
+         (let ((clean (funcall extractor response)))
+           (if (jds/ai-email--call-validator validator clean response)
+               (progn
+                 (setq jds/ai-email-last-normalized-response clean)
+                 (jds/ai-email--log-normalization-debug
+                  raw-output
+                  clean
+                  prompt
+                  (plist-get normalization-spec :generation-prompt)
+                  (plist-get normalization-spec :generation-system))
+                 (funcall callback clean))
+             (if (> (or retries-left 0) 0)
+                 (jds/ai-email--normalize-response
+                  raw-output buf callback
+                  (plist-put (copy-sequence normalization-spec)
+                             :extra-rules
+                             (string-join
+                              (delq nil
+                                    (list (plist-get normalization-spec :extra-rules)
+                                          retry-extra))
+                              "\n"))
+                  (1- retries-left))
+               (message "%s" invalid-message)))))
+        (t (message "%s" invalid-message)))))))
+
+(defun jds/ai-email--request-normalized-response
+    (prompt system buf callback &optional tools normalization-spec)
+  "Request a raw model response, normalize it, and call CALLBACK with text.
+PROMPT and SYSTEM drive the generation pass in BUF. TOOLS are available only
+to the generation pass. When NORMALIZATION-SPEC is nil, CALLBACK receives the
+lightly sanitized raw response."
+  (jds/ai-email--request-response
+   prompt system buf
+   (lambda (response info)
+     (cond
+      ((not response)
+       (message "gptel error: %s" (plist-get info :status)))
+      ((stringp response)
+       ;; Skip intermediate responses that accompany a tool call — gptel calls
+       ;; the callback once with any text produced alongside the tool call and
+       ;; again with the final reply after the tool runs.  Only the final
+       ;; response (no pending :tool-use) should be normalized and inserted.
+       (unless (plist-get info :tool-use)
+         (setq jds/ai-email-last-raw-response response)
+         (if normalization-spec
+             (jds/ai-email--normalize-response
+              response
+              buf callback
+              (append (list :generation-prompt prompt
+                            :generation-system system)
+                      normalization-spec)
+              1)
+           (funcall callback (jds/ai-email--sanitize-response response)))))
+      (t nil)))
+   tools))
+
+(defun jds/ai-email--insert-normalized-text (buf pos text &optional artifact)
+  "Insert TEXT into BUF at POS and track ARTIFACT when provided."
+  (when-let ((region (jds/ai-email--insert-response-at-point buf pos text)))
+    (when artifact
+      (jds/ai-email--reinforce-track-output-region
+       buf artifact (car region) (cdr region)))))
+
+(defun jds/ai-email--request-inserting-normalized-response
+    (prompt system buf pos normalization-spec &optional tools artifact)
+  "Request, normalize, and insert generated text into BUF at POS."
+  (jds/ai-email--request-normalized-response
+   prompt system buf
+   (lambda (text)
+     (jds/ai-email--insert-normalized-text buf pos text artifact))
+   tools normalization-spec))
+
+(defun jds/ai-email--reply-normalization-spec ()
+  "Return the standard normalization spec for email replies."
+  (list
+   :target-description "a single email reply body"
+   :return-instructions
+   "Return only the reply body wrapped in <reply>...</reply>. Do not include a subject line."
+   :extra-rules
+   "Keep only text intended to be sent to the recipient. Drop internal availability dumps, reasoning, and alternate drafts that are not the final reply."
+   :extractor (lambda (response)
+                (jds/ai-email--sanitize-response response))
+   :validator #'jds/ai-email--valid-final-reply-text-p
+   :invalid-message "Reply normalization failed: model returned invalid text."))
+
+(defun jds/ai-email--availability-snippet-normalization-spec ()
+  "Return the standard normalization spec for availability snippets."
+  (list
+   :target-description "a concise availability snippet for an email"
+   :return-instructions
+   "Return only the availability snippet as plain text."
+   :extra-rules
+   "Do not include a greeting, signoff, reasoning, tool narration, or commentary. Keep exact dates and times from the chosen final snippet."
+   :validator #'jds/ai-email--valid-normalized-text-p
+   :invalid-message "Availability normalization failed: model returned invalid text."))
+
+(defun jds/ai-email--org-text-normalization-spec (description return-instructions &optional extra-rules)
+  "Return a normalization spec for Org/plain-text outputs."
+  (list
+   :target-description description
+   :return-instructions return-instructions
+   :extra-rules extra-rules
+   :validator #'jds/ai-email--valid-normalized-text-p
+   :invalid-message "Normalization failed: model returned invalid text."))
 
 (defun jds/ai-email--mu4e-message-metadata (&optional msg)
   "Return plist with sender and subject metadata for MSG at point."
@@ -875,25 +1244,36 @@ is non-nil, track the inserted output for reinforcement."
     (prompt-builder system callback &optional tools reinforce-database reinforce-context)
   "Compose a mu4e reply and invoke AI with PROMPT-BUILDER and CALLBACK.
 PROMPT-BUILDER is called with the compose buffer contents and should return the
-prompt text. CALLBACK receives RESPONSE, INFO, prompt, SYSTEM, buffer and
-marker. TOOLS, when non-nil, are passed to the request. When REINFORCE-DATABASE
-and REINFORCE-CONTEXT are non-nil, attach them to the compose buffer."
-  (let (hook-fn)
-    (setq hook-fn
-          (lambda ()
-            (remove-hook 'mu4e-compose-mode-hook hook-fn)
-            (let* ((buf (current-buffer))
-                   (content (buffer-substring-no-properties (point-min) (point-max)))
-                   (prompt (funcall prompt-builder content)))
-              (when (and reinforce-database reinforce-context)
-                (jds/ai-email--reinforce-setup-buffer
-                 buf reinforce-database reinforce-context))
-              (message-goto-body)
-              (let ((pos (copy-marker (point))))
-                (jds/ai-email--request-inserting-response
-                 prompt system buf
-                 (lambda (response info)
-                   (funcall callback response info prompt system buf pos))
-                 tools)))))
-    (add-hook 'mu4e-compose-mode-hook hook-fn)
-    (jds/mu4e-compose-reply)))
+prompt text. CALLBACK receives PROMPT, SYSTEM, buffer, marker, and TOOLS.
+When REINFORCE-DATABASE and REINFORCE-CONTEXT are non-nil, attach them to the
+compose buffer before invoking CALLBACK."
+  (setq jds/ai-email--pending-compose-request
+        (list :prompt-builder prompt-builder
+              :system system
+              :callback callback
+              :tools tools
+              :reinforce-database reinforce-database
+              :reinforce-context reinforce-context))
+  (jds/mu4e-compose-reply))
+
+(defun jds/ai-email--consume-pending-compose-request ()
+  "Run the pending ai-email compose request in the current mu4e compose buffer."
+  (when-let* ((request jds/ai-email--pending-compose-request))
+    (setq jds/ai-email--pending-compose-request nil)
+    (let* ((prompt-builder (plist-get request :prompt-builder))
+           (system (plist-get request :system))
+           (callback (plist-get request :callback))
+           (tools (plist-get request :tools))
+           (reinforce-database (plist-get request :reinforce-database))
+           (reinforce-context (plist-get request :reinforce-context))
+           (buf (current-buffer))
+           (content (buffer-substring-no-properties (point-min) (point-max)))
+           (prompt (funcall prompt-builder content)))
+      (when (and reinforce-database reinforce-context)
+        (jds/ai-email--reinforce-setup-buffer
+         buf reinforce-database reinforce-context))
+      (message-goto-body)
+      (let ((pos (copy-marker (point))))
+        (funcall callback prompt system buf pos tools)))))
+
+(add-hook 'mu4e-compose-mode-hook #'jds/ai-email--consume-pending-compose-request)

@@ -373,19 +373,16 @@ the AI, and displays a structured org-mode summary buffer."
     (let* ((prompt (jds/ai-email--build-zoom-summary-prompt msg))
            (system (jds/ai-email--zoom-summary-system-prompt))
            (origin (current-buffer)))
-      (let ((gptel-include-reasoning nil))
-        (gptel-request
-         prompt
-         :system system
-         :stream nil
-         :buffer origin
-         :callback
-         (lambda (response info)
-           (if (not response)
-               (message "gptel error: %s" (plist-get info :status))
-             (jds/ai-email--create-zoom-summary-buffer
-              msg
-              (jds/ai-email--sanitize-response response)))))))))
+      (jds/ai-email--request-normalized-response
+       prompt system origin
+       (lambda (text)
+         (jds/ai-email--create-zoom-summary-buffer
+          msg text))
+       nil
+       (jds/ai-email--org-text-normalization-spec
+        "a short Org summary for meeting notes"
+        "Return plain Org text only, using the exact structure requested by the original instructions."
+        "Keep only the final meeting-notes summary. Remove any preamble, commentary, or duplicate attempts.")))))
 
 
 ;;; Keybindings ------------------------------------------------------------

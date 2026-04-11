@@ -225,8 +225,10 @@ Return the history file basename."
     (gptel-reinforce-org--write-file history-file content)
     base-name))
 
-(defun gptel-reinforce-org-initialize-artifact (artifact)
-  "Ensure ARTIFACT has current.org, summary.org, and archive state."
+(defun gptel-reinforce-org-initialize-artifact (artifact &optional initial-text)
+  "Ensure ARTIFACT has current.org, summary.org, and archive state.
+When INITIAL-TEXT is non-nil, use it as the artifact text when current.org is
+created for the first time or when its existing text is empty."
   (let* ((artifact (gptel-reinforce-resolve-artifact artifact))
          (artifact-dir (gptel-reinforce-artifact-dir artifact))
          (history-dir (gptel-reinforce-artifact-history-dir artifact))
@@ -238,20 +240,33 @@ Return the history file basename."
       (let ((version-ref
              (gptel-reinforce-org-write-history-entry
               artifact
-              ""
+              (or initial-text "")
               :type (gptel-reinforce-artifact-type artifact)
               :update-mode "initial"
               :summary-event-ref 0)))
         (gptel-reinforce-org-write-current
          artifact
          :version-ref version-ref
-         :text ""
+         :text (or initial-text "")
          :summarizer-user-prompt
          (gptel-reinforce-artifact-summarizer-user-prompt artifact)
          :updater-user-prompt
          (gptel-reinforce-artifact-updater-user-prompt artifact)
          :type (gptel-reinforce-artifact-type artifact)
          :auto-update (gptel-reinforce-artifact-auto-update artifact))))
+    (when initial-text
+      (let* ((current (gptel-reinforce-org-read-current artifact))
+             (current-text (string-trim (or (plist-get current :text) ""))))
+        (when (string-empty-p current-text)
+          (gptel-reinforce-org-write-current
+           artifact
+           :version-ref (plist-get current :version-ref)
+           :text initial-text
+           :applied-summary (plist-get current :applied-summary)
+           :summarizer-user-prompt (plist-get current :summarizer-user-prompt)
+           :updater-user-prompt (plist-get current :updater-user-prompt)
+           :type (or (plist-get current :type) (gptel-reinforce-artifact-type artifact))
+           :auto-update (plist-get current :auto-update)))))
     (let* ((current (gptel-reinforce-org-read-current artifact))
            (version-ref (plist-get current :version-ref)))
       (unless (and version-ref

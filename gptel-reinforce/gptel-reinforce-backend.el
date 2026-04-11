@@ -97,34 +97,25 @@ package code."
 
 (defun gptel-reinforce-backend--update-user-prompt (request)
   "Build a user prompt string for update REQUEST."
-  (let ((applied (string-trim
-                  (or (gptel-reinforce-update-request-applied-summary-body request)
-                      ""))))
-    (format
-     (string-join
-      '("Database: %s"
-        "Artifact: %s"
-        "Artifact type: %s"
-        ""
-        "Current artifact text:"
-        "%s"
-        ""
-        "Feedback already incorporated in current version:"
-        "%s"
-        ""
-        "Latest feedback summary (may include new patterns since last update):"
-        "%s"
-        ""
-        "Revise the artifact with the smallest useful change to reflect"
-        "any new patterns in the latest summary not yet incorporated."
-        "Do not re-apply changes already present in the artifact.")
-      "\n")
-     (gptel-reinforce-update-request-database-name request)
-     (gptel-reinforce-update-request-artifact-name request)
-     (or (gptel-reinforce-update-request-artifact-type request) "")
-     (or (gptel-reinforce-update-request-current-text request) "")
-     (if (string-empty-p applied) "(none — first update)" applied)
-     (or (gptel-reinforce-update-request-summary-body request) ""))))
+  (let* ((applied (string-trim
+                   (or (gptel-reinforce-update-request-applied-summary-body request)
+                       "")))
+         (current-text (string-trim
+                        (or (gptel-reinforce-update-request-current-text request)
+                            "")))
+         (summary (or (gptel-reinforce-update-request-summary-body request) ""))
+         (header (format "Database: %s\nArtifact: %s\nArtifact type: %s"
+                         (gptel-reinforce-update-request-database-name request)
+                         (gptel-reinforce-update-request-artifact-name request)
+                         (or (gptel-reinforce-update-request-artifact-type request) ""))))
+    (if (string-empty-p current-text)
+        (format "%s\n\nFeedback summary:\n%s\n\nCreate the artifact from scratch based on the feedback summary above.\nReturn only the artifact text."
+                header summary)
+      (format "%s\n\nCurrent artifact text:\n%s\n\nFeedback already incorporated in current version:\n%s\n\nLatest feedback summary (may include new patterns since last update):\n%s\n\nRevise the artifact with the smallest useful change to reflect\nany new patterns in the latest summary not yet incorporated.\nDo not re-apply changes already present in the artifact."
+              header
+              current-text
+              (if (string-empty-p applied) "(none — first update)" applied)
+              summary))))
 
 (defun gptel-reinforce-backend--sanitize-response (response)
   "Trim RESPONSE and drop simple Markdown fences."

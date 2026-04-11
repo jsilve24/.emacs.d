@@ -496,7 +496,10 @@
   "dr" #'gptel-rewrite
   "da" #'gptel-aibo
   "dA" #'gptel-aibo-apply-last-suggestions
-  "di" #'gptel-aibo-summon)
+  "di" #'gptel-aibo-summon
+  "d+" #'gptel-reinforce-like
+  "d-" #'gptel-reinforce-dislike
+  "d0" #'gptel-reinforce-neutral)
 
 
 

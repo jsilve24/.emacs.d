@@ -19,7 +19,7 @@
 (require 'json)
 
 (declare-function gptel-reinforce-db-ensure-schema "gptel-reinforce-db" (database))
-(declare-function gptel-reinforce-org-initialize-artifact "gptel-reinforce-org" (artifact))
+(declare-function gptel-reinforce-org-initialize-artifact "gptel-reinforce-org" (artifact &optional initial-text))
 (declare-function gptel-reinforce-org-read-current "gptel-reinforce-org" (artifact))
 
 (defgroup gptel-reinforce nil
@@ -567,7 +567,7 @@ Calling again with the same :name replaces the existing registration."
                     (gptel-reinforce--normalize-hook-list
                      (plist-get plist :post-update-hook)))))
     (puthash name artifact gptel-reinforce--artifacts)
-    (gptel-reinforce-org-initialize-artifact artifact)
+    (gptel-reinforce-org-initialize-artifact artifact (plist-get plist :initial-text))
     artifact))
 
 (defun gptel-reinforce-current-artifact-version-ref (artifact)
