@@ -161,18 +161,73 @@
       (eval (read (format "(progn %s)" text)) t)
     (error (message "aas-snippets update error: %s" (error-message-string err)))))
 
+;; Capture expansion context in pre-hook: the trigger key is still in the
+;; buffer at this point (at the end of text before point), so we can record
+;; it along with surrounding content.  Setting the active database here also
+;; means any like/dislike call after the expansion routes to this artifact.
+(defvar jds/aas-snippets--last-context nil
+  "Plist :mode :before captured at the last aas pre-expansion hook.")
+
+(defun jds/aas-snippets--pre-expand-hook ()
+  "Record mode + surrounding text before aas expands a snippet."
+  (setq jds/aas-snippets--last-context
+        (list :mode major-mode
+              ;; ~60 chars before point: shows what was typed + trigger key
+              :before (buffer-substring-no-properties
+                       (max (point-min) (- (point) 60))
+                       (point))
+              ;; a little after point: shows what the snippet will land in
+              :after  (buffer-substring-no-properties
+                       (point)
+                       (min (point-max) (+ (point) 40)))))
+  (when (fboundp 'gptel-reinforce-set-active-database)
+    (gptel-reinforce-set-active-database "aas-snippets")))
+
+(with-eval-after-load 'aas
+  (add-hook 'aas-pre-snippet-expand-hook #'jds/aas-snippets--pre-expand-hook))
+
 (gptel-reinforce-register-database
  :name "aas-snippets"
+ ;; Item key is mode-specific so feedback stratifies by mode — each mode's
+ ;; snippet set is independently tunable.  The :before text shows the trigger
+ ;; key (last chars before point) plus editing context; :after shows where
+ ;; the expansion lands.
  :candidate-fn (lambda ()
-                 (list :context
-                       (list :item-key "aas-snippets"
-                             :title "aas snippet definitions"))))
+                 (when jds/aas-snippets--last-context
+                   (let ((mode   (plist-get jds/aas-snippets--last-context :mode))
+                         (before (plist-get jds/aas-snippets--last-context :before))
+                         (after  (plist-get jds/aas-snippets--last-context :after)))
+                     (list :context
+                           (list :item-key (format "aas:%s" mode)
+                                 :title    (format "aas snippets in %s" mode)
+                                 :meta     (list :mode   (symbol-name mode)
+                                                 :before before
+                                                 :after  after)))))))
 
 (gptel-reinforce-register-artifact
  :name jds/aas-snippets-artifact
  :database "aas-snippets"
  :type "code"
  :initial-text (or (jds/aas-snippets--read) "")
+ :summarizer-user-prompt
+ (concat
+  "Summarize feedback snippet by snippet and mode by mode.\n"
+  "Group observations by major-mode first (e.g., org-mode, LaTeX-mode, ess-r-mode).\n"
+  "Within each mode, identify which specific trigger keys (visible as the last\n"
+  "characters in the :before context) caused problems and what went wrong:\n"
+  "wrong expansion text, unexpected trigger, bad :cond predicate, missing snippet, etc.\n"
+  "Cross-mode patterns (e.g., a trigger that misfires in multiple modes) should be\n"
+  "called out separately.")
+ :updater-user-prompt
+ (concat
+  "Update the aas snippet definitions based on the feedback summary.\n"
+  "Work mode by mode and snippet by snippet.\n"
+  "When a trigger fires in the wrong context, tighten its :cond predicate.\n"
+  "When an expansion text is wrong, fix the string or yas template.\n"
+  "When a snippet is consistently missing in a mode, add it.\n"
+  "Preserve the structure: keep mode-setup macros and their application calls intact.\n"
+  "Do not change helper macro definitions (jds~yas-lambda-expand, jds~aas-insert-math, etc.)\n"
+  "— those live outside the artifact block.")
  :post-update-hook #'jds/aas-snippets--write-back)
 
 ;; --- LaTeX writing tools -----------------------------------------------------
