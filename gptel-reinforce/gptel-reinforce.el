@@ -19,6 +19,7 @@
 (require 'gptel-reinforce-org)
 (require 'gptel-reinforce-backend)
 (require 'gptel-reinforce-ui)
+(require 'gptel-reinforce-tools)
 (require 'gptel-reinforce-elfeed)
 
 (provide 'gptel-reinforce)
