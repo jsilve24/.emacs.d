@@ -81,6 +81,7 @@
   "Is point currently on blank line."
   (looking-at-p "^[[:space:]]*$"))
 
+;;; tab-dwim-begin
 ;;;###autoload
 (defun jds/jump-delim ()
     "Jump past delimiter"
@@ -126,6 +127,7 @@
   )
 (add-hook 'text-mode-hook 'jds/completion-keys)
 (add-hook 'prog-mode-hook 'jds/completion-keys)
+;;; tab-dwim-end
 
 
 ;;; filesystem bindings

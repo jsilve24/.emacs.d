@@ -62,6 +62,68 @@
 (setq gptel-reinforce-summary-review-mode 'edit
       gptel-reinforce-update-review-mode 'edit)
 
+;;; tab-dwim artifact ---------------------------------------------------------
+
+(defconst jds/tab-dwim-artifact "tab-dwim"
+  "Artifact name for the jds/tab-dwim function block.")
+
+(defconst jds/tab-dwim-bindings-file
+  (expand-file-name "bindings.el" user-emacs-directory)
+  "File containing the tab-dwim definitions.")
+
+(defun jds/tab-dwim-artifact--read ()
+  "Extract the tab-dwim block from `bindings.el'."
+  (with-temp-buffer
+    (insert-file-contents jds/tab-dwim-bindings-file)
+    (goto-char (point-min))
+    (when (search-forward ";;; tab-dwim-begin\n" nil t)
+      (let ((start (point)))
+        (when (search-forward "\n;;; tab-dwim-end" nil t)
+          (string-trim
+           (buffer-substring-no-properties start (match-beginning 0))))))))
+
+(defun jds/tab-dwim-artifact--write-back (text)
+  "Replace the tab-dwim block in `bindings.el' with TEXT and re-eval."
+  (with-current-buffer (find-file-noselect jds/tab-dwim-bindings-file)
+    (save-excursion
+      (goto-char (point-min))
+      (when (search-forward ";;; tab-dwim-begin\n" nil t)
+        (let ((start (point)))
+          (when (search-forward "\n;;; tab-dwim-end" nil t)
+            (delete-region start (match-beginning 0))
+            (goto-char start)
+            (insert (string-trim text))))))
+    (save-buffer))
+  (condition-case err
+      (eval (read (format "(progn %s)" text)) t)
+    (error (message "tab-dwim update error: %s" (error-message-string err)))))
+
+;; After tab-dwim fires, activate its database so the next like/dislike call
+;; is automatically routed to this artifact without manual setup.
+(with-eval-after-load 'bindings
+  (advice-add 'jds/tab-dwim :after
+              (lambda (&rest _)
+                (when (fboundp 'gptel-reinforce-set-active-database)
+                  (gptel-reinforce-set-active-database "tab-dwim")))))
+
+(gptel-reinforce-register-database
+ :name "tab-dwim"
+ ;; major-mode is the primary behavioral axis: the cond branches are
+ ;; largely mode-stratified, so mode-scoped feedback points the AI at
+ ;; the right branch when refining.
+ :candidate-fn (lambda ()
+                 (list :context
+                       (list :item-key (format "tab-dwim:%s" major-mode)
+                             :title    (format "tab-dwim in %s" major-mode)
+                             :meta     (list :mode (symbol-name major-mode))))))
+
+(gptel-reinforce-register-artifact
+ :name jds/tab-dwim-artifact
+ :database "tab-dwim"
+ :type "code"
+ :initial-text (or (jds/tab-dwim-artifact--read) "")
+ :post-update-hook #'jds/tab-dwim-artifact--write-back)
+
 ;;; aas snippets artifact -----------------------------------------------------
 
 (defconst jds/aas-snippets-artifact "aas-snippets"
