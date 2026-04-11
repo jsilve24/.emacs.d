@@ -7,7 +7,6 @@
 ;;; Code:
 
 (require 'diff)
-(require 'smerge-mode)
 (require 'subr-x)
 (require 'gptel-reinforce-core)
 (require 'gptel-reinforce-db)
@@ -19,6 +18,15 @@
 
 (defvar-local gptel-reinforce--review-canceled nil
   "Non-nil when the current review buffer was canceled.")
+
+(defvar-local gptel-reinforce--review-diff-buffer nil
+  "Diff buffer associated with the current editable review buffer.")
+
+(defvar-local gptel-reinforce--review-old-file nil
+  "Temp file holding the old text for the current editable review buffer.")
+
+(defvar-local gptel-reinforce--review-new-file nil
+  "Temp file holding the candidate text for the current editable review buffer.")
 
 (defun gptel-reinforce-review-accept ()
   "Finish the current review buffer and accept its contents."
@@ -39,8 +47,33 @@
     (set-keymap-parent map text-mode-map)
     (define-key map (kbd "C-c C-c") #'gptel-reinforce-review-accept)
     (define-key map (kbd "C-c C-k") #'gptel-reinforce-review-cancel)
+    (define-key map (kbd "C-c C-d") #'gptel-reinforce-review-refresh-diff)
     map)
   "Keymap used while editing gptel-reinforce review buffers.")
+
+(defun gptel-reinforce-review-refresh-diff ()
+  "Refresh the diff for the current editable review buffer."
+  (interactive)
+  (unless (and gptel-reinforce--review-old-file
+               gptel-reinforce--review-new-file
+               (buffer-live-p gptel-reinforce--review-diff-buffer))
+    (user-error "This buffer is not an editable diff review"))
+  (write-region nil nil gptel-reinforce--review-new-file nil 'silent)
+  (let ((generated (diff-no-select
+                    gptel-reinforce--review-old-file
+                    gptel-reinforce--review-new-file
+                    "-u" t)))
+    (unwind-protect
+        (with-current-buffer gptel-reinforce--review-diff-buffer
+          (let ((inhibit-read-only t))
+            (erase-buffer)
+            (insert-buffer-substring generated)
+            (diff-mode)
+            (setq buffer-read-only t)
+            (goto-char (point-min))))
+      (when (buffer-live-p generated)
+        (kill-buffer generated))))
+  (display-buffer gptel-reinforce--review-diff-buffer))
 
 (defun gptel-reinforce--read-note (prefix)
   "Return a note when PREFIX is non-nil."
@@ -265,49 +298,39 @@ CURRENT-RECORD is the parsed current state.  Optional PLIST keys:
       (ignore-errors (delete-file old-file))
       (ignore-errors (delete-file new-file)))))
 
-(defun gptel-reinforce--conflict-markers-present-p ()
-  "Return non-nil when the current buffer still contains merge markers."
-  (save-excursion
-    (goto-char (point-min))
-    (re-search-forward "^<<<<<<< " nil t)))
-
-(defun gptel-reinforce--show-smerge-review (title old-text new-text)
-  "Open an editable smerge buffer for TITLE and return the accepted text."
-  (let ((buffer (generate-new-buffer (format "*gptel-reinforce review: %s*" title))))
+(defun gptel-reinforce--show-edit-review (title old-text new-text)
+  "Open an editable candidate buffer plus diff for TITLE.
+Return the accepted text, or nil when canceled."
+  (let ((edit-buffer (generate-new-buffer (format "*gptel-reinforce edit: %s*" title)))
+        (diff-buffer (generate-new-buffer (format "*gptel-reinforce diff: %s*" title)))
+        (old-file (make-temp-file "gptel-reinforce-old-"))
+        (new-file (make-temp-file "gptel-reinforce-new-")))
     (unwind-protect
-        (with-current-buffer buffer
-          (erase-buffer)
-          (insert "<<<<<<< current\n")
-          (insert old-text)
-          (unless (or (string-empty-p old-text)
-                      (string-suffix-p "\n" old-text))
-            (insert "\n"))
-          (insert "=======\n")
+        (with-current-buffer edit-buffer
           (insert new-text)
-          (unless (or (string-empty-p new-text)
-                      (string-suffix-p "\n" new-text))
-            (insert "\n"))
-          (insert ">>>>>>> candidate\n")
           (text-mode)
           (use-local-map gptel-reinforce-review-mode-map)
           (setq-local header-line-format
-                      "Resolve/edit, then C-c C-c to apply or C-c C-k to cancel")
+                      "Edit candidate, C-c C-d refresh diff, C-c C-c apply, C-c C-k cancel")
           (setq-local gptel-reinforce--review-finished nil)
           (setq-local gptel-reinforce--review-canceled nil)
+          (setq-local gptel-reinforce--review-diff-buffer diff-buffer)
+          (setq-local gptel-reinforce--review-old-file old-file)
+          (setq-local gptel-reinforce--review-new-file new-file)
+          (with-temp-file old-file
+            (insert old-text))
+          (gptel-reinforce-review-refresh-diff)
+          (display-buffer edit-buffer)
           (goto-char (point-min))
-          (smerge-mode 1)
-          (display-buffer buffer)
           (recursive-edit)
           (when gptel-reinforce--review-finished
-            (when (and (gptel-reinforce--conflict-markers-present-p)
-                       (not (y-or-n-p
-                             (format "Merge markers remain in %s. Apply anyway? "
-                                     title))))
-              (setq gptel-reinforce--review-finished nil))
-            (when gptel-reinforce--review-finished
-              (buffer-substring-no-properties (point-min) (point-max)))))
-      (when (buffer-live-p buffer)
-        (kill-buffer buffer)))))
+            (buffer-substring-no-properties (point-min) (point-max))))
+      (ignore-errors (delete-file old-file))
+      (ignore-errors (delete-file new-file))
+      (when (buffer-live-p edit-buffer)
+        (kill-buffer edit-buffer))
+      (when (buffer-live-p diff-buffer)
+        (kill-buffer diff-buffer)))))
 
 (defun gptel-reinforce--review-text (title old-text new-text review-mode)
   "Review NEW-TEXT against OLD-TEXT for TITLE using REVIEW-MODE.
@@ -315,7 +338,7 @@ Return the accepted text, or nil when rejected."
   (pcase review-mode
     ('nil new-text)
     ('diff (gptel-reinforce--show-diff-review title old-text new-text))
-    ('smerge (gptel-reinforce--show-smerge-review title old-text new-text))
+    ('edit (gptel-reinforce--show-edit-review title old-text new-text))
     (_ (user-error "Unsupported review mode: %S" review-mode))))
 
 (defun gptel-reinforce--history-entry-excerpt (entry)

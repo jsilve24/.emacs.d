@@ -32,26 +32,27 @@
   "Directory holding SQLite database files."
   :type 'directory)
 
-(defcustom gptel-reinforce-summary-review-mode 'smerge
+(defcustom gptel-reinforce-summary-review-mode 'edit
   "How to review summary updates before writing them.
 
 When nil, apply summary updates immediately.  `diff' shows a read-only
-unified diff and asks for confirmation.  `smerge' opens an editable merge
-buffer so the candidate can be adjusted before it is written."
+unified diff and asks for confirmation.  `edit' opens an editable candidate
+buffer alongside a unified diff, so the candidate can be adjusted before it
+is written."
   :type '(choice (const :tag "Apply immediately" nil)
                  (const :tag "Unified diff" diff)
-                 (const :tag "Editable smerge buffer" smerge)))
+                 (const :tag "Editable candidate with diff" edit)))
 
-(defcustom gptel-reinforce-update-review-mode 'smerge
+(defcustom gptel-reinforce-update-review-mode 'edit
   "How to review artifact updates before writing them.
 
 When nil, apply updates immediately.  `diff' shows a read-only unified diff
-and asks for confirmation.  `smerge' opens an editable merge buffer so the
-candidate can be adjusted before it is written.  Per-artifact AUTO_UPDATE
-still bypasses review entirely."
+and asks for confirmation.  `edit' opens an editable candidate buffer
+alongside a unified diff, so the candidate can be adjusted before it is
+written.  Per-artifact AUTO_UPDATE still bypasses review entirely."
   :type '(choice (const :tag "Apply immediately" nil)
                  (const :tag "Unified diff" diff)
-                 (const :tag "Editable smerge buffer" smerge)))
+                 (const :tag "Editable candidate with diff" edit)))
 
 (defconst gptel-reinforce-default-summarizer-prompt
   (string-join

@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+For the human-oriented maintenance overview, see `MAINTENANCE.md`.
+
 ## Overview
 
 This is a personal Emacs configuration using **straight.el** for reproducible package management, **use-package** for package configuration, **Evil mode** for Vim-style editing, and **general.el** for keybinding management.
@@ -59,7 +61,7 @@ Set before module loading in `init.el`:
 - **Git**: magit (in `git.el`)
 - **LSP**: `lsp.el` + `treesitter.el`
 - **Org**: org-mode + org-roam; files live in `~/Dropbox/org/`
-- **AI**: gptel + claude-code-ide (in `ai.el`)
+- **AI**: gptel + claude-code-ide + local `gptel-reinforce` development (in `ai.el` and `gptel-reinforce/`)
 - **Languages**: ESS/R (`ess.el`), Python (`python.el`), Stan (`stan.el`), LaTeX (`latex.el`)
 - **Snippets**: yasnippet; templates in `snippets/` organized by major mode
 

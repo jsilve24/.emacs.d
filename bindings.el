@@ -497,6 +497,9 @@
   "da" #'gptel-aibo
   "dA" #'gptel-aibo-apply-last-suggestions
   "di" #'gptel-aibo-summon
+  "dB" #'gptel-reinforce-rollback
+  "dS" #'gptel-reinforce-summarize
+  "dU" #'gptel-reinforce-update
   "d+" #'gptel-reinforce-like
   "d-" #'gptel-reinforce-dislike
   "d0" #'gptel-reinforce-neutral)

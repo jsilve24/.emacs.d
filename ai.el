@@ -93,28 +93,36 @@
                         (set-marker pos nil))))))))
 
 ;;; gptel-reinforce ------------------------------------------------------------
-(let* ((gptel-reinforce-dir
-        (expand-file-name "gptel-reinforce" user-emacs-directory))
-       ;; Local package development can leave dependents compiled against an
-       ;; older struct layout, which breaks startup before recompilation.
-       (stale-build-p
-        (catch 'stale
-          (dolist (source (directory-files gptel-reinforce-dir t "\\.el\\'"))
-            (let ((bytecode (concat source "c")))
-              (when (or (not (file-exists-p bytecode))
-                        (file-newer-than-file-p source bytecode))
-                (throw 'stale t))))
-          nil)))
-  (when stale-build-p
-    (dolist (bytecode (directory-files gptel-reinforce-dir t "\\.elc\\'"))
-      (delete-file bytecode))
-    (when-let* ((eln-cache-dir (expand-file-name "eln-cache" user-emacs-directory))
-                ((file-directory-p eln-cache-dir)))
-      (dolist (eln (directory-files-recursively eln-cache-dir "gptel-reinforce.*\\.eln\\'"))
-        (delete-file eln))))
+(defun jds/gptel-reinforce-stale-build-p (dir)
+  "Return non-nil when gptel-reinforce sources in DIR need recompilation."
+  (catch 'stale
+    (dolist (source (directory-files dir t "\\.el\\'"))
+      (let ((bytecode (concat source "c")))
+        (when (or (not (file-exists-p bytecode))
+                  (file-newer-than-file-p source bytecode))
+          (throw 'stale t))))
+    nil))
+
+(defun jds/gptel-reinforce-clear-build-artifacts (dir)
+  "Delete stale byte-compiled and native-compiled artifacts for DIR."
+  (dolist (bytecode (directory-files dir t "\\.elc\\'"))
+    (delete-file bytecode))
+  (when-let* ((eln-cache-dir (expand-file-name "eln-cache" user-emacs-directory))
+              ((file-directory-p eln-cache-dir)))
+    (dolist (eln (directory-files-recursively eln-cache-dir "gptel-reinforce.*\\.eln\\'"))
+      (delete-file eln))))
+
+(let ((gptel-reinforce-dir
+       (expand-file-name "gptel-reinforce" user-emacs-directory)))
+  ;; Local package development can leave dependents compiled against an older
+  ;; struct layout, which breaks startup before recompilation.
+  (when (jds/gptel-reinforce-stale-build-p gptel-reinforce-dir)
+    (jds/gptel-reinforce-clear-build-artifacts gptel-reinforce-dir))
   (add-to-list 'load-path gptel-reinforce-dir))
 (require 'gptel-reinforce)
 (require 'gptel-reinforce-elfeed)
+(setq gptel-reinforce-summary-review-mode 'edit
+      gptel-reinforce-update-review-mode 'edit)
 
 
 ;;; gptel-quick ----------------------------------------------------------------

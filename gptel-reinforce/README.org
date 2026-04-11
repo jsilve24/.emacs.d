@@ -26,7 +26,7 @@ The improvement loop works in three steps:
 
 2. *Summarize.* Call =gptel-reinforce-summarize= for an artifact. The LLM reads all feedback events since the last summary and updates a running =summary.org=. Only new events are sent each time. If review is enabled, you can inspect or edit the proposed summary before it is written.
 
-3. *Update.* Call =gptel-reinforce-update= for an artifact. The LLM reads the summary and proposes a minimal revision to the artifact text. Review can be skipped, shown as a read-only diff, or opened as an editable =smerge= buffer. Accepted revisions are archived and become the new =current.org=.
+3. *Update.* Call =gptel-reinforce-update= for an artifact. The LLM reads the summary and proposes a minimal revision to the artifact text. Review can be skipped, shown as a read-only diff, or opened in an editable candidate buffer with a live diff. Accepted revisions are archived and become the new =current.org=.
 
 Artifacts improve gradually, driven by real usage rather than one-shot prompting.
 
@@ -233,6 +233,8 @@ Repeated feedback overwrites the previous score for the same target instead of c
 *=gptel-reinforce-update ARTIFACT=* — sends the current artifact text and =summary.org= to the LLM and requests a minimal revision. Review behavior is controlled by =gptel-reinforce-update-review-mode= and can be skipped per artifact with =AUTO_UPDATE: t= in =current.org=. Accepted revisions are written to the history directory and become the new =current.org=.
 
 *=gptel-reinforce-rollback ARTIFACT VERSION-REF=* — restores a prior history snapshot. Interactively, it prompts for an artifact and then offers the history entries via =completing-read= with timestamps, update mode, and a short excerpt. After you choose one, it reuses the normal review flow before writing a fresh history snapshot with =UPDATE_MODE= set to =rollback=. Rollback clears =Applied Summary= in =current.org= so the next update can safely re-apply the full current summary instead of assuming the rolled-back text already incorporated it.
+
+When review mode is =edit=, gptel-reinforce opens two buffers: a read-only unified diff and an editable candidate buffer. Edit the candidate, press =C-c C-d= to refresh the diff, then =C-c C-c= to apply or =C-c C-k= to cancel.
 
 ** Utility
 
@@ -528,8 +530,8 @@ The filename (without directory) becomes =VERSION_REF= in =current.org= and =art
 
 | Variable                               | Default   | Description                                                      |
 |----------------------------------------+-----------+------------------------------------------------------------------|
-| =gptel-reinforce-summary-review-mode=  | =smerge=  | Review summary updates with nil, =diff=, or editable =smerge=    |
-| =gptel-reinforce-update-review-mode=   | =smerge=  | Review artifact updates with nil, =diff=, or editable =smerge=   |
+| =gptel-reinforce-summary-review-mode=  | =edit=  | Review summary updates with nil, =diff=, or editable candidate+diff |
+| =gptel-reinforce-update-review-mode=   | =edit=  | Review artifact updates with nil, =diff=, or editable candidate+diff |
 
 ** LLM backend
 

@@ -73,20 +73,20 @@
 
 (ert-deftest gptel-reinforce-review-text-dispatches-modes ()
   (let ((diff-called nil)
-        (smerge-called nil))
+        (edit-called nil))
     (cl-letf (((symbol-function 'gptel-reinforce--show-diff-review)
                (lambda (&rest _args)
                  (setq diff-called t)
                  "diff-result"))
-              ((symbol-function 'gptel-reinforce--show-smerge-review)
+              ((symbol-function 'gptel-reinforce--show-edit-review)
                (lambda (&rest _args)
-                 (setq smerge-called t)
-                 "smerge-result")))
+                 (setq edit-called t)
+                 "edit-result")))
       (should (equal (gptel-reinforce--review-text "title" "old" "new" nil) "new"))
       (should (equal (gptel-reinforce--review-text "title" "old" "new" 'diff) "diff-result"))
-      (should (equal (gptel-reinforce--review-text "title" "old" "new" 'smerge) "smerge-result"))
+      (should (equal (gptel-reinforce--review-text "title" "old" "new" 'edit) "edit-result"))
       (should diff-called)
-      (should smerge-called))))
+      (should edit-called))))
 
 (ert-deftest gptel-reinforce-summarize-writes-reviewed-summary ()
   (gptel-reinforce-test-with-temp-env
@@ -98,7 +98,7 @@
        :item-key "item-1"
        :score 1
        :title "Useful item"))
-    (let ((gptel-reinforce-summary-review-mode 'smerge))
+    (let ((gptel-reinforce-summary-review-mode 'edit))
       (cl-letf (((symbol-function 'gptel-reinforce-backend-send)
                  (lambda (_request callback)
                    (funcall callback "* Summary\n\nModel summary" '(:status "ok"))))
@@ -127,7 +127,7 @@
        "artifact-1"
        "* Summary\n\nNew signal\n\n* Uncertainty\n\n- none\n\n* Notes\n"
        3)
-      (let ((gptel-reinforce-update-review-mode 'smerge))
+      (let ((gptel-reinforce-update-review-mode 'edit))
         (cl-letf (((symbol-function 'gptel-reinforce-backend-send)
                    (lambda (_request callback)
                      (funcall callback "Model artifact text" '(:status "ok"))))

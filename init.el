@@ -14,16 +14,17 @@
 
 ;; (setq native-comp-deferred-compilation nil)
 
-(if (seq-contains command-line-args "--use-exwm")
-    (setq jds~use-wm t))
-(if (not (boundp 'jds~use-wm))
-    (setq jds~use-wm nil))
-(if (not (boundp 'jds~skip-email))
-    (setq jds~skip-email nil))
+(when (seq-contains command-line-args "--use-exwm")
+  (setq jds~use-wm t))
+(unless (boundp 'jds~use-wm)
+  (setq jds~use-wm nil))
+(unless (boundp 'jds~skip-email)
+  (setq jds~skip-email nil))
 
 ;;; Modules
+;; Load order matters. See MAINTENANCE.md for the rationale and grouping.
 (load-config "core.el")
-(if jds~use-wm
+(when jds~use-wm
   (load-config "wm.el"))
 (load-config "defaults.el")
 (load-config "secrets.el")
