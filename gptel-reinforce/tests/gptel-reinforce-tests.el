@@ -16,6 +16,9 @@
 (require 'gptel-reinforce-elfeed)
 (require 'gptel-reinforce-tools)
 
+(defvar gptel-backend nil)
+(defvar gptel-model nil)
+
 (defmacro gptel-reinforce-test-with-temp-env (&rest body)
   "Run BODY with isolated gptel-reinforce state and config directories."
   (declare (indent 0) (debug t))
@@ -143,6 +146,44 @@
         (should (string-match-p "New signal" (plist-get current-record :applied-summary)))
         (should (stringp (plist-get current-record :version-ref)))))))
 
+(ert-deftest gptel-reinforce-backend-send-with-gptel-binds-configured-model ()
+  (let ((gptel-reinforce-gptel-backend 'backend-a)
+        (gptel-reinforce-gptel-model 'model-a)
+        (gptel-backend nil)
+        (gptel-model nil)
+        seen-backend
+        seen-model)
+    (cl-letf (((symbol-function 'require) (lambda (&rest _) t))
+              ((symbol-function 'gptel-request)
+               (lambda (_prompt &rest args)
+                 (setq seen-backend gptel-backend
+                       seen-model gptel-model)
+                 (funcall (plist-get args :callback) "ok" '(:status "ok")))))
+      (gptel-reinforce-backend-send-with-gptel
+       (gptel-reinforce-summary-request-create
+        :database-name "db"
+        :artifact-name "artifact"
+        :artifact-type "code"
+        :existing-summary ""
+        :events nil
+        :system-prompt "system")
+       (lambda (_response _info) nil)))
+    (should (eq seen-backend 'backend-a))
+    (should (eq seen-model 'model-a))))
+
+(ert-deftest gptel-reinforce-update-user-prompt-adds-narrow-scope-guidance-for-code ()
+  (let ((prompt
+         (gptel-reinforce-backend--update-user-prompt
+          (gptel-reinforce-update-request-create
+           :database-name "db"
+           :artifact-name "artifact"
+           :artifact-type "code"
+           :current-text "old"
+           :applied-summary-body ""
+           :summary-body "* Summary\n\n- Narrow evidence"))))
+    (should (string-match-p "Prefer narrow, local changes" prompt))
+    (should (string-match-p "Do not disable or replace a feature globally" prompt))))
+
 (ert-deftest gptel-reinforce-history-entries-are-listed-newest-first ()
   (gptel-reinforce-test-with-temp-env
     (gptel-reinforce-test--register-database)
@@ -227,7 +268,8 @@
            (expand-file-name "elfeed.score" temp-dir)))
       (should (gptel-reinforce-elfeed-validate-score-file nil nil "((foo . 1))"))
       (should-not (gptel-reinforce-elfeed-validate-score-file nil nil "((foo . 1)"))
-      (gptel-reinforce-elfeed-apply-score-file nil nil nil "((bar . 2))\n")
+      (cl-letf (((symbol-function 'elfeed-score-load-score-file) #'ignore))
+        (gptel-reinforce-elfeed-apply-score-file nil nil nil "((bar . 2))\n"))
       (should
        (equal
         (with-temp-buffer
@@ -391,35 +433,70 @@
       (should (equal (plist-get event :artifact-name) "artifact-1"))
       (should (= (plist-get event :score) 1)))))
 
-(ert-deftest gptel-reinforce-register-artifact-preserves-existing-current-text ()
+(ert-deftest gptel-reinforce-config-hash-stored-on-first-registration ()
   (gptel-reinforce-test-with-temp-env
     (gptel-reinforce-test--register-database)
     (gptel-reinforce-register-artifact
      :name "artifact-1"
      :database "test-db"
      :type "prompt"
-     :initial-text "Initial text")
-    (gptel-reinforce-org-write-current
-     "artifact-1"
-     :text "Edited text"
-     :type "prompt"
-     :version-ref "edited-version"
-     :updated-at "2026-04-12T00:00:00+0000"
-     :summary-event-ref 0
-     :applied-summary "Edited summary")
+     :initial-text "My initial text")
+    (let ((current (gptel-reinforce-org-read-current "artifact-1")))
+      (should (equal (plist-get current :config-hash)
+                     (secure-hash 'sha256 "My initial text"))))))
+
+(ert-deftest gptel-reinforce-same-config-preserves-ai-updated-text ()
+  (gptel-reinforce-test-with-temp-env
+    (gptel-reinforce-test--register-database)
     (gptel-reinforce-register-artifact
      :name "artifact-1"
      :database "test-db"
      :type "prompt"
-     :initial-text "Replacement seed")
-    (let ((current (gptel-reinforce-org-read-current "artifact-1")))
-      (should (equal (plist-get current :text) "Edited text"))
-      (should (equal (plist-get current :applied-summary) "Edited summary"))
-      (should (stringp (plist-get current :version-ref)))
-      (should (file-exists-p
-               (expand-file-name
-                (plist-get current :version-ref)
-                (gptel-reinforce-artifact-history-dir "artifact-1")))))))
+     :initial-text "Config text")
+    ;; Simulate an AI update: write a real history entry and update current.org,
+    ;; preserving the config hash so re-registration sees no config change.
+    (let ((ai-version-ref
+           (gptel-reinforce-org-write-history-entry
+            "artifact-1" "AI updated text"
+            :type "prompt"
+            :update-mode "manual-approved")))
+      (gptel-reinforce-org-write-current
+       "artifact-1"
+       :text "AI updated text"
+       :type "prompt"
+       :version-ref ai-version-ref
+       :applied-summary "Some summary"
+       :config-hash (secure-hash 'sha256 "Config text")))
+    (let ((history-count-before
+           (length (gptel-reinforce-org-list-history-entries "artifact-1"))))
+      (gptel-reinforce-register-artifact
+       :name "artifact-1"
+       :database "test-db"
+       :type "prompt"
+       :initial-text "Config text")
+      (let ((current (gptel-reinforce-org-read-current "artifact-1")))
+        (should (equal (plist-get current :text) "AI updated text"))
+        (should (= (length (gptel-reinforce-org-list-history-entries "artifact-1"))
+                   history-count-before))))))
+
+(ert-deftest gptel-reinforce-config-change-updates-text-and-adds-history ()
+  (gptel-reinforce-test-with-temp-env
+    (gptel-reinforce-test--register-database)
+    (gptel-reinforce-register-artifact
+     :name "artifact-1"
+     :database "test-db"
+     :type "prompt"
+     :initial-text "Original config")
+    (gptel-reinforce-register-artifact
+     :name "artifact-1"
+     :database "test-db"
+     :type "prompt"
+     :initial-text "Changed config")
+    (let* ((current (gptel-reinforce-org-read-current "artifact-1"))
+           (history (gptel-reinforce-org-list-history-entries "artifact-1")))
+      (should (equal (plist-get current :text) "Changed config"))
+      (should (= (length history) 2))
+      (should (equal (plist-get (car history) :update-mode) "config-edit")))))
 
 (ert-deftest gptel-reinforce-db-overwrites-item-feedback-for-same-item ()
   (gptel-reinforce-test-with-temp-env

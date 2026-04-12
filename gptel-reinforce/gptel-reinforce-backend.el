@@ -47,6 +47,22 @@ package code."
   :group 'gptel-reinforce
   :type 'function)
 
+(defcustom gptel-reinforce-gptel-backend nil
+  "Optional gptel backend used for summarize and update requests.
+
+When nil, `gptel-reinforce' uses the currently active `gptel-backend'."
+  :group 'gptel-reinforce
+  :type '(choice (const :tag "Use active gptel backend" nil)
+                 sexp))
+
+(defcustom gptel-reinforce-gptel-model nil
+  "Optional gptel model used for summarize and update requests.
+
+When nil, `gptel-reinforce' uses the currently active `gptel-model'."
+  :group 'gptel-reinforce
+  :type '(choice (const :tag "Use active gptel model" nil)
+                 symbol))
+
 (defun gptel-reinforce-backend-send (request callback)
   "Send REQUEST to the active backend and invoke CALLBACK with the response."
   (funcall gptel-reinforce-backend-function request callback))
@@ -104,18 +120,24 @@ package code."
                         (or (gptel-reinforce-update-request-current-text request)
                             "")))
          (summary (or (gptel-reinforce-update-request-summary-body request) ""))
+         (artifact-type (or (gptel-reinforce-update-request-artifact-type request) ""))
          (header (format "Database: %s\nArtifact: %s\nArtifact type: %s"
                          (gptel-reinforce-update-request-database-name request)
                          (gptel-reinforce-update-request-artifact-name request)
-                         (or (gptel-reinforce-update-request-artifact-type request) ""))))
+                         artifact-type))
+         (scope-guidance
+          (if (member artifact-type '("code" "config" "rule-set"))
+              "\n\nArtifact-specific guidance:\n- Prefer narrow, local changes.\n- Preserve useful existing behaviors unless the summary clearly recommends removing them.\n- Prefer targeted predicates, branches, or entry-specific edits over changing a shared gate for many unrelated behaviors.\n- Do not disable or replace a feature globally when the evidence only identifies one trigger/context pair."
+            "")))
     (if (string-empty-p current-text)
-        (format "%s\n\nFeedback summary:\n%s\n\nCreate the artifact from scratch based on the feedback summary above.\nReturn only the artifact text."
-                header summary)
-      (format "%s\n\nCurrent artifact text:\n%s\n\nFeedback already incorporated in current version:\n%s\n\nLatest feedback summary (may include new patterns since last update):\n%s\n\nRevise the artifact with the smallest useful change to reflect\nany new patterns in the latest summary not yet incorporated.\nDo not re-apply changes already present in the artifact."
+        (format "%s\n\nFeedback summary:\n%s%s\n\nCreate the artifact from scratch based on the feedback summary above.\nReturn only the artifact text."
+                header summary scope-guidance)
+      (format "%s\n\nCurrent artifact text:\n%s\n\nFeedback already incorporated in current version:\n%s\n\nLatest feedback summary (may include new patterns since last update):\n%s%s\n\nRevise the artifact with the smallest useful change to reflect\nany new patterns in the latest summary not yet incorporated.\nDo not re-apply changes already present in the artifact."
               header
               current-text
               (if (string-empty-p applied) "(none — first update)" applied)
-              summary))))
+              summary
+              scope-guidance))))
 
 (defun gptel-reinforce-backend--sanitize-response (response)
   "Trim RESPONSE and drop simple Markdown fences."
@@ -142,17 +164,19 @@ package code."
                  ((gptel-reinforce-update-request-p request)
                   (gptel-reinforce-update-request-system-prompt request))
                  (t nil))))
-    (gptel-request
-     prompt
-     :system system
-     :stream nil
-     :callback
-     (lambda (response info)
-       (if (not response)
-           (message "gptel-reinforce backend error: %s" (plist-get info :status))
-         (funcall callback
-                  (gptel-reinforce-backend--sanitize-response response)
-                  info))))))
+    (let ((gptel-backend (or gptel-reinforce-gptel-backend gptel-backend))
+          (gptel-model (or gptel-reinforce-gptel-model gptel-model)))
+      (gptel-request
+       prompt
+       :system system
+       :stream nil
+       :callback
+       (lambda (response info)
+         (if (not response)
+             (message "gptel-reinforce backend error: %s" (plist-get info :status))
+           (funcall callback
+                    (gptel-reinforce-backend--sanitize-response response)
+                    info)))))))
 
 (provide 'gptel-reinforce-backend)
 

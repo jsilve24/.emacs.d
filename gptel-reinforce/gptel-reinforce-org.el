@@ -115,6 +115,7 @@
           :version-ref (cdr (assoc "VERSION_REF" properties))
           :updated-at (cdr (assoc "UPDATED_AT" properties))
           :auto-update (equal (cdr (assoc "AUTO_UPDATE" properties)) "t")
+          :config-hash (cdr (assoc "CONFIG_HASH" properties))
           :text (or (gptel-reinforce-org--extract-section body "Current Text") "")
           :applied-summary
           (or (gptel-reinforce-org--extract-section body "Applied Summary") "")
@@ -155,6 +156,7 @@
          (auto-update (if (plist-member plist :auto-update)
                           (plist-get plist :auto-update)
                         (gptel-reinforce-artifact-auto-update artifact)))
+         (config-hash (plist-get plist :config-hash))
          (content
           (concat
            (gptel-reinforce-org--property-drawer
@@ -163,7 +165,8 @@
               ("TYPE" . ,type)
               ("VERSION_REF" . ,(or version-ref ""))
               ("UPDATED_AT" . ,updated-at)
-              ("AUTO_UPDATE" . ,(if auto-update "t" "nil"))))
+              ("AUTO_UPDATE" . ,(if auto-update "t" "nil"))
+              ("CONFIG_HASH" . ,(or config-hash ""))))
            "* Current Text\n"
            (gptel-reinforce-org--indent-body text)
            "\n\n* Applied Summary\n"
@@ -276,37 +279,62 @@ created for the first time or when its existing text is empty."
          (summary-file (gptel-reinforce-artifact-summary-file artifact)))
     (gptel-reinforce--ensure-directory artifact-dir)
     (gptel-reinforce--ensure-directory history-dir)
-    (unless (file-exists-p current-file)
-      (let ((version-ref
-             (gptel-reinforce-org-write-history-entry
-              artifact
-              (or initial-text "")
-              :type (gptel-reinforce-artifact-type artifact)
-              :update-mode "initial"
-              :summary-event-ref 0)))
-        (gptel-reinforce-org-write-current
-         artifact
-         :version-ref version-ref
-         :text (or initial-text "")
-         :summarizer-user-prompt
-         (gptel-reinforce-artifact-summarizer-user-prompt artifact)
-         :updater-user-prompt
-         (gptel-reinforce-artifact-updater-user-prompt artifact)
-         :type (gptel-reinforce-artifact-type artifact)
-         :auto-update (gptel-reinforce-artifact-auto-update artifact))))
-    (when initial-text
-      (let* ((current (gptel-reinforce-org-read-current artifact))
-             (current-text (string-trim (or (plist-get current :text) ""))))
-        (when (string-empty-p current-text)
+    (let ((config-hash (and initial-text (secure-hash 'sha256 initial-text))))
+      (unless (file-exists-p current-file)
+        (let ((version-ref
+               (gptel-reinforce-org-write-history-entry
+                artifact
+                (or initial-text "")
+                :type (gptel-reinforce-artifact-type artifact)
+                :update-mode "initial"
+                :summary-event-ref 0)))
           (gptel-reinforce-org-write-current
            artifact
-           :version-ref (plist-get current :version-ref)
-           :text initial-text
-           :applied-summary (plist-get current :applied-summary)
-           :summarizer-user-prompt (plist-get current :summarizer-user-prompt)
-           :updater-user-prompt (plist-get current :updater-user-prompt)
-           :type (or (plist-get current :type) (gptel-reinforce-artifact-type artifact))
-           :auto-update (plist-get current :auto-update)))))
+           :version-ref version-ref
+           :text (or initial-text "")
+           :summarizer-user-prompt
+           (gptel-reinforce-artifact-summarizer-user-prompt artifact)
+           :updater-user-prompt
+           (gptel-reinforce-artifact-updater-user-prompt artifact)
+           :type (gptel-reinforce-artifact-type artifact)
+           :auto-update (gptel-reinforce-artifact-auto-update artifact)
+           :config-hash config-hash)))
+      (when initial-text
+        (let* ((current (gptel-reinforce-org-read-current artifact))
+               (current-text (string-trim (or (plist-get current :text) "")))
+               (stored-hash (plist-get current :config-hash)))
+          (cond
+           ((string-empty-p current-text)
+            (gptel-reinforce-org-write-current
+             artifact
+             :version-ref (plist-get current :version-ref)
+             :text initial-text
+             :applied-summary (plist-get current :applied-summary)
+             :summarizer-user-prompt (plist-get current :summarizer-user-prompt)
+             :updater-user-prompt (plist-get current :updater-user-prompt)
+             :type (or (plist-get current :type) (gptel-reinforce-artifact-type artifact))
+             :auto-update (plist-get current :auto-update)
+             :config-hash config-hash))
+           ((not (equal stored-hash config-hash))
+            (let ((version-ref
+                   (gptel-reinforce-org-write-history-entry
+                    artifact
+                    initial-text
+                    :type (or (plist-get current :type)
+                              (gptel-reinforce-artifact-type artifact))
+                    :update-mode "config-edit"
+                    :summary-event-ref 0)))
+              (gptel-reinforce-org-write-current
+               artifact
+               :version-ref version-ref
+               :text initial-text
+               :applied-summary (plist-get current :applied-summary)
+               :summarizer-user-prompt (plist-get current :summarizer-user-prompt)
+               :updater-user-prompt (plist-get current :updater-user-prompt)
+               :type (or (plist-get current :type)
+                         (gptel-reinforce-artifact-type artifact))
+               :auto-update (plist-get current :auto-update)
+               :config-hash config-hash)))))))
     (let* ((current (gptel-reinforce-org-read-current artifact))
            (version-ref (plist-get current :version-ref)))
       (unless (and version-ref
@@ -331,7 +359,8 @@ created for the first time or when its existing text is empty."
          :updater-user-prompt (plist-get current :updater-user-prompt)
          :type (or (plist-get current :type)
                    (gptel-reinforce-artifact-type artifact))
-         :auto-update (plist-get current :auto-update))))
+         :auto-update (plist-get current :auto-update)
+         :config-hash (plist-get current :config-hash))))
     (unless (file-exists-p summary-file)
       (gptel-reinforce-org-write-summary
        artifact

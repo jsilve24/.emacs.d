@@ -7,73 +7,12 @@
 ;;; Code:
 
 (require 'diff)
+(require 'ediff)
 (require 'subr-x)
 (require 'gptel-reinforce-core)
 (require 'gptel-reinforce-db)
 (require 'gptel-reinforce-org)
 (require 'gptel-reinforce-backend)
-
-(defvar-local gptel-reinforce--review-finished nil
-  "Non-nil when the current review buffer was accepted.")
-
-(defvar-local gptel-reinforce--review-canceled nil
-  "Non-nil when the current review buffer was canceled.")
-
-(defvar-local gptel-reinforce--review-diff-buffer nil
-  "Diff buffer associated with the current editable review buffer.")
-
-(defvar-local gptel-reinforce--review-old-file nil
-  "Temp file holding the old text for the current editable review buffer.")
-
-(defvar-local gptel-reinforce--review-new-file nil
-  "Temp file holding the candidate text for the current editable review buffer.")
-
-(defun gptel-reinforce-review-accept ()
-  "Finish the current review buffer and accept its contents."
-  (interactive)
-  (setq gptel-reinforce--review-finished t
-        gptel-reinforce--review-canceled nil)
-  (exit-recursive-edit))
-
-(defun gptel-reinforce-review-cancel ()
-  "Abort the current review buffer."
-  (interactive)
-  (setq gptel-reinforce--review-finished nil
-        gptel-reinforce--review-canceled t)
-  (exit-recursive-edit))
-
-(defvar gptel-reinforce-review-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map text-mode-map)
-    (define-key map (kbd "C-c C-c") #'gptel-reinforce-review-accept)
-    (define-key map (kbd "C-c C-k") #'gptel-reinforce-review-cancel)
-    (define-key map (kbd "C-c C-d") #'gptel-reinforce-review-refresh-diff)
-    map)
-  "Keymap used while editing gptel-reinforce review buffers.")
-
-(defun gptel-reinforce-review-refresh-diff ()
-  "Refresh the diff for the current editable review buffer."
-  (interactive)
-  (unless (and gptel-reinforce--review-old-file
-               gptel-reinforce--review-new-file
-               (buffer-live-p gptel-reinforce--review-diff-buffer))
-    (user-error "This buffer is not an editable diff review"))
-  (write-region nil nil gptel-reinforce--review-new-file nil 'silent)
-  (let ((generated (diff-no-select
-                    gptel-reinforce--review-old-file
-                    gptel-reinforce--review-new-file
-                    "-u" t)))
-    (unwind-protect
-        (with-current-buffer gptel-reinforce--review-diff-buffer
-          (let ((inhibit-read-only t))
-            (erase-buffer)
-            (insert-buffer-substring generated)
-            (diff-mode)
-            (setq buffer-read-only t)
-            (goto-char (point-min))))
-      (when (buffer-live-p generated)
-        (kill-buffer generated))))
-  (display-buffer gptel-reinforce--review-diff-buffer))
 
 (defun gptel-reinforce--read-note (prefix)
   "Return a note when PREFIX is non-nil."
@@ -269,7 +208,8 @@ CURRENT-RECORD is the parsed current state.  Optional PLIST keys:
      :updater-user-prompt (plist-get current-record :updater-user-prompt)
      :type (or (plist-get current-record :type)
                (gptel-reinforce-artifact-type artifact))
-     :auto-update (plist-get current-record :auto-update))
+     :auto-update (plist-get current-record :auto-update)
+     :config-hash (plist-get current-record :config-hash))
     (gptel-reinforce--run-post-update-hooks
      artifact
      version-ref
@@ -299,38 +239,68 @@ CURRENT-RECORD is the parsed current state.  Optional PLIST keys:
       (ignore-errors (delete-file new-file)))))
 
 (defun gptel-reinforce--show-edit-review (title old-text new-text)
-  "Open an editable candidate buffer plus diff for TITLE.
-Return the accepted text, or nil when canceled."
-  (let ((edit-buffer (generate-new-buffer (format "*gptel-reinforce edit: %s*" title)))
-        (diff-buffer (generate-new-buffer (format "*gptel-reinforce diff: %s*" title)))
-        (old-file (make-temp-file "gptel-reinforce-old-"))
-        (new-file (make-temp-file "gptel-reinforce-new-")))
+  "Open an ediff session to review and optionally edit NEW-TEXT against OLD-TEXT for TITLE.
+\\`C-c C-c' accepts, \\`C-c C-k' rejects.  \\`q' quits ediff then prompts.
+Return the accepted text, or nil when rejected."
+  (let* ((old-buf (generate-new-buffer
+                   (format " *gptel-reinforce-old: %s*" title)))
+         (new-buf (generate-new-buffer
+                   (format "*gptel-reinforce new: %s*" title)))
+         (result nil)
+         (done nil)
+         (exit-fn (lambda ()
+                    (condition-case nil (exit-recursive-edit) (error nil)))))
+    (with-current-buffer old-buf
+      (insert old-text)
+      (setq buffer-read-only t))
+    (with-current-buffer new-buf
+      (insert new-text))
     (unwind-protect
-        (with-current-buffer edit-buffer
-          (insert new-text)
-          (text-mode)
-          (use-local-map gptel-reinforce-review-mode-map)
-          (setq-local header-line-format
-                      "Edit candidate, C-c C-d refresh diff, C-c C-c apply, C-c C-k cancel")
-          (setq-local gptel-reinforce--review-finished nil)
-          (setq-local gptel-reinforce--review-canceled nil)
-          (setq-local gptel-reinforce--review-diff-buffer diff-buffer)
-          (setq-local gptel-reinforce--review-old-file old-file)
-          (setq-local gptel-reinforce--review-new-file new-file)
-          (with-temp-file old-file
-            (insert old-text))
-          (gptel-reinforce-review-refresh-diff)
-          (display-buffer edit-buffer)
-          (goto-char (point-min))
+        (progn
+          (ediff-buffers
+           old-buf new-buf
+           (list
+            (lambda ()
+              ;; C-c C-c: accept immediately, no extra prompts
+              (local-set-key
+               (kbd "C-c C-c")
+               (lambda () (interactive)
+                 (unless done
+                   (setq done t
+                         result (with-current-buffer new-buf
+                                  (buffer-substring-no-properties
+                                   (point-min) (point-max))))
+                   (ediff-really-quit t))))
+              ;; C-c C-k: reject immediately, no extra prompts
+              (local-set-key
+               (kbd "C-c C-k")
+               (lambda () (interactive)
+                 (unless done
+                   (setq done t)
+                   (ediff-really-quit t))))
+              ;; Normal q-quit: prompt to confirm
+              (add-hook 'ediff-after-quit-hook-internal
+                        (lambda ()
+                          (unless done
+                            (setq done t)
+                            (when (and (buffer-live-p new-buf)
+                                       (y-or-n-p (format "Apply update for %s? " title)))
+                              (setq result
+                                    (with-current-buffer new-buf
+                                      (buffer-substring-no-properties
+                                       (point-min) (point-max))))))
+                          (funcall exit-fn))
+                        nil t)
+              ;; Guard against the control buffer being killed abnormally
+              (add-hook 'kill-buffer-hook
+                        (lambda ()
+                          (unless done (setq done t))
+                          (funcall exit-fn))
+                        nil t))))
           (recursive-edit)
-          (when gptel-reinforce--review-finished
-            (buffer-substring-no-properties (point-min) (point-max))))
-      (ignore-errors (delete-file old-file))
-      (ignore-errors (delete-file new-file))
-      (when (buffer-live-p edit-buffer)
-        (kill-buffer edit-buffer))
-      (when (buffer-live-p diff-buffer)
-        (kill-buffer diff-buffer)))))
+          result)
+      (when (buffer-live-p old-buf) (kill-buffer old-buf))
+      (when (buffer-live-p new-buf) (kill-buffer new-buf)))))
 
 (defun gptel-reinforce--review-text (title old-text new-text review-mode)
   "Review NEW-TEXT against OLD-TEXT for TITLE using REVIEW-MODE.

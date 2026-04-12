@@ -51,11 +51,44 @@ escape."
 	   (yas-expand-snippet ,symbol)
 	 (yas-expand-snippet (concat "\\\\(" ,symbol "\\\\)")))))
 
-  (defun jds~expand-math-symbol-p ()
-    "Predicate for when to expand math snippets. In non-mathmode, only expand if preceded by non alphanumeric character"
-    (cond
-     ((and (not (texmathp)) (looking-back "[a-zA-Z0-9]" 1)) nil)
-     (t t)))
+  ;;; aas-snippets-begin
+(defun jds~expand-math-symbol-p ()
+    "Predicate for when to expand general math snippets.
+In non-math text, only expand when not immediately following an
+alphanumeric character."
+    (not (and (not (texmathp))
+              (looking-back "[[:alnum:]]" 1))))
+
+  (defun jds~org-inside-link-target-p ()
+    "Return non-nil when point is inside an unfinished Org link target.
+This is intentionally lightweight and is meant for typing-time checks such
+as suppressing `./' expansion while entering `[[./path]]'."
+    (and (derived-mode-p 'org-mode)
+         (save-excursion
+           (let ((point (point))
+                 open-pos
+                 close-pos)
+             (setq open-pos
+                   (save-excursion
+                     (search-backward "[[" (line-beginning-position) t)))
+             (setq close-pos
+                   (save-excursion
+                     (search-backward "]]" (line-beginning-position) t)))
+             (and open-pos
+                  (< open-pos point)
+                  (or (null close-pos)
+                      (< close-pos open-pos)))))))
+
+  (defun jds~expand-varnothing-p ()
+    "Predicate for expanding the `.0' varnothing snippet."
+    (and (jds~expand-math-symbol-p)
+         (not (and (texmathp)
+                   (looking-back "[0-9]" 1)))))
+
+  (defun jds~expand-oslash-p ()
+    "Predicate for expanding the `./' oslash snippet."
+    (and (jds~expand-math-symbol-p)
+         (not (jds~org-inside-link-target-p))))
 
   (defmacro jds~aas-setup-insert-math (mode)
     `(progn (aas-set-snippets ,mode
@@ -214,16 +247,18 @@ escape."
 	      "..<" (jds~aas-insert-math "\\Leftarrow$0")
 	      "..<" (jds~aas-insert-math "\\Leftarrow$0")
 	      "..=" (jds~aas-insert-math "\\Leftrightarrow$0")
-	      ".0" (jds~aas-insert-math "\\varnothing$0")
 	      ".^" (jds~aas-insert-math "\\uparrow$0")
 	      "._" (jds~aas-insert-math "\\downarrow$0")
 	      ".8" (jds~aas-insert-math "\\infty$0")
 	      ".*" (jds~aas-insert-math "\\odot$0")
 	      ".#" (jds~aas-insert-math "\\otimes$0")
-	      "./" (jds~aas-insert-math "\\oslash$0")
 	      ".+" (jds~aas-insert-math "\\oplus$0")
+	      :cond #'jds~expand-varnothing-p
+	      ".0" (jds~aas-insert-math "\\varnothing$0")
+	      :cond #'jds~expand-oslash-p
+	      "./" (jds~aas-insert-math "\\oslash$0")
+	      :cond #'jds~expand-math-symbol-p
 	      ".-" (jds~aas-insert-math "\\ominus$0"))))
-  ;;; aas-snippets-begin
   (jds~aas-setup-insert-math 'org-mode)
   (jds~aas-setup-insert-math 'latex-mode)
   (jds~aas-setup-insert-math 'LaTeX-mode)
@@ -348,7 +383,6 @@ escape."
 
   (aas-set-snippets 'org-msg-edit-mode
     ";schedule" #'jds/ai-email-insert-availability-snippet)
-
   ;;; aas-snippets-end
 
   ;; latex autoactivating snippets

@@ -84,7 +84,9 @@ Set to `anthropic' or `openai', then reload this file."
 (require 'gptel-reinforce)
 (require 'gptel-reinforce-elfeed)
 (setq gptel-reinforce-summary-review-mode 'edit
-      gptel-reinforce-update-review-mode 'edit)
+      gptel-reinforce-update-review-mode 'edit
+      gptel-reinforce-gptel-backend jds/gptel-openai-backend
+      gptel-reinforce-gptel-model 'gpt-5-mini)
 
 (defconst jds/gptel-reinforce-transient-context-ttl 120
   "Seconds that transient item-feedback context remains valid.")
@@ -95,6 +97,21 @@ Set to `anthropic' or `openai', then reload this file."
     (and timestamp
          (< (- (float-time) timestamp)
             jds/gptel-reinforce-transient-context-ttl))))
+
+(defun jds/gptel-reinforce--context-key (prefix &rest parts)
+  "Return a stable item key for PREFIX derived from PARTS."
+  (format "%s:%s"
+          prefix
+          (secure-hash 'sha256
+                       (mapconcat (lambda (part)
+                                    (format "%s" (or part "")))
+                                  parts
+                                  "\0"))))
+
+(defun jds/gptel-reinforce--buffer-identity ()
+  "Return a stable identifier for the current buffer."
+  (or buffer-file-name
+      (buffer-name)))
 
 (defun jds/gptel-reinforce--clear-transient-context (database-name)
   "Clear transient feedback-routing state for DATABASE-NAME in the current buffer."
@@ -132,7 +149,7 @@ Set to `anthropic' or `openai', then reload this file."
           (string-trim
            (buffer-substring-no-properties start (match-beginning 0))))))))
 
-(defun jds/tab-dwim-artifact--write-back (text)
+(defun jds/tab-dwim-artifact--write-back (_artifact _version-ref _current-record text)
   "Replace the tab-dwim block in `bindings.el' with TEXT and re-eval."
   (with-current-buffer (find-file-noselect jds/tab-dwim-bindings-file)
     (save-excursion
@@ -152,21 +169,50 @@ Set to `anthropic' or `openai', then reload this file."
   "Transient context for routing feedback about the most recent `jds/tab-dwim'.")
 
 (with-eval-after-load "bindings"
-  (advice-add 'jds/tab-dwim :after
-              (lambda (&rest _)
-                (setq-local jds/tab-dwim--last-context
-                            (list :mode major-mode
-                                  :timestamp (float-time))))))
+  (advice-add
+   'jds/tab-dwim :around
+   (lambda (orig &rest args)
+     (let ((origin (point))
+           (buffer-id (jds/gptel-reinforce--buffer-identity))
+           (before (buffer-substring-no-properties
+                    (max (point-min) (- (point) 40))
+                    (point)))
+           (after (buffer-substring-no-properties
+                   (point)
+                   (min (point-max) (+ (point) 40)))))
+       (prog1 (apply orig args)
+         (setq-local jds/tab-dwim--last-context
+                     (list :mode major-mode
+                           :buffer buffer-id
+                           :point origin
+                           :timestamp (float-time)
+                           :before before
+                           :after after)))))))
 
 (gptel-reinforce-register-database
  :name "tab-dwim"
  :candidate-fn (lambda ()
                  (when (jds/gptel-reinforce--context-fresh-p
                         jds/tab-dwim--last-context)
-                   (list :context
-                         (list :item-key (format "tab-dwim:%s" major-mode)
-                               :title    (format "tab-dwim in %s" major-mode)
-                               :meta     (list :mode (symbol-name major-mode)))))))
+                   (let ((mode (plist-get jds/tab-dwim--last-context :mode))
+                         (buffer-id (plist-get jds/tab-dwim--last-context :buffer))
+                         (origin (plist-get jds/tab-dwim--last-context :point))
+                         (before (plist-get jds/tab-dwim--last-context :before))
+                         (after (plist-get jds/tab-dwim--last-context :after)))
+                     (list :context
+                           (list :item-key (jds/gptel-reinforce--context-key
+                                            "tab-dwim"
+                                            (symbol-name mode)
+                                            buffer-id
+                                            origin
+                                            before
+                                            after)
+                                 :title    (format "tab-dwim in %s" mode)
+                                 :meta     (list :mode (symbol-name mode)
+                                                 :buffer buffer-id
+                                                 :point origin
+                                                 :before before
+                                                 :after after)))))))
 
 (gptel-reinforce-register-artifact
  :name jds/tab-dwim-artifact
@@ -195,7 +241,7 @@ Set to `anthropic' or `openai', then reload this file."
           (string-trim
            (buffer-substring-no-properties start (match-beginning 0))))))))
 
-(defun jds/aas-snippets--write-back (text)
+(defun jds/aas-snippets--write-back (_artifact _version-ref _current-record text)
   "Replace the aas snippet block in `snippets.el' with TEXT and re-eval."
   (with-current-buffer (find-file-noselect jds/aas-snippets-file)
     (save-excursion
@@ -212,22 +258,38 @@ Set to `anthropic' or `openai', then reload this file."
       (eval (read (format "(progn %s)" text)) t)
     (error (message "aas-snippets update error: %s" (error-message-string err)))))
 
+(defun jds/aas-snippets--validate-candidate (_artifact _current-record candidate-text)
+  "Reject malformed AAS CANDIDATE-TEXT before it is applied."
+  (condition-case err
+      (with-temp-buffer
+        (insert (format "(progn %s)" candidate-text))
+        (goto-char (point-min))
+        (while (< (point) (point-max))
+          (read (current-buffer)))
+        t)
+    (error
+     (user-error "Invalid aas snippet candidate: %s"
+                 (error-message-string err)))))
+
 (defvar-local jds/aas-snippets--last-context nil
   "Plist :mode :before captured at the last aas pre-expansion hook.")
 
 (defun jds/aas-snippets--pre-expand-hook ()
   "Record mode + surrounding text before aas expands a snippet."
-  (setq jds/aas-snippets--last-context
-        (list :mode major-mode
-              :timestamp (float-time)
-              ;; ~60 chars before point: shows what was typed + trigger key
-              :before (buffer-substring-no-properties
-                       (max (point-min) (- (point) 60))
-                       (point))
-              ;; a little after point: shows what the snippet will land in
-              :after  (buffer-substring-no-properties
-                       (point)
-                       (min (point-max) (+ (point) 40))))))
+  (let ((trigger aas-transient-snippet-key))
+    (setq jds/aas-snippets--last-context
+          (list :mode major-mode
+                :buffer (jds/gptel-reinforce--buffer-identity)
+                :point (point)
+                :trigger trigger
+                :condition-result aas-transient-snippet-condition-result
+                :timestamp (float-time)
+                :before (buffer-substring-no-properties
+                         (max (point-min) (- (point) 60))
+                         (point))
+                :after  (buffer-substring-no-properties
+                         (point)
+                         (min (point-max) (+ (point) 40)))))))
 
 (with-eval-after-load 'aas
   (add-hook 'aas-pre-snippet-expand-hook #'jds/aas-snippets--pre-expand-hook))
@@ -238,12 +300,28 @@ Set to `anthropic' or `openai', then reload this file."
                  (when (jds/gptel-reinforce--context-fresh-p
                         jds/aas-snippets--last-context)
                    (let ((mode   (plist-get jds/aas-snippets--last-context :mode))
+                         (buffer-id (plist-get jds/aas-snippets--last-context :buffer))
+                         (origin (plist-get jds/aas-snippets--last-context :point))
+                         (trigger (plist-get jds/aas-snippets--last-context :trigger))
+                         (condition-result (plist-get jds/aas-snippets--last-context :condition-result))
                          (before (plist-get jds/aas-snippets--last-context :before))
                          (after  (plist-get jds/aas-snippets--last-context :after)))
                      (list :context
-                           (list :item-key (format "aas:%s" mode)
+                           (list :item-key (jds/gptel-reinforce--context-key
+                                            "aas"
+                                            (symbol-name mode)
+                                            buffer-id
+                                            origin
+                                            trigger
+                                            condition-result
+                                            before
+                                            after)
                                  :title    (format "aas snippets in %s" mode)
                                  :meta     (list :mode   (symbol-name mode)
+                                                 :buffer buffer-id
+                                                 :point origin
+                                                 :trigger trigger
+                                                 :condition-result condition-result
                                                  :before before
                                                  :after  after)))))))
 
@@ -259,18 +337,26 @@ Set to `anthropic' or `openai', then reload this file."
   "Within each mode, identify which specific trigger keys (visible as the last\n"
   "characters in the :before context) caused problems and what went wrong:\n"
   "wrong expansion text, unexpected trigger, bad :cond predicate, missing snippet, etc.\n"
+  "When evidence is limited to one or two trigger/context pairs, say so explicitly and\n"
+  "do not generalize to the whole mode or the whole predicate family.\n"
+  "Preserve explicit user intent about keeping a trigger available in other contexts.\n"
   "Cross-mode patterns (e.g., a trigger that misfires in multiple modes) should be\n"
   "called out separately.")
  :updater-user-prompt
  (concat
   "Update the aas snippet definitions based on the feedback summary.\n"
   "Work mode by mode and snippet by snippet.\n"
-  "When a trigger fires in the wrong context, tighten its :cond predicate.\n"
+  "When a trigger fires in the wrong context, prefer a trigger-specific :cond predicate or helper.\n"
+  "If multiple snippets are under the same :cond predicate, do not tighten the shared predicate unless the summary shows a real cross-trigger pattern.\n"
+  "Do not disable or shadow a useful trigger globally just to suppress one bad context.\n"
+  "For example, prefer keeping `./' and `.0' available and blocking only the specific path/decimal contexts that misfire.\n"
   "When an expansion text is wrong, fix the string or yas template.\n"
   "When a snippet is consistently missing in a mode, add it.\n"
-  "Preserve the structure: keep mode-setup macros and their application calls intact.\n"
-  "Do not change helper macro definitions (jds~yas-lambda-expand, jds~aas-insert-math, etc.)\n"
-  "— those live outside the artifact block.")
+  "Preserve the structure: keep the mode-setup macros and their application calls coherent.\n"
+  "The artifact includes the mode-specific aas setup macros and predicates, but generic\n"
+  "helpers such as jds~yas-lambda-expand and jds~aas-insert-math still live outside it.\n"
+  "Do not assume those external helpers can be edited from this artifact.")
+ :pre-update-hook #'jds/aas-snippets--validate-candidate
  :post-update-hook #'jds/aas-snippets--write-back)
 
 ;; --- LaTeX writing tools -----------------------------------------------------

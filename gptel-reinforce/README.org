@@ -140,13 +140,23 @@ commands for every workflow.
 
 An *artifact* is a piece of text you want to improve — a prompt, rule set, template, or config file. It belongs to one database and lives in three files on disk:
 
-- =current.org= — the active version of the text and metadata
+- =current.org= — a history log: the active version plus metadata
 - =summary.org= — the running feedback summary and =LAST_EVENT_ID= (used to prevent reprocessing already summarized feedback)
 - =history/<artifact>/<timestamp>-<name>.org= — immutable snapshots of every accepted version
 
 See [[*Appendix B: Org file formats][Appendix B]] for the file formats.
 
-You can edit =current.org= directly at any time. The =* Current Text= heading holds the artifact body. The =* Summarizer User Prompt= and =* Updater User Prompt= headings let you add task-specific guidance that is appended to the default system prompts on every LLM call to summarise the feedback database or update the artifact based on the summary respectively.
+*** Config is the source of truth
+
+The artifact text lives in your Emacs config (the =:initial-text= argument to =gptel-reinforce-register-artifact=). =current.org= is a *shadow* of the config, not the other way around.
+
+When gptel-reinforce registers an artifact at startup it compares a SHA-256 hash of =:initial-text= against the hash stored in =current.org=. If they differ — because you edited the config — the new text is written to =current.org=, a history entry is saved with =UPDATE_MODE: config-edit=, and the hash is updated. This happens automatically every time Emacs loads and the artifact is re-registered.
+
+The practical consequence is: *edit your config, not* =current.org=. When you update a prompt or code block in your =init.el= (or whatever file holds =:initial-text=), the change propagates to =current.org= on next startup.
+
+LLM-driven updates (=gptel-reinforce-update=) write their accepted text back to config via the artifact's =:post-update-hook= (see [[*Using hooks][Using hooks]]). The hook is what makes the update stick in your config file. Without a post-update hook, LLM updates are stored in =current.org= history but do not modify your config files.
+
+The =* Summarizer User Prompt= and =* Updater User Prompt= headings in =current.org= let you add task-specific guidance appended to the default system prompts. These are also better set in config (via =:summarizer-user-prompt= / =:updater-user-prompt= on =gptel-reinforce-register-artifact=) so they remain in sync.
 
 ** Feedback types
 
@@ -196,6 +206,22 @@ The =:context= plist must contain =:item-key=. All other context keys are option
 | =:title=        | string | Human-readable label shown in messages       |
 | =:primary-text= | string | Main content — excerpt, snippet, body        |
 | =:meta=         | plist  | Additional structured metadata (any keys)    |
+
+Treat =:item-key= as an /identity function/, not just a label. It should be:
+
+- stable enough that re-scoring the /same incident/ overwrites the prior row
+- narrow enough that /different incidents/ do not collapse into one row
+
+This matters because item-feedback is de-duplicated by =:item-key=, while summarization advances by event id. If your key is too coarse, later feedback can overwrite an already-summarized row and then appear as \"no new feedback\" on the next summarize pass.
+
+Practical guidance:
+
+- For objects with a real external ID, use it directly: email message-id, URL, file path, database primary key, etc.
+- For transient UI events, build a fingerprint from the event identity, not just the mode or buffer name.
+- Good transient ingredients include the triggering command/key, buffer identity, point/location, and a small amount of surrounding context.
+- Avoid keys like =org-mode=, =elfeed-search-mode=, or =current-buffer-name= when multiple distinct feedback incidents can occur there.
+
+Example: a snippet-expansion workflow should usually key by something like =mode + trigger + buffer/file + point + nearby text=. That lets \"I hit dislike but meant like\" overwrite the same expansion event, while still keeping unrelated expansions as separate rows.
 
 When several databases return candidates, =gptel-reinforce= chooses the one
 with the highest =:priority=. If priorities tie, it can prompt you to choose.
@@ -622,7 +648,7 @@ All item-feedback in the database is visible to every artifact in that database.
 
 ** =current.org=
 
-Stores the active artifact text and metadata. Edit this file directly.
+A history log for the active artifact version. Prefer editing your config rather than this file directly — see [[*Config is the source of truth][Config is the source of truth]].
 
 #+begin_example
 :PROPERTIES:
@@ -632,6 +658,7 @@ Stores the active artifact text and metadata. Edit this file directly.
 :VERSION_REF: <history filename for this version>
 :UPDATED_AT:  <ISO-8601 timestamp>
 :AUTO_UPDATE: t | nil
+:CONFIG_HASH: <SHA-256 of :initial-text at last registration>
 :END:
 
 * Current Text
@@ -646,6 +673,8 @@ Stores the active artifact text and metadata. Edit this file directly.
 * Updater User Prompt
  <optional guidance appended to the updater system prompt>
 #+end_example
+
+=CONFIG_HASH= holds the SHA-256 of the =:initial-text= that was registered on the last startup. When it differs from the hash of the currently registered =:initial-text=, gptel-reinforce treats the difference as a config edit: it writes a new history entry (=UPDATE_MODE: config-edit=) and updates =current.org= to match the new config text. Do not edit this field manually.
 
 Set =AUTO_UPDATE: t= to skip the update review step during =gptel-reinforce-update=, regardless of =gptel-reinforce-update-review-mode=.
 
@@ -687,7 +716,7 @@ Each accepted update creates a file at =history/<artifact>/<timestamp>-<name>.or
 :ARTIFACT:                     <artifact-name>
 :TYPE:                         <type>
 :UPDATED_AT:                   <ISO-8601 timestamp>
-:UPDATE_MODE:                  manual-approved | auto-updated | initial
+:UPDATE_MODE:                  manual-approved | auto-updated | initial | config-edit
 :SOURCE_SUMMARY_LAST_EVENT_ID: <last-event-id at time of update>
 :END:
 
