@@ -326,6 +326,7 @@ created for the first time or when its existing text is empty."
          artifact
          :version-ref version-ref
          :text (plist-get current :text)
+         :applied-summary (plist-get current :applied-summary)
          :summarizer-user-prompt (plist-get current :summarizer-user-prompt)
          :updater-user-prompt (plist-get current :updater-user-prompt)
          :type (or (plist-get current :type)
