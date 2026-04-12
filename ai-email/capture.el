@@ -67,6 +67,133 @@
   (format "[[mu4e:msgid:%s][email]]"
           (plist-get msg :message-id)))
 
+(defun jds/ai-email--strip-mail-prefixes (subject)
+  "Return SUBJECT without leading mail prefixes like Re: or Fwd:."
+  (let ((clean (or subject "")))
+    (while (string-match "\\`\\(?:[Rr][Ee]\\|[Ff][Ww][Dd]?\\):[ \t]*" clean)
+      (setq clean (replace-regexp-in-string
+                   "\\`\\(?:[Rr][Ee]\\|[Ff][Ww][Dd]?\\):[ \t]*" "" clean)))
+    (string-trim clean)))
+
+(defun jds/ai-email--generic-meeting-subject-p (subject)
+  "Return non-nil when SUBJECT is too generic to use as a calendar title."
+  (let ((clean (downcase (string-trim (or subject "")))))
+    (or (string-empty-p clean)
+        (member clean
+                '("meeting" "coffee" "chat" "call" "zoom" "interview"
+                  "quick chat" "quick meeting" "follow up" "follow-up"))
+        (string-match-p "\\`meeting with\\b" clean)
+        (string-match-p "\\`schedule\\b" clean))))
+
+(defun jds/ai-email--message-person-name (msg)
+  "Return a reasonable person name for MSG, or nil."
+  (when-let* ((from (car (mu4e-message-field msg :from))))
+    (or (jds/ai-email--string-or-nil (plist-get from :name))
+        (when-let ((email (jds/ai-email--string-or-nil (plist-get from :email))))
+          (car (split-string email "@"))))))
+
+(defun jds/ai-email--calendar-title-from-message (msg subject)
+  "Return a smart calendar title derived from MSG and SUBJECT."
+  (let ((clean-subject (jds/ai-email--strip-mail-prefixes subject)))
+    (if (jds/ai-email--generic-meeting-subject-p clean-subject)
+        (if-let ((name (jds/ai-email--message-person-name msg)))
+            (format "Meeting with %s" name)
+          "Meeting")
+      (jds/ai-email--sanitize-heading-text clean-subject))))
+
+(defun jds/ai-email--tool-result-json (tool-results tool-name)
+  "Return JSON result string for TOOL-NAME from TOOL-RESULTS."
+  (when-let* ((entry (cl-find-if
+                      (lambda (item)
+                        (and (consp item)
+                             (ignore-errors
+                               (equal (gptel-tool-name (nth 0 item)) tool-name))))
+                      tool-results)))
+    (nth 2 entry)))
+
+(defun jds/ai-email--candidate-display-variants (candidate)
+  "Return likely reply-text variants for CANDIDATE display text."
+  (let* ((display (jds/ai-email--string-or-nil (alist-get 'display candidate)))
+         (base (and display
+                    (string-trim
+                     (replace-regexp-in-string
+                      "[ \t]*(meeting)\\'" "" display)))))
+    (delq nil (list base))))
+
+(defun jds/ai-email--confirmed-scheduling-candidate (reply-text tool-results)
+  "Return the unique confirmed candidate in REPLY-TEXT from TOOL-RESULTS, or nil."
+  (when-let* ((json-text (jds/ai-email--tool-result-json
+                          tool-results "find_free_times"))
+              (parsed (jds/ai-email--parse-json-response json-text))
+              (candidates (append (alist-get 'candidates parsed) nil))
+              (matches
+               (cl-remove-if-not
+                (lambda (candidate)
+                  (cl-some (lambda (variant)
+                             (and variant (string-match-p (regexp-quote variant) reply-text)))
+                           (jds/ai-email--candidate-display-variants candidate)))
+                candidates)))
+    (when (= (length matches) 1)
+      (car matches))))
+
+(defun jds/ai-email--reply-commits-to-slot-p (reply-text)
+  "Return non-nil when REPLY-TEXT clearly commits to a chosen meeting slot."
+  (let ((clean (downcase (string-trim (or reply-text "")))))
+    (and
+     (not (string-match-p "\\?" clean))
+     (not (string-match-p "\\bhow about\\b" clean))
+     (not (string-match-p "\\bdoes that work\\b" clean))
+     (not (string-match-p "\\blet me know\\b" clean))
+     (or (string-match-p "\\blet'?s do\\b" clean)
+         (string-match-p "\\bworks well for me\\b" clean)
+         (string-match-p "\\bthat works well\\b" clean)
+         (string-match-p "\\bthat works for me\\b" clean)
+         (string-match-p "\\bgreat[, ]+let'?s do\\b" clean)
+         (string-match-p "\\bconfirmed\\b" clean)))))
+
+(defun jds/ai-email--calendar-event-exists-p (title start end)
+  "Return non-nil when calendar already contains TITLE at START..END."
+  (when-let* ((start-time (jds/ai-email--parse-iso-local-time start))
+              (end-time (or (jds/ai-email--parse-iso-local-time end)
+                            (time-add start-time (seconds-to-time (* 30 60))))))
+    (cl-some (lambda (event)
+               (and (equal (string-trim (or (plist-get event :title) ""))
+                           (string-trim (or title "")))
+                    (equal (plist-get event :start) start-time)
+                    (equal (plist-get event :end) end-time)))
+             (jds/org-calendar--events-in-range start-time end-time))))
+
+(defun jds/ai-email-review-confirmed-scheduling-slot
+    (msg subject reply-text tool-results compose-buffer region)
+  "Open the standard capture review buffer for a confirmed scheduling slot."
+  (ignore compose-buffer region)
+  (when (jds/ai-email--reply-commits-to-slot-p reply-text)
+    (when-let* ((candidate (jds/ai-email--confirmed-scheduling-candidate
+                            reply-text tool-results))
+                (start (jds/ai-email--string-or-nil (alist-get 'start candidate)))
+                (end (jds/ai-email--string-or-nil (alist-get 'end candidate)))
+                (title (jds/ai-email--calendar-title-from-message msg subject))
+                ((not (jds/ai-email--calendar-event-exists-p title start end))))
+      (let ((buf (generate-new-buffer (jds/ai-email--review-buffer-name msg))))
+        (with-current-buffer buf
+          (jds/ai-email-capture-review-mode)
+          (setq-local jds/ai-email-capture-review-message-link
+                      (jds/ai-email--message-link msg))
+          (setq-local jds/ai-email-capture-review-source-scope 'message)
+          (insert "#+TITLE: AI Email Capture Review\n")
+          (insert "#+STARTUP: showall\n\n")
+          (insert "Review the event, then press C-c C-c to capture it. Edit the email in the compose buffer if needed.\n\n")
+          (jds/ai-email--insert-review-candidate
+           `((title . ,title)
+             (start . ,start)
+             (end . ,end)
+             (all_day . nil))
+           "event")
+          (goto-char (point-min))
+          (search-forward-regexp "^\\*" nil t)
+          (org-fold-show-all))
+        (pop-to-buffer buf)))))
+
 (defun jds/ai-email--inactive-now-string ()
   "Return an inactive Org timestamp for the current time."
   (format-time-string "[%Y-%m-%d %a %H:%M]"))
@@ -89,18 +216,19 @@
                    (string-to-number (match-string 3 text))
                    (string-to-number (match-string 2 text))
                    (string-to-number (match-string 1 text))))
-     ;; ISO 8601 with timezone: YYYY-MM-DDTHH:MM[:SS](Z|+HH:MM|-HH:MM)
+     ;; ISO 8601 with timezone: YYYY-MM-DDTHH:MM[:SS](Z|+HH:MM|-HH:MM|+HHMM|-HHMM)
      ((string-match
        (concat "\\`\\([0-9]\\{4\\}\\)-\\([0-9]\\{2\\}\\)-\\([0-9]\\{2\\}\\)"
                "[T ]\\([0-9]\\{2\\}\\):\\([0-9]\\{2\\}\\)\\(?::\\([0-9]\\{2\\}\\)\\)?"
-               "\\(Z\\|[+-][0-9]\\{2\\}:[0-9]\\{2\\}\\)\\'")
+               "\\(Z\\|[+-][0-9]\\{2\\}:[0-9]\\{2\\}\\|[+-][0-9]\\{4\\}\\)\\'")
        text)
       (let* ((tz-str (match-string 7 text))
              (tz-offset-secs
               (if (equal tz-str "Z") 0
-                (let* ((sign (if (string-prefix-p "-" tz-str) -1 1))
-                       (hh   (string-to-number (substring tz-str 1 3)))
-                       (mm   (string-to-number (substring tz-str 4 6))))
+                (let* ((compact (replace-regexp-in-string ":" "" tz-str))
+                       (sign (if (string-prefix-p "-" compact) -1 1))
+                       (hh   (string-to-number (substring compact 1 3)))
+                       (mm   (string-to-number (substring compact 3 5))))
                   (* sign (+ (* hh 3600) (* mm 60))))))
              (utc-epoch (- (float-time
                             (encode-time
@@ -477,4 +605,3 @@ falling back to the initial text defined in `jds/ai-email--reinforce-capture-ini
                   source-scope)
                (error
                 (message "AI capture parse error: %s" (error-message-string err)))))))))))
-

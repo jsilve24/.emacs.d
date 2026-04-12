@@ -155,23 +155,31 @@ generation output."
      "## Core principles"
      ""
      "1. **Match conversational tone**: Write as if continuing a natural dialogue, not a formal template."
-     "   Avoid parroting back the user's internal notes or framing—extract only the practical information (dates, times, constraints)."
+     "   Extract only practical information (dates, times, constraints) from the user's notes. Never echo back the user's internal framing or reasoning."
      ""
-     "2. **Filter, don't list**: When someone has already proposed specific times or narrowed a window,"
-     "   respond with 1–2 concrete counter-proposals rather than exhaustively listing all availability."
-     "   Prioritize options that work best within their stated constraints."
+     "2. **Treat explicit constraints as binding**: If the user names a time, day, or narrow window, or the other person says they can only meet at certain times, stay inside those constraints."
+     "   Do not suggest options outside the stated availability."
      ""
-     "3. **Avoid unnecessary formality**: Keep language conversational and direct."
-     "   Skip phrases like \"given the importance of this discussion\" unless they genuinely reflect the tone of the thread."
+     "3. **Filter, don't list**: When someone has already proposed specific times or narrowed a window, respond with 1–2 concrete options rather than exhaustively listing all availability."
+     "   Prioritize the options that best fit the thread."
      ""
-     "4. **Respect context**: Read the full conversation thread to understand what has already been discussed,"
-     "   rejected, or accepted. Avoid repeating information or options the other party has already addressed."
+     "4. **Respect context**: Read the full conversation thread to understand what has already been discussed, rejected, or accepted."
+     "   Avoid repeating information or options the other party has already addressed."
+     ""
+     "5. **Commit when the meeting is effectively settled**: If the other person gives a clear availability window and one concrete slot plainly fits, prefer committing to that slot rather than asking for another round of confirmation."
+     "   Use commitment language like \"Let's do Thursday at 12:00 PM\" instead of proposal language like \"How about Thursday at 12:00 PM?\"."
+     "   However, if other attendees still need to confirm, stay in coordination mode and do not treat the slot as settled."
+     ""
+     "6. **Be concise and natural**: Keep language conversational and direct."
+     "   Do not expose reasoning or mention sending a calendar invite unless the user explicitly asks for that."
      ""
      "## When composing replies"
      ""
      "- Extract the user's actual availability/constraints, not their internal reasoning."
-     "- If multiple times are possible, lead with the strongest 1–2 options that fit the other person's apparent preferences."
-     "- Use simple, direct language (\"Does Tuesday at 2pm work?\" rather than \"I would be delighted if we could convene on Tuesday at 2pm\")."
+     "- If multiple times are possible within constraints, lead with the strongest 1–2 options."
+     "- If the slot is already effectively settled, reply with a brief confirmation instead of another question."
+     "- Before treating a slot as settled, check whether the visible recipients/context imply other attendees whose availability still matters."
+     "- Use simple, direct language."
      "- If confirming a time, be brief and clear."
      "- If proposing alternatives, explain why briefly (e.g., \"Tuesday works better for me than Wednesday\").")
    "\n")
@@ -1151,7 +1159,18 @@ Return (START . END) for the inserted text, or nil when nothing was inserted."
 (defvar jds/ai-email-last-prompt nil
   "Full prompt sent in the most recent AI email request, for debugging.")
 
-(defun jds/ai-email--request-response (prompt system buf callback &optional tools)
+(defvar jds/ai-email-last-tool-results nil
+  "Most recent gptel tool-result payload seen during an ai-email request.")
+
+(defvar jds/ai-email--request-buffer-name " *ai-email-gptel*"
+  "Hidden buffer name used as the stable source buffer for ai-email gptel requests.")
+
+(defun jds/ai-email--request-buffer ()
+  "Return the stable hidden buffer used for ai-email gptel requests."
+  (get-buffer-create jds/ai-email--request-buffer-name))
+
+(defun jds/ai-email--request-response
+    (prompt system buf callback &optional tools)
   "Run `gptel-request' for PROMPT in BUF via CALLBACK.
 TOOLS, when non-nil, are bound for the request."
   (setq jds/ai-email-last-prompt prompt)
@@ -1161,7 +1180,7 @@ TOOLS, when non-nil, are bound for the request."
     (gptel-request prompt
                    :system system
                    :stream nil
-                   :buffer buf
+                   :buffer (jds/ai-email--request-buffer)
                    :callback callback)))
 
 (defun jds/ai-email--normalize-response
@@ -1232,6 +1251,13 @@ lightly sanitized raw response."
      (cond
       ((not response)
        (message "gptel error: %s" (plist-get info :status)))
+      ((and (consp response)
+            (eq (car response) 'tool-result))
+       (setq jds/ai-email-last-tool-results (cdr response))
+       nil)
+      ((and (consp response)
+            (memq (car response) '(tool-call reasoning)))
+       nil)
       ((stringp response)
        ;; Skip intermediate responses that accompany a tool call — gptel calls
        ;; the callback once with any text produced alongside the tool call and
@@ -1241,14 +1267,19 @@ lightly sanitized raw response."
          (setq jds/ai-email-last-raw-response response)
          (if normalization-spec
              (jds/ai-email--normalize-response
-              response
+             response
               buf callback
               (append (list :generation-prompt prompt
                             :generation-system system)
                       normalization-spec)
               1)
-           (funcall callback (jds/ai-email--sanitize-response response)))))
-      (t nil)))
+           (let ((clean (jds/ai-email--sanitize-response response)))
+             (if (string-empty-p clean)
+                 (message "ai-email response was empty")
+               (funcall callback clean))))))
+      (t
+       (message "ai-email: unhandled callback payload=%S status=%S"
+                response (plist-get info :status)))))
    tools))
 
 (defun jds/ai-email--insert-normalized-text (buf pos text &optional artifact)
@@ -1259,13 +1290,36 @@ lightly sanitized raw response."
        buf artifact (car region) (cdr region)))))
 
 (defun jds/ai-email--request-inserting-normalized-response
-    (prompt system buf pos normalization-spec &optional tools artifact)
+    (prompt system buf pos normalization-spec &optional tools artifact after-insert)
   "Request, normalize, and insert generated text into BUF at POS."
   (jds/ai-email--request-normalized-response
    prompt system buf
    (lambda (text)
-     (jds/ai-email--insert-normalized-text buf pos text artifact))
+     (let ((region (jds/ai-email--insert-response-at-point buf pos text)))
+       (when-let ((inserted region))
+         (when artifact
+           (jds/ai-email--reinforce-track-output-region
+            buf artifact (car inserted) (cdr inserted))))
+        (when after-insert
+          (funcall after-insert text region))))
    tools normalization-spec))
+
+(defun jds/ai-email--request-inserting-response
+    (prompt system buf pos &optional tools artifact after-insert)
+  "Request generated text and insert it into BUF at POS.
+This skips the secondary normalization pass and inserts the lightly
+sanitized first-pass model response directly."
+  (jds/ai-email--request-normalized-response
+   prompt system buf
+   (lambda (text)
+     (let ((region (jds/ai-email--insert-response-at-point buf pos text)))
+       (when-let ((inserted region))
+         (when artifact
+           (jds/ai-email--reinforce-track-output-region
+            buf artifact (car inserted) (cdr inserted))))
+        (when after-insert
+          (funcall after-insert text region))))
+   tools nil))
 
 (defun jds/ai-email--reply-normalization-spec ()
   "Return the standard normalization spec for email replies."

@@ -2,18 +2,27 @@
 
 (use-package gptel
   :init
-  (setq gptel-model 'gpt-5-mini)
+  (setq gptel-model 'claude-haiku-4-5-20251001)
   :config
   ;; --- OpenAI backend ---
-  (setq gptel-backend (gptel-make-openai "OpenAI"
-                        :stream t
-                        :key (auth-source-pick-first-password :host "api.openai.com" :user "apikey")
-                        :request-params '(:reasoning_effort "high")))
+  (defvar jds/gptel-openai-backend
+    (gptel-make-openai "OpenAI"
+      :stream t
+      :key (auth-source-pick-first-password :host "api.openai.com" :user "apikey")
+      :request-params '(:reasoning_effort "high"))
+    "OpenAI backend definition for gptel.")
 
   ;; --- Claude backend ---
-  (gptel-make-anthropic "Claude"
-    :stream t
-    :key (auth-source-pick-first-password :host "api.anthropic.com" :user "apikey"))
+  (defvar jds/gptel-claude-backend
+    (gptel-make-anthropic "Claude"
+      :stream t
+      :key (auth-source-pick-first-password :host "api.anthropic.com" :user "apikey"))
+    "Anthropic backend definition for gptel.")
+
+  ;; Default backend/model.  To switch back to OpenAI, set:
+  ;;   (setq gptel-backend jds/gptel-openai-backend
+  ;;         gptel-model 'gpt-5-nano)
+  (setq gptel-backend jds/gptel-claude-backend)
   
   ;; --- Gemini backend ---
   (gptel-make-gemini "Gemini"

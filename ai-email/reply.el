@@ -41,10 +41,8 @@ When CUSTOM-INSTRUCTIONS is non-nil, include it as extra drafting guidance."
         content))
      system
      (lambda (prompt system buf pos tools)
-       (jds/ai-email--request-inserting-normalized-response
-        prompt system buf pos
-        (jds/ai-email--reply-normalization-spec)
-        tools
+       (jds/ai-email--request-inserting-response
+        prompt system buf pos tools
         jds/ai-email-reinforce-reply-artifact))
      nil
      jds/ai-email-reinforce-reply-database
@@ -116,7 +114,7 @@ are appended here."
      "Format exactly like this: Thursday, April 9: 9:00--10:00 AM; 10:30 AM--1:00 PM\n"
      "Do not repeat the date within a bullet, use the word \"between,\" add prose inside bullets, or make bullets longer than one line.\n"
      "For these grouped availability bullets only, you may reformat availability_windows into that layout, but preserve the returned day/date text and exact start/end times.\n"
-     "When offering options with no specific time constraint, prefer coverage across multiple days instead of concentrating everything on one day.\n"
+     "When offering options with no specific time constraint, prefer coverage across multiple days instead of concentrating everything on one day. But do not do this when the thread already narrows the meeting to a specific day or window.\n"
      "Otherwise use returned display strings verbatim. Do not infer weekdays, do date arithmetic, invent times, invent meeting modes, or restate returned times in different words.\n"
      "If the tool returns no_availability: true, tell the user there are no free slots in that window and ask them to specify a different date range. Do not propose any times.\n")))
 
@@ -208,11 +206,16 @@ Prompts for custom context. Uses validated availability slots rather than raw ca
         content))
      system
      (lambda (prompt system buf pos tools)
+       (setq jds/ai-email-last-tool-results nil)
        (jds/ai-email--request-inserting-normalized-response
         prompt system buf pos
         (jds/ai-email--scheduling-reply-normalization-spec)
         tools
-        jds/ai-email-reinforce-scheduling-reply-artifact))
+        jds/ai-email-reinforce-scheduling-reply-artifact
+        (lambda (text region)
+          (when region
+            (jds/ai-email-review-confirmed-scheduling-slot
+             message subject text jds/ai-email-last-tool-results buf region)))))
      (list jds~gptel-find-free-times-tool)
      jds/ai-email-reinforce-scheduling-reply-database
      context)))
