@@ -373,16 +373,12 @@ the AI, and displays a structured org-mode summary buffer."
     (let* ((prompt (jds/ai-email--build-zoom-summary-prompt msg))
            (system (jds/ai-email--zoom-summary-system-prompt))
            (origin (current-buffer)))
-      (jds/ai-email--request-normalized-response
+      (jds/ai-email--request-cleaned-response
        prompt system origin
        (lambda (text)
          (jds/ai-email--create-zoom-summary-buffer
           msg text))
-       nil
-       (jds/ai-email--org-text-normalization-spec
-        "a short Org summary for meeting notes"
-        "Return plain Org text only, using the exact structure requested by the original instructions."
-        "Keep only the final meeting-notes summary. Remove any preamble, commentary, or duplicate attempts.")))))
+       nil))))
 
 
 ;;; Keybindings ------------------------------------------------------------

@@ -1025,55 +1025,13 @@ This is a deterministic fallback used before and after AI normalization."
                     clean))
     (string-trim clean)))
 
-(defconst jds/ai-email--normalizer-system-prompt
-  (concat
-   "You normalize raw AI outputs into final user-facing text.\n"
-   "Follow the prompt exactly.\n"
-   "Return only the requested final content.\n"
-   "Do not include commentary, reasoning, analysis, tool narration, or markdown fences.")
-  "Shared system prompt for ai-email normalization passes.")
-
 (defvar jds/ai-email-last-raw-response nil
   "Raw text returned by the most recent ai-email generation pass.")
-
-(defvar jds/ai-email-last-normalization-prompt nil
-  "Prompt sent in the most recent ai-email normalization pass.")
-
-(defvar jds/ai-email-last-normalized-response nil
-  "Final text returned by the most recent ai-email normalization pass.")
 
 (defvar jds/ai-email--pending-compose-request nil
   "Pending ai-email compose request consumed by the next mu4e compose buffer.
 This stores a plist with :prompt-builder, :system, :callback, :tools,
 :reinforce-database, and :reinforce-context.")
-
-(defun jds/ai-email--materially-different-text-p (a b)
-  "Return non-nil when A and B differ after light cleanup."
-  (not (equal (jds/ai-email--sanitize-response a)
-              (jds/ai-email--sanitize-response b))))
-
-(defun jds/ai-email--log-normalization-debug
-    (raw-output normalized-text normalization-prompt generation-prompt generation-system)
-  "Append a normalization debug record when configured."
-  (when (and jds/ai-email-debug-normalization
-             (jds/ai-email--materially-different-text-p raw-output normalized-text))
-    (with-current-buffer (get-buffer-create jds/ai-email-debug-buffer-name)
-      (goto-char (point-max))
-      (insert (format "* %s\n" (format-time-string "%Y-%m-%d %H:%M:%S %z")))
-      (insert "** Generation System\n")
-      (insert (or generation-system "") "\n\n")
-      (insert "** Generation Prompt\n")
-      (insert (or generation-prompt "") "\n\n")
-      (insert "** Raw Output\n")
-      (insert (or raw-output "") "\n\n")
-      (insert "** Normalization Prompt\n")
-      (insert (or normalization-prompt "") "\n\n")
-      (insert "** Normalized Output\n")
-      (insert (or normalized-text "") "\n\n"))))
-
-(defun jds/ai-email--valid-normalized-text-p (text)
-  "Return non-nil when TEXT is a non-empty normalized result."
-  (not (string-empty-p (string-trim (or text "")))))
 
 (defun jds/ai-email--valid-reply-text-p (text)
   "Return non-nil when TEXT looks like a usable reply body.
@@ -1090,45 +1048,6 @@ plausible reply drafts."
          (not (jds/ai-email--reply-wrapper-prefix-p clean))
          (not (jds/ai-email--reply-has-multiple-drafts-p
                (or raw-response clean))))))
-
-(defun jds/ai-email--call-validator (validator clean response)
-  "Call VALIDATOR on CLEAN and RESPONSE, tolerating one-argument validators."
-  (condition-case nil
-      (funcall validator clean response)
-    (wrong-number-of-arguments
-     (funcall validator clean))))
-
-(defun jds/ai-email--build-normalization-prompt
-    (raw-output target-description return-instructions extra-rules
-                &optional generation-prompt generation-system)
-  "Return a normalization prompt for RAW-OUTPUT.
-TARGET-DESCRIPTION describes the desired artifact. RETURN-INSTRUCTIONS state
-the exact required output format. EXTRA-RULES is appended when non-nil.
-GENERATION-PROMPT and GENERATION-SYSTEM provide the original drafting intent."
-  (with-temp-buffer
-    (insert (format "Normalize the following raw AI output into %s.\n"
-                    target-description))
-    (insert "Keep only the single final user-facing result.\n")
-    (insert "Remove reasoning, self-corrections, tool narration, scratch work, duplicate drafts, and option lists not meant for the recipient.\n")
-    (insert "If multiple plausible drafts appear, keep the best final draft rather than merging them.\n")
-    (insert "Preserve concrete dates, times, names, and commitments from the chosen final draft.\n")
-    (when (and generation-system
-               (not (string-empty-p (string-trim generation-system))))
-      (insert "Original generation system instructions:\n<generation_system>\n")
-      (insert generation-system)
-      (insert "\n</generation_system>\n"))
-    (when (and generation-prompt
-               (not (string-empty-p (string-trim generation-prompt))))
-      (insert "Original generation prompt:\n<generation_prompt>\n")
-      (insert generation-prompt)
-      (insert "\n</generation_prompt>\n"))
-    (when (and extra-rules (not (string-empty-p (string-trim extra-rules))))
-      (insert (string-trim extra-rules) "\n"))
-    (insert return-instructions "\n\n")
-    (insert "<raw_output>\n")
-    (insert (or raw-output ""))
-    (insert "\n</raw_output>\n")
-    (buffer-string)))
 
 (defun jds/ai-email--live-insertion-point (buf pos)
   "Return a safe insertion point in BUF based on marker POS."
@@ -1183,68 +1102,11 @@ TOOLS, when non-nil, are bound for the request."
                    :buffer (jds/ai-email--request-buffer)
                    :callback callback)))
 
-(defun jds/ai-email--normalize-response
-    (raw-output buf callback normalization-spec &optional retries-left)
-  "Normalize RAW-OUTPUT in BUF, then call CALLBACK with the final text.
-NORMALIZATION-SPEC is a plist with keys:
-:target-description, :return-instructions, :extra-rules, :extractor,
-:validator, :invalid-message, and optional :system."
-  (let* ((extractor (or (plist-get normalization-spec :extractor)
-                        #'jds/ai-email--sanitize-response))
-         (validator (or (plist-get normalization-spec :validator)
-                        #'jds/ai-email--valid-normalized-text-p))
-         (prompt (jds/ai-email--build-normalization-prompt
-                  raw-output
-                  (plist-get normalization-spec :target-description)
-                  (plist-get normalization-spec :return-instructions)
-                  (plist-get normalization-spec :extra-rules)
-                  (plist-get normalization-spec :generation-prompt)
-                  (plist-get normalization-spec :generation-system)))
-         (system (or (plist-get normalization-spec :system)
-                     jds/ai-email--normalizer-system-prompt))
-         (invalid-message (or (plist-get normalization-spec :invalid-message)
-                              "Normalization failed: model returned invalid text."))
-         (retry-extra
-          "Your previous normalization was invalid. Return only the final normalized content now."))
-    (setq jds/ai-email-last-normalization-prompt prompt)
-    (jds/ai-email--request-response
-     prompt system buf
-     (lambda (response info)
-       (cond
-        ((not response)
-         (message "gptel normalization error: %s" (plist-get info :status)))
-        ((stringp response)
-         (let ((clean (funcall extractor response)))
-           (if (jds/ai-email--call-validator validator clean response)
-               (progn
-                 (setq jds/ai-email-last-normalized-response clean)
-                 (jds/ai-email--log-normalization-debug
-                  raw-output
-                  clean
-                  prompt
-                  (plist-get normalization-spec :generation-prompt)
-                  (plist-get normalization-spec :generation-system))
-                 (funcall callback clean))
-             (if (> (or retries-left 0) 0)
-                 (jds/ai-email--normalize-response
-                  raw-output buf callback
-                  (plist-put (copy-sequence normalization-spec)
-                             :extra-rules
-                             (string-join
-                              (delq nil
-                                    (list (plist-get normalization-spec :extra-rules)
-                                          retry-extra))
-                              "\n"))
-                  (1- retries-left))
-               (message "%s" invalid-message)))))
-        (t (message "%s" invalid-message)))))))
-
-(defun jds/ai-email--request-normalized-response
-    (prompt system buf callback &optional tools normalization-spec)
-  "Request a raw model response, normalize it, and call CALLBACK with text.
+(defun jds/ai-email--request-cleaned-response
+    (prompt system buf callback &optional tools)
+  "Request a raw model response and call CALLBACK with cleaned text.
 PROMPT and SYSTEM drive the generation pass in BUF. TOOLS are available only
-to the generation pass. When NORMALIZATION-SPEC is nil, CALLBACK receives the
-lightly sanitized raw response."
+to the generation pass."
   (jds/ai-email--request-response
    prompt system buf
    (lambda (response info)
@@ -1262,54 +1124,22 @@ lightly sanitized raw response."
        ;; Skip intermediate responses that accompany a tool call — gptel calls
        ;; the callback once with any text produced alongside the tool call and
        ;; again with the final reply after the tool runs.  Only the final
-       ;; response (no pending :tool-use) should be normalized and inserted.
+       ;; response (no pending :tool-use) should be cleaned and inserted.
        (unless (plist-get info :tool-use)
          (setq jds/ai-email-last-raw-response response)
-         (if normalization-spec
-             (jds/ai-email--normalize-response
-             response
-              buf callback
-              (append (list :generation-prompt prompt
-                            :generation-system system)
-                      normalization-spec)
-              1)
-           (let ((clean (jds/ai-email--sanitize-response response)))
-             (if (string-empty-p clean)
-                 (message "ai-email response was empty")
-               (funcall callback clean))))))
+         (let ((clean (jds/ai-email--sanitize-response response)))
+           (if (string-empty-p clean)
+               (message "ai-email response was empty")
+             (funcall callback clean)))))
       (t
        (message "ai-email: unhandled callback payload=%S status=%S"
                 response (plist-get info :status)))))
    tools))
 
-(defun jds/ai-email--insert-normalized-text (buf pos text &optional artifact)
-  "Insert TEXT into BUF at POS and track ARTIFACT when provided."
-  (when-let ((region (jds/ai-email--insert-response-at-point buf pos text)))
-    (when artifact
-      (jds/ai-email--reinforce-track-output-region
-       buf artifact (car region) (cdr region)))))
-
-(defun jds/ai-email--request-inserting-normalized-response
-    (prompt system buf pos normalization-spec &optional tools artifact after-insert)
-  "Request, normalize, and insert generated text into BUF at POS."
-  (jds/ai-email--request-normalized-response
-   prompt system buf
-   (lambda (text)
-     (let ((region (jds/ai-email--insert-response-at-point buf pos text)))
-       (when-let ((inserted region))
-         (when artifact
-           (jds/ai-email--reinforce-track-output-region
-            buf artifact (car inserted) (cdr inserted))))
-        (when after-insert
-          (funcall after-insert text region))))
-   tools normalization-spec))
-
 (defun jds/ai-email--request-inserting-response
     (prompt system buf pos &optional tools artifact after-insert)
-  "Request generated text and insert it into BUF at POS.
-This skips the secondary normalization pass and inserts the lightly
-sanitized first-pass model response directly."
-  (jds/ai-email--request-normalized-response
+  "Request cleaned text and insert it into BUF at POS."
+  (jds/ai-email--request-cleaned-response
    prompt system buf
    (lambda (text)
      (let ((region (jds/ai-email--insert-response-at-point buf pos text)))
@@ -1319,40 +1149,7 @@ sanitized first-pass model response directly."
             buf artifact (car inserted) (cdr inserted))))
         (when after-insert
           (funcall after-insert text region))))
-   tools nil))
-
-(defun jds/ai-email--reply-normalization-spec ()
-  "Return the standard normalization spec for email replies."
-  (list
-   :target-description "a single email reply body"
-   :return-instructions
-   "Return only the reply body wrapped in <reply>...</reply>. Do not include a subject line."
-   :extra-rules
-   "Keep only text intended to be sent to the recipient. Drop internal availability dumps, reasoning, and alternate drafts that are not the final reply."
-   :extractor (lambda (response)
-                (jds/ai-email--sanitize-response response))
-   :validator #'jds/ai-email--valid-final-reply-text-p
-   :invalid-message "Reply normalization failed: model returned invalid text."))
-
-(defun jds/ai-email--availability-snippet-normalization-spec ()
-  "Return the standard normalization spec for availability snippets."
-  (list
-   :target-description "a concise availability snippet for an email"
-   :return-instructions
-   "Return only the availability snippet as plain text."
-   :extra-rules
-   "Do not include a greeting, signoff, reasoning, tool narration, or commentary. Keep exact dates and times from the chosen final snippet."
-   :validator #'jds/ai-email--valid-normalized-text-p
-   :invalid-message "Availability normalization failed: model returned invalid text."))
-
-(defun jds/ai-email--org-text-normalization-spec (description return-instructions &optional extra-rules)
-  "Return a normalization spec for Org/plain-text outputs."
-  (list
-   :target-description description
-   :return-instructions return-instructions
-   :extra-rules extra-rules
-   :validator #'jds/ai-email--valid-normalized-text-p
-   :invalid-message "Normalization failed: model returned invalid text."))
+   tools))
 
 (defun jds/ai-email--mu4e-message-metadata (&optional msg)
   "Return plist with sender and subject metadata for MSG at point."

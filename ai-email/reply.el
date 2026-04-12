@@ -141,25 +141,6 @@ are appended here."
           "\nWrap the entire reply body in <reply>...</reply> tags."
           "\nDo not output anything before <reply> or after </reply>."))
 
-(defun jds/ai-email--scheduling-reply-normalization-spec ()
-  "Return the normalization spec for scheduling replies."
-  (let ((spec (jds/ai-email--reply-normalization-spec)))
-    (plist-put
-     spec :extra-rules
-     (concat
-      (plist-get spec :extra-rules)
-      "\nPreserve exact proposed dates and times from the chosen final reply."
-      "\nDo not invent fallback options or summarize raw availability windows unless the chosen final reply already does so."))))
-
-(defun jds/ai-email--availability-normalization-spec ()
-  "Return the normalization spec for scheduling availability snippets."
-  (let ((spec (jds/ai-email--availability-snippet-normalization-spec)))
-    (plist-put
-     spec :extra-rules
-     (concat
-      (plist-get spec :extra-rules)
-      "\nIf times are listed, keep the exact returned slot display strings or grouped availability windows with their exact day/date text and start/end times."))))
-
 (defun jds/ai-email-insert-availability-snippet ()
   "Insert a formatted availability snippet at point."
   (interactive)
@@ -170,10 +151,9 @@ are appended here."
          (system (concat
                   (jds/ai-email--scheduling-system-prompt)
                   "Return only the availability snippet. No greeting, commentary, reasoning, tool narration, or code fences.\n")))
-    (jds/ai-email--request-inserting-normalized-response
+    (jds/ai-email--request-inserting-response
      prompt system buf
      pos
-     (jds/ai-email--availability-normalization-spec)
      (list jds~gptel-find-free-times-tool))))
 
 (defun jds/mu4e-ai-scheduling-reply ()
@@ -207,9 +187,8 @@ Prompts for custom context. Uses validated availability slots rather than raw ca
      system
      (lambda (prompt system buf pos tools)
        (setq jds/ai-email-last-tool-results nil)
-       (jds/ai-email--request-inserting-normalized-response
+       (jds/ai-email--request-inserting-response
         prompt system buf pos
-        (jds/ai-email--scheduling-reply-normalization-spec)
         tools
         jds/ai-email-reinforce-scheduling-reply-artifact
         (lambda (text region)

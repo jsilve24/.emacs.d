@@ -60,23 +60,7 @@
      "If that doesn't suit you, Friday, April 17 at 3pm is another option, though I know you mentioned after 1pm that day.\n\n"
      "Let me know which works better."))))
 
-(ert-deftest jds/ai-email-build-normalization-prompt-includes-generation-context ()
-  (let ((prompt
-         (jds/ai-email--build-normalization-prompt
-          "Raw draft"
-          "a single email reply body"
-          "Return only the reply body wrapped in <reply>...</reply>."
-          "Prefer the draft that matches the original request."
-          "Draft a scheduling reply for this thread."
-          "You are a scheduling assistant.")))
-    (should (string-match-p "<generation_system>" prompt))
-    (should (string-match-p "You are a scheduling assistant\\." prompt))
-    (should (string-match-p "<generation_prompt>" prompt))
-    (should (string-match-p "Draft a scheduling reply for this thread\\." prompt))
-    (should (string-match-p "<raw_output>" prompt))
-    (should (string-match-p "Raw draft" prompt))))
-
-(ert-deftest jds/ai-email-request-normalized-response-runs-two-pass-flow ()
+(ert-deftest jds/ai-email-request-cleaned-response-runs-single-pass ()
   (let ((calls nil)
         (final-text nil))
     (cl-letf (((symbol-function 'gptel-request)
@@ -85,64 +69,29 @@
                              :system (plist-get plist :system))
                        calls)
                  (let ((callback (plist-get plist :callback)))
-                   (if (= (length calls) 1)
-                       (funcall callback
-                                (concat
-                                 "Hi,\n\n"
-                                 "Friday at 1:10 PM works.\n\n"
-                                 "Best,\nMe\n\n"
-                                 "The user asked for 3pm.\n\n"
-                                 "Hi,\n\n"
-                                 "Monday at 3:00 PM works.\n\n"
-                                 "Best,\nMe")
-                                '(:status "ok"))
-                     (funcall callback
-                              "<reply>Hi,\n\nMonday at 3:00 PM works.\n\nBest,\nMe</reply>"
-                              '(:status "ok")))))))
-      (jds/ai-email--request-normalized-response
+                   (funcall callback
+                            (concat
+                             "Hi,\n\n"
+                             "Friday at 1:10 PM works.\n\n"
+                             "Best,\nMe\n\n"
+                             "The user asked for 3pm.\n\n"
+                             "Hi,\n\n"
+                             "Monday at 3:00 PM works.\n\n"
+                             "Best,\nMe")
+                            '(:status "ok"))))))
+      (jds/ai-email--request-cleaned-response
        "Draft a reply that prefers 3pm."
        "You are a professional email assistant."
        (current-buffer)
        (lambda (text) (setq final-text text))
-       nil
-       (jds/ai-email--reply-normalization-spec)))
+       nil))
     (should (equal final-text "Hi,\n\nMonday at 3:00 PM works.\n\nBest,\nMe"))
-    (should (= (length calls) 2))
-    (let ((normalization-prompt (plist-get (car calls) :prompt)))
-      (should (string-match-p "Draft a reply that prefers 3pm\\." normalization-prompt))
-      (should (string-match-p "You are a professional email assistant\\." normalization-prompt))
-      (should (string-match-p "The user asked for 3pm\\." normalization-prompt)))))
-
-(ert-deftest jds/ai-email-normalization-debug-logs-only-when-changed ()
-  (let ((calls nil)
-        (jds/ai-email-debug-normalization t)
-        (jds/ai-email-debug-buffer-name "*ai-email normalization debug test*"))
-    (when (get-buffer jds/ai-email-debug-buffer-name)
-      (kill-buffer jds/ai-email-debug-buffer-name))
-    (cl-letf (((symbol-function 'gptel-request)
-               (lambda (prompt &rest plist)
-                 (push prompt calls)
-                 (let ((callback (plist-get plist :callback)))
-                   (if (= (length calls) 1)
-                       (funcall callback
-                                "Raw first pass"
-                                '(:status "ok"))
-                     (funcall callback
-                              "<reply>Normalized final pass</reply>"
-                              '(:status "ok")))))))
-      (jds/ai-email--request-normalized-response
-       "Original user-facing prompt"
-       "Original system prompt"
-       (current-buffer)
-       (lambda (_text))
-       nil
-       (jds/ai-email--reply-normalization-spec)))
-    (with-current-buffer jds/ai-email-debug-buffer-name
-      (let ((text (buffer-substring-no-properties (point-min) (point-max))))
-        (should (string-match-p "Original user-facing prompt" text))
-        (should (string-match-p "Original system prompt" text))
-        (should (string-match-p "Raw first pass" text))
-        (should (string-match-p "Normalized final pass" text))))))
+    (should (= (length calls) 1))
+    (let ((request (car calls)))
+      (should (equal (plist-get request :prompt)
+                     "Draft a reply that prefers 3pm."))
+      (should (equal (plist-get request :system)
+                     "You are a professional email assistant.")))))
 
 (ert-deftest jds/ai-email-consume-pending-compose-request-runs-once ()
   (let ((calls 0)

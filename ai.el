@@ -2,7 +2,11 @@
 
 (use-package gptel
   :init
-  (setq gptel-model 'claude-haiku-4-5-20251001)
+  (defcustom jds/gptel-default-provider 'anthropic
+    "Default provider for gptel.
+Set to `anthropic' or `openai', then reload this file."
+    :type '(choice (const :tag "Anthropic" anthropic)
+                   (const :tag "OpenAI" openai)))
   :config
   ;; --- OpenAI backend ---
   (defvar jds/gptel-openai-backend
@@ -19,10 +23,15 @@
       :key (auth-source-pick-first-password :host "api.anthropic.com" :user "apikey"))
     "Anthropic backend definition for gptel.")
 
-  ;; Default backend/model.  To switch back to OpenAI, set:
-  ;;   (setq gptel-backend jds/gptel-openai-backend
-  ;;         gptel-model 'gpt-5-nano)
-  (setq gptel-backend jds/gptel-claude-backend)
+  ;; Default provider switch. Set `jds/gptel-default-provider' to `openai'
+  ;; or `anthropic', then reload this file.
+  (pcase jds/gptel-default-provider
+    ('openai
+     (setq gptel-backend jds/gptel-openai-backend
+           gptel-model 'gpt-5-mini))
+    (_
+     (setq gptel-backend jds/gptel-claude-backend
+           gptel-model 'claude-haiku-4-5-20251001)))
   
   ;; --- Gemini backend ---
   (gptel-make-gemini "Gemini"
