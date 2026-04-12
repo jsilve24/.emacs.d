@@ -62,6 +62,32 @@
 (setq gptel-reinforce-summary-review-mode 'edit
       gptel-reinforce-update-review-mode 'edit)
 
+(defconst jds/gptel-reinforce-transient-context-ttl 120
+  "Seconds that transient item-feedback context remains valid.")
+
+(defun jds/gptel-reinforce--context-fresh-p (context)
+  "Return non-nil when CONTEXT is recent enough for transient feedback routing."
+  (let ((timestamp (plist-get context :timestamp)))
+    (and timestamp
+         (< (- (float-time) timestamp)
+            jds/gptel-reinforce-transient-context-ttl))))
+
+(defun jds/gptel-reinforce--clear-transient-context (database-name)
+  "Clear transient feedback-routing state for DATABASE-NAME in the current buffer."
+  (pcase database-name
+    ("tab-dwim" (kill-local-variable 'jds/tab-dwim--last-context))
+    ("aas-snippets" (kill-local-variable 'jds/aas-snippets--last-context))))
+
+(with-eval-after-load 'gptel-reinforce-ui
+  (advice-add
+   'gptel-reinforce--record-item-feedback :around
+   (lambda (orig score prefix &optional database)
+     (let* ((resolved (gptel-reinforce-resolve-database-and-context database nil))
+            (db (car resolved))
+            (database-name (and db (gptel-reinforce-database-name db))))
+       (prog1 (funcall orig score prefix database)
+         (jds/gptel-reinforce--clear-transient-context database-name))))))
+
 ;;; tab-dwim artifact ---------------------------------------------------------
 
 (defconst jds/tab-dwim-artifact "tab-dwim"
@@ -98,24 +124,25 @@
       (eval (read (format "(progn %s)" text)) t)
     (error (message "tab-dwim update error: %s" (error-message-string err)))))
 
-;; After tab-dwim fires, activate its database so the next like/dislike call
-;; is automatically routed to this artifact without manual setup.
-(with-eval-after-load 'bindings
+(defvar-local jds/tab-dwim--last-context nil
+  "Transient context for routing feedback about the most recent `jds/tab-dwim'.")
+
+(with-eval-after-load "bindings"
   (advice-add 'jds/tab-dwim :after
               (lambda (&rest _)
-                (when (fboundp 'gptel-reinforce-set-active-database)
-                  (gptel-reinforce-set-active-database "tab-dwim")))))
+                (setq-local jds/tab-dwim--last-context
+                            (list :mode major-mode
+                                  :timestamp (float-time))))))
 
 (gptel-reinforce-register-database
  :name "tab-dwim"
- ;; major-mode is the primary behavioral axis: the cond branches are
- ;; largely mode-stratified, so mode-scoped feedback points the AI at
- ;; the right branch when refining.
  :candidate-fn (lambda ()
-                 (list :context
-                       (list :item-key (format "tab-dwim:%s" major-mode)
-                             :title    (format "tab-dwim in %s" major-mode)
-                             :meta     (list :mode (symbol-name major-mode))))))
+                 (when (jds/gptel-reinforce--context-fresh-p
+                        jds/tab-dwim--last-context)
+                   (list :context
+                         (list :item-key (format "tab-dwim:%s" major-mode)
+                               :title    (format "tab-dwim in %s" major-mode)
+                               :meta     (list :mode (symbol-name major-mode)))))))
 
 (gptel-reinforce-register-artifact
  :name jds/tab-dwim-artifact
@@ -161,17 +188,14 @@
       (eval (read (format "(progn %s)" text)) t)
     (error (message "aas-snippets update error: %s" (error-message-string err)))))
 
-;; Capture expansion context in pre-hook: the trigger key is still in the
-;; buffer at this point (at the end of text before point), so we can record
-;; it along with surrounding content.  Setting the active database here also
-;; means any like/dislike call after the expansion routes to this artifact.
-(defvar jds/aas-snippets--last-context nil
+(defvar-local jds/aas-snippets--last-context nil
   "Plist :mode :before captured at the last aas pre-expansion hook.")
 
 (defun jds/aas-snippets--pre-expand-hook ()
   "Record mode + surrounding text before aas expands a snippet."
   (setq jds/aas-snippets--last-context
         (list :mode major-mode
+              :timestamp (float-time)
               ;; ~60 chars before point: shows what was typed + trigger key
               :before (buffer-substring-no-properties
                        (max (point-min) (- (point) 60))
@@ -179,21 +203,16 @@
               ;; a little after point: shows what the snippet will land in
               :after  (buffer-substring-no-properties
                        (point)
-                       (min (point-max) (+ (point) 40)))))
-  (when (fboundp 'gptel-reinforce-set-active-database)
-    (gptel-reinforce-set-active-database "aas-snippets")))
+                       (min (point-max) (+ (point) 40))))))
 
 (with-eval-after-load 'aas
   (add-hook 'aas-pre-snippet-expand-hook #'jds/aas-snippets--pre-expand-hook))
 
 (gptel-reinforce-register-database
  :name "aas-snippets"
- ;; Item key is mode-specific so feedback stratifies by mode — each mode's
- ;; snippet set is independently tunable.  The :before text shows the trigger
- ;; key (last chars before point) plus editing context; :after shows where
- ;; the expansion lands.
  :candidate-fn (lambda ()
-                 (when jds/aas-snippets--last-context
+                 (when (jds/gptel-reinforce--context-fresh-p
+                        jds/aas-snippets--last-context)
                    (let ((mode   (plist-get jds/aas-snippets--last-context :mode))
                          (before (plist-get jds/aas-snippets--last-context :before))
                          (after  (plist-get jds/aas-snippets--last-context :after)))
