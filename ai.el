@@ -6,7 +6,8 @@
     "Default provider for gptel.
 Set to `anthropic' or `openai', then reload this file."
     :type '(choice (const :tag "Anthropic" anthropic)
-                   (const :tag "OpenAI" openai)))
+		   (const :tag "Local" local)
+		   (const :tag "OpenAI" openai)))
   :config
   ;; --- OpenAI backend ---
   (defvar jds/gptel-openai-backend
@@ -16,6 +17,15 @@ Set to `anthropic' or `openai', then reload this file."
       ;; :request-params '(:reasoning_effort "high")
       )
     "OpenAI backend definition for gptel.")
+
+  ;; --- OpenAI backend ---
+  (defvar jds/gptel-local-backend
+    (gptel-make-ollama "Local"
+      :host "localhost:11434"
+      :stream t
+      :models '(granite4:1b))
+    "OpenAI backend definition for gptel.")
+
 
   ;; --- Claude backend ---
   (defvar jds/gptel-claude-backend
@@ -29,30 +39,31 @@ Set to `anthropic' or `openai', then reload this file."
   (pcase jds/gptel-default-provider
     ('openai
      (setq gptel-backend jds/gptel-openai-backend
-           gptel-model 'gpt-5-nano))
+	   gptel-model 'gpt-5-nano))
+    ('local
+     (setq gptel-backend jds/gptel-local-backend
+	   gptel-model 'granite4:1b))
     (_
      (setq gptel-backend jds/gptel-claude-backend
-           gptel-model 'claude-haiku-4-5-20251001)))
-  
+	   gptel-model 'claude-haiku-4-5-20251001)))
+
   ;; --- Gemini backend ---
   (gptel-make-gemini "Gemini"
     :stream t
     :key (auth-source-pick-first-password :host "generativelanguage.googleapis.com" :user "apikey"))
-  
+
   (setq gptel-highlight-methods '(face))
   (gptel-highlight-mode 1)
   (setq gptel-default-mode 'org-mode
 	gptel-org-branching-context nil)
-  
+
   ;; --- LaTeX writing system prompt ---
   (defvar jds/gptel-latex-system
     "You are an expert scientific writing assistant. Rules:
 1. Preserve ALL LaTeX commands, environments, and macros exactly as written.
 2. Return ONLY the requested text — no preamble, no explanation, no markdown code fences.
 3. Use formal, precise academic prose appropriate for peer-reviewed journals.
-4. Match the style and register of the surrounding text.")
-
-)
+4. Match the style and register of the surrounding text."))
 
 ;;; gptel-reinforce ------------------------------------------------------------
 (defun jds/gptel-reinforce-stale-build-p (dir)

@@ -146,9 +146,12 @@
   (setq mu4e-view-use-gnus t)
   (require 'mu4e-icalendar)
   (mu4e-icalendar-setup)
-  (setq gnus-icalendar-org-capture-file "~/Dropbox/org/calendar.org")
-  (setq gnus-icalendar-org-capture-headline '("Calendar")) ;;make sure to create Calendar heading first
-  (gnus-icalendar-org-setup)
+  ;; Disabled: gnus-icalendar-org-setup would capture accepted invitations to calendar.org,
+  ;; but Google already adds them to Google Calendar, which syncs to cal-gmail.org via
+  ;; get_gcal.sh -- causing duplicates. RSVP replies still work via mu4e-icalendar-setup above.
+  ;; (setq gnus-icalendar-org-capture-file "~/Dropbox/org/calendar.org")
+  ;; (setq gnus-icalendar-org-capture-headline '("Calendar"))
+  ;; (gnus-icalendar-org-setup)
 
   ;; simple rebinding
   (evil-collection-define-key 'normal 'mu4e-headers-mode-map
