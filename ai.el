@@ -13,7 +13,8 @@ Set to `anthropic' or `openai', then reload this file."
     (gptel-make-openai "OpenAI"
       :stream t
       :key (auth-source-pick-first-password :host "api.openai.com" :user "apikey")
-      :request-params '(:reasoning_effort "high"))
+      ;; :request-params '(:reasoning_effort "high")
+      )
     "OpenAI backend definition for gptel.")
 
   ;; --- Claude backend ---
@@ -28,7 +29,7 @@ Set to `anthropic' or `openai', then reload this file."
   (pcase jds/gptel-default-provider
     ('openai
      (setq gptel-backend jds/gptel-openai-backend
-           gptel-model 'gpt-5-mini))
+           gptel-model 'gpt-5-nano))
     (_
      (setq gptel-backend jds/gptel-claude-backend
            gptel-model 'claude-haiku-4-5-20251001)))

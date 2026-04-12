@@ -31,6 +31,8 @@ generation output."
 (declare-function gptel-reinforce-register-artifact "gptel-reinforce" (&rest plist))
 (declare-function gptel-reinforce-get-artifact "gptel-reinforce-core" (name))
 (declare-function gptel-reinforce-org-read-current "gptel-reinforce-org" (artifact))
+(declare-function jds/ai-email-stage-scheduling-capture "capture"
+                  (start end &optional title all_day modality location conference_url notes))
 
 (defconst jds/ai-email-reinforce-reply-artifact "ai-email-reply"
   "Artifact name for standard AI email replies.")
@@ -873,6 +875,23 @@ treat the day as \"in_person\" instead, allowing in-person slots to be generated
           '(:name "latest_start_time" :type string :optional t :description "Upper bound on slot start time in 24-hour HH:MM format, for requests like 'before 4pm' or 'by 1pm'."))
    :function #'jds/find-free-times)
   "Gptel tool for scheduling against validated org calendar availability.")
+
+(defvar jds~gptel-stage-calendar-capture-tool
+  (gptel-make-tool
+   :name "stage_calendar_capture"
+   :description
+   "Stage a confirmed meeting in the AI email capture review buffer. Use this only when the thread is settled enough that the final reply is confirming a concrete meeting, not when merely proposing options. This does not write directly to Org; it only opens the user's normal review buffer."
+   :args (list
+          '(:name "start" :type string :description "Confirmed event start in YYYY-MM-DDTHH:MM or YYYY-MM-DD format")
+          '(:name "end" :type string :optional t :description "Confirmed event end in YYYY-MM-DDTHH:MM or YYYY-MM-DD format")
+          '(:name "title" :type string :optional t :description "Short calendar title")
+          '(:name "all_day" :type boolean :optional t :description "Whether this is an all-day event")
+          '(:name "modality" :type string :optional t :description "Meeting modality: zoom, in_person, or unknown")
+          '(:name "location" :type string :optional t :description "Physical location if known")
+          '(:name "conference_url" :type string :optional t :description "Meeting URL if known")
+          '(:name "notes" :type string :optional t :description "Optional note to include in the staged event body"))
+   :function #'jds/ai-email-stage-scheduling-capture)
+  "Gptel tool for staging confirmed scheduling captures.")
 
 
 ;;; Reply extraction -------------------------------------------------------

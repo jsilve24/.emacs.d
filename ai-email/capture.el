@@ -17,6 +17,11 @@
 (defvar-local jds/ai-email-capture-review-source-scope nil
   "Whether the current AI capture review buffer came from a region or full message.")
 
+(defvar jds/ai-email--active-scheduling-capture-context nil
+  "Plist describing the scheduling request currently allowed to stage a capture review.
+
+Expected keys include :message and :subject.")
+
 (defvar jds/ai-email-capture-review-mode-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map org-mode-map)
@@ -101,56 +106,6 @@
           "Meeting")
       (jds/ai-email--sanitize-heading-text clean-subject))))
 
-(defun jds/ai-email--tool-result-json (tool-results tool-name)
-  "Return JSON result string for TOOL-NAME from TOOL-RESULTS."
-  (when-let* ((entry (cl-find-if
-                      (lambda (item)
-                        (and (consp item)
-                             (ignore-errors
-                               (equal (gptel-tool-name (nth 0 item)) tool-name))))
-                      tool-results)))
-    (nth 2 entry)))
-
-(defun jds/ai-email--candidate-display-variants (candidate)
-  "Return likely reply-text variants for CANDIDATE display text."
-  (let* ((display (jds/ai-email--string-or-nil (alist-get 'display candidate)))
-         (base (and display
-                    (string-trim
-                     (replace-regexp-in-string
-                      "[ \t]*(meeting)\\'" "" display)))))
-    (delq nil (list base))))
-
-(defun jds/ai-email--confirmed-scheduling-candidate (reply-text tool-results)
-  "Return the unique confirmed candidate in REPLY-TEXT from TOOL-RESULTS, or nil."
-  (when-let* ((json-text (jds/ai-email--tool-result-json
-                          tool-results "find_free_times"))
-              (parsed (jds/ai-email--parse-json-response json-text))
-              (candidates (append (alist-get 'candidates parsed) nil))
-              (matches
-               (cl-remove-if-not
-                (lambda (candidate)
-                  (cl-some (lambda (variant)
-                             (and variant (string-match-p (regexp-quote variant) reply-text)))
-                           (jds/ai-email--candidate-display-variants candidate)))
-                candidates)))
-    (when (= (length matches) 1)
-      (car matches))))
-
-(defun jds/ai-email--reply-commits-to-slot-p (reply-text)
-  "Return non-nil when REPLY-TEXT clearly commits to a chosen meeting slot."
-  (let ((clean (downcase (string-trim (or reply-text "")))))
-    (and
-     (not (string-match-p "\\?" clean))
-     (not (string-match-p "\\bhow about\\b" clean))
-     (not (string-match-p "\\bdoes that work\\b" clean))
-     (not (string-match-p "\\blet me know\\b" clean))
-     (or (string-match-p "\\blet'?s do\\b" clean)
-         (string-match-p "\\bworks well for me\\b" clean)
-         (string-match-p "\\bthat works well\\b" clean)
-         (string-match-p "\\bthat works for me\\b" clean)
-         (string-match-p "\\bgreat[, ]+let'?s do\\b" clean)
-         (string-match-p "\\bconfirmed\\b" clean)))))
-
 (defun jds/ai-email--calendar-event-exists-p (title start end)
   "Return non-nil when calendar already contains TITLE at START..END."
   (when-let* ((start-time (jds/ai-email--parse-iso-local-time start))
@@ -162,37 +117,6 @@
                     (equal (plist-get event :start) start-time)
                     (equal (plist-get event :end) end-time)))
              (jds/org-calendar--events-in-range start-time end-time))))
-
-(defun jds/ai-email-review-confirmed-scheduling-slot
-    (msg subject reply-text tool-results compose-buffer region)
-  "Open the standard capture review buffer for a confirmed scheduling slot."
-  (ignore compose-buffer region)
-  (when (jds/ai-email--reply-commits-to-slot-p reply-text)
-    (when-let* ((candidate (jds/ai-email--confirmed-scheduling-candidate
-                            reply-text tool-results))
-                (start (jds/ai-email--string-or-nil (alist-get 'start candidate)))
-                (end (jds/ai-email--string-or-nil (alist-get 'end candidate)))
-                (title (jds/ai-email--calendar-title-from-message msg subject))
-                ((not (jds/ai-email--calendar-event-exists-p title start end))))
-      (let ((buf (generate-new-buffer (jds/ai-email--review-buffer-name msg))))
-        (with-current-buffer buf
-          (jds/ai-email-capture-review-mode)
-          (setq-local jds/ai-email-capture-review-message-link
-                      (jds/ai-email--message-link msg))
-          (setq-local jds/ai-email-capture-review-source-scope 'message)
-          (insert "#+TITLE: AI Email Capture Review\n")
-          (insert "#+STARTUP: showall\n\n")
-          (insert "Review the event, then press C-c C-c to capture it. Edit the email in the compose buffer if needed.\n\n")
-          (jds/ai-email--insert-review-candidate
-           `((title . ,title)
-             (start . ,start)
-             (end . ,end)
-             (all_day . nil))
-           "event")
-          (goto-char (point-min))
-          (search-forward-regexp "^\\*" nil t)
-          (org-fold-show-all))
-        (pop-to-buffer buf)))))
 
 (defun jds/ai-email--inactive-now-string ()
   "Return an inactive Org timestamp for the current time."
@@ -391,6 +315,65 @@
           (search-forward-regexp "^\\*" nil t)
           (org-fold-show-all))
         (pop-to-buffer buf)))))
+
+(defun jds/ai-email-stage-scheduling-capture
+    (start end &optional title all_day modality location conference_url notes)
+  "Stage a scheduling event in the standard AI capture review buffer.
+
+This function is intended to be called by a gptel tool during the scheduling
+reply workflow.  It stages a review buffer but does not write to Org files."
+  (let* ((context jds/ai-email--active-scheduling-capture-context)
+         (msg (plist-get context :message))
+         (subject (or (plist-get context :subject) "Meeting"))
+         (resolved-title (or (jds/ai-email--string-or-nil title)
+                             (and msg (jds/ai-email--calendar-title-from-message
+                                       msg subject))
+                             "Meeting"))
+         (resolved-start (jds/ai-email--string-or-nil start))
+         (resolved-end (jds/ai-email--string-or-nil end))
+         (resolved-all-day (and all_day
+                                (not (eq all_day :json-false))
+                                (not (null all_day)))))
+    (unless msg
+      (user-error "No active scheduling context is available for capture staging"))
+    (unless resolved-start
+      (user-error "Scheduling capture requires a valid start time"))
+    (if (jds/ai-email--calendar-event-exists-p
+         resolved-title resolved-start resolved-end)
+        (json-encode
+         `(("status" . "skipped")
+           ("reason" . "event_already_exists")
+           ("title" . ,resolved-title)
+           ("start" . ,resolved-start)
+           ("end" . ,(or resolved-end json-null))))
+      (let ((buf (generate-new-buffer (jds/ai-email--review-buffer-name msg))))
+        (with-current-buffer buf
+          (jds/ai-email-capture-review-mode)
+          (setq-local jds/ai-email-capture-review-message-link
+                      (jds/ai-email--message-link msg))
+          (setq-local jds/ai-email-capture-review-source-scope 'message)
+          (insert "#+TITLE: AI Email Capture Review\n")
+          (insert "#+STARTUP: showall\n\n")
+          (insert "Review the staged event, then press C-c C-c to capture it.\n\n")
+          (jds/ai-email--insert-review-candidate
+           `((title . ,resolved-title)
+             (start . ,resolved-start)
+             (end . ,resolved-end)
+             (all_day . ,resolved-all-day)
+             (modality . ,modality)
+             (location . ,location)
+             (conference_url . ,conference_url)
+             (notes . ,notes))
+           "event")
+          (goto-char (point-min))
+          (search-forward-regexp "^\\*" nil t)
+          (org-fold-show-all))
+        (pop-to-buffer buf)
+        (json-encode
+         `(("status" . "staged")
+           ("title" . ,resolved-title)
+           ("start" . ,resolved-start)
+           ("end" . ,(or resolved-end json-null))))))))
 
 (defun jds/ai-email--review-entry-body ()
   "Return the editable body of the current review entry."

@@ -103,6 +103,9 @@ are appended here."
      (when (not (string-empty-p prefs)) (concat prefs "\n"))
      "The zoom-preferred days above are soft defaults, not hard restrictions. If the user's message or context explicitly states that in-person is acceptable on those days (e.g. \"OK to meet in person on MWF\" or \"already on campus\"), call find_free_times with inperson_on_zoom_days=true and mode_preference=\"in_person\". You may also combine this with time_of_day_preference (e.g. \"morning\") when the user specifies a time constraint.\n"
      "Before proposing times, you must call find_free_times.\n"
+     "If the thread is settled and your final reply is confirming a concrete meeting rather than proposing options, call stage_calendar_capture before finalizing the reply.\n"
+     "Use stage_calendar_capture only for genuinely confirmed meetings. Do not call it for tentative suggestions, open-ended availability lists, or messages that still ask the other person to choose.\n"
+     "When you call stage_calendar_capture, pass the concrete event details you are confirming: start, end when known, title, modality, location or conference_url when known, and brief notes only if they add useful context.\n"
      "TIME DIRECTIVES: If the user's context specifies a particular time (e.g. \"schedule for 3pm\", \"try 2pm\", \"propose Monday at 10\"), treat it as the primary constraint:\n"
      "  - Pass the matching time_of_day_preference (\"morning\" for before noon, \"afternoon\" for noon or later) to find_free_times.\n"
      "  - Also pass exact_start_time in HH:MM 24-hour format for requests like \"at 3pm\".\n"
@@ -171,6 +174,8 @@ Prompts for custom context. Uses validated availability slots rather than raw ca
                     (concat
                      (jds/ai-email--scheduling-system-prompt)
                      "Return only the reply body text. No subject line, commentary, reasoning, tool narration, or code fences."))))
+    (setq jds/ai-email--active-scheduling-capture-context
+          (list :message message :subject subject))
     (jds/ai-email--compose-mu4e-reply-with-ai
      (lambda (content)
        (format
@@ -178,23 +183,27 @@ Prompts for custom context. Uses validated availability slots rather than raw ca
          "Draft a scheduling reply for this email from %s (subject: \"%s\").%s\n"
          "Compose buffer (includes quoted original):\n\n%s\n\n"
          "If you propose times, call find_free_times first.\n"
+         "If you confirm a concrete meeting in the reply, call stage_calendar_capture before returning the reply.\n"
          "Prefer summarizing returned availability windows verbatim, and include multiple days when possible.\n"
          "When listing availability windows, group them by day using one bullet per day, at most 2 windows per bullet, in this exact format: Thursday, April 9: 9:00--10:00 AM; 10:30 AM--1:00 PM. Do not repeat the date within a bullet, do not use the word \"between\", do not add prose inside bullets, and keep each bullet to one line.\n"
-        "Return only the reply body.")
-        from-str subject
+         "Return only the reply body.")
+        from-str
+        subject
         (jds/ai-email--scheduling-context-suffix ctx)
         content))
      system
      (lambda (prompt system buf pos tools)
        (setq jds/ai-email-last-tool-results nil)
        (jds/ai-email--request-inserting-response
-        prompt system buf pos
+        prompt
+        system
+        buf
+        pos
         tools
         jds/ai-email-reinforce-scheduling-reply-artifact
-        (lambda (text region)
-          (when region
-            (jds/ai-email-review-confirmed-scheduling-slot
-             message subject text jds/ai-email-last-tool-results buf region)))))
-     (list jds~gptel-find-free-times-tool)
+        (lambda (&rest _)
+          (setq jds/ai-email--active-scheduling-capture-context nil))))
+     (list jds~gptel-find-free-times-tool
+           jds~gptel-stage-calendar-capture-tool)
      jds/ai-email-reinforce-scheduling-reply-database
      context)))
