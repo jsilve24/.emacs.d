@@ -2,13 +2,18 @@
 
 (use-package gptel
   :init
-  ;; (setq gptel-model 'claude-sonnet-4-6)
-  (setq gptel-model 'claude-haiku-4-5-20251001)
+  (setq gptel-model 'gpt-5-mini)
   :config
-  ;; --- Claude backend ---
-  (setq gptel-backend (gptel-make-anthropic "Claude"
+  ;; --- OpenAI backend ---
+  (setq gptel-backend (gptel-make-openai "OpenAI"
                         :stream t
-                        :key (auth-source-pick-first-password :host "api.anthropic.com" :user "apikey")))
+                        :key (auth-source-pick-first-password :host "api.openai.com" :user "apikey")
+                        :request-params '(:reasoning_effort "high")))
+
+  ;; --- Claude backend ---
+  (gptel-make-anthropic "Claude"
+    :stream t
+    :key (auth-source-pick-first-password :host "api.anthropic.com" :user "apikey"))
   
   ;; --- Gemini backend ---
   (gptel-make-gemini "Gemini"
