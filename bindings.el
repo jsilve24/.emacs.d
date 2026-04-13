@@ -134,6 +134,7 @@
 (jds/leader-def
   "f" '(:ignore t :which-key "files")
   "ff" #'find-file
+  "fN" #'jds/project-scaffold
   "fr" #'consult-recent-file
   "fs" #'save-buffer
   ;; "fa" #'jds/affe-find-files-home
@@ -298,8 +299,8 @@
   "j c"   `(,(jds~dired-find-file "~/.emacs.d/") :which-key "Emacs")
   "j m"   `(,(jds~dired-find-file "/run/media/jds6696/") :which-key "Media")
   "j r"   `(,(jds~dired-find-file "~/Dropbox/org/roam/references/references.bib") :which-key "references")
-  "j a" (lambda () (interactive) (find-file "~/Dropbox/Buisness/anarres/cash_flow/2025_anarres_cash_flow.xlsx"))
-  "j f" (lambda () (interactive) (find-file "~/Dropbox/Buisness/homewood_farm/cash_flow_records/homewood_cashflow_2025.xlsx"))
+  "j a" (lambda () (interactive) (find-file "~/Dropbox/Buisness/anarres/cash_flow/2026_anarres_cash_flow.xlsx"))
+  "j f" (lambda () (interactive) (find-file "~/Dropbox/Buisness/homewood_farm/cash_flow_records/homewood_cashflow_2026.xlsx"))
   "j t" '((lambda () (interactive) (jds/switch-to-agenda-file "tasks.org")) :which-key "tasks"))
 
 ;;; org and apps
@@ -432,6 +433,7 @@
   "g" '(:ignore t :which-key "git")
   "gs" #'magit-list-repositories
   "gg" #'magit-status
+  "gi" #'jds/project-insert-gitignore
   "gt" #'git-timemachine
   "gb" #'magit-blame
   "gB" #'magit-blame

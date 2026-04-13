@@ -1,5 +1,104 @@
 ;;; projects.el --- projectile related config -*- lexical-binding: t; -*-
 
+(defcustom jds/project-templates
+  '(("Journal article"
+     :gitignore ("LaTeX" "R" "renv" "Emacs" "macOS")
+     :files (("README.org" . "#+title: Journal Article\n\n* Scope\n\n* Submission target\n\n* Tasks\n")
+             ("manuscript.org" . "#+title: Manuscript Draft\n#+startup: overview\n\n* Title\n\n* Abstract\n\n* Introduction\n\n* Methods\n\n* Results\n\n* Discussion\n\n* References\n")
+             ("refs.bib" . "")
+             ("Makefile" . "all:\n\tlatexmk -pdf manuscript.tex\n")
+             ("figures/.gitkeep" . "")
+             ("tables/.gitkeep" . "")
+             ("data/.gitkeep" . "")
+             ("notes/.gitkeep" . "")))
+    ("R package"
+     :gitignore ("R" "renv" "Emacs" "macOS")
+     :files (("README.Rmd" . "---\ntitle: \"Package README\"\noutput: github_document\n---\n\n")
+             ("DESCRIPTION" . "Package: changeme\nTitle: What the Package Does\nVersion: 0.0.0.9000\nAuthors@R: person(\"First\", \"Last\", email = \"you@example.com\", role = c(\"aut\", \"cre\"))\nDescription: Short package description.\nLicense: MIT + file LICENSE\nEncoding: UTF-8\nLazyData: true\nRoxygen: list(markdown = TRUE)\nRoxygenNote: 7.3.2\n")
+             ("NAMESPACE" . "")
+             (".Rbuildignore" . "^.*\\.Rproj$\n^\\.Rproj\\.user$\n^README\\.Rmd$\n^README\\.md$\n^LICENSE\\.md$\n")
+             ("R/.gitkeep" . "")
+             ("man/.gitkeep" . "")
+             ("tests/testthat/.gitkeep" . "")
+             ("data-raw/.gitkeep" . "")
+             ("inst/extdata/.gitkeep" . "")))
+    ("NIH grant"
+     :gitignore ("LaTeX" "Emacs" "macOS")
+     :files (("README.org" . "#+title: NIH Grant\n\n* Opportunity\n\n* Internal deadlines\n\n* Team\n")
+             ("specific-aims.org" . "#+title: Specific Aims\n\n* Overall objective\n\n* Aim 1\n\n* Aim 2\n\n* Expected impact\n")
+             ("research-strategy.org" . "#+title: Research Strategy\n\n* Significance\n\n* Innovation\n\n* Approach\n")
+             ("biosketch.org" . "#+title: Biosketch Notes\n\n* Personal statement\n\n* Positions and honors\n\n* Contributions to science\n")
+             ("budget-justification.org" . "#+title: Budget Justification\n\n* Personnel\n\n* Equipment\n\n* Travel\n\n* Other direct costs\n")
+             ("facilities-and-resources.org" . "#+title: Facilities and Resources\n\n")
+             ("refs.bib" . "")
+             ("figures/.gitkeep" . "")
+             ("attachments/.gitkeep" . "")))
+    ("NSF grant"
+     :gitignore ("LaTeX" "Emacs" "macOS")
+     :files (("README.org" . "#+title: NSF Grant\n\n* Solicitation\n\n* Internal deadlines\n\n* Team\n")
+             ("project-summary.org" . "#+title: Project Summary\n\n* Overview\n\n* Intellectual Merit\n\n* Broader Impacts\n")
+             ("project-description.org" . "#+title: Project Description\n\n* Introduction\n\n* Prior work\n\n* Research plan\n\n* Broader impacts\n")
+             ("budget-justification.org" . "#+title: Budget Justification\n\n* Personnel\n\n* Equipment\n\n* Travel\n\n* Participant support\n")
+             ("current-and-pending.org" . "#+title: Current and Pending Support\n\n")
+             ("results-from-prior-support.org" . "#+title: Results from Prior NSF Support\n\n")
+             ("references.org" . "#+title: References Cited\n\n")
+             ("figures/.gitkeep" . "")
+             ("attachments/.gitkeep" . ""))))
+  "Starter project scaffolds keyed by template name.
+
+Each template may define `:gitignore' fragments and starter `:files'."
+  :type '(repeat
+          (list :tag "Project template"
+                (string :tag "Name")
+                (plist :tag "Template properties")))
+  :group 'tools)
+
+(defun jds/project-template-names ()
+  "Return names of available `jds/project-templates'."
+  (mapcar #'car jds/project-templates))
+
+(defun jds/project-template-get (name)
+  "Return the project template plist for NAME."
+  (cdr (assoc-string name jds/project-templates t)))
+
+(defun jds/project--write-file-if-missing (root relative-path content)
+  "Create RELATIVE-PATH under ROOT with CONTENT when absent."
+  (let ((target (expand-file-name relative-path root)))
+    (make-directory (file-name-directory target) t)
+    (unless (file-exists-p target)
+      (with-temp-file target
+        (insert content))
+      target)))
+
+;;;###autoload
+(defun jds/project-scaffold (template directory)
+  "Scaffold DIRECTORY using project TEMPLATE."
+  (interactive
+   (list
+    (completing-read "Project template: "
+                     (jds/project-template-names)
+                     nil t)
+    (read-directory-name "Project directory: "
+                         (or (ignore-errors (projectile-project-root))
+                             default-directory)
+                         nil nil)))
+  (let* ((root (file-name-as-directory (expand-file-name directory)))
+         (spec (jds/project-template-get template))
+         (gitignore-templates (plist-get spec :gitignore))
+         (files (plist-get spec :files))
+         created)
+    (make-directory root t)
+    (dolist (file files)
+      (when-let ((path (jds/project--write-file-if-missing root (car file) (cdr file))))
+        (push path created)))
+    (when gitignore-templates
+      (jds/gitignore-apply-templates gitignore-templates root))
+    (dired root)
+    (message "Scaffolded %s in %s (%d new files)"
+             template
+             (abbreviate-file-name root)
+             (length created))))
+
 (use-package projectile
   ;; :disabled t
   :diminish projectile-mode
