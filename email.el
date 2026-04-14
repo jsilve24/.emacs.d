@@ -243,6 +243,17 @@ are place there, otherwise you are prompted for a message buffer."
   (interactive "fAttach: ")
   (gnus-dired-attach (list file)))
 
+(defun jds/message-swap-to-and-cc ()
+  "Swap the To and Cc header values in the current message buffer."
+  (interactive)
+  (let ((to (string-trim (or (message-fetch-field "To") "")))
+	(cc (string-trim (or (message-fetch-field "Cc") ""))))
+    (message-replace-header "To" cc)
+    (if (string-empty-p to)
+	(message-remove-header "Cc")
+      (message-replace-header "Cc" to))
+    (message "Swapped To and Cc fields.")))
+
 (general-define-key
  :keymaps 'embark-file-map
  "a" #'embark-attach-file)
@@ -293,6 +304,7 @@ are place there, otherwise you are prompted for a message buffer."
   "gs"     '(message-goto-subject :which-key "goto subject")
   "gc"     '(message-goto-cc :which-key "goto cc")
   "gt"     '(message-goto-to :which-key "goto to")
+  "gx"     '(jds/message-swap-to-and-cc :which-key "swap to/cc")
   "k"      '(message-kill-buffer :which-key "kill message")
   "gb"     '(message-goto-body :which-key "goto body"))
 
@@ -303,6 +315,7 @@ are place there, otherwise you are prompted for a message buffer."
   "gs" '(message-goto-subject :which-key "goto subject")
   "gc" '(message-goto-cc :which-key "goto cc")
   "gt" '(message-goto-to :which-key "goto to")
+  "gx" '(jds/message-swap-to-and-cc :which-key "swap to/cc")
   "k" '(message-kill-buffer :which-key "kill message")
   "gp" '(jds/org-msg-goto-properties :which-key "goto properties")
   "gb" '(jds/org-msg-goto-body :which-key "goto body")
