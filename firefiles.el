@@ -15,6 +15,7 @@
 (declare-function gptel-request "gptel" (prompt &rest args))
 (declare-function org-back-to-heading "org" (&optional invisible-ok))
 (declare-function org-outline-level "org" ())
+(declare-function jds/localleader-def "core" (&rest args))
 
 (defgroup fireflies nil
   "Fireflies.ai helpers."
@@ -45,6 +46,11 @@
   :type '(choice (const :tag "Summary only" summary)
                  (const :tag "Transcript only" transcript)
                  (const :tag "Both when possible" both))
+  :group 'fireflies)
+
+(defcustom fireflies-localleader-key-prefix "m"
+  "Org localleader prefix used for Fireflies commands."
+  :type 'string
   :group 'fireflies)
 
 (defcustom fireflies-ai-system-prompt
@@ -436,6 +442,30 @@ Returns nil if transcript text fields are unavailable."
     nil t nil nil
     (symbol-name fireflies-ai-source-preference))))
 
+(defun fireflies--read-custom-ai-prompt-addition ()
+  "Prompt for an optional extra instruction to append to the AI prompt."
+  (let ((addition (read-from-minibuffer "Add to AI prompt: ")))
+    (unless (string-empty-p (string-trim addition))
+      (string-trim addition))))
+
+(defun fireflies--compose-ai-prompt (&optional prompt-addition)
+  "Return the Fireflies AI prompt with optional PROMPT-ADDITION appended."
+  (if (and prompt-addition
+           (not (string-empty-p (string-trim prompt-addition))))
+      (concat fireflies-ai-summary-prompt
+              "\n\nAdditional instruction:\n"
+              (string-trim prompt-addition))
+    fireflies-ai-summary-prompt))
+
+(defun fireflies--compose-prompt-from-base (base-prompt &optional prompt-addition)
+  "Return BASE-PROMPT with optional PROMPT-ADDITION appended."
+  (if (and prompt-addition
+           (not (string-empty-p (string-trim prompt-addition))))
+      (concat base-prompt
+              "\n\nAdditional instruction:\n"
+              (string-trim prompt-addition))
+    base-prompt))
+
 (defun fireflies--build-ai-source (transcript source-kind)
   "Return source text and actual source kind for TRANSCRIPT and SOURCE-KIND."
   (let* ((id (alist-get 'id transcript))
@@ -568,9 +598,8 @@ Returns nil if transcript text fields are unavailable."
 
 ;;;###autoload
 (defun fireflies-insert-meeting-summary (&optional limit)
-  "Choose a Fireflies meeting via `completing-read` and insert its summary at point.
-
-With prefix arg, prompt for the number of meetings to fetch."
+  "Choose a Fireflies meeting and insert its summary at point.
+  With prefix arg, prompt for the number of meetings to fetch."
   (interactive
    (list (when current-prefix-arg
            (read-number "How many recent meetings? "
@@ -590,23 +619,24 @@ With prefix arg, prompt for the number of meetings to fetch."
              (or (alist-get 'title transcript) id))))
 
 ;;;###autoload
-(defun fireflies-insert-meeting-ai-summary (&optional limit edit-prompt)
+(defun fireflies-insert-meeting-ai-summary
+    (&optional limit requested-kind prompt-addition)
   "Fetch a Fireflies meeting, summarize it with gptel, and insert Org text.
-
-With prefix arg, prompt for LIMIT and allow editing the default AI prompt."
+With prefix arg, prompt for LIMIT, source kind, and extra instructions."
   (interactive
    (if current-prefix-arg
        (list
         (read-number "How many recent meetings? " fireflies-default-list-limit)
-        (read-from-minibuffer "AI prompt: " fireflies-ai-summary-prompt))
-     (list nil nil)))
+        (fireflies--read-source-kind)
+        (fireflies--read-custom-ai-prompt-addition))
+     (list nil fireflies-ai-source-preference nil)))
   (let* ((target-buffer (current-buffer))
          (target-point (point-marker))
          (meeting (fireflies--choose-meeting
                    (or limit fireflies-default-list-limit)))
          (transcript (fireflies--get-transcript-summary (alist-get 'id meeting)))
-         (requested-kind (fireflies--read-source-kind))
-         (source (fireflies--build-ai-source transcript requested-kind)))
+         (source (fireflies--build-ai-source transcript requested-kind))
+         (prompt (fireflies--compose-ai-prompt prompt-addition)))
     (unless source
       (user-error "Could not retrieve usable Fireflies source text for %s"
                   (or (alist-get 'title transcript)
@@ -616,19 +646,20 @@ With prefix arg, prompt for LIMIT and allow editing the default AI prompt."
                  (alist-get 'id transcript)))
     (fireflies--request-ai-summary
      target-buffer target-point transcript
-     (car source) (cdr source) edit-prompt)))
+     (car source) (cdr source) prompt)))
 
 ;;;###autoload
-(defun fireflies-insert-meeting-source (&optional limit)
+(defun fireflies-insert-meeting-source (&optional limit requested-kind)
   "Insert raw Fireflies source material at point."
   (interactive
-   (list (when current-prefix-arg
-           (read-number "How many recent meetings? "
-                        fireflies-default-list-limit))))
+   (if current-prefix-arg
+       (list (read-number "How many recent meetings? "
+                          fireflies-default-list-limit)
+             (fireflies--read-source-kind))
+     (list nil fireflies-ai-source-preference)))
   (let* ((meeting (fireflies--choose-meeting
                    (or limit fireflies-default-list-limit)))
          (transcript (fireflies--get-transcript-summary (alist-get 'id meeting)))
-         (requested-kind (fireflies--read-source-kind))
          (source (fireflies--build-ai-source transcript requested-kind)))
     (unless source
       (user-error "Could not retrieve usable Fireflies source text"))
@@ -644,19 +675,20 @@ With prefix arg, prompt for LIMIT and allow editing the default AI prompt."
 ;;;###autoload
 (defun fireflies-redo-last-ai-summary (&optional edit-prompt)
   "Reuse the last stored Fireflies source in this buffer and rerun AI summary.
-
-With prefix arg, prompt to edit the AI prompt before rerunning."
+With prefix arg, append an extra instruction before rerunning."
   (interactive
    (list (when current-prefix-arg
-           (read-from-minibuffer
-            "AI prompt: "
-            (or fireflies-last-ai-prompt fireflies-ai-summary-prompt)))))
+           (fireflies--read-custom-ai-prompt-addition))))
   (unless fireflies-last-source-text
     (user-error "No stored Fireflies source found in this buffer"))
   (let ((transcript
          `((id . ,fireflies-last-meeting-id)
            (title . ,fireflies-last-meeting-title)
-           (date . ,fireflies-last-meeting-date))))
+           (date . ,fireflies-last-meeting-date)))
+        (prompt
+         (fireflies--compose-prompt-from-base
+          (or fireflies-last-ai-prompt fireflies-ai-summary-prompt)
+          edit-prompt)))
     (message "Rerunning Fireflies AI summary for %s..."
              (or fireflies-last-meeting-title fireflies-last-meeting-id))
     (fireflies--request-ai-summary
@@ -665,7 +697,17 @@ With prefix arg, prompt to edit the AI prompt before rerunning."
      transcript
      fireflies-last-source-text
      fireflies-last-source-kind
-     edit-prompt)))
+     prompt)))
+
+(with-eval-after-load 'org
+  (when (fboundp 'jds/localleader-def)
+    (jds/localleader-def
+      :keymaps '(org-mode-map org-capture-mode-map)
+      fireflies-localleader-key-prefix '(:ignore t :wk "fireflies")
+      (concat fireflies-localleader-key-prefix "s") #'fireflies-insert-meeting-summary
+      (concat fireflies-localleader-key-prefix "a") #'fireflies-insert-meeting-ai-summary
+      (concat fireflies-localleader-key-prefix "S") #'fireflies-insert-meeting-source
+      (concat fireflies-localleader-key-prefix "r") #'fireflies-redo-last-ai-summary)))
 
 (provide 'fireflies)
 
