@@ -47,6 +47,7 @@
 
 	;; don't show mu4e-main buffer at the same time as messages
 	mu4e-split-view 'single-window
+	mu4e-modeline-support nil
 
 	;; visual niceties
 	mu4e-headers-thread-single-orphan-prefix '("─>" . "─▶")
@@ -174,20 +175,14 @@
 	shr-use-colors nil)
   (advice-add #'shr-colorize-region :around (defun shr-no-colourise-region (&rest ignore)))
 
-  ;; clean up modeline
-  ;; (defun jds~turn-off-mu4e-modeline ()
-  ;; (setq mu4e-context-in-modeline nil
-  ;; mu4e~headers-mode-line-label ""))
-  ;; (add-hook 'mu4e-headers-mode-hook 'jds~turn-off-mu4e-modeline)
-
-  ;; completely disable mu4e-specific mode-line components
-  (defun mu4e~headers-update-mode-line ())
-  (defun mu4e-context-in-modeline ())
-
   ;; Since I don't use the mu4e main-view its annoying when trying to call
-  ;; mu4e~headers-quit-buffer and having the minibuffer fire off asking if I
-  ;; want to send a message or view help etc...
-  (defun mu4e--main-view () "Ignore this function" 'ignore)
+  ;; mu4e~headers-quit-buffer and getting bounced into the main view.
+  (defun jds/mu4e-headers-quit ()
+    "Quit the headers buffer without opening the mu4e main view."
+    (interactive)
+    (mu4e-mark-handle-when-leaving)
+    (quit-window t))
+  (define-key mu4e-headers-mode-map (kbd "q") #'jds/mu4e-headers-quit)
 
   ;; stop autofilling when working without org-msg
   (add-hook 'mu4e-compose-mode-hook 'turn-off-auto-fill)

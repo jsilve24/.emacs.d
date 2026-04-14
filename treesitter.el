@@ -30,23 +30,23 @@
 
 ;;;; Evil Integration
 
-(defmacro jds~bind-evil-textobj-ts (key group-inner group-outer)
+(defmacro jds~bind-evil-textobj-ts (key group-inner group-outer &optional query)
   "Thin wrapper around define-key and evil-textobj-tree-sitter-get-textobj to bind to inner and outer object maps.
 Also binds under goto motions using evil-textobj-tree-sitter-goto-textobj."
-  `(progn (define-key evil-inner-text-objects-map ,key (evil-textobj-tree-sitter-get-textobj ,group-inner))
-	  (define-key evil-outer-text-objects-map ,key (evil-textobj-tree-sitter-get-textobj ,group-outer))
+  `(progn (define-key evil-inner-text-objects-map ,key (evil-textobj-tree-sitter-get-textobj ,group-inner ,query))
+	  (define-key evil-outer-text-objects-map ,key (evil-textobj-tree-sitter-get-textobj ,group-outer ,query))
 	  (define-key evil-normal-state-map (concat "]" ,key)
 	    (lambda () (interactive)
-	      (evil-textobj-tree-sitter-goto-textobj ,group-outer)))
+	      (evil-textobj-tree-sitter-goto-textobj ,group-outer nil nil ,query)))
 	  (define-key evil-normal-state-map (concat "[" ,key)
 	    (lambda () (interactive)
-	      (evil-textobj-tree-sitter-goto-textobj ,group-outer t)))
+	      (evil-textobj-tree-sitter-goto-textobj ,group-outer t nil ,query)))
 	  (define-key evil-normal-state-map (concat "]" (upcase ,key))
 	    (lambda () (interactive)
-	      (evil-textobj-tree-sitter-goto-textobj ,group-outer nil t)))
+	      (evil-textobj-tree-sitter-goto-textobj ,group-outer nil t ,query)))
 	  (define-key evil-normal-state-map (concat "[" (upcase ,key))
 	    (lambda () (interactive)
-	      (evil-textobj-tree-sitter-goto-textobj ,group-outer t t)))))
+	      (evil-textobj-tree-sitter-goto-textobj ,group-outer t t ,query)))))
 
 
 
@@ -56,29 +56,23 @@ Also binds under goto motions using evil-textobj-tree-sitter-goto-textobj."
 				      :repo "meain/evil-textobj-tree-sitter"
 				      :files (:defaults "queries" "treesit-queries"))
   :config
-
-  ;; Patch: upstream treesit-queries/python/textobjects.scm is missing
-  ;; call.inner/call.outer captures. This advice appends them at runtime.
-  ;; Remove this if upstream adds call captures to treesit-queries/python/.
-  (defun jds~evil-textobj-ts-add-python-call-query (orig-fn language)
-    "Advice to append call captures for Python treesit queries."
-    (let ((result (funcall orig-fn language)))
-      (if (and (evil-textobj-tree-sitter--use-builtin-treesitter)
-	       (string= language "python")
-	       result)
-	  (concat result "\n"
-		  "(call) @call.outer\n"
-		  "(call arguments: (argument_list . \"(\" (_)+ @call.inner \")\"))\n")
-	result)))
-  (advice-add 'evil-textobj-tree-sitter--get-query :around
-	       #'jds~evil-textobj-ts-add-python-call-query)
+  (defconst jds/evil-textobj-python-call-query
+    "(call) @call.outer
+(call
+  arguments: (argument_list
+    .
+    \"(\"
+    _+ @call.inner
+    \")\"))"
+    "Python call textobject query for `python-ts-mode'.")
 
   ;; Text objects: inner/outer via i/a prefix, goto via ]/[ prefix
   ;; e.g., "vif" = select inner function, "]f" = goto next function, "[F" = goto prev function end
   ;; These override "a"/"c" in evil text object maps (previously evil-inner-arg and
   ;; evilnc-inner-comment in bindings.el); tree-sitter versions are language-aware.
   (jds~bind-evil-textobj-ts "f" "function.inner" "function.outer")
-  (jds~bind-evil-textobj-ts "c" "call.inner" "call.outer")
+  (jds~bind-evil-textobj-ts "c" "call.inner" "call.outer"
+			    '((python-ts-mode . jds/evil-textobj-python-call-query)))
   (jds~bind-evil-textobj-ts "k" "conditional.inner" "conditional.outer")
   (jds~bind-evil-textobj-ts "l" "loop.inner" "loop.outer")
   (jds~bind-evil-textobj-ts "a" ("parameter.inner" "call.inner") ("parameter.outer" "call.outer"))
