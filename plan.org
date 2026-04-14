@@ -1,0 +1,14 @@
+* Emacs maintenance plan
+
+** Discovered issues
+
+*** TODO Review early package loads that can still hard-fail startup
+`ess.el` uses `(require 'ess-site)` in `use-package` `:init`, and `elfeed.el`
+starts with a top-level `(require 'gptel-reinforce-elfeed)`. Both may be fine
+in steady state, but they are worth revisiting if package installation or local
+package rebuilds ever regress startup.
+
+*** TODO Document local package expectations around `gptel-reinforce`
+`ai.el` manages local rebuild cleanup for `gptel-reinforce`, but the reason
+this package is loaded from a local directory is only implicit. A short comment
+or note on why it is local would make later maintenance safer.

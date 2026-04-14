@@ -112,8 +112,10 @@ item to existing references drawer."
 (use-package consult-org-roam
   :ensure t
   :diminish consult-org-roam-mode
-  :init
-  (require 'consult-org-roam)
+  :config
+  ;; Enable after the package loads instead of forcing an early `require'
+  ;; during init, which makes startup more brittle if the package is absent or
+  ;; being rebuilt.
   (consult-org-roam-mode 1)
   :custom
   (consult-org-roam-grep-func #'consult-ripgrep))
