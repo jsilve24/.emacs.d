@@ -90,8 +90,9 @@ Set to `anthropic' or `openai', then reload this file."
 
 (let ((gptel-reinforce-dir
        (expand-file-name "gptel-reinforce" user-emacs-directory)))
-  ;; Local package development can leave dependents compiled against an older
-  ;; struct layout, which breaks startup before recompilation.
+  ;; Local package development can leave stale `.elc' and `.eln' artifacts
+  ;; compiled against an older gptel-reinforce struct layout; clearing them
+  ;; forces a clean rebuild and avoids startup-time load failures.
   (when (jds/gptel-reinforce-stale-build-p gptel-reinforce-dir)
     (jds/gptel-reinforce-clear-build-artifacts gptel-reinforce-dir))
   (add-to-list 'load-path gptel-reinforce-dir))

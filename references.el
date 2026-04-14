@@ -2,7 +2,7 @@
 
 ;; Parent module owns its local helper commands so `init.el` stays ignorant of
 ;; internal support files.
-(load-config "autoloads/references.el")
+(load-config "references-helpers.el")
 
 (use-package bibtex-completion
   :straight t
@@ -119,13 +119,15 @@
 (defun jds/pdf-extract-text-pages (file &optional max-pages)
   "Extract text from first MAX-PAGES (default 4) pages of FILE via pdftotext.
 Returns empty string on failure."
-  (condition-case nil
-      (with-temp-buffer
-        (call-process "pdftotext" nil t nil
-                      "-f" "1" "-l" (number-to-string (or max-pages 4))
-                      (expand-file-name file) "-")
-        (buffer-string))
-    (error "")))
+  (if (not (executable-find "pdftotext"))
+      ""
+    (condition-case nil
+	(with-temp-buffer
+	  (call-process "pdftotext" nil t nil
+			"-f" "1" "-l" (number-to-string (or max-pages 4))
+			(expand-file-name file) "-")
+	  (buffer-string))
+      (error ""))))
 
 (use-package pdf-drop-mode
   :straight (pdf-drop-mode :type git :host github :repo "rougier/pdf-drop-mode")

@@ -60,7 +60,8 @@
   (define-key vertico-map "\C-b" #'vertico-scroll-down))
 
 ;; Configure directory extension.
-;; NOTE: The file `vertico-directory.el' must be installed manually.
+;; `straight-use-package' above includes Vertico extensions, so
+;; `vertico-directory.el' is installed/loaded through that declaration.
 (use-package vertico-directory
   ;; More convenient directory navigation commands
   :bind (:map vertico-map
@@ -485,10 +486,13 @@ This only works with orderless and for the first component of the search."
   (interactive)
   (let ((dir "~/Dropbox/org/")
 	(consult-ripgrep-args "rg --null --line-buffered --color=never --max-columns=1000 --path-separator /   --smart-case --no-heading --line-number -g \"*.org\" .")
-	(consult-preview-key nil))
+	(consult-preview-key nil)
+	(grep-fn (if (boundp 'consult-org-roam-grep-func)
+		     consult-org-roam-grep-func
+		   #'consult-ripgrep)))
     (if initial
-	(funcall consult-org-roam-grep-func dir (format "%s" initial))
-      (funcall consult-org-roam-grep-func dir))))
+	(funcall grep-fn dir (format "%s" initial))
+      (funcall grep-fn dir))))
 
 ;;;###autoload
 (defun jds/consult-ripgrep-all-org-headlines (&optional initial)
@@ -511,8 +515,10 @@ This only works with orderless and for the first component of the search."
 ;; from here: https://emacs.stackexchange.com/questions/3105/how-to-use-an-external-program-as-the-default-way-to-open-pdfs-from-emacs
 (defun jds~xdg-open (filename)
   (interactive "fFilename: ")
-  (let ((process-connection-type))
-    (start-process "" nil "xdg-open" (expand-file-name filename))))
+  (if (not (executable-find "xdg-open"))
+      (user-error "Cannot open external file: `xdg-open` is not available")
+    (let ((process-connection-type))
+      (start-process "" nil "xdg-open" (expand-file-name filename)))))
 
 
 (defun jds~find-file-advice (orig-fun &rest args)

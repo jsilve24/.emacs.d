@@ -1,7 +1,7 @@
 ;;; pdf.el --- pdf tools setup -*- lexical-binding: t; -*-
 
 ;; This vendored helper is only used here, so `pdf.el` owns it directly.
-(load-config "autoloads/sow.el")
+(load-config "pdf-sow.el")
 
 (use-package pdf-tools
   :mode ("\\.pdf\\'" . pdf-view-mode)
@@ -36,7 +36,6 @@
 
   ;; scroll other window that works with pdf-tools
   ;; https://github.com/politza/pdf-tools/issues/55
-  (require 'scroll-other-window)
   (sow-mode 1)
   (add-hook 'org-noter-notes-mode-hook #'sow-mode)
   (setq org-noter--inhibit-location-change-handler t)

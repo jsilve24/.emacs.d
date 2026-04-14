@@ -2,21 +2,6 @@
 
 ** Startup and load-order
 
-*** TODO Audit top-level and early `require` forms for optional packages
-Examples worth revisiting:
-- `ess.el` requires `ess-site` in `:init`.
-- `elfeed.el` starts with a top-level `(require 'gptel-reinforce-elfeed)`.
-- `org-roam.el` requires `org-roam-export` in `:config`.
-- `email.el` requires `mu4e-icalendar` and `mu4e-contrib` unconditionally.
-The goal is not to remove these blindly, but to decide which should degrade
-gracefully when a package is absent, rebuilding, or temporarily unavailable.
-
-*** TODO Review modules that eagerly start subsystems at startup
-`email.el` calls `(mu4e 4)` during config, and `calendar.el` kicks off two
-external calendar sync jobs via `after-init-hook`. Both are workflow-critical,
-but they also make startup depend on local services, files, and scripts. These
-should be documented and possibly guarded more explicitly.
-
 *** TODO Replace raw `load` for local support modules with clearer feature ownership
 `org-roam.el` loads `org-roam-ai.el` via `(load ... nil t)`, and `ai.el`
 manually adds `gptel-reinforce/` to `load-path` before requiring local modules.
@@ -24,38 +9,6 @@ This works, but the ownership model is implicit and would be easier to maintain
 if local package boundaries and load expectations were documented consistently.
 
 ** Module boundaries and coupling
-
-*** TODO Rename helper modules that still live under `autoloads/`
-The ownership move is complete: `init.el` no longer loads `autoloads/sow.el`,
-`autoloads/email.el`, `autoloads/references.el`, or
-`autoloads/ess-autoloads.el` directly. The remaining cleanup is naming and
-feature hygiene:
-- rename hand-written helper modules like `autoloads/email.el`,
-  `autoloads/references.el`, and `autoloads/ess-autoloads.el` to reflect their
-  actual role
-- decide whether vendored `sow.el` should move out of `autoloads/`
-- normalize `provide` names once the renames are done
-
-*** TODO Make parent modules the public entry points for helper files
-There are helper files under `autoloads/` that behave more like standalone
-modules than pure autoload dumps. They should either become ordinary modules
-owned by the parent feature or be made clearly autoload-only.
-
-*** TODO Fix feature-name collisions and inconsistent `provide` naming
-`autoloads/avy.el` ends with `(provide 'avy)`, which can collide with the real
-`avy` package feature. `autoloads/ess-autoloads.el` provides
-`ess-autoloads.el`, which is also inconsistent with normal feature naming.
-These are classic maintenance traps because `require` no longer means what it
-appears to mean.
-
-*** TODO Refactor direct cross-module assumptions around Org and Org-roam
-Several files assume Org and Org-roam globals are already initialized:
-- `bindings.el` references `org-directory`, `org-roam-directory`,
-  `consult-org-roam-*`, and agenda helpers directly.
-- `completing-read.el` configures multiform rules for custom Org and Org-roam
-  commands before this relationship is documented anywhere.
-- `snippets.el` and `autoloads/avy.el` also depend on Org search helpers.
-This likely works because of current `init.el` ordering, but it is brittle.
 
 *** TODO Document or simplify local fork dependence
 Current config depends on multiple forks or local variants:
@@ -66,12 +19,6 @@ The important missing piece is *why each fork exists now* and whether upstream
 hooks or extension points could replace any of them.
 
 ** Public API vs internal API
-
-*** TODO Replace or isolate uses of internal Elfeed APIs
-`elfeed.el` customizations rely on internal or semi-internal functions such as
-`elfeed-search--faces`, `elfeed-search--update-list`, and
-`elfeed-search-update--force`. These may be worth keeping, but they should be
-treated as compatibility shims and documented as such.
 
 *** TODO Review mu4e internals and version-sensitive assumptions
 The mail setup contains comments about mu4e upgrades and behavior changes, and
@@ -87,28 +34,7 @@ but that safety still depends on prompt-following. A small local checker over
 the visible thread state could further reduce false-positive confirmations and
 calendar staging.
 
-*** TODO Revisit `org-roam-bibtex` `use-package` declaration
-`org-roam.el` declares two separate `:after` keywords for
-`org-roam-bibtex`. That is easy to misread and may not express the dependency
-graph as clearly as intended. Even if currently harmless, it is worth making
-unambiguous.
-
 ** Missing guards and OS assumptions
-
-*** TODO Guard external calendar sync scripts and output files
-`calendar.el` assumes `~/bin/get_exchange_cal.sh`, `~/bin/get_gcal.sh`,
-`~/Dropbox/org/cal-psu.org`, and `~/Dropbox/org/cal-gmail.org` all exist.
-Failures here should degrade gracefully with an informative message instead of
-producing confusing async-process behavior at startup.
-
-*** TODO Guard shell tool assumptions in helper functions
-Examples:
-- `macros.el` assumes GNU/Unix `ping` flags.
-- WM helpers call `xrandr`, `autorandr`, `xsetwacom`, `xset`, `nmcli`,
-  and `qutebrowser`.
-- reference helpers use `pdftotext`.
-- completion helpers call `xdg-open`.
-These are good candidates for a consistent executable-check pattern.
 
 *** TODO Review hard-coded machine names and local paths
 There are several machine-specific and filesystem-specific assumptions:
@@ -138,26 +64,7 @@ Org-related commands and bindings are split across `org.el`, `bindings.el`,
 be stable, but the implementation surface is large enough that small changes
 can easily break discoverability or load order.
 
-*** TODO Fix nil-sensitive logic in `jds~roam-exclude-dwim`
-`bindings.el` computes `inroam` with `(buffer-file-name)` and
-`org-roam-directory` directly. In buffers without a backing file, this can
-become brittle. The logic should be made nil-safe before it is reused more
-widely.
-
 ** Documentation drift
-
-*** TODO Update stale or misleading comments about installation requirements
-`completing-read.el` says `vertico-directory.el` must be installed manually,
-but the top-level `straight-use-package` for Vertico extensions suggests the
-configuration may already manage that. The comment should match reality.
-
-*** TODO Document compatibility shims and odd workarounds inline
-Examples worth documenting better:
-- `email.el` provides `html2text` to disable an obsolete package.
-- `ai.el` clears stale `.elc` and `.eln` artifacts for local development.
-- `ess.el` suppresses the initial `*essgd*` popup with a temporary
-  `display-buffer` override.
-These are exactly the kinds of local workarounds that become mysterious later.
 
 *** TODO Add a short rationale document for `init.el` load ordering
 `init.el` says load order matters and mentions `MAINTENANCE.md`, but the actual

@@ -1,4 +1,4 @@
-;;; email.el --- mostly stolen from doom -*- lexical-binding: t; -*-
+;;; email-helpers.el --- email helper commands -*- lexical-binding: t; -*-
 
 ;; stolen from doom
 ;;;###autodef
@@ -192,3 +192,4 @@ If NO-WIDE is nil, make it a \"wide\" reply (a.k.a.
     (mu4e-compose-reply-to nil t))
   )
 
+(provide 'email-helpers)

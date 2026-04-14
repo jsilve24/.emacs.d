@@ -175,6 +175,6 @@
   (evilem-make-motion evilem-motion-backward-WORD-end #'evil-backward-WORD-end :scope 'visible))
 
 
-(load-config "autoloads/avy.el")
+(load-config "avy-helpers.el")
 
 (provide 'config-avy)

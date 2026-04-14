@@ -5,7 +5,26 @@
 ;;   :files (:defaults "mu4e/*.el")))
 ;; Parent module owns its local helper commands so `init.el` stays ignorant of
 ;; internal support files.
-(load-config "autoloads/email.el")
+(load-config "email-helpers.el")
+
+(defcustom jds/email-start-mu4e-at-startup t
+  "When non-nil, initialize Mu4e in the background during startup.
+Set this to nil on machines where mail services are intentionally unavailable."
+  :type 'boolean
+  :group 'mu4e)
+
+(defun jds/email--start-mu4e-at-startup ()
+  "Start Mu4e in the background when configured to do so."
+  (cond
+   ((not jds/email-start-mu4e-at-startup)
+    (message "Mu4e background startup is disabled (jds/email-start-mu4e-at-startup=nil)"))
+   ((not (fboundp 'mu4e))
+    (message "Skipping Mu4e background startup: `mu4e` is unavailable"))
+   (t
+    (condition-case err
+	(mu4e 4)
+      (error
+       (message "Mu4e background startup failed: %s" (error-message-string err)))))))
 
 (use-package mu4e
   ;; from here: https://github.com/radian-software/straight.el/issues/491
@@ -14,7 +33,6 @@
   ;; :commands mu4e mu4e-compose-new mu4e-headers-search-bookmark mu4e-get-bookmark-query mu4e~start
   ;;:ensure t
   :init
-  (provide 'html2text) ;; disable obsolete package
   :config
   (setq mu4e-get-mail-command "mbsync -a"
 	mu4e-change-file-names-when-moving t
@@ -149,8 +167,9 @@
 
   ;; setup calendar
   (setq mu4e-view-use-gnus t)
-  (require 'mu4e-icalendar)
-  (mu4e-icalendar-setup)
+  (if (require 'mu4e-icalendar nil t)
+      (mu4e-icalendar-setup)
+    (message "mu4e iCalendar integration disabled: mu4e-icalendar is unavailable"))
   ;; Disabled: gnus-icalendar-org-setup would capture accepted invitations to calendar.org,
   ;; but Google already adds them to Google Calendar, which syncs to cal-gmail.org via
   ;; get_gcal.sh -- causing duplicates. RSVP replies still work via mu4e-icalendar-setup above.
@@ -171,13 +190,15 @@
 
 
   ;; better html message handling, make it easier to view by converting to text
-  (require 'mu4e-contrib)
-  (setq mu4e-html2text-command 'mu4e-shr2text
-	shr-color-visible-luminance-min 60
-	shr-color-visible-distance-min 5
-	shr-use-fonts nil
-	shr-use-colors nil)
-  (advice-add #'shr-colorize-region :around (defun shr-no-colourise-region (&rest ignore)))
+  (if (require 'mu4e-contrib nil t)
+      (progn
+	(setq mu4e-html2text-command 'mu4e-shr2text
+	      shr-color-visible-luminance-min 60
+	      shr-color-visible-distance-min 5
+	      shr-use-fonts nil
+	      shr-use-colors nil)
+	(advice-add #'shr-colorize-region :around (defun shr-no-colourise-region (&rest ignore))))
+    (message "mu4e HTML text conversion tweaks disabled: mu4e-contrib is unavailable"))
 
   ;; Since I don't use the mu4e main-view its annoying when trying to call
   ;; mu4e~headers-quit-buffer and getting bounced into the main view.
@@ -194,9 +215,10 @@
   ;; ;; better flowing when sending default (without org-msg)
   (setq mu4e-compose-format-flowed nil)
 
-  ;; start mu4e in background
-  ;; (mu4e)
-  (mu4e 4)
+  ;; Start Mu4e in the background to keep mail buffers warm at startup.
+  ;; You can disable this host-specific dependency by setting
+  ;; `jds/email-start-mu4e-at-startup' to nil.
+  (jds/email--start-mu4e-at-startup)
   (mu4e-modeline-mode 0))
 
 ;;; setup org-msg
