@@ -81,6 +81,7 @@
 ;; (load-config "ledger.el")
 ;; 
 (load-config "snippets.el")
+(load-config "firefiles.el")
 
 
 ;;; "optional" applications
