@@ -40,7 +40,7 @@
   :type 'integer
   :group 'fireflies)
 
-(defcustom fireflies-ai-source-preference 'both
+(defcustom fireflies-ai-source-preference 'summary
   "Default Fireflies source used for AI summarization."
   :type '(choice (const :tag "Summary only" summary)
                  (const :tag "Transcript only" transcript)
