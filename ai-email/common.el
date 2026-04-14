@@ -170,7 +170,8 @@ generation output."
      ""
      "5. **Commit when the meeting is effectively settled**: If the other person gives a clear availability window and one concrete slot plainly fits, prefer committing to that slot rather than asking for another round of confirmation."
      "   Use commitment language like \"Let's do Thursday at 12:00 PM\" instead of proposal language like \"How about Thursday at 12:00 PM?\"."
-     "   However, if other attendees still need to confirm, stay in coordination mode and do not treat the slot as settled."
+     "   However, if other attendees still need to confirm, or if the latest message is only proposing a time to the group, stay in coordination mode and do not treat the slot as settled."
+     "   A concrete slot is not settled until every attendee whose availability matters has explicitly agreed, unless you are writing the last required acceptance to an already-proposed time."
      ""
      "6. **Be concise and natural**: Keep language conversational and direct."
      "   Do not expose reasoning or mention sending a calendar invite unless the user explicitly asks for that."
@@ -181,6 +182,7 @@ generation output."
      "- If multiple times are possible within constraints, lead with the strongest 1–2 options."
      "- If the slot is already effectively settled, reply with a brief confirmation instead of another question."
      "- Before treating a slot as settled, check whether the visible recipients/context imply other attendees whose availability still matters."
+     "- Do not convert one participant's suggested time into a full confirmation when another participant has not yet explicitly accepted it."
      "- Use simple, direct language."
      "- If confirming a time, be brief and clear."
      "- If proposing alternatives, explain why briefly (e.g., \"Tuesday works better for me than Wednesday\").")
@@ -1068,18 +1070,42 @@ plausible reply drafts."
          (not (jds/ai-email--reply-has-multiple-drafts-p
                (or raw-response clean))))))
 
+(defun jds/ai-email--org-msg-editable-body-point (buf)
+  "Return the first editable body position in an org-msg compose buffer.
+Falls back to the regular message body when no org-msg scaffold is present."
+  (with-current-buffer buf
+    (save-excursion
+      (message-goto-body)
+      (let ((body-start (point))
+            (scan-limit (min (point-max) (+ (point) 2000))))
+        (if (and (re-search-forward "^#\\+OPTIONS:" scan-limit t)
+                 (re-search-forward "^:PROPERTIES:[ \t]*$" scan-limit t)
+                 (re-search-forward "^:END:[ \t]*$" scan-limit t))
+            (progn
+              (forward-line 1)
+              (skip-chars-forward "\n\t ")
+              (point))
+          body-start)))))
+
+(defun jds/ai-email--editable-body-point (buf)
+  "Return the earliest safe insertion point for AI text in BUF."
+  (with-current-buffer buf
+    (save-excursion
+      (message-goto-body)
+      (let ((body-start (point)))
+        (max body-start
+             (jds/ai-email--org-msg-editable-body-point buf))))))
+
 (defun jds/ai-email--live-insertion-point (buf pos)
   "Return a safe insertion point in BUF based on marker POS."
-  (with-current-buffer buf
-    (cond
-     ((and (markerp pos)
-           (marker-buffer pos)
-           (eq (marker-buffer pos) buf))
-      (marker-position pos))
-     (t
-      (save-excursion
-        (message-goto-body)
-        (point))))))
+  (let ((floor (jds/ai-email--editable-body-point buf)))
+    (with-current-buffer buf
+      (cond
+       ((and (markerp pos)
+             (marker-buffer pos)
+             (eq (marker-buffer pos) buf))
+        (max floor (marker-position pos)))
+       (t floor)))))
 
 (defun jds/ai-email--insert-response-at-point (buf pos text)
   "Insert TEXT into BUF at POS, tolerating stale markers.

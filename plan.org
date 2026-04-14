@@ -81,6 +81,12 @@ fragile. Compose helpers should also avoid `message-replace-header` when the
 goal is only to swap recipient values, since header rewrites can disturb the
 standard `To:`/`Cc:` order in mu4e message buffers.
 
+*** TODO Consider replacing prompt-only scheduling confirmation heuristics with structured thread checks
+`ai-email` now guards against prematurely treating proposed times as confirmed,
+but that safety still depends on prompt-following. A small local checker over
+the visible thread state could further reduce false-positive confirmations and
+calendar staging.
+
 *** TODO Revisit `org-roam-bibtex` `use-package` declaration
 `org-roam.el` declares two separate `:after` keywords for
 `org-roam-bibtex`. That is easy to misread and may not express the dependency

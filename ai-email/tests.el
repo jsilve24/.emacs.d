@@ -113,6 +113,48 @@
     (should (equal captured '("Prompt" "System")))
     (should-not jds/ai-email--pending-compose-request)))
 
+(ert-deftest jds/ai-email-insert-response-after-org-msg-preamble ()
+  (with-temp-buffer
+    (insert "To: test@example.com\nSubject: Re: Test\n\n"
+            "#+OPTIONS: html-postamble:nil num:nil\n"
+            "#+STARTUP: hidestars indent inlineimages\n"
+            ":PROPERTIES:\n"
+            ":reply-to: nil\n"
+            ":END:\n"
+            "Alice writes:\n\n> Hello\n")
+    (cl-letf (((symbol-function 'message-goto-body)
+               (lambda ()
+                 (goto-char (point-min))
+                 (re-search-forward "\n\n" nil t))))
+      (let ((pos (copy-marker (progn
+                                (goto-char (point-min))
+                                (message-goto-body)
+                                (point)))))
+        (jds/ai-email--insert-response-at-point
+         (current-buffer) pos "Thanks, Friday works for me.")
+        (should
+         (equal (buffer-string)
+                (concat
+                 "To: test@example.com\nSubject: Re: Test\n\n"
+                 "#+OPTIONS: html-postamble:nil num:nil\n"
+                 "#+STARTUP: hidestars indent inlineimages\n"
+                 ":PROPERTIES:\n"
+                 ":reply-to: nil\n"
+                 ":END:\n"
+                 "Thanks, Friday works for me.\n\n"
+                 "Alice writes:\n\n> Hello\n")))))))
+
+(ert-deftest jds/ai-email-scheduling-system-prompt-requires-explicit-consensus ()
+  (cl-letf (((symbol-function 'jds/ai-email--scheduling-artifact-text) (lambda () nil))
+            ((symbol-function 'jds/org-calendar--format-date) (lambda (&rest _) "2026-04-14")))
+    (let ((prompt (jds/ai-email--scheduling-system-prompt)))
+      (should (string-match-p
+               "explicit acceptance from everyone whose availability matters"
+               prompt))
+      (should (string-match-p
+               "A proposal from one attendee is not a confirmation"
+               prompt)))))
+
 (ert-deftest jds/org-calendar-time-constraints-match-exact-and-bounds ()
   (let ((three-pm (encode-time 0 0 15 20 4 2026))
         (one-ten (encode-time 0 10 13 17 4 2026)))
