@@ -397,3 +397,13 @@ the AI, and displays a structured org-mode summary buffer."
   "cA" #'jds/mu4e-ai-scheduling-reply
   "cl" #'jds/mu4e-ai-extract-captures
   "cS" #'jds/mu4e-ai-summarize-thread)
+
+(evil-collection-define-key 'normal 'mu4e-compose-mode-map
+  "ca" #'jds/mu4e-ai-draft-reply
+  "cA" #'jds/mu4e-ai-scheduling-reply
+  "cl" #'jds/mu4e-ai-extract-captures)
+
+(evil-collection-define-key 'normal 'org-msg-edit-mode-map
+  "ca" #'jds/mu4e-ai-draft-reply
+  "cA" #'jds/mu4e-ai-scheduling-reply
+  "cl" #'jds/mu4e-ai-extract-captures)

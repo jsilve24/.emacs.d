@@ -113,6 +113,69 @@
     (should (equal captured '("Prompt" "System")))
     (should-not jds/ai-email--pending-compose-request)))
 
+(ert-deftest jds/ai-email-current-message-prefers-compose-parent ()
+  (with-temp-buffer
+    (setq-local major-mode 'mu4e-compose-mode)
+    (let ((parent '(:message-id "parent@example.com" :subject "Re: Test")))
+      (setq-local mu4e-compose-parent-message parent)
+      (should (eq (jds/ai-email--current-message nil t) parent)))))
+
+(ert-deftest jds/ai-email-compose-reply-reuses-current-draft-buffer ()
+  (let ((called nil)
+        (opened-new-reply nil))
+    (with-temp-buffer
+      (setq-local major-mode 'mu4e-compose-mode)
+      (setq-local mu4e-compose-parent-message
+                  '(:from ((:name "Alice" :email "alice@example.com"))
+                    :subject "Re: Test"
+                    :message-id "parent@example.com"))
+      (insert "Draft paragraph.\n\nQuoted thread")
+      (goto-char (point-min))
+      (cl-letf (((symbol-function 'message-goto-body)
+                 (lambda () (goto-char (point-min))))
+                ((symbol-function 'jds/mu4e-compose-reply)
+                 (lambda () (setq opened-new-reply t))))
+        (jds/ai-email--compose-mu4e-reply-with-ai
+         (lambda (content) (concat "PROMPT:" content))
+         "System"
+         (lambda (prompt _system buf pos _tools)
+           (setq called (list prompt buf (marker-position pos))))
+         nil nil nil)))
+    (should (equal (car called) "PROMPT:Draft paragraph.\n\nQuoted thread"))
+    (should (bufferp (cadr called)))
+    (should (= (caddr called) 1))
+    (should-not opened-new-reply)))
+
+(ert-deftest jds/ai-email-capture-source-uses-draft-and-links-parent-message ()
+  (let ((captured nil))
+    (with-temp-buffer
+      (setq-local major-mode 'mu4e-compose-mode)
+      (setq-local mu4e-compose-parent-message
+                  '(:from ((:name "Alice" :email "alice@example.com"))
+                    :subject "Re: Test"
+                    :message-id "parent@example.com"))
+      (insert "My draft response.\n\nQuoted thread")
+      (cl-letf (((symbol-function 'message-goto-body)
+                 (lambda () (goto-char (point-min))))
+                ((symbol-function 'jds/ai-email--reinforce-setup-buffer)
+                 (lambda (&rest _) nil))
+                ((symbol-function 'jds/ai-email--reinforce-context-for-message)
+                 (lambda (&rest _) "capture-context"))
+                ((symbol-function 'gptel-request)
+                 (lambda (_prompt &rest plist)
+                   (let ((callback (plist-get plist :callback)))
+                     (funcall callback "{\"todos\": [{\"title\": \"Follow up\"}], \"events\": []}"
+                              '(:status "ok")))))
+                ((symbol-function 'pop-to-buffer)
+                 (lambda (buf &rest _)
+                   (setq captured buf)
+                   buf)))
+        (jds/mu4e-ai-extract-captures))
+      (with-current-buffer captured
+        (should (eq jds/ai-email-capture-review-source-scope 'draft))
+        (should (equal jds/ai-email-capture-review-message-link
+                       "[[mu4e:msgid:parent@example.com][email]]"))))))
+
 (ert-deftest jds/ai-email-insert-response-after-org-msg-preamble ()
   (with-temp-buffer
     (insert "To: test@example.com\nSubject: Re: Test\n\n"

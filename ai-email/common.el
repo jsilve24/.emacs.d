@@ -13,6 +13,9 @@
   :group 'applications
   :prefix "jds/ai-email-")
 
+(defvar mu4e-compose-parent-message nil
+  "mu4e parent message for the current compose buffer.")
+
 (defcustom jds/ai-email-debug-normalization nil
   "When non-nil, log ai-email normalization traces for inspection.
 Only logs cases where the normalized output materially differs from the raw
@@ -1196,9 +1199,29 @@ to the generation pass."
           (funcall after-insert text region))))
    tools))
 
+(defun jds/ai-email--compose-buffer-p (&optional buffer)
+  "Return non-nil when BUFFER is an editable email compose buffer."
+  (with-current-buffer (or buffer (current-buffer))
+    (derived-mode-p 'mu4e-compose-mode 'org-msg-edit-mode)))
+
+(defun jds/ai-email--current-message (&optional msg noerror)
+  "Return MSG or the relevant mu4e message for the current context.
+In compose buffers, prefer `mu4e-compose-parent-message'."
+  (or msg
+      (and (jds/ai-email--compose-buffer-p)
+           mu4e-compose-parent-message)
+      (mu4e-message-at-point noerror)))
+
+(defun jds/ai-email--compose-buffer-content (&optional buf)
+  "Return the editable compose body contents for BUF."
+  (with-current-buffer (or buf (current-buffer))
+    (buffer-substring-no-properties
+     (jds/ai-email--editable-body-point (current-buffer))
+     (point-max))))
+
 (defun jds/ai-email--mu4e-message-metadata (&optional msg)
   "Return plist with sender and subject metadata for MSG at point."
-  (let* ((message (or msg (mu4e-message-at-point)))
+  (let* ((message (jds/ai-email--current-message msg))
          (from-c (car (mu4e-message-field message :from))))
     (list :message message
           :from (or (plist-get from-c :name)
@@ -1208,19 +1231,28 @@ to the generation pass."
 
 (defun jds/ai-email--compose-mu4e-reply-with-ai
     (prompt-builder system callback &optional tools reinforce-database reinforce-context)
-  "Compose a mu4e reply and invoke AI with PROMPT-BUILDER and CALLBACK.
+  "Compose a mu4e reply or reuse the current draft with PROMPT-BUILDER and CALLBACK.
 PROMPT-BUILDER is called with the compose buffer contents and should return the
 prompt text. CALLBACK receives PROMPT, SYSTEM, buffer, marker, and TOOLS.
 When REINFORCE-DATABASE and REINFORCE-CONTEXT are non-nil, attach them to the
 compose buffer before invoking CALLBACK."
-  (setq jds/ai-email--pending-compose-request
-        (list :prompt-builder prompt-builder
-              :system system
-              :callback callback
-              :tools tools
-              :reinforce-database reinforce-database
-              :reinforce-context reinforce-context))
-  (jds/mu4e-compose-reply))
+  (if (jds/ai-email--compose-buffer-p)
+      (let* ((buf (current-buffer))
+             (content (jds/ai-email--compose-buffer-content buf))
+             (prompt (funcall prompt-builder content))
+             (pos (copy-marker (point))))
+        (when (and reinforce-database reinforce-context)
+          (jds/ai-email--reinforce-setup-buffer
+           buf reinforce-database reinforce-context))
+        (funcall callback prompt system buf pos tools))
+    (setq jds/ai-email--pending-compose-request
+          (list :prompt-builder prompt-builder
+                :system system
+                :callback callback
+                :tools tools
+                :reinforce-database reinforce-database
+                :reinforce-context reinforce-context))
+    (jds/mu4e-compose-reply)))
 
 (defun jds/ai-email--consume-pending-compose-request ()
   "Run the pending ai-email compose request in the current mu4e compose buffer."

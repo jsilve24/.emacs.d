@@ -534,7 +534,9 @@ Return a marker at the inserted heading."
   (if (use-region-p)
       (cons (buffer-substring-no-properties (region-beginning) (region-end))
             'region)
-    (cons (mu4e-view-message-text msg) 'message)))
+    (if (jds/ai-email--compose-buffer-p)
+        (cons (jds/ai-email--compose-buffer-content) 'draft)
+      (cons (mu4e-view-message-text msg) 'message))))
 
 (defun jds/ai-email--capture-system-prompt (today scope)
   "Return the extraction system prompt for TODAY and SCOPE.
@@ -547,12 +549,14 @@ falling back to the initial text defined in `jds/ai-email--reinforce-capture-ini
             base "\n"
             (if (eq scope 'region)
                 "Only extract candidates supported by the selected region. Ignore any context outside it.\n"
-              "Treat the newest unquoted portion of the message as primary and older quoted text as supporting context only.\n"))))
+              (if (eq scope 'draft)
+                  "Treat the current draft reply as primary evidence and any quoted thread below it as supporting context only.\n"
+                "Treat the newest unquoted portion of the message as primary and older quoted text as supporting context only.\n")))))
 
 (defun jds/mu4e-ai-extract-captures (&optional msg)
   "Extract todo and calendar capture candidates from MSG."
   (interactive)
-  (let* ((message (or msg (mu4e-message-at-point t))))
+  (let* ((message (jds/ai-email--current-message msg t)))
     (unless message
       (user-error "No message at point"))
     (pcase-let* ((`(,source-text . ,source-scope) (jds/ai-email--capture-source message))
@@ -564,7 +568,10 @@ falling back to the initial text defined in `jds/ai-email--reinforce-capture-ini
                            "Email from: %s\n"
                            "Subject: %s\n\n"
                            "Text:\n\n%s")
-                          (if (eq source-scope 'region) "selected email region" "email message")
+                          (pcase source-scope
+                            ('region "selected email region")
+                            ('draft "draft reply")
+                            (_ "email message"))
                           (or (plist-get (car (plist-get message :from)) :name)
                               (plist-get (car (plist-get message :from)) :email)
                               "Unknown")
