@@ -36,15 +36,6 @@ feature hygiene:
 - decide whether vendored `sow.el` should move out of `autoloads/`
 - normalize `provide` names once the renames are done
 
-*** TODO Refactor direct cross-module assumptions around Org and Org-roam
-Several files assume Org and Org-roam globals are already initialized:
-- `bindings.el` references `org-directory`, `org-roam-directory`,
-  `consult-org-roam-*`, and agenda helpers directly.
-- `completing-read.el` configures multiform rules for custom Org and Org-roam
-  commands before this relationship is documented anywhere.
-- `snippets.el` and `autoloads/avy.el` also depend on Org search helpers.
-This likely works because of current `init.el` ordering, but it is brittle.
-
 *** TODO Make parent modules the public entry points for helper files
 There are helper files under `autoloads/` that behave more like standalone
 modules than pure autoload dumps. They should either become ordinary modules
@@ -56,6 +47,15 @@ owned by the parent feature or be made clearly autoload-only.
 `ess-autoloads.el`, which is also inconsistent with normal feature naming.
 These are classic maintenance traps because `require` no longer means what it
 appears to mean.
+
+*** TODO Refactor direct cross-module assumptions around Org and Org-roam
+Several files assume Org and Org-roam globals are already initialized:
+- `bindings.el` references `org-directory`, `org-roam-directory`,
+  `consult-org-roam-*`, and agenda helpers directly.
+- `completing-read.el` configures multiform rules for custom Org and Org-roam
+  commands before this relationship is documented anywhere.
+- `snippets.el` and `autoloads/avy.el` also depend on Org search helpers.
+This likely works because of current `init.el` ordering, but it is brittle.
 
 *** TODO Document or simplify local fork dependence
 Current config depends on multiple forks or local variants:
