@@ -9,7 +9,7 @@
 
 (use-package gptel
   :init
-  (defcustom jds/gptel-default-provider 'anthropic
+  (defcustom jds/gptel-default-provider 'openai
     "Default provider for gptel.
 Set to `anthropic' or `openai', then reload this file."
     :type '(choice (const :tag "Anthropic" anthropic)
@@ -46,7 +46,8 @@ Set to `anthropic' or `openai', then reload this file."
   (pcase jds/gptel-default-provider
     ('openai
      (setq gptel-backend jds/gptel-openai-backend
-	   gptel-model 'gpt-5-nano))
+	   ;; gptel-model 'gpt-5-nano
+	   gptel-model 'gpt-5.4))
     ('local
      (setq gptel-backend jds/gptel-local-backend
 	   gptel-model 'granite4:1b))
