@@ -20,12 +20,6 @@ hooks or extension points could replace any of them.
 
 ** Public API vs internal API
 
-*** TODO Replace or isolate uses of internal Elfeed APIs
-`elfeed.el` customizations rely on internal or semi-internal functions such as
-`elfeed-search--faces`, `elfeed-search--update-list`, and
-`elfeed-search-update--force`. These may be worth keeping, but they should be
-treated as compatibility shims and documented as such.
-
 *** TODO Review mu4e internals and version-sensitive assumptions
 The mail setup contains comments about mu4e upgrades and behavior changes, and
 it customizes deep mode behavior. Any use of version-sensitive mu4e behavior

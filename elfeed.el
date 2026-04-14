@@ -77,11 +77,19 @@
                  min-score))
            elfeed-search-entries))))
 
+(defun jds/elfeed-search-title-faces (entry)
+  "Compatibility shim for deriving Elfeed title faces for ENTRY.
+Prefers internal `elfeed-search--faces' when available, but falls back to
+`elfeed-search-title-face' if upstream internals change."
+  (if (fboundp 'elfeed-search--faces)
+      (elfeed-search--faces (elfeed-entry-tags entry))
+    'elfeed-search-title-face))
+
 (defun jds/elfeed-search-print-entry (entry)
   "Print ENTRY to the search buffer using abbreviated feed names."
   (let* ((date (elfeed-search-format-date (elfeed-entry-date entry)))
          (title (or (elfeed-meta entry :title) (elfeed-entry-title entry) ""))
-         (title-faces (elfeed-search--faces (elfeed-entry-tags entry)))
+         (title-faces (jds/elfeed-search-title-faces entry))
          (feed-title (jds/elfeed-display-feed-title (elfeed-entry-feed entry)))
          (tags (mapcar #'symbol-name (elfeed-entry-tags entry)))
          (tags-str (mapconcat
@@ -135,6 +143,19 @@ With PREFIX, prompt for a note while recording positive feedback."
   (org-store-link nil t)
   (org-capture nil "r"))
 
+(defun jds/elfeed-refresh-dwim ()
+  "Refresh Elfeed using the best available refresh command.
+Uses internal `elfeed-search-update--force' when present for current behavior,
+otherwise falls back to public refresh commands."
+  (interactive)
+  (cond
+   ((fboundp 'elfeed-search-update--force)
+    (call-interactively #'elfeed-search-update--force))
+   ((fboundp 'elfeed-search-update)
+    (call-interactively #'elfeed-search-update))
+   (t
+    (call-interactively #'elfeed-update))))
+
 (use-package elfeed
   :config
   (setq elfeed-use-curl t)
@@ -144,7 +165,12 @@ With PREFIX, prompt for a note while recording positive feedback."
   (setq elfeed-search-print-entry-function #'jds/elfeed-search-print-entry)
   (advice-add 'elfeed-search-parse-filter :around
               #'jds/elfeed-search-parse-filter-with-score)
-  (advice-add 'elfeed-search--update-list :after #'jds/elfeed-filter-by-score)
+  ;; Compatibility shim: this advice uses an internal function because Elfeed
+  ;; does not currently expose a stable post-render hook for search list refresh.
+  ;; If the internal symbol changes, keep startup stable and skip score filtering.
+  (if (fboundp 'elfeed-search--update-list)
+      (advice-add 'elfeed-search--update-list :after #'jds/elfeed-filter-by-score)
+    (message "Elfeed score filtering shim disabled: elfeed-search--update-list is unavailable"))
 
   (advice-add 'elfeed-feed-title :around #'jds/elfeed-feed-title-short)
 
@@ -155,7 +181,7 @@ With PREFIX, prompt for a note while recording positive feedback."
     ;; d = mark read and advance (cf. mu4e d = mark trash and advance)
     "d"  #'jds/elfeed-search-mark-read-and-next
     ;; R = refresh feeds (cf. mu4e gr / R for reindex)
-    "R"  #'elfeed-search-update--force
+    "R"  #'jds/elfeed-refresh-dwim
     ;; ! / ? = mark read / mark unread (cf. mu4e ! / ?)
     "!"  #'elfeed-search-untag-all-unread
     "?"  #'elfeed-search-tag-all-unread)
