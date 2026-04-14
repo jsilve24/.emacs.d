@@ -34,15 +34,13 @@
   (define-key corfu-map (kbd "<tab>") #'corfu-insert)
   (define-key corfu-map (kbd "<down>") #'corfu-next)
   (define-key corfu-map (kbd "<up>") #'corfu-previous)
-  (define-key corfu-map (kbd "ESC") #'corfu-quit)
-  (define-key corfu-map (kbd "<escape>") #'corfu-quit)
 
   (defun corfu-move-to-minibuffer ()
     (interactive)
     (let ((completion-extra-properties corfu--extra)
 	  completion-cycle-threshold completion-cycling)
       (apply #'consult-completion-in-region completion-in-region--data)))
-  (define-key corfu-map "\M-m" #'corfu-move-to-minibuffer)
+  (define-key corfu-map [?\M-m] #'corfu-move-to-minibuffer)
 
   ;; sort candidates by use
   (corfu-history-mode 1)
@@ -53,15 +51,17 @@
   (setq corfu-popupinfo-auto t
 	corfu-popupinfo-delay 0.75)
   (add-hook 'corfu-mode-hook #'corfu-popupinfo-mode)
-  (define-key corfu-map (kbd "M-d") #'corfu-popupinfo-toggle)
-  (define-key corfu-map (kbd "M-p") #'corfu-popupinfo-scroll-down) ;; corfu-next
-  (define-key corfu-map (kbd "M-n") #'corfu-popupinfo-scroll-up) ;; corfu-previous
-  
+  (define-key corfu-map [?\M-d] #'corfu-popupinfo-toggle)
+  (define-key corfu-map [?\M-p] #'corfu-popupinfo-scroll-down) ;; corfu-next
+  (define-key corfu-map [?\M-n] #'corfu-popupinfo-scroll-up) ;; corfu-previous
+
 
 
   ;; setup corfu quick
-  (define-key corfu-map "\M-q" #'corfu-quick-complete)
-  (define-key corfu-map "\M-Q" #'corfu-quick-insert)
+  (define-key corfu-map [?\M-q] #'corfu-quick-complete)
+  (define-key corfu-map [?\M-Q] #'corfu-quick-insert)
+  (define-key corfu-map (kbd "ESC") #'corfu-quit)
+  (define-key corfu-map (kbd "<escape>") #'corfu-quit)
 
   ;; Advise packages that use posframe for a multi-head setup
   ;; Fixes this issue: https://github.com/minad/corfu/discussions/408

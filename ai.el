@@ -430,6 +430,7 @@ Set to `anthropic' or `openai', then reload this file."
 ;;; gptel-quick ----------------------------------------------------------------
 (use-package gptel-quick
   :straight (gptel-quick :type git :host github :repo "karthink/gptel-quick")
+  :after embark
   :config
   (keymap-set embark-general-map "?" #'gptel-quick))
 

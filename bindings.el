@@ -134,22 +134,25 @@
     (jds/tab-dwim)))
 
 (defun jds/completion-next-dwim ()
-  "Move to the next Corfu candidate when the popup is visible."
+  "Move to the next Corfu candidate, or the next line otherwise."
   (interactive)
-  (when (jds/completion-popup-visible-p)
-    (corfu-next)))
+  (if (jds/completion-popup-visible-p)
+      (corfu-next)
+    (next-line)))
 
 (defun jds/completion-previous-dwim ()
-  "Move to the previous Corfu candidate when the popup is visible."
+  "Move to the previous Corfu candidate, or the previous line otherwise."
   (interactive)
-  (when (jds/completion-popup-visible-p)
-    (corfu-previous)))
+  (if (jds/completion-popup-visible-p)
+      (corfu-previous)
+    (previous-line)))
 
 (defun jds/completion-abort-dwim ()
-  "Dismiss the Corfu popup when it is visible."
+  "Dismiss the Corfu popup, or return to normal state otherwise."
   (interactive)
-  (when (jds/completion-popup-visible-p)
-    (corfu-quit)))
+  (if (jds/completion-popup-visible-p)
+      (corfu-quit)
+    (evil-normal-state)))
 
 (defun jds/completion-keys ()
   (evil-local-set-key 'insert (kbd "<tab>") #'jds/completion-accept-dwim)
