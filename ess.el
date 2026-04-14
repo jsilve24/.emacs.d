@@ -1,5 +1,9 @@
 ;;; ess.el ---  R setup -*- lexical-binding: t; -*-
 
+;; Parent module owns its local helper commands so `init.el` stays ignorant of
+;; internal support files.
+(load-config "autoloads/ess-autoloads.el")
+
 ;; setup projectile
 (with-eval-after-load 'projectile
   (add-to-list 'projectile-project-root-files "DESCRIPTION"))

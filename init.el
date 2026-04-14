@@ -45,10 +45,8 @@
 (load-config "dired.el")
 (load-config "spelling.el")
 (load-config "latex.el")		
-(load-config "autoloads/sow.el")
 (load-config "pdf.el")
 (unless jds~skip-email
-	(load-config "autoloads/email.el")
  	(load-config "email.el")
 )
 (load-config "calendar.el")
@@ -58,7 +56,6 @@
 (load-config "bindings.el")
 (load-config "debugging.el")
 (load-config "references.el")
-(load-config "autoloads/references.el")
 (load-config "ssh.el")
 (load-config "org-roam.el")
 (load-config "lsp.el")
@@ -76,7 +73,6 @@
 ;;; languages
 (load-config "python.el")
 (load-config "ess.el")
-(load-config "autoloads/ess-autoloads.el")
 (load-config "stan.el")
 ;; (load-config "ledger.el")
 ;; 

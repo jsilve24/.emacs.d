@@ -1,5 +1,9 @@
 ;;; references.el --- summary -*- lexical-binding: t -*-
 
+;; Parent module owns its local helper commands so `init.el` stays ignorant of
+;; internal support files.
+(load-config "autoloads/references.el")
+
 (use-package bibtex-completion
   :straight t
   :defer t

@@ -1,5 +1,7 @@
 ;;; pdf.el --- pdf tools setup -*- lexical-binding: t; -*-
 
+;; This vendored helper is only used here, so `pdf.el` owns it directly.
+(load-config "autoloads/sow.el")
 
 (use-package pdf-tools
   :mode ("\\.pdf\\'" . pdf-view-mode)

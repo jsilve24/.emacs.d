@@ -3,6 +3,10 @@
 ;; (straight-use-package '(mu4e
 ;;   ;; :files (:defaults "/usr/local/share/emacs/site-lisp/mu4e/*.el")))
 ;;   :files (:defaults "mu4e/*.el")))
+;; Parent module owns its local helper commands so `init.el` stays ignorant of
+;; internal support files.
+(load-config "autoloads/email.el")
+
 (use-package mu4e
   ;; from here: https://github.com/radian-software/straight.el/issues/491
   :straight (:local-repo "/usr/share/emacs/site-lisp/mu4e"
