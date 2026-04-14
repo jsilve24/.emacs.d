@@ -248,14 +248,17 @@ are place there, otherwise you are prompted for a message buffer."
   (gnus-dired-attach (list file)))
 
 (defun jds/message-swap-to-and-cc ()
-  "Swap the To and Cc header values in the current message buffer."
+  "Swap the To and Cc header values in the current message buffer.
+Preserve the standard header order by changing field values in place."
   (interactive)
   (let ((to (string-trim (or (message-fetch-field "To") "")))
 	(cc (string-trim (or (message-fetch-field "Cc") ""))))
-    (message-replace-header "To" cc)
-    (if (string-empty-p to)
-	(message-remove-header "Cc")
-      (message-replace-header "Cc" to))
+    (message-position-on-field "To")
+    (delete-region (point) (line-end-position))
+    (insert " " cc)
+    (message-position-on-field "Cc")
+    (delete-region (point) (line-end-position))
+    (insert " " to)
     (message "Swapped To and Cc fields.")))
 
 (general-define-key
