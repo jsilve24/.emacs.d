@@ -517,7 +517,7 @@ Set to `anthropic' or `openai', then reload this file."
     ;; Insert state should feel like composing in a shell/editor.
     (evil-local-set-key 'insert (kbd "RET") #'newline)
     (evil-local-set-key 'insert (kbd "C-<return>") #'comint-send-input)
-    (evil-local-set-key 'insert (kbd "<tab>") #'completion-at-point)
+    (evil-local-set-key 'insert (kbd "<tab>") #'jds/completion-accept-dwim)
     (evil-local-set-key 'insert (kbd "<backtab>") #'jds/agent-shell-backtab-dwim)
     (evil-local-set-key 'insert (kbd "C-<tab>") #'agent-shell-cycle-session-mode)
     (evil-local-set-key 'insert (kbd "M-p") #'agent-shell-previous-input)
@@ -588,7 +588,7 @@ Set to `anthropic' or `openai', then reload this file."
     (kbd "q") #'bury-buffer)
   (evil-define-key 'insert agent-shell-viewport-edit-mode-map
     (kbd "C-<return>") #'agent-shell-viewport-compose-send
-    (kbd "<tab>") #'completion-at-point
+    (kbd "<tab>") #'jds/completion-accept-dwim
     (kbd "<backtab>") #'jds/agent-shell-backtab-dwim
     (kbd "M-p") #'agent-shell-viewport-previous-history
     (kbd "M-n") #'agent-shell-viewport-next-history)

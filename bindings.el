@@ -108,8 +108,8 @@
      (or (string= major-mode "org-mode")
 	 (string= major-mode "org-msg-edit-mode")))
     (org-cycle))
-   ((and (bound-and-true-p corfu--candidates) (fboundp 'corfu-next))
-    (corfu-next))
+   ((and (bound-and-true-p corfu--candidates) (fboundp 'corfu-insert))
+    (corfu-insert))
    ((yas-expand) nil)
    ((yas-active-snippets) (yas-next-field))
    ((and (looking-back "[^ \t\n]" 1)
@@ -119,9 +119,43 @@
     (ess-indent-command))
    ((indent-for-tab-command nil))))
 
+;;;###autoload
+(defun jds/completion-popup-visible-p ()
+  "Return non-nil when the Corfu completion popup is active."
+  (and (bound-and-true-p corfu-mode)
+       (bound-and-true-p corfu--candidates)))
+
+;;;###autoload
+(defun jds/completion-accept-dwim ()
+  "Accept the current Corfu candidate, or fall back to `jds/tab-dwim'."
+  (interactive)
+  (if (jds/completion-popup-visible-p)
+      (corfu-insert)
+    (jds/tab-dwim)))
+
+(defun jds/completion-next-dwim ()
+  "Move to the next Corfu candidate when the popup is visible."
+  (interactive)
+  (when (jds/completion-popup-visible-p)
+    (corfu-next)))
+
+(defun jds/completion-previous-dwim ()
+  "Move to the previous Corfu candidate when the popup is visible."
+  (interactive)
+  (when (jds/completion-popup-visible-p)
+    (corfu-previous)))
+
+(defun jds/completion-abort-dwim ()
+  "Dismiss the Corfu popup when it is visible."
+  (interactive)
+  (when (jds/completion-popup-visible-p)
+    (corfu-quit)))
 
 (defun jds/completion-keys ()
-  (evil-local-set-key 'insert (kbd "<tab>") #'jds/tab-dwim)
+  (evil-local-set-key 'insert (kbd "<tab>") #'jds/completion-accept-dwim)
+  (evil-local-set-key 'insert (kbd "<down>") #'jds/completion-next-dwim)
+  (evil-local-set-key 'insert (kbd "<up>") #'jds/completion-previous-dwim)
+  (evil-local-set-key 'insert (kbd "<escape>") #'jds/completion-abort-dwim)
   (evil-local-set-key 'normal (kbd "<tab>") #'jds/tab-dwim)
   ;; (evil-local-set-key 'insert (kbd "C-l")   #'company-ispell)
   )

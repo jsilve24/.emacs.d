@@ -211,6 +211,10 @@ R script buffer (i.e. the major mode is not `ess-r-mode`)."
  :keymaps 'inferior-ess-mode-map
  "C-l" #'comint-clear-buffer)
 
+(with-eval-after-load 'ess-inf
+  (evil-define-key 'insert inferior-ess-mode-map
+    (kbd "<tab>") #'jds/completion-accept-dwim))
+
 
 (jds/localleader-def
   :keymaps '(ess-mode-map inferior-ess-mode-map)

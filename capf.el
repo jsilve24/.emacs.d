@@ -5,13 +5,6 @@
                    :includes (corfu-history
 			      corfu-quick
 			      corfu-popupinfo))
-
-  ;; :bind
-  ;; (:map corfu-map
-  ;; 	("TAB" . corfu-next)
-  ;; 	([tab] . corfu-next)
-  ;; 	("S-TAB" . corfu-previous)
-  ;; 	([backtab] . corfu-previous))
   ;; Optional customizations
   :custom
   (corfu-cycle t) ;; Enable cycling for `corfu-next/previous'
@@ -36,6 +29,14 @@
   :init
   (global-corfu-mode)
   :config
+  ;; Make popup navigation consistent everywhere Corfu is active.
+  (define-key corfu-map (kbd "TAB") #'corfu-insert)
+  (define-key corfu-map (kbd "<tab>") #'corfu-insert)
+  (define-key corfu-map (kbd "<down>") #'corfu-next)
+  (define-key corfu-map (kbd "<up>") #'corfu-previous)
+  (define-key corfu-map (kbd "ESC") #'corfu-quit)
+  (define-key corfu-map (kbd "<escape>") #'corfu-quit)
+
   (defun corfu-move-to-minibuffer ()
     (interactive)
     (let ((completion-extra-properties corfu--extra)
@@ -175,4 +176,3 @@
 ;;  "<down>" nil
 ;;  "C-k" #'comint-previous-input
 ;;  "C-j" #'comint-next-input)
-
