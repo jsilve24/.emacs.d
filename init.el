@@ -36,6 +36,7 @@
 (load-config "completing-read.el")
 (load-config "projects.el")
 (load-config "git.el")
+(load-config "templates.el")
 (load-config "term.el")
 (load-config "system-jump.el")
 (load-config "avy.el")

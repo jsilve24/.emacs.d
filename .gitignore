@@ -31,4 +31,3 @@
 *.elc
 /.agent-shell/
 /agent/
-/.codex

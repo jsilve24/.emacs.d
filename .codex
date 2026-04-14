@@ -1,0 +1,2 @@
+Long-term maintained files should not go in `etc/` or `var/`; those paths are gitignored.
+Preserve `init.el` load order, especially `core.el` first, `org.el` before themes/completion, and `bindings.el` after package modules.

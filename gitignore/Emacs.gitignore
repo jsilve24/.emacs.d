@@ -1,0 +1,5 @@
+.dir-locals.el
+.projectile
+*.elc
+auto-save-list/
+tramp

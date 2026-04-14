@@ -1,0 +1,5 @@
+#+title: __TITLE__
+
+* Scope
+
+* Notes

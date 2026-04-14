@@ -1,0 +1,16 @@
+#+title: Manuscript Draft
+#+startup: overview
+
+* Title
+
+* Abstract
+
+* Introduction
+
+* Methods
+
+* Results
+
+* Discussion
+
+* References
