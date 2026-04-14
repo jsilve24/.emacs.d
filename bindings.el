@@ -319,11 +319,19 @@
     `(lambda () (interactive) (find-file ,file)))
 
 ;;;###autoload
+(defun jds/org-directory-root ()
+  "Return `org-directory' when available, with a stable fallback path."
+  (expand-file-name
+   (if (boundp 'org-directory)
+       org-directory
+     "~/Dropbox/org/")))
+
+;;;###autoload
 (defun jds/switch-to-agenda-file (fn)
-    "Display file listed org-directory."
+    "Display file FN relative to `org-directory'."
   (interactive)
   (find-file
-   (expand-file-name fn org-directory)))
+   (expand-file-name fn (jds/org-directory-root))))
 
 
 (jds/leader-def
@@ -365,9 +373,14 @@
     "Create new lambda function that wraps functions like org-store-link to smarly add ROAM_EXCLUDE tag."
     `(lambda (&optional arg)
        (interactive "P")
-       (let* ((inorg (string= major-mode "org-mode"))
+       (let* ((inorg (derived-mode-p 'org-mode))
 	      (nodep (if inorg (org-roam-db-node-p) nil))
-	      (inroam (string-prefix-p (expand-file-name org-roam-directory) (buffer-file-name)))
+	      (buffer-file (buffer-file-name))
+	      (roam-root (when (bound-and-true-p org-roam-directory)
+			   (expand-file-name org-roam-directory)))
+	      (inroam (and buffer-file
+			   roam-root
+			   (string-prefix-p roam-root buffer-file)))
 	      (include (if inorg  (not (member "ROAM_EXCLUDE" (org-get-tags))) nil)))
 	 ,body
 	 (unless arg
@@ -380,16 +393,59 @@
 
 
 ;;;###autoload
-(setq jds~task-files (mapcar (lambda (relfile) (expand-file-name relfile org-directory))
-			     (list "tasks.org" "resources.org" "mail.org" "inbox.org" "inbox_mobile.org" "tasks-homewood.org")))
+(defvar jds~task-files-relpaths
+  '("tasks.org" "resources.org" "mail.org" "inbox.org" "inbox_mobile.org" "tasks-homewood.org"))
+
+;;;###autoload
+(defun jds/org-task-files ()
+  "Return absolute task files under `org-directory'."
+  (mapcar (lambda (relfile) (expand-file-name relfile (jds/org-directory-root)))
+	  jds~task-files-relpaths))
+
+;;;###autoload
+(defun jds/call-command-when-available (command context)
+  "Call COMMAND interactively or show a clear CONTEXT message if unavailable."
+  (if (fboundp command)
+      (call-interactively command)
+    (user-error "%s is unavailable (%s not loaded)" context command)))
+
+;;;###autoload
+(defun jds/org-roam-node-find-dwim ()
+  (interactive)
+  (jds/call-command-when-available 'org-roam-node-find "Org-roam node find"))
+
+;;;###autoload
+(defun jds/org-roam-capture-dwim ()
+  (interactive)
+  (jds/call-command-when-available 'org-roam-capture "Org-roam capture"))
+
+;;;###autoload
+(defun jds/consult-org-roam-search-dwim ()
+  (interactive)
+  (jds/call-command-when-available 'consult-org-roam-search "Consult Org-roam search"))
+
+;;;###autoload
+(defun jds/consult-org-roam-file-find-dwim ()
+  (interactive)
+  (jds/call-command-when-available 'consult-org-roam-file-find "Consult Org-roam file find"))
+
+;;;###autoload
+(defun jds/consult-org-roam-backlinks-dwim ()
+  (interactive)
+  (jds/call-command-when-available 'consult-org-roam-backlinks "Consult Org-roam backlinks"))
+
 (defun jds/consult-org-agenda-or-ripgrep-all-headlines (&optional arg)
   "Run consult-org-agenda or with prefix, run jds/consult-org-agenda-or-ripgrep-all-headlines."
   (interactive "P")
   (let ((prefix (prefix-numeric-value current-prefix-arg)))
     (cond
-     ((eq prefix 4) (consult-org-agenda))
+     ((eq prefix 4)
+      (jds/call-command-when-available 'consult-org-agenda "Consult Org agenda"))
      ((eq prefix 16) (jds/consult-ripgrep-all-org-headlines))
-     (t (consult-org-heading nil jds~task-files)))))
+     ((fboundp 'consult-org-heading)
+      (consult-org-heading nil (jds/org-task-files)))
+     (t
+      (user-error "Consult Org heading is unavailable (consult-org not loaded)")))))
 
 (jds/sub-leader-def
   "," #'org-capture   ;; q "new"
@@ -409,8 +465,8 @@
 	  (jds/mu4e-goto-todays-headers))
   ;; "n" #'org-roam-node-find
   "n" (lambda () (interactive) (let ((consult-preview-key nil))
-				 (call-interactively #'org-roam-node-find)))
-  ";" #'org-roam-capture
+				 (jds/org-roam-node-find-dwim)))
+  ";" #'jds/org-roam-capture-dwim
   "l" (jds~roam-exclude-dwim (org-store-link nil t))
   ;; "L" #'org-super-links-store-link
   "i" #'org-insert-link
@@ -482,8 +538,14 @@
   "gl" #'magit-log
   "gr" #'browse-at-remote)
 
-;;; apps
+(defun jds/open-chatgpt-in-qutebrowser ()
+  "Open ChatGPT in qutebrowser when available."
+  (interactive)
+  (if (not (executable-find "qutebrowser"))
+      (user-error "qutebrowser is not available")
+    (start-process "qutebrowser" nil "qutebrowser" "--target" "window" "https://chatgpt.com")))
 
+;;; apps
 (jds/leader-def
   "o" '(:ignore t :which-key "other/apps")
   ;; "os" #'jds/hydra-spotify-wrapper
@@ -494,7 +556,7 @@
   "ob" #'ebib
   ;; "oz" #'(lambda () (interactive) (jds~launch-zoom-by-conference-number 3697254414))
   ;; "oo" #'(lambda () (interactive) (start-process "qutebrowser" nil "qutebrowser" "--target" "window" "https://claude.ai"))
-  "oo" #'(lambda () (interactive) (start-process "qutebrowser" nil "qutebrowser" "--target" "window" "https://chatgpt.com"))
+  "oo" #'jds/open-chatgpt-in-qutebrowser
   )
 
 (with-eval-after-load 'engine-mode
@@ -505,10 +567,10 @@
 (jds/leader-def
   "l" '(:ignore t :which-key "notes")
   "ls" #'jds/consult-org-roam-and-agenda-search-headlines
-  "ln" #'org-roam-node-find
-  "lS" #'consult-org-roam-search
-  "lf" #'consult-org-roam-file-find
-  "ll" #'consult-org-roam-backlinks)
+  "ln" #'jds/org-roam-node-find-dwim
+  "lS" #'jds/consult-org-roam-search-dwim
+  "lf" #'jds/consult-org-roam-file-find-dwim
+  "ll" #'jds/consult-org-roam-backlinks-dwim)
 
 
 ;; eglot/lsp bindings

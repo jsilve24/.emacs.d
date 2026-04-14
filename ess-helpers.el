@@ -1,4 +1,4 @@
-;;; ess-autoloads.el ---  R setup -*- lexical-binding: t; -*-
+;;; ess-helpers.el --- ESS helper commands -*- lexical-binding: t; -*-
 
 ;;; TIDYVERSE IDE
 ;;;###autoload
@@ -203,4 +203,4 @@
   (setq command (concat "echo \"" rcmd "\" | R --vanilla"))
   (compile command))
 
-(provide 'ess-autoloads.el)
+(provide 'ess-helpers)

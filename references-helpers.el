@@ -1,4 +1,4 @@
-;;; references.el --- summary -*- lexical-binding: t -*-
+;;; references-helpers.el --- references helper commands -*- lexical-binding: t -*-
 
 ;;;###autoload
 (defun jds~citar-prioritize-local-bib (fun)
@@ -34,3 +34,5 @@
   "Run citar-open but prioritize global bibliographies if present, otherwise use local."
   (interactive)
   (jds~citar-prioritize-global-bib #'citar-open))
+
+(provide 'references-helpers)

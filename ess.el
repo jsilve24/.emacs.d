@@ -2,7 +2,7 @@
 
 ;; Parent module owns its local helper commands so `init.el` stays ignorant of
 ;; internal support files.
-(load-config "autoloads/ess-autoloads.el")
+(load-config "ess-helpers.el")
 
 ;; setup projectile
 (with-eval-after-load 'projectile
@@ -12,7 +12,9 @@
 (use-package ess
   :mode (("\\.[rR]\\'" . ess-r-mode))
   :commands R ess-r-mode
-  :init (require 'ess-site)
+  :init
+  (unless (require 'ess-site nil t)
+    (message "ESS setup incomplete: ess-site is unavailable"))
   :config
   (setq ess-offset-continued 'straight
 	ess-nuke-trailing-whitespace-p t
@@ -67,6 +69,7 @@
       ;; `essgd-start' eagerly displays `*essgd*' even when there are no plots
       ;; yet. Suppress that initial popup and let `essgd-show-plot-n' reveal
       ;; the buffer the first time an actual plot is rendered.
+      ;; If you prefer the upstream behavior, remove this `cl-letf' wrapper.
       (cl-letf (((symbol-function 'display-buffer)
                  (lambda (buffer-or-name &optional action frame)
                    (let ((buffer (get-buffer buffer-or-name)))

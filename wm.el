@@ -25,8 +25,11 @@
   (require 'exwm-randr)
   ;; (exwm-randr-enable)
   (exwm-randr-mode 1)
-  (cond ((string= (system-name) "lenovoX1Sil") (start-process-shell-command "xrandr" nil "xrandr --output eDP-1 --primary --mode 1920x1200 --pos 0x0 --rotate normal"))
-	((string= (system-name) "lenovoGen2Sil") (start-process-shell-command "xrandr" nil "xrandr --output eDP-1 --primary --mode 1920x1080 --pos 0x0 --rotate normal")))
+  (cond
+   ((string= (system-name) "lenovoX1Sil")
+    (start-process-shell-command "xrandr" nil "xrandr --output eDP-1 --primary --mode 1920x1200 --pos 0x0 --rotate normal"))
+   ((string= (system-name) "lenovoGen2Sil")
+    (start-process-shell-command "xrandr" nil "xrandr --output eDP-1 --primary --mode 1920x1080 --pos 0x0 --rotate normal")))
 
   ;; This will need to be updated to the name of a display!  You can find
   ;; the names of your displays by looking at arandr or the output of xrandr
@@ -201,8 +204,19 @@
 (general-define-key
  :keymaps 'exwm-launcher-map
  ;; "q" '((lambda () (interactive) (run-or-raise-or-dismiss "qutebrowser" "qutebrowser")) :wk "qutebrowser")
- "q" '((lambda () (interactive) (start-process "qutebrowser" nil "qutebrowser")) :wk "qutebrowser-new-window")
- "Q" '((lambda () (interactive) (progn (+evil/window-vsplit-and-follow) (start-process "qutebrowser" nil "qutebrowser")))
+ "q" '((lambda ()
+	  (interactive)
+	  (if (not (executable-find "qutebrowser"))
+	      (user-error "qutebrowser is not available")
+	    (start-process "qutebrowser" nil "qutebrowser")))
+	:wk "qutebrowser-new-window")
+ "Q" '((lambda ()
+	  (interactive)
+	  (if (not (executable-find "qutebrowser"))
+	      (user-error "qutebrowser is not available")
+	    (progn
+	      (+evil/window-vsplit-and-follow)
+	      (start-process "qutebrowser" nil "qutebrowser"))))
        :wk "qutebrowser-new-window")
  ;; "y" '((lambda () (interactive) (run-or-raise-or-dismiss "slack" "Slack")) :wk "slack")
  ;; "c" '((lambda () (interactive) (jds/quiet-async-shell-commands "~/bin/capslock.sh")) :wk "capslock.sh")
@@ -306,4 +320,3 @@
 				  (if popper-open-popup-alist
 				      (popper-toggle-latest)
 				    (jds/nm-status))))
-

@@ -270,6 +270,10 @@ as suppressing `./' expansion while entering `[[./path]]'."
   (defun jds~org-agenda-link ()
     "Quickly Insert Org Agenda Links using consult-org-agenda."
     (interactive)
+    (unless (fboundp 'consult-org-agenda)
+      (user-error "consult-org-agenda is unavailable"))
+    (unless (fboundp 'org-store-link)
+      (user-error "org-store-link is unavailable"))
     (save-excursion
       (let ((buf (current-buffer)))
 	(consult-org-agenda)

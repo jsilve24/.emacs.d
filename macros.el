@@ -25,5 +25,11 @@
 ;; https://emacs.stackexchange.com/questions/7653/elisp-code-to-check-for-internet-connection
 ;;;###autoload
 (defun jds~internet-up-p (&optional host)
-    (= 0 (call-process "ping" nil nil nil "-c" "1" "-W" "1" 
-                       (if host host "www.google.com"))))
+  (let ((target (or host "www.google.com")))
+    (if-let* ((ping (executable-find "ping")))
+        (= 0 (if (eq system-type 'darwin)
+                 (call-process ping nil nil nil "-c" "1" "-t" "1" target)
+               (call-process ping nil nil nil "-c" "1" "-W" "1" target)))
+      (progn
+        (message "jds~internet-up-p: `ping` executable not found")
+        nil))))

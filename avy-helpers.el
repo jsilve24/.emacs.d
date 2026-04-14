@@ -1,4 +1,4 @@
-;;; avy.el --- avy functions -*- lexical-binding: t; -*-
+;;; avy-helpers.el --- avy helper commands -*- lexical-binding: t; -*-
 ;;
 ;; Copyright (C) 2021 Justin Silverman
 ;;
@@ -108,6 +108,8 @@ BEG and END narrow the scope where candidates are searched."
 (defun avy-org-agenda ()
   "Goto a visible item in an `org-mode-agenda' buffer."
   (interactive)
+  (unless (fboundp 'org-agenda-switch-to)
+    (user-error "Org agenda helpers are unavailable"))
   (avy-action-goto (avy-with avy-org-agenda
                      (avy-process (avy--org-agenda-cands)))))
 
@@ -124,6 +126,8 @@ BEG and END narrow the scope where candidates are searched."
 ;;;###autoload
 (defun jds/org-headline-avy ()
   "TODO"
+  (unless (derived-mode-p 'org-mode)
+    (user-error "jds/org-headline-avy only works in Org buffers"))
   (require 'avy)
   (save-excursion
     (when-let* ((org-reverse-note-order t)
@@ -145,5 +149,5 @@ BEG and END narrow the scope where candidates are searched."
 
 
 
-(provide 'avy)
-;;; avy.el ends here
+(provide 'avy-helpers)
+;;; avy-helpers.el ends here

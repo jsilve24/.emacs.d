@@ -1,6 +1,7 @@
 ;;; elfeed.el --- elfeed config -*- lexical-binding: t -*-
 
-(require 'gptel-reinforce-elfeed)
+(unless (require 'gptel-reinforce-elfeed nil t)
+  (message "Elfeed AI summaries disabled: gptel-reinforce-elfeed is unavailable"))
 
 ;; Short display names keyed by URL substring — edit here to rename feeds
 (defvar jds/elfeed-feed-short-names

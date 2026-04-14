@@ -77,5 +77,5 @@ Set before module loading in `init.el`:
 - New packages belong in the most relevant existing module file, not new files
 - Keybindings go in the relevant module's `use-package` block or in `bindings.el` for global bindings
 - Mode-specific bindings use `jds/localleader-def` with `:keymaps 'some-mode-map`
-- Custom helper functions intended for use across modules go in `autoloads/sow.el` with `;;;###autoload`
+- Custom helper functions intended for use across modules should live in a dedicated `*-helpers.el` module with `;;;###autoload`
 - The `custom-set-variables` block at the bottom of `init.el` is managed by Emacs Custom — avoid editing it manually

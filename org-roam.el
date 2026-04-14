@@ -11,7 +11,8 @@
   (setq org-roam-v2-ack t)
   :config
   ;; better export for org-roam files
-  (require 'org-roam-export)
+  (unless (require 'org-roam-export nil t)
+    (message "Org-roam export helpers disabled: org-roam-export is unavailable"))
   (setq org-roam-capture-templates
 	'(("d" "default" plain "%?"
 	   :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+date: %U\n#+STARTUP: latexpreview\n")
@@ -171,8 +172,7 @@ item to existing references drawer."
   (setq citar-notes-source 'orb-citar-source))
 
 (use-package org-roam-bibtex
-  :after org-roam
-  :after citar
+  :after (org-roam citar)
   :diminish org-roam-bibtex-mode
   :config
   (diminish 'org-roam-bibtex-mode)

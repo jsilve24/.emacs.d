@@ -4,6 +4,22 @@
   (let ((command-parts (split-string command "[ ]+")))
     (apply #'call-process `(,(car command-parts) nil 0 nil ,@(cdr command-parts)))))
 
+(defun jds/wm-executable-available-p (program &optional context)
+  "Return non-nil when PROGRAM is installed, otherwise emit a message.
+Optional CONTEXT is included in the message for easier debugging."
+  (if (executable-find program)
+      t
+    (message "%s skipped: `%s` is not available"
+             (or context "WM command")
+             program)
+    nil))
+
+(defun jds/wm-run-shell-command-if-available (program command &optional context)
+  "Run COMMAND via `jds/quiet-async-shell-commands' when PROGRAM exists.
+Optional CONTEXT is passed to `jds/wm-executable-available-p'."
+  (when (jds/wm-executable-available-p program context)
+    (jds/quiet-async-shell-commands command)))
+
 (defun efs/exwm-update-class ()
   (exwm-workspace-rename-buffer exwm-class-name))
 
@@ -35,9 +51,10 @@
 
 ;; This function should be used only after configuring autorandr!
 (defun efs/update-displays ()
-  (efs/run-in-background "autorandr --change")
-  (message "Display config: %s"
-	   (string-trim (shell-command-to-string "autorandr --current"))))
+  (when (jds/wm-executable-available-p "autorandr" "Display auto-configuration")
+    (efs/run-in-background "autorandr --change")
+    (message "Display config: %s"
+	     (string-trim (shell-command-to-string "autorandr --current")))))
 
 
 (defun exwm-layout-toggle-fullscreen-or-single-window ()
@@ -67,38 +84,74 @@ configuration was previously save, restore that configuration."
 (defun jds/setup-projector-and-wacom-E206 ()
   "Quick setup screen mirroring and wacom to HEAD-0 for teaching in Westgate E206"
   (interactive)
-  (jds/quiet-async-shell-commands "xrandr --output eDP-1 --primary --mode 1920x1080 --pos 0x0 --rotate normal --output DP-1-0 --mode 1920x1080 --pos 1911x0 --rotate normal --output DP-1-1 --off --output HDMI-1-0 --off")
+  (jds/wm-run-shell-command-if-available
+   "xrandr"
+   "xrandr --output eDP-1 --primary --mode 1920x1080 --pos 0x0 --rotate normal --output DP-1-0 --mode 1920x1080 --pos 1911x0 --rotate normal --output DP-1-1 --off --output HDMI-1-0 --off"
+   "Projector setup (E206)")
   (run-with-timer 1 nil (lambda ()  
-			  (jds/quiet-async-shell-commands "xrandr --output DP-1-0 --same-as eDP-1")))
+			  (jds/wm-run-shell-command-if-available
+                           "xrandr"
+                           "xrandr --output DP-1-0 --same-as eDP-1"
+                           "Projector setup (E206)")))
   (run-with-timer 5 nil (lambda ()
-			  (jds/quiet-async-shell-commands "xsetwacom set 'Wacom Intuos BT S Pen stylus' MapToOutput HEAD-0"))))
+			  (jds/wm-run-shell-command-if-available
+                           "xsetwacom"
+                           "xsetwacom set 'Wacom Intuos BT S Pen stylus' MapToOutput HEAD-0"
+                           "Projector setup (E206)"))))
 
 ;;;###autoload
 (defun jds/setup-projector-and-wacom-willard-073 ()
   "Quick setup screen mirroring and wacom to HEAD-0 for teaching in Westgate E208"
   (interactive)	
-  (jds/quiet-async-shell-commands "xrandr --output eDP-1 --primary --mode 1920x1080 --pos 0x0 --rotate normal --output DP-1-0 --off --output DP-1-1 --off --output HDMI-1-0 --mode 1920x1080 --pos 1920x0 --rotate normal")
-  (jds/quiet-async-shell-commands "xrandr --output HDMI-1-0 --same-as eDP-1")
-  (jds/quiet-async-shell-commands "xsetwacom set 'Wacom Intuos BT S Pen stylus' MapToOutput HEAD-0"))
+  (jds/wm-run-shell-command-if-available
+   "xrandr"
+   "xrandr --output eDP-1 --primary --mode 1920x1080 --pos 0x0 --rotate normal --output DP-1-0 --off --output DP-1-1 --off --output HDMI-1-0 --mode 1920x1080 --pos 1920x0 --rotate normal"
+   "Projector setup (Willard 073)")
+  (jds/wm-run-shell-command-if-available
+   "xrandr"
+   "xrandr --output HDMI-1-0 --same-as eDP-1"
+   "Projector setup (Willard 073)")
+  (jds/wm-run-shell-command-if-available
+   "xsetwacom"
+   "xsetwacom set 'Wacom Intuos BT S Pen stylus' MapToOutput HEAD-0"
+   "Projector setup (Willard 073)"))
 
 
 ;;;###autoload
 (defun jds/setup-projector-and-wacom-E208 ()
   "Quick setup screen mirroring and wacom to HEAD-0 for teaching in Westgate E208"
   (interactive)
-  (jds/quiet-async-shell-commands " xrandr --output eDP-1 --primary --mode 1920x1200 --pos 1920x0 --rotate normal --output HDMI-1 --off --output DP-1 --off --output DP-2 --off --output DP-3 --off --output DP-4 --off --output DP-1-0 --off --output DP-1-1 --off --output DP-1-2 --off --output DP-1-3 --off --output HDMI-1-0 --mode 1920x1080 --pos 0x0 --rotate normal")
-  (jds/quiet-async-shell-commands "xrandr --output HDMI-1-0 --same-as eDP-1")
-  (jds/quiet-async-shell-commands "xsetwacom set 'Wacom Intuos BT S Pen stylus' MapToOutput HEAD-0"))
+  (jds/wm-run-shell-command-if-available
+   "xrandr"
+   "xrandr --output eDP-1 --primary --mode 1920x1200 --pos 1920x0 --rotate normal --output HDMI-1 --off --output DP-1 --off --output DP-2 --off --output DP-3 --off --output DP-4 --off --output DP-1-0 --off --output DP-1-1 --off --output DP-1-2 --off --output DP-1-3 --off --output HDMI-1-0 --mode 1920x1080 --pos 0x0 --rotate normal"
+   "Projector setup (E208)")
+  (jds/wm-run-shell-command-if-available
+   "xrandr"
+   "xrandr --output HDMI-1-0 --same-as eDP-1"
+   "Projector setup (E208)")
+  (jds/wm-run-shell-command-if-available
+   "xsetwacom"
+   "xsetwacom set 'Wacom Intuos BT S Pen stylus' MapToOutput HEAD-0"
+   "Projector setup (E208)"))
 
 ;; make sure to connect with dell splitter
 ;;;###autoload
 (defun jds/setup-projector-and-wacom-E210 ()
   "Quick setup screen mirroring and wacom to HEAD-0 for teaching in Westgate E208"
   (interactive)
-  (jds/quiet-async-shell-commands "xrandr --output eDP-1 --primary --mode 1920x1080 --pos 0x0 --rotate normal --output DP-1-0 --mode 1920x1080 --pos 1920x0 --rotate normal --output DP-1-1 --off --output HDMI-1-0 --off")
-  (jds/quiet-async-shell-commands "xrandr --output DP-1-0 --same-as eDP-1")
+  (jds/wm-run-shell-command-if-available
+   "xrandr"
+   "xrandr --output eDP-1 --primary --mode 1920x1080 --pos 0x0 --rotate normal --output DP-1-0 --mode 1920x1080 --pos 1920x0 --rotate normal --output DP-1-1 --off --output HDMI-1-0 --off"
+   "Projector setup (E210)")
+  (jds/wm-run-shell-command-if-available
+   "xrandr"
+   "xrandr --output DP-1-0 --same-as eDP-1"
+   "Projector setup (E210)")
   (sit-for 15)
-  (jds/quiet-async-shell-commands "xsetwacom set 'Wacom Intuos BT S Pen stylus' MapToOutput HEAD-0"))
+  (jds/wm-run-shell-command-if-available
+   "xsetwacom"
+   "xsetwacom set 'Wacom Intuos BT S Pen stylus' MapToOutput HEAD-0"
+   "Projector setup (E210)"))
 
 
 ;; also for quickly launching my personal zoom room
@@ -107,4 +160,3 @@ configuration was previously save, restore that configuration."
   "Use xdg-open to zoom opening CONF meeting ID. CONF should be a string."
   (jds/quiet-async-shell-commands
    (format "xdg-open 'zoommtg://zoom.us/join?action=join&confno=%s'" conf)))
-
