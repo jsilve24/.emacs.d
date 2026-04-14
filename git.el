@@ -1,5 +1,5 @@
 ;;; git.el --- magit config -*- lexical-binding: t; -*-
-(load "git-gitignore")
+(load-config "git-gitignore.el")
 
 (use-package magit
   :commands (magit-status magit-list-repositories)

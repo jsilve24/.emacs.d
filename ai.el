@@ -1,5 +1,12 @@
 ;;; ai.el --- summary -*- lexical-binding: t -*-
 
+(defvar jds/gptel-latex-system
+  "You are an expert scientific writing assistant. Rules:
+1. Preserve ALL LaTeX commands, environments, and macros exactly as written.
+2. Return ONLY the requested text — no preamble, no explanation, no markdown code fences.
+3. Use formal, precise academic prose appropriate for peer-reviewed journals.
+4. Match the style and register of the surrounding text.")
+
 (use-package gptel
   :init
   (defcustom jds/gptel-default-provider 'anthropic
@@ -58,12 +65,7 @@ Set to `anthropic' or `openai', then reload this file."
 	gptel-org-branching-context nil)
 
   ;; --- LaTeX writing system prompt ---
-  (defvar jds/gptel-latex-system
-    "You are an expert scientific writing assistant. Rules:
-1. Preserve ALL LaTeX commands, environments, and macros exactly as written.
-2. Return ONLY the requested text — no preamble, no explanation, no markdown code fences.
-3. Use formal, precise academic prose appropriate for peer-reviewed journals.
-4. Match the style and register of the surrounding text."))
+  (defvar jds/gptel-latex-system jds/gptel-latex-system))
 
 ;;; gptel-reinforce ------------------------------------------------------------
 (defun jds/gptel-reinforce-stale-build-p (dir)
@@ -96,7 +98,11 @@ Set to `anthropic' or `openai', then reload this file."
 (require 'gptel-reinforce-elfeed)
 (setq gptel-reinforce-summary-review-mode 'edit
       gptel-reinforce-update-review-mode 'edit
-      gptel-reinforce-gptel-backend jds/gptel-openai-backend
+      gptel-reinforce-gptel-backend
+      (cond
+       ((boundp 'jds/gptel-openai-backend) jds/gptel-openai-backend)
+       ((boundp 'gptel-backend) gptel-backend)
+       (t nil))
       gptel-reinforce-gptel-model 'gpt-5-mini)
 
 (defconst jds/gptel-reinforce-transient-context-ttl 120
