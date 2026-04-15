@@ -1,5 +1,8 @@
 ;;; bindings.el -- only for general purpose high-level bindings -*- lexical-binding: t; -*-
 
+;; Parent module owns these generic helper commands so the top-level keymap
+;; file stays focused on declarations instead of implementation details.
+(load (expand-file-name "bindings-helpers.el" user-emacs-directory) nil t)
 
 
 ;;; universal argument and other short stuff
@@ -7,7 +10,6 @@
   "/" #'consult-ripgrep
   "?" #'affe-grep
   ";" #'pp-eval-expression
-  ;; "." #'consult-project-extra-find
   "." #'consult-projectile
   ">" #'consult-projectile-switch-project
   "\`" #'evil-switch-to-windows-last-buffer
@@ -46,18 +48,6 @@
  "C-S-n" (general-simulate-key "C-M-v")
  "C-S-p" (general-simulate-key "M-<prior>"))
 
-
-;;;###autoload
-(defun jds~kill-whole-line ()
-  "Kill line, with prefix-arg kill entire line forwards and backwards to start of line."
-  (interactive)
-  (evil-delete-back-to-indentation))
-
-;;;###autoload
-(defun jds/evil-paste-from-clipboard ()
-  (interactive)
-  (evil-paste-from-register ?\"))
-
 (general-imap
   "C-k" #'jds~kill-whole-line
   "C-a" #'move-beginning-of-line
@@ -75,93 +65,6 @@
 
 ;; ultimately I found this annoying and it screwed with balanced parentheses in lisp code
 (global-set-key [remap dabbrev-expand] 'hippie-expand)
-
-;;;###autoload
-(defun jds~blank-line-p ()
-  "Is point currently on blank line."
-  (looking-at-p "^[[:space:]]*$"))
-
-;;; tab-dwim-begin
-;;;###autoload
-(defun jds/jump-delim ()
-    "Jump past delimiter"
-  (interactive)
-(if (looking-at (rx (or
-		     (literal ")")
-		     (literal "]")
-		     (literal "}"))))
-    (progn (forward-char) t)
-  nil))
-					
-;;;###autoload
-(defun jds/tab-dwim ()
-  (interactive)
-  ;; don't indent in texmathp
-  (cond
-   ((and (texmathp) (or (bound-and-true-p cdlatex-mode) org-cdlatex-mode))
-    (cdlatex-tab))
-   ((org-table-p) (org-table-next-field))
-   ((and
-     (or 
-      (org-at-drawer-p)
-      (org-at-heading-p))     
-     (or (string= major-mode "org-mode")
-	 (string= major-mode "org-msg-edit-mode")))
-    (org-cycle))
-   ((and (bound-and-true-p corfu--candidates) (fboundp 'corfu-insert))
-    (corfu-insert))
-   ((yas-expand) nil)
-   ((yas-active-snippets) (yas-next-field))
-   ((and (looking-back "[^ \t\n]" 1)
-	 (completion-at-point))  nil)
-   ((and (texmathp) (jds/jump-delim)) nil)
-   ((and (string= major-mode "ess-r-mode") (looking-back "[^\s]"))
-    (ess-indent-command))
-   ((indent-for-tab-command nil))))
-
-;;;###autoload
-(defun jds/completion-popup-visible-p ()
-  "Return non-nil when the Corfu completion popup is active."
-  (and (bound-and-true-p corfu-mode)
-       (bound-and-true-p corfu--candidates)))
-
-;;;###autoload
-(defun jds/completion-accept-dwim ()
-  "Accept the current Corfu candidate, or fall back to `jds/tab-dwim'."
-  (interactive)
-  (if (jds/completion-popup-visible-p)
-      (corfu-insert)
-    (jds/tab-dwim)))
-
-(defun jds/completion-next-dwim ()
-  "Move to the next Corfu candidate, or the next line otherwise."
-  (interactive)
-  (if (jds/completion-popup-visible-p)
-      (corfu-next)
-    (next-line)))
-
-(defun jds/completion-previous-dwim ()
-  "Move to the previous Corfu candidate, or the previous line otherwise."
-  (interactive)
-  (if (jds/completion-popup-visible-p)
-      (corfu-previous)
-    (previous-line)))
-
-(defun jds/completion-abort-dwim ()
-  "Dismiss the Corfu popup, or return to normal state otherwise."
-  (interactive)
-  (if (jds/completion-popup-visible-p)
-      (corfu-quit)
-    (evil-normal-state)))
-
-(defun jds/completion-keys ()
-  (evil-local-set-key 'insert (kbd "<tab>") #'jds/completion-accept-dwim)
-  (evil-local-set-key 'insert (kbd "<down>") #'jds/completion-next-dwim)
-  (evil-local-set-key 'insert (kbd "<up>") #'jds/completion-previous-dwim)
-  (evil-local-set-key 'insert (kbd "<escape>") #'jds/completion-abort-dwim)
-  (evil-local-set-key 'normal (kbd "<tab>") #'jds/tab-dwim)
-  ;; (evil-local-set-key 'insert (kbd "C-l")   #'company-ispell)
-  )
 (add-hook 'text-mode-hook 'jds/completion-keys)
 (add-hook 'prog-mode-hook 'jds/completion-keys)
 ;;; tab-dwim-end
@@ -179,8 +82,7 @@
   "fz" #'zoxide-find-file
   "fc" #'jds/open-config
   "fC" #'jds/find-file-config
-  ;; "fk" #'project-kill-buffers
-  "fm" #'projectile-compile-project ;; mneumonic: "file make"
+  "fm" #'projectile-compile-project
   "fk" #'projectile-kill-buffers
   "fp" #'consult-projectile
   "fP" #'jds/find-file-other-project
@@ -198,13 +100,11 @@
   "hf" #'helpful-callable
   "hv" #'helpful-variable
   "hF" #'describe-face
-  ;; "ha" #'consult-apropos
   "ha" #'helpful-symbol
   "ht" #'consult-theme
   "hl" #'view-lossage
   "hi" #'info-display-manual
   "hm" #'describe-mode)
-
 
 ;;; window management
 (jds/leader-def
@@ -285,7 +185,6 @@
 ;;; text editing
 (jds/leader-def
   "a"      '(:ignore t :wk "editing")
-  ;; "at"     #'synosaurus-choose-and-replace
   "at"     #'powerthesaurus-lookup-dwim
   "aT"     #'dictionary-search
   "aq"     '(:ignore t :wk "fill/unfill")
@@ -295,13 +194,11 @@
   "aqR"    #'unfill-region
   "af SPC" #'unfill-toggle
   "ac" #'completion-at-point
-  ;; "at" #'complete-tag
   "ad" #'cape-dabbrev
   "af" #'cape-file
   "ah" #'cape-history
   "ak" #'cape-keyword
   "as" #'cape-elisp-symbol
-  ;; "ab" #'cape-abbrev
   "al" #'cape-line
   "aw" #'cape-dict
   "a\\" #'cape-tex
@@ -463,9 +360,6 @@
   "M" #'(lambda (&optional arg) (interactive "P")
 	  (jds~new-frame-or-new-window arg)
 	  (jds/mu4e-goto-todays-headers))
-  ;; "n" #'org-roam-node-find
-  "n" (lambda () (interactive) (let ((consult-preview-key nil))
-				 (jds/org-roam-node-find-dwim)))
   ";" #'jds/org-roam-capture-dwim
   "l" (jds~roam-exclude-dwim (org-store-link nil t))
   ;; "L" #'org-super-links-store-link
@@ -491,6 +385,8 @@
   "d" #'jds/dired-jump-and-kill-buffer
   "D" #'dired-jump-other-window
   "c" #'jds/mu4e-compose-goto-to
+  "n" (lambda () (interactive) (let ((consult-preview-key nil))
+				 (jds/org-roam-node-find-dwim)))
   "e" #'consult-mu
   "E" (lambda () (interactive) (consult-mu "flag:attach "))
   "C" #'consult-mu-contacts) 
@@ -503,11 +399,6 @@
  :keymaps 'override
  "K" #'delete-indentation)
 
-
-;;;###autoload
-(defun jds/consult-ripgrep-config ()
-  (interactive)
-  (consult-ripgrep "~/.emacs.d"))
 
 ;;; search
 (jds/leader-def
@@ -622,14 +513,6 @@
   (evil-declare-motion 'jds/avy-goto-word-0-end))
 
 
-
-;;;###autoload
-(defun jds/smart-consult-outline-imenu ()
-    "Use consult-outline in org-buffers but consult-imenu otherwise."
-  (interactive)
-  (if (string= major-mode "org-mode")
-      (consult-outline)
-    (consult-imenu)))
 
 ;; don't touch
 ;; g-;  g-i   g-n

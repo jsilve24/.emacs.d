@@ -189,7 +189,12 @@ otherwise falls back to public refresh commands."
   ;; mu4e-like bindings in show (view) view
   (evil-collection-define-key 'normal 'elfeed-show-mode-map
     "d"  #'jds/elfeed-show-mark-read-and-next
-    "F"  #'link-hint-open-link))
+    "F"  #'link-hint-open-link)
+
+  (jds/localleader-def
+    :keymaps '(elfeed-search-mode-map elfeed-show-mode-map)
+    "l" #'jds/elfeed-capture-reading-list
+    "u" #'elfeed-update))
 
 ;; prevent org-element hooks firing on the score file buffer
 (add-to-list 'auto-mode-alist '("\\.score\\'" . lisp-data-mode))
@@ -211,12 +216,6 @@ otherwise falls back to public refresh commands."
   (setq rmh-elfeed-org-files
         (list (expand-file-name "elfeed.org" user-emacs-directory)))
   (elfeed-org))
-
-;;; localleader bindings (mirrors mu4e localleader pattern)
-(jds/localleader-def
-  :keymaps '(elfeed-search-mode-map elfeed-show-mode-map)
-  "l" #'jds/elfeed-capture-reading-list
-  "u" #'elfeed-update)
 
 (with-eval-after-load 'elfeed
   (evil-collection-define-key 'normal 'elfeed-search-mode-map

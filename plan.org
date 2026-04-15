@@ -2,6 +2,14 @@
 
 ** Startup and load-order
 
+*** TODO Convert `load-config` callers to feature-based ownership where practical
+`bindings.el` now owns `bindings-helpers.el` directly, which is an improvement
+over keeping medium-sized helper functions inline, but the broader config still
+leans on raw `load` instead of explicit feature boundaries. Revisit module
+pairs like `email.el`/`email-helpers.el`, `bindings.el`/`bindings-helpers.el`,
+and `org-roam.el`/`org-roam-ai.el` to see where `provide`/`require` would make
+startup assumptions easier to audit without increasing fragility.
+
 *** TODO Replace raw `load` for local support modules with clearer feature ownership
 `org-roam.el` loads `org-roam-ai.el` via `(load ... nil t)`, and `ai.el`
 manually adds `gptel-reinforce/` to `load-path` before requiring local modules.
@@ -43,6 +51,13 @@ These may be intentional, but they should be centralized or documented so they
 are easy to change later.
 
 ** Consistency and ergonomics
+
+*** TODO Document the binding convention near `bindings.el`
+Global `jds/leader-def` and `jds/sub-leader-def` bindings should remain
+centralized in `bindings.el` for auditability, while mode-local
+`jds/localleader-def` bindings stay with their owning modules. A short comment
+or maintenance note near `bindings.el` may prevent future churn around this
+preference.
 
 *** TODO Review REPL consistency across Python, R, shell, and Stan workflows
 R has extensive REPL affordances, graphics-device helpers, and localleader

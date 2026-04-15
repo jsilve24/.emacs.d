@@ -107,9 +107,7 @@ Each template may define `:gitignore' fragments and starter `:files'."
 
   (setq projectile-indexing-method 'hybrid
 	projectile-globally-ignored-file-suffixes '("pygtex" "pygstyle" "fls" "aux" "synctex.gz" "fdb_latexmk" "bbl")
-	projectile-project-compilation-cmd "make -k ")
-
-  )
+	projectile-project-compilation-cmd "make -k "))
 
 
 (use-package consult-projectile

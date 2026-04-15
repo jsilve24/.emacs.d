@@ -503,6 +503,20 @@ This only works with orderless and for the first component of the search."
 	(jds/consult-ripgrep-all-org (format "%s" (concat heading-regexp initial)))
       (jds/consult-ripgrep-all-org (format "%s" heading-regexp)))))
 
+;;;###autoload
+(defun jds/consult-ripgrep-config ()
+  "Search this Emacs configuration with `consult-ripgrep'."
+  (interactive)
+  (consult-ripgrep "~/.emacs.d"))
+
+;;;###autoload
+(defun jds/smart-consult-outline-imenu ()
+  "Use `consult-outline' in Org buffers and `consult-imenu' elsewhere."
+  (interactive)
+  (if (string= major-mode "org-mode")
+      (consult-outline)
+    (consult-imenu)))
+
 
 ;;; fluff
 (use-package all-the-icons-completion

@@ -239,7 +239,22 @@ Set this to nil on machines where mail services are intentionally unavailable."
 (\\(?:attached\\|enclosed\\))\\|\
 \\(?:attached\\|enclosed\\)[ \t\n]\\(?:for\\|is\\)[ \t\n]")
   ;; Keep plain text alternatives available while composing rich emails in Org.
-  (org-msg-mode))
+  (org-msg-mode)
+
+  (jds/localleader-def
+    :keymaps '(org-msg-edit-mode-map)
+    "m" '(org-ctrl-c-ctrl-c :which-key "send-message")
+    "C-m" '(org-ctrl-c-ctrl-c :which-key "send-message")
+    "gs" '(message-goto-subject :which-key "goto subject")
+    "gc" '(message-goto-cc :which-key "goto cc")
+    "gt" '(message-goto-to :which-key "goto to")
+    "gx" '(jds/message-swap-to-and-cc :which-key "swap to/cc")
+    "k" '(message-kill-buffer :which-key "kill message")
+    "gp" '(jds/org-msg-goto-properties :which-key "goto properties")
+    "gb" '(jds/org-msg-goto-body :which-key "goto body")
+    "v" 'org-msg-preview
+    "t" '(:ignore t :which-key "toggle")
+    "i" '(jds/org-msg-add-inlineimages :which-key "inlineimages")))
 
 ;;;###autoload
 (defun jds/mu4e-goto-todays-headers ()
@@ -325,42 +340,22 @@ Preserve the standard header order by changing field values in place."
   (setq consult-mu-compose-use-dired-attachment 'in-dired))
 
 
-;;; bindings
-
 (jds/localleader-def
   :keymaps '(mu4e-compose-mode-map)
-  "m"     '(org-ctrl-c-ctrl-c :which-key "send-message")
-  "gs"     '(message-goto-subject :which-key "goto subject")
-  "gc"     '(message-goto-cc :which-key "goto cc")
-  "gt"     '(message-goto-to :which-key "goto to")
-  "gx"     '(jds/message-swap-to-and-cc :which-key "swap to/cc")
-  "k"      '(message-kill-buffer :which-key "kill message")
-  "gb"     '(message-goto-body :which-key "goto body"))
-
-(jds/localleader-def
-  :keymaps '(org-msg-edit-mode-map)
   "m" '(org-ctrl-c-ctrl-c :which-key "send-message")
-  "C-m" '(org-ctrl-c-ctrl-c :which-key "send-message")
   "gs" '(message-goto-subject :which-key "goto subject")
   "gc" '(message-goto-cc :which-key "goto cc")
   "gt" '(message-goto-to :which-key "goto to")
   "gx" '(jds/message-swap-to-and-cc :which-key "swap to/cc")
   "k" '(message-kill-buffer :which-key "kill message")
-  "gp" '(jds/org-msg-goto-properties :which-key "goto properties")
-  "gb" '(jds/org-msg-goto-body :which-key "goto body")
-  "v" 'org-msg-preview
-  "t" '(:ignore t :which-key "toggle")
-  "i" '(jds/org-msg-add-inlineimages :which-key "inlineimages")
-  ;; "m" '(jds/org-msg-add-text2png :which-key "tex2png")
-  )
+  "gb" '(message-goto-body :which-key "goto body"))
 
 (jds/localleader-def
- :keymaps '(mu4e-view-mode-map mu4e-headers-mode-map)
- "u"      '(mu4e-update-mail-and-index :which-key "update mail and index")
- "s"      '(mu4e-view-save-attachments :which-key "save-attachments")
- "T"          #'mu4e-headers-mark-thread
- "l"          #'+mu4e/capture-msg-to-agenda)
-
+  :keymaps '(mu4e-view-mode-map mu4e-headers-mode-map)
+  "u" '(mu4e-update-mail-and-index :which-key "update mail and index")
+  "s" '(mu4e-view-save-attachments :which-key "save-attachments")
+  "T" #'mu4e-headers-mark-thread
+  "l" #'+mu4e/capture-msg-to-agenda)
 
 (jds/localleader-def
   :keymaps 'mu4e-view-mode-map
