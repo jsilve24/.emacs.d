@@ -126,6 +126,7 @@
 
 ;;; setup polymode
 
+
 (use-package markdown-mode
   :mode
   (("README\\.md\\'" . gfm-mode)
@@ -135,13 +136,7 @@
   (setq markdown-command "markdown"))
 
 (use-package polymode
-  :ensure markdown-mode
-  :ensure poly-R
-  :ensure poly-noweb
-  :config
-  (add-to-list 'auto-mode-alist '("\\.Rnw" . poly-noweb+r-mode))
-  (add-to-list 'auto-mode-alist '("\\.rnw" . poly-noweb+r-mode))
-  (add-to-list 'auto-mode-alist '("\\.Rmd" . poly-markdown+r-mode)))
+  :defer t)
 
 
 (use-package poly-markdown
@@ -151,8 +146,10 @@
 
 ;; poly-R
 (use-package poly-R
-  :ensure polymode
-  :ensure poly-markdown
+  :mode ("\\.[rR]md\\'" . poly-markdown+r-mode)
+  :mode ("\\.Rnw\\'" . poly-noweb+r-mode)
+  :mode ("\\.rnw\\'" . poly-noweb+r-mode)
+  :after (polymode poly-markdown)
   :ensure poly-noweb
   :defer t)
 

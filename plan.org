@@ -16,6 +16,7 @@ manually adds `gptel-reinforce/` to `load-path` before requiring local modules.
 This works, but the ownership model is implicit and would be easier to maintain
 if local package boundaries and load expectations were documented consistently.
 
+
 ** Module boundaries and coupling
 
 *** TODO Re-check upstream extension points before carrying long-lived forks
