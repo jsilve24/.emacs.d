@@ -229,18 +229,11 @@
 
 ;; allow moving between monitors
 (use-package framemove
+  ;; Local fork is retained because this setup relies on EXWM-centric behavior
+  ;; around frame/workspace navigation. Re-check upstream before removing.
   :straight (framemove :type git :host github :repo "jsilve24/framemove")
   :config
   (setq framemove-hook-into-windmove t))
-
-;; exwm-helper to move window / buffer to new frame (including fames not currently visible)
-(use-package exwm-helper
-  :disabled
-  :commands eh-current-window-to-workspace-and-follow-by-index eh-current-window-to-workspace-and-follow-by-index
-  :straight (exwm-helper :type git :host github :repo "jsilve24/exwm-helper")
-  :config
-  (setq eh-split-window-function 'jds~new-frame-or-new-window
-	eh-last-window-function  '(lambda () (progn  (switch-to-buffer "*scratch*")))))
 
 ;; make windmove-display work more universally
 ;; this line was causing point to jump lines in mu4e header view when opening messages. 

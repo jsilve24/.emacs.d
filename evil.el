@@ -86,13 +86,14 @@
   (general-nmap "C" (general-simulate-key "c i w")))
 
 (use-package evil-collection
-  :straight (evil-collection :type git :host github :repo "emacs-evil/evil-collection"
-			     :fork (:host github :repo "jsilve24/evil-collection"))
+  :straight (evil-collection :type git :host github :repo "emacs-evil/evil-collection")
   :after evil
   :diminish evil-collection
   :init
   (setq evil-collection-key-blacklist '("m")
-	evil-collection-want-unimpaired-p t ; note this is myown highly customized version
+	;; Using upstream evil-collection and limiting customization to its
+	;; documented unimpaired toggles so maintenance does not depend on a fork.
+	evil-collection-want-unimpaired-p t
 	evil-collection-unimpaired-want-repeat-mode-integration t) 
   :config
 
@@ -248,4 +249,3 @@
 (load-config "autoloads/textobjects.el")
 
 (provide 'config-evil)
-
