@@ -90,6 +90,8 @@ Set to `anthropic' or `openai', then reload this file."
 
 (let ((gptel-reinforce-dir
        (expand-file-name "gptel-reinforce" user-emacs-directory)))
+  ;; Local package (not an external dependency) because reinforcement behavior
+  ;; is tightly integrated with this config's Org/Elfeed/PDF workflows.
   ;; Local package development can leave stale `.elc' and `.eln' artifacts
   ;; compiled against an older gptel-reinforce struct layout; clearing them
   ;; forces a clean rebuild and avoids startup-time load failures.

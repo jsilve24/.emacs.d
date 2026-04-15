@@ -108,19 +108,6 @@ line."
 (use-package dired-copy-paste
   :straight (dired-copy-paste :type git :host github :repo "jsilve24/dired-copy-paste"))
 
-(use-package dired-registers
-  :disabled ;; disabled since it depends on dired-single which I am no longer-using, could remove. 
-  :straight (dired-registers :type git :host github :repo "jsilve24/dired-registers")
-  :config
-  (dired-registers-store ?d "~/Downloads/")
-  (dired-registers-store ?h "~/")
-  (dired-registers-store ?c "~/.emacs.d/")
-  (dired-registers-store ?g "~/Dropbox/Faculty/Grants/")
-  (dired-registers-store ?t "~/Dropbox/Faculty/Teaching/")
-  (dired-registers-store ?p "~/Dropbox/Faculty/Presentations/")
-  (dired-registers-store ?o "~/Dropbox/org/")
-  (dired-registers-store ?r "~/Dropbox/org/roam/"))
-
 
 ;;; dired history
 (use-package dired-hist
@@ -156,9 +143,7 @@ line."
      ;; copy absolute filepath
      "yy" #'(lambda () (interactive) (dired-copy-filename-as-kill 0))
      ";y" #'dired-copy-paste-do-copy
-     ";p" #'dired-copy-paste-do-paste
-     ";m" #'dired-registers-store
-     ";j" #'dired-registers-goto))
+     ";p" #'dired-copy-paste-do-paste))
   (add-hook 'dired-mode-hook 'jds~dired-setup-function))
 
 ;; local bindings
@@ -186,4 +171,3 @@ line."
 (load-config "autoloads/dired.el")
 
 (provide 'config-dired)
-
