@@ -238,6 +238,29 @@ Set this to nil on machines where mail services are intentionally unavailable."
    "see[ \t\n]\\(?:the[ \t\n]\\)?\\(?:\\w+[ \t\n]\\)\\{0,3\\}\\(?:attached\\|enclosed\\)\\|\
 (\\(?:attached\\|enclosed\\))\\|\
 \\(?:attached\\|enclosed\\)[ \t\n]\\(?:for\\|is\\)[ \t\n]")
+  ;; WORKAROUND: org bug — org-html-format-latex (ox-html.el) computes cache-dir
+  ;; as (file-name-directory (plist-get info :output-file)), which is nil when
+  ;; org-msg exports in-memory via org-export-to-buffer.  The fix should be in
+  ;; org upstream: fall back to temporary-file-directory when :output-file is nil,
+  ;; analogous to the bfn fallback a few lines above it.  Check whether
+  ;; org-html-format-latex handles nil :output-file gracefully and remove this
+  ;; advice if so.
+  ;;
+  ;; We work around it by (a) injecting a fake :output-file so cache-dir is set,
+  ;; and (b) using an absolute org-preview-latex-image-directory so img src paths
+  ;; in the HTML are absolute — org-msg resolves relative paths against
+  ;; default-directory (org-msg.el:692), which isn't our cache.
+  (let* ((latex-img-dir (expand-file-name "var/latex-preview/" user-emacs-directory))
+         (latex-ltximg-dir (expand-file-name "ltximg/" latex-img-dir)))
+    (make-directory latex-ltximg-dir t)
+    (advice-add 'org-html-format-latex :around
+                (lambda (orig latex-frag processing-type info)
+                  (let ((org-preview-latex-image-directory latex-ltximg-dir))
+                    (unless (plist-get info :output-file)
+                      (setq info (plist-put info :output-file
+                                            (expand-file-name "email-export.html" latex-img-dir))))
+                    (funcall orig latex-frag processing-type info)))
+                '((name . jds/org-html-format-latex-email-dir))))
   ;; Keep plain text alternatives available while composing rich emails in Org.
   (org-msg-mode)
 
