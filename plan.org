@@ -10,13 +10,6 @@ if local package boundaries and load expectations were documented consistently.
 
 ** Module boundaries and coupling
 
-*** DONE Document current local fork dependence in-place
-Rationale comments were added near fork/local package declarations so future
-maintenance can answer "why does this exist" without hunting commit history:
-- `evil-collection` fork rationale documented in `evil.el`
-- `framemove` rationale documented in `wm.el`
-- local `gptel-reinforce` rationale documented in `ai.el`
-
 *** TODO Re-check upstream extension points before carrying long-lived forks
 Now that current fork reasons are explicit, perform a focused upstream review
 for:
