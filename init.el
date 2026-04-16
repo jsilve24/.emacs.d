@@ -81,7 +81,7 @@
 
 
 ;;; "optional" applications
-;; (load-config "slack.el")
+(load-config "slack.el")
 ;; (load-config "spotify.el")
 (load-config "bitwarden.el")
 (load-config "elfeed.el")
