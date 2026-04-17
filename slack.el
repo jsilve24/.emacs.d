@@ -66,6 +66,126 @@
                            :export #'ol/slack-export
                            :store #'ol/slack-store-link))
 
+(with-eval-after-load 'link-hint
+  (defun jds~slack-file-link-name (thing)
+    "Return a sensible filename for THING."
+    (cond
+     ((stringp thing)
+      (let* ((clean-url (car (split-string thing "[?#]" t)))
+             (name (file-name-nondirectory clean-url)))
+        (if (and name (not (string= name "")))
+            name
+          "slack-file")))
+     ((ignore-errors (oref thing name)))
+     ((ignore-errors (oref thing title)))
+     ((ignore-errors (oref thing id)))
+     (t "slack-file")))
+
+  (defun jds~slack-file-link-url (thing)
+    "Return a Slack download URL for THING or nil."
+    (or (and (stringp thing)
+             (string-match-p "\\`https?://" thing)
+             thing)
+        (ignore-errors (oref thing url-private-download))
+        (ignore-errors (oref thing url-download))))
+
+  (defun jds~slack-file-link-describe (thing)
+    "Return a short label for THING."
+    (or (ignore-errors (slack-file-title thing))
+        (jds~slack-file-link-name thing)))
+
+  (defun jds~slack-file-link-normalize-target (thing)
+    "Return THING if non-nil, otherwise use the Slack file target at point."
+    (or thing
+        (jds~slack-file-link-target-at-point)))
+
+  (defun jds~slack-download-known-file (file team)
+    "Download Slack FILE for TEAM into `slack-file-dir`."
+    (let* ((url (jds~slack-file-link-url file)))
+      (unless url
+        (user-error "No Slack file download URL available"))
+      (let* ((dir (file-name-as-directory (expand-file-name slack-file-dir)))
+             (path (expand-file-name (jds~slack-file-link-name file) dir)))
+        (unless (file-directory-p dir)
+          (make-directory dir t))
+        (slack-url-copy-file url path team
+                             :token (slack-team-token team)
+                             :cookie (slack-team-cookie team)
+                             :success (lambda ()
+                                        (message "Downloaded Slack file to %s" path))))))
+
+  (defun jds~slack-file-link-target-at-point ()
+    "Return the Slack file target at point, if any."
+    (or (get-text-property (point) 'file-id)
+        (get-text-property (point) 'file)
+        (get-text-property (point) 'slack-file-url)))
+
+  (defun jds~slack-file-link-at-point-p ()
+    "Return the Slack file link at point, if any."
+    (jds~slack-file-link-target-at-point))
+
+  (defun jds~slack-file-link-next (bound)
+    "Find the next Slack file link before BOUND."
+    (let ((positions (delq nil
+                           (list (link-hint--next-property 'file-id bound)
+                                 (link-hint--next-property 'file bound)
+                                 (link-hint--next-property 'slack-file-url bound)))))
+      (when positions
+        (apply #'min positions))))
+
+  (defun jds~slack-download-file-link (&optional thing &rest _ignore)
+    "Download Slack file into `slack-file-dir`."
+    (let* ((buffer (bound-and-true-p slack-current-buffer))
+           (team (or (and buffer (ignore-errors (slack-buffer-team buffer)))
+                     (and (boundp 'slack-current-team) slack-current-team)))
+           (thing (jds~slack-file-link-normalize-target thing))
+           (file (and (stringp thing)
+                      (not (string-match-p "\\`https?://" thing))
+                      team
+                      (ignore-errors (slack-file-find thing team))))
+           (url (and (not file)
+                     (jds~slack-file-link-url thing))))
+      (unless team
+        (user-error "No Slack team available"))
+      (cond
+       (file
+        (jds~slack-download-known-file file team))
+       (url
+        (let* ((dir (file-name-as-directory (expand-file-name slack-file-dir)))
+               (path (expand-file-name (jds~slack-file-link-name thing) dir)))
+          (unless (file-directory-p dir)
+            (make-directory dir t))
+          (slack-url-copy-file url path team
+                               :token (slack-team-token team)
+                               :cookie (slack-team-cookie team)
+                               :success (lambda ()
+                                          (message "Downloaded Slack file to %s" path)))))
+       ((and (stringp thing) team)
+        (message "Fetching Slack file metadata for %s..." thing)
+        (slack-file-request-info
+         thing 1 team
+         (lambda (resolved-file _team)
+           (jds~slack-download-known-file resolved-file team))))
+       (t
+        (user-error "No Slack file at point")))))
+
+  ;; Files show up as `file`/`file-id` text in message and list/info buffers and
+  ;; as `slack-file-url` thumbnails in message buffers.
+  (link-hint-define-type 'slack-file-link
+    :next #'jds~slack-file-link-next
+    :at-point-p #'jds~slack-file-link-at-point-p
+    :vars '(slack-message-buffer-mode
+            slack-thread-message-buffer-mode
+            slack-file-list-buffer-mode
+            slack-file-info-buffer-mode)
+    :describe #'jds~slack-file-link-describe
+    :open #'jds~slack-download-file-link
+    :open-message "Downloaded"
+    :aw-select #'jds~slack-download-file-link
+    :aw-select-message "Downloaded")
+
+  (add-to-list 'link-hint-types 'link-hint-slack-file-link))
+
 (jds/localleader-def
   :keymaps 'slack-info-mode-map
   :state 'normal

@@ -100,6 +100,12 @@ depends on emacs-slack's current room-label shape.
 `C-u mA` now prompts for a per-file Slack comment before each upload; that is a
 deliberate prompt-time choice, not a new default. If you want that text to be
 shared across all files instead, the command should be adjusted explicitly.
+`link-hint` in Slack buffers now recognizes file titles and thumbnails via
+`file`, `file-id`, and `slack-file-url` text properties and downloads into
+`slack-file-dir`. The hint currently depends on those text-property names, so
+recheck it if `emacs-slack` changes file rendering again. Message-buffer file
+ids are not always cached in `team.files`, so the downloader now falls back to
+`slack-file-request-info` before fetching the actual file.
 
 ** Consistency and ergonomics
 
