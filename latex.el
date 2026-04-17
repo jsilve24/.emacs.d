@@ -40,6 +40,42 @@
   ;; Update PDF buffers after successful LaTeX runs
   (add-hook 'TeX-after-compilation-finished-functions #'TeX-revert-document-buffer)
 
+  (defcustom jds/latex-keep-synctex t
+    "Keep Synctex files after successful LaTeX compilation.
+When non-nil, automatic cleanup preserves the generated
+`.synctex.gz' file so PDF/source navigation keeps working."
+    :type 'boolean
+    :group 'TeX-command)
+
+  (defun jds/latex--cleanup-suffixes ()
+    "Return the suffixes to remove after a successful LaTeX run."
+    (let ((suffixes (copy-sequence LaTeX-clean-intermediate-suffixes)))
+      (if jds/latex-keep-synctex
+          (delete "\\.synctex\\.gz" suffixes)
+        suffixes)))
+
+  (defun jds/latex-clean-intermediates-after-success (output-file)
+    "Delete LaTeX intermediates after OUTPUT-FILE is built successfully."
+    (let* ((raw-master (or (when (and (boundp 'TeX-command-buffer)
+                                      (buffer-live-p TeX-command-buffer))
+                             (with-current-buffer TeX-command-buffer
+                               (TeX-master-file (TeX-output-extension))))
+                           output-file))
+           (master (file-name-sans-extension raw-master))
+           (directory (or (file-name-directory master) default-directory))
+           (basename (file-name-nondirectory master))
+           (suffixes (jds/latex--cleanup-suffixes))
+           (regexp (concat "\\`" (regexp-quote basename)
+                           "\\(" (mapconcat #'identity suffixes "\\|")
+                           "\\)\\'")))
+      (when (and (file-directory-p directory) suffixes)
+        (dolist (file (directory-files directory nil regexp))
+          (ignore-errors
+            (delete-file (expand-file-name file directory)))))))
+
+  (add-hook 'TeX-after-compilation-finished-functions
+            #'jds/latex-clean-intermediates-after-success)
+
   ;; texmathp should detect align(*) environments
   (setq texmathp-tex-commands '(("align*" env-on) ("align" env-on)))
   (texmathp-compile))
@@ -191,6 +227,7 @@
 
 ;;;###autoload
 (defun jds/tex-command-run-all-and-save ()
+  "Save the current buffer, then run the LaTeX compile command."
   (interactive)
   (save-buffer)
   (call-interactively #'TeX-command-run-all))
