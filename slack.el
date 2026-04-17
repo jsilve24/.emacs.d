@@ -218,7 +218,7 @@ lookup tables."
        :default t
        :token token
        :cookie cookie
-       :subscribed-channels '((general))
+       :subscribed-channels '((general lab-meeting ml-scale))
        ;; :full-and-display-names t
        ;; :visible-threads t
        :modeline-enabled t
@@ -258,16 +258,7 @@ mention-count)) (channel . (has-unreads . mention-count)))))"
   (setq slack-enable-global-mode-string t)
 
   ;; enable live markup in messages
-  ;; (setq slack-enable-wysiwyg t)
-
-  ;; add company support
-  ;; (add-to-list 'company-backends 'company-slack-backend)
-  ;; setup tab command - bind over lui mode completion 
-  ;; (add-hook 'slack-mode-hook 'jds/completion-keys)
-  ;; (setq lui-completion-function 'company-complete)
-
-  ;; auto-start slack if connected to the internet and not already started
-  ;; Startup already happens above when credentials are available.
+  (setq slack-enable-wysiwyg t)
   )
 
 ;; quick reactions with thumbs up
@@ -298,23 +289,23 @@ mention-count)) (channel . (has-unreads . mention-count)))))"
 (jds/localleader-def
   :keymaps 'slack-mode-map
   :state 'normal
-  "d" 'slack-buffer-kill
-  "+"  'jds/slack-message-add-thumbsup
+  "+" 'jds/slack-message-add-thumbsup
   "rr" 'slack-message-add-reaction
   "rR" 'slack-message-remove-reaction
   "rs" 'slack-message-show-reaction-users
   "pl" 'slack-room-pins-list
   "pa" 'slack-message-pins-add
+  "t" 'slack-thread-show-or-create
   "pr" 'slack-message-pins-remove
   "s" 'slack-search-from-messages
   "fs" 'slack-search-from-files
   "fl" 'slack-file-list
-  "mm" 'slack-message-write-another-buffer
+  "'" 'slack-message-write-another-buffer
   "me" 'slack-message-edit
   "md" 'slack-message-delete
-  "u" 'slack-room-update-messages
   "M" 'slack-message-embed-mention
   "C" 'slack-message-embed-channel
+  "q" 'slack-quote-and-reply
   "a" 'slack-file-upload
   "A" 'slack-download-file-at-point)
 
@@ -323,6 +314,13 @@ mention-count)) (channel . (has-unreads . mention-count)))))"
  :states 'n
  "C-j" 'slack-buffer-goto-next-message
  "C-k" 'slack-buffer-goto-prev-message)
+
+(general-define-key
+ :keymaps '(slack-mode-map slack-edit-message-mode-map)
+ :states 'i
+ "@" 'slack-message-embed-mention
+ "#" 'slack-message-embed-channel)
+
 
 (jds/localleader-def
   :keymaps 'slack-edit-message-mode-map
