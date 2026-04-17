@@ -7,7 +7,7 @@
 
 (use-package slack
   ;; Use the jsilve24 fork while the Slack request-wrapper fix is unmerged upstream.
-  :straight (slack :type git :host github :repo "emacs-slack/emacs-slack"
+  :straight (slack :type git :host github :repo "jsilve24/emacs-slack"
                    :fork t
                    :branch "fix/request-wrapper-unwrapping")
   ;; :disabled t
