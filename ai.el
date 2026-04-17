@@ -65,6 +65,43 @@ Set to `anthropic' or `openai', then reload this file."
   (setq gptel-default-mode 'org-mode
 	gptel-org-branching-context nil)
 
+  (defun jds/gptel--model-candidates (&optional backend)
+    "Return a completion alist of models supported by BACKEND.
+Each element has the form (DISPLAY . MODEL)."
+    (let ((backend (or backend gptel-backend)))
+      (unless backend
+        (user-error "No active gptel backend"))
+      (let ((models (gptel-backend-models backend)))
+        (unless models
+          (user-error "Backend %s does not advertise any models"
+                      (gptel-backend-name backend)))
+        (mapcar (lambda (model)
+                  (cons (format "%s" model) model))
+                models))))
+
+  (defun jds/gptel-switch-model (model)
+    "Set the default `gptel-model' to MODEL for the active backend."
+    (interactive
+     (let* ((current (and (boundp 'gptel-model) gptel-model))
+            (current-name (and current (format "%s" current)))
+            (choices (jds/gptel--model-candidates))
+            (default-name (or current-name (caar choices)))
+            (choice (completing-read
+                     (if current-name
+                         (format "gptel model (default %s): " current-name)
+                       "gptel model: ")
+                     choices nil nil nil nil default-name))
+            (selected (if (string-empty-p choice) default-name choice)))
+       (list (intern selected))))
+    (let ((old-default (default-value 'gptel-model)))
+      (setq-default gptel-model model)
+      (dolist (buffer (buffer-list))
+        (with-current-buffer buffer
+          (when (and (local-variable-p 'gptel-model)
+                     (equal gptel-model old-default))
+            (setq-local gptel-model model)))))
+    (message "gptel model set to %s" model))
+
   ;; --- LaTeX writing system prompt ---
   (defvar jds/gptel-latex-system jds/gptel-latex-system))
 
@@ -628,7 +665,7 @@ Set to `anthropic' or `openai', then reload this file."
   :keymaps '(LaTeX-mode-map)
   "d"  '(:ignore t :which-key "ai")
   "dr" #'jds/gptel-rewrite		; rewrite selection
-  "dc" #'jds/gptel-rewrite-with-context	; rewrite with full doc context
+  "dc" #'jds/gptel-switch-model
   "dd" #'jds/gptel-draft-at-point) ; draft new content at point
 
 (load-config "ai-email.el")
