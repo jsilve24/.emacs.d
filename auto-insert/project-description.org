@@ -1,9 +1,0 @@
-#+title: Project Description
-
-* Introduction
-
-* Prior work
-
-* Research plan
-
-* Broader impacts
