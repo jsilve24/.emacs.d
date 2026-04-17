@@ -52,60 +52,13 @@ These may be intentional, but they should be centralized or documented so they
 are easy to change later.
 
 *** TODO Audit Slack auth and request compatibility
-The Slack config now unwraps `emacs-slack`'s request wrapper before calling
-`request-response-header` and `request-response-done-p`, and the vendored
-`slack-request.el` also unwraps the request object at the two call sites that
-were still crashing during `slack-start`. That avoids the startup-time type
-mismatch without changing the call sites that depend on the older request
-behavior. The setup is now token-only again, but it still compensates for the
-current `slack-refresh-token`/`slack-stop` arity mismatch so the refresh
-command keeps working. The underlying package pair is still version-sensitive,
-so revisit `emacs-slack` and `request.el` if Slack starts failing again after
-updates.
-The room selector binding now passes quoted command symbols, which removes the
-startup-time `slack-select-rooms` void-variable error. Room population is still
-asynchronous after startup, so very early invocations can still race the
-initial conversation refresh and briefly show an empty picker.
-Org `emacs-slack:` links now trigger Slack startup on demand and will fetch the
-target room by id if it is not already cached. A compatibility wrapper also
-guards `slack-create-thread-message-buffer` against stray extra args from older
-async paths. That keeps startup behavior usable, but the path still depends on
-Slack's async authorization and room lookup flow.
-Slack auth-source lookup is now guarded during config load so a missing GPG key
-or unavailable secret skips startup cleanly instead of aborting the whole
-`slack.el` reload.
-Slack startup now restores the xoxc cookie requirement: if the token is a
-browser cookie token and the `^cookie` secret is unavailable, startup is skipped
-instead of calling `slack-start` with a nil cookie.
-Slack is now explicitly pinned to the `jsilve24/emacs-slack` fork on the
-`fix/request-wrapper-unwrapping` branch so the current PR work is reproducible
-from config. Remove that branch pin once the fix lands upstream.
-`slack-helpers.el` now owns the compatibility shims plus the new interactive
-group-DM helper. The request-wrapper shim is still version-sensitive, so revisit
-that path if the vendored wrapper class changes again. The new group-DM helper
-now creates and displays the returned conversation after `conversations.open`,
-which is safer than assuming the API call itself switches buffers; if Slack's
-response shape changes, that display path will need a refresh too.
-`jds/slack-dired-attach-files` now uploads marked Dired files into the most
-recent visible Slack room when possible, otherwise prompting for a room. It
-skips directories, uploads one file per request for robustness, and now scans
-visible Slack buffers across all frames. It still depends on
-`slack-current-room-and-team` plus the private `slack--file-upload-v2` helper,
-so if the compose/room buffer API shifts again this path should be revalidated
-before relying on it for daily use.
-`jds~slack-room-candidates` now treats `slack-room-names` as the alist it
-actually returns instead of trying to deduplicate the pairs as strings. That
-fixes the `cl--position` error during Slack room selection, but the helper still
-depends on emacs-slack's current room-label shape.
-`C-u mA` now prompts for a per-file Slack comment before each upload; that is a
-deliberate prompt-time choice, not a new default. If you want that text to be
-shared across all files instead, the command should be adjusted explicitly.
-`link-hint` in Slack buffers now recognizes file titles and thumbnails via
-`file`, `file-id`, and `slack-file-url` text properties and downloads into
-`slack-file-dir`. The hint currently depends on those text-property names, so
-recheck it if `emacs-slack` changes file rendering again. Message-buffer file
-ids are not always cached in `team.files`, so the downloader now falls back to
-`slack-file-request-info` before fetching the actual file.
+The Slack integration is still version-sensitive around auth, request-wrapper
+handling, room lookup, and compose-buffer behavior. Keep the fork pin and local
+compatibility shims only until upstream support or stable APIs make them
+unnecessary.
+- Recheck auth, cookie, and request-wrapper handling after Slack or request.el updates.
+- Revalidate room selection, capture, attachment, and file-link helpers if emacs-slack changes its buffer properties or helper APIs.
+- Remove the fork pin once the upstream fix lands.
 
 ** Consistency and ergonomics
 

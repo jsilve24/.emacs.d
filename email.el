@@ -7,6 +7,9 @@
 ;; internal support files.
 (load-config "email-helpers.el")
 
+(declare-function mu4e-view-message-text "mu4e-view")
+(declare-function mu4e--decoded-message "mu4e-draft")
+
 (defcustom jds/email-start-mu4e-at-startup t
   "When non-nil, initialize Mu4e in the background during startup.
 Set this to nil on machines where mail services are intentionally unavailable."
@@ -219,6 +222,43 @@ Set this to nil on machines where mail services are intentionally unavailable."
   ;; You can disable this host-specific dependency by setting
   ;; `jds/email-start-mu4e-at-startup' to nil.
   (jds/email--start-mu4e-at-startup)
+  ;; Forward via mu4e's normal compose flow, then replace the raw forwarded
+  ;; MIME block with rendered message text so Outlook does not expose the
+  ;; original multipart structure as attachments.
+  (defun jds/mu4e-forward-body-text (msg)
+    "Return a rendered forward body for MSG."
+    (let ((text (if (fboundp 'mu4e-view-message-text)
+                    (mu4e-view-message-text msg)
+                  (mu4e--decoded-message msg))))
+      (with-temp-buffer
+        (insert text)
+        (goto-char (point-min))
+        (if (search-forward "\n\n" nil t)
+            (string-trim-right
+             (buffer-substring-no-properties (point) (point-max)))
+          (string-trim-right text)))))
+
+  (defun jds/mu4e-compose-forward-inline (orig-fun &rest args)
+    "Clean the body of forwarded messages after mu4e creates the draft."
+    (let* ((parent (mu4e-message-at-point))
+           (draft-buffer (apply orig-fun args)))
+      (when (buffer-live-p draft-buffer)
+        (with-current-buffer draft-buffer
+          (save-excursion
+            (if (eq major-mode 'org-msg-edit-mode)
+                (org-msg-goto-body)
+              (message-goto-body))
+            (delete-region (point) (point-max))
+            (insert "\n-------------------- Start of forwarded message --------------------\n"
+                    (jds/mu4e-forward-body-text parent)
+                    "\n-------------------- End of forwarded message --------------------\n"))
+          (when (and (fboundp 'org-msg-post-setup)
+                     (derived-mode-p 'mu4e-compose-mode)
+                     (not (eq major-mode 'org-msg-edit-mode)))
+            (org-msg-post-setup))))
+      draft-buffer))
+  (advice-remove 'mu4e-compose-forward #'jds/mu4e-compose-forward-inline)
+  (advice-add 'mu4e-compose-forward :around #'jds/mu4e-compose-forward-inline)
   (mu4e-modeline-mode 0))
 
 ;;; setup org-msg
@@ -261,8 +301,9 @@ Set this to nil on machines where mail services are intentionally unavailable."
                                             (expand-file-name "email-export.html" latex-img-dir))))
                     (funcall orig latex-frag processing-type info)))
                 '((name . jds/org-html-format-latex-email-dir))))
-  ;; Keep plain text alternatives available while composing rich emails in Org.
-  (org-msg-mode)
+  ;; Enable OrgMsg explicitly; calling without an argument would toggle it off
+  ;; on re-evaluation of this file.
+  (org-msg-mode 1)
 
   (jds/localleader-def
     :keymaps '(org-msg-edit-mode-map)
