@@ -122,6 +122,25 @@ line."
   (interactive)
   (kill-new dired-directory))
 
+;;;###autoload
+(defun jds/dired-open-pdf-in-xournalpp ()
+  "Open the marked PDF file(s) in Xournal++."
+  (interactive)
+  (let ((xournalpp (or (executable-find "xournalpp")
+                       (executable-find "xournal++"))))
+    (unless xournalpp
+      (user-error "Could not find xournalpp on PATH"))
+    (let ((files (dired-get-marked-files)))
+      (when (null files)
+        (user-error "No PDF files at point"))
+      (dolist (file files)
+        (unless (string-equal (downcase (or (file-name-extension file) "")) "pdf")
+          (user-error "Not a PDF: %s" file)))
+      (dolist (file files)
+        (start-process (format "xournalpp-%s"
+                               (file-name-nondirectory file))
+                       nil xournalpp file)))))
+
 ;; setup wv, ws, we bindings
 (with-eval-after-load 'dired 
   (defun jds~dired-setup-function ()
@@ -153,6 +172,7 @@ line."
 (jds/localleader-def dired-mode-map
                      ;; "e" #'wdired-change-to-wdired-mode
                      ;; "c" #'dired-rsync
+                     "x" #'jds/dired-open-pdf-in-xournalpp
                      "S" #'jds/dired-screenshot
                      "+" #'jds/make-dated-directory
                      "d" #'jds/dragon-dired
