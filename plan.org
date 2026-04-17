@@ -77,6 +77,9 @@ or unavailable secret skips startup cleanly instead of aborting the whole
 Slack startup now restores the xoxc cookie requirement: if the token is a
 browser cookie token and the `^cookie` secret is unavailable, startup is skipped
 instead of calling `slack-start` with a nil cookie.
+Slack is now explicitly pinned to the `jsilve24/emacs-slack` fork on the
+`fix/request-wrapper-unwrapping` branch so the current PR work is reproducible
+from config. Remove that branch pin once the fix lands upstream.
 
 ** Consistency and ergonomics
 

@@ -189,6 +189,10 @@ lookup tables."
 
 
 (use-package slack
+  ;; Use the jsilve24 fork while the Slack request-wrapper fix is unmerged upstream.
+  :straight (slack :type git :host github :repo "emacs-slack/emacs-slack"
+                   :fork t
+                   :branch "fix/request-wrapper-unwrapping")
   ;; :disabled t
   :init
   (setq slack-buffer-emojify t
