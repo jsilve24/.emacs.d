@@ -80,6 +80,26 @@ instead of calling `slack-start` with a nil cookie.
 Slack is now explicitly pinned to the `jsilve24/emacs-slack` fork on the
 `fix/request-wrapper-unwrapping` branch so the current PR work is reproducible
 from config. Remove that branch pin once the fix lands upstream.
+`slack-helpers.el` now owns the compatibility shims plus the new interactive
+group-DM helper. The request-wrapper shim is still version-sensitive, so revisit
+that path if the vendored wrapper class changes again. The new group-DM helper
+now creates and displays the returned conversation after `conversations.open`,
+which is safer than assuming the API call itself switches buffers; if Slack's
+response shape changes, that display path will need a refresh too.
+`jds/slack-dired-attach-files` now uploads marked Dired files into the most
+recent visible Slack room when possible, otherwise prompting for a room. It
+skips directories, uploads one file per request for robustness, and now scans
+visible Slack buffers across all frames. It still depends on
+`slack-current-room-and-team` plus the private `slack--file-upload-v2` helper,
+so if the compose/room buffer API shifts again this path should be revalidated
+before relying on it for daily use.
+`jds~slack-room-candidates` now treats `slack-room-names` as the alist it
+actually returns instead of trying to deduplicate the pairs as strings. That
+fixes the `cl--position` error during Slack room selection, but the helper still
+depends on emacs-slack's current room-label shape.
+`C-u mA` now prompts for a per-file Slack comment before each upload; that is a
+deliberate prompt-time choice, not a new default. If you want that text to be
+shared across all files instead, the command should be adjusted explicitly.
 
 ** Consistency and ergonomics
 
@@ -88,7 +108,8 @@ Global `jds/leader-def` and `jds/sub-leader-def` bindings should remain
 centralized in `bindings.el` for auditability, while mode-local
 `jds/localleader-def` bindings stay with their owning modules. A short comment
 or maintenance note near `bindings.el` may prevent future churn around this
-preference.
+preference. Remember that `jds/localleader-def` already contributes the `m`
+prefix, so mode-local bindings should spell only the suffix key.
 
 *** TODO Review REPL consistency across Python, R, shell, and Stan workflows
 R has extensive REPL affordances, graphics-device helpers, and localleader

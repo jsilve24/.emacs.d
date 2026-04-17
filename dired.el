@@ -147,12 +147,16 @@ line."
   (add-hook 'dired-mode-hook 'jds~dired-setup-function))
 
 ;; local bindings
+(autoload 'jds/slack-dired-attach-files
+  (expand-file-name "slack-helpers.el" user-emacs-directory))
+
 (jds/localleader-def dired-mode-map
                      ;; "e" #'wdired-change-to-wdired-mode
                      ;; "c" #'dired-rsync
                      "S" #'jds/dired-screenshot
                      "+" #'jds/make-dated-directory
-                     "d" #'jds/dragon-dired)
+                     "d" #'jds/dragon-dired
+                     "A" #'jds/slack-dired-attach-files)
 		     
 
 

@@ -1,7 +1,6 @@
 ;;; bindings.el -- only for general purpose high-level bindings -*- lexical-binding: t; -*-
 
-;; Parent module owns these generic helper commands so the top-level keymap
-;; file stays focused on declarations instead of implementation details.
+;; Parent module owns these larations instead of implementation details.
 (load (expand-file-name "bindings-helpers.el" user-emacs-directory) nil t)
 
 
@@ -381,7 +380,11 @@
   ;; "S" #'org-search-view
   ;; "s" #'jds/consult-ripgrep-all-org-headlines
   "S" #'jds/consult-ripgrep-all-org
-  "y" (jds~start-slack-function 'slack-select-rooms)
+  "y" (lambda (&optional arg)
+        (interactive "P")
+        (if (equal (prefix-numeric-value arg) 4)
+            (call-interactively #'jds/slack-open-group-dm)
+          (call-interactively (jds~start-slack-function 'slack-select-rooms))))
   "Y" (jds~start-slack-function 'slack-select-unread-rooms)
   "k" #'jds/help-thing-at-point
   "d" #'jds/dired-jump-and-kill-buffer
