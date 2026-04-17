@@ -51,6 +51,33 @@ There are several machine-specific and filesystem-specific assumptions:
 These may be intentional, but they should be centralized or documented so they
 are easy to change later.
 
+*** TODO Audit Slack auth and request compatibility
+The Slack config now unwraps `emacs-slack`'s request wrapper before calling
+`request-response-header` and `request-response-done-p`, and the vendored
+`slack-request.el` also unwraps the request object at the two call sites that
+were still crashing during `slack-start`. That avoids the startup-time type
+mismatch without changing the call sites that depend on the older request
+behavior. The setup is now token-only again, but it still compensates for the
+current `slack-refresh-token`/`slack-stop` arity mismatch so the refresh
+command keeps working. The underlying package pair is still version-sensitive,
+so revisit `emacs-slack` and `request.el` if Slack starts failing again after
+updates.
+The room selector binding now passes quoted command symbols, which removes the
+startup-time `slack-select-rooms` void-variable error. Room population is still
+asynchronous after startup, so very early invocations can still race the
+initial conversation refresh and briefly show an empty picker.
+Org `emacs-slack:` links now trigger Slack startup on demand and will fetch the
+target room by id if it is not already cached. A compatibility wrapper also
+guards `slack-create-thread-message-buffer` against stray extra args from older
+async paths. That keeps startup behavior usable, but the path still depends on
+Slack's async authorization and room lookup flow.
+Slack auth-source lookup is now guarded during config load so a missing GPG key
+or unavailable secret skips startup cleanly instead of aborting the whole
+`slack.el` reload.
+Slack startup now restores the xoxc cookie requirement: if the token is a
+browser cookie token and the `^cookie` secret is unavailable, startup is skipped
+instead of calling `slack-start` with a nil cookie.
+
 ** Consistency and ergonomics
 
 *** TODO Document the binding convention near `bindings.el`

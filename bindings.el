@@ -257,14 +257,16 @@
       (call-interactively #'ess-display-help-on-object))
      (t (helpful-at-point))))
 
-;; macro to start slack if not already
-(defmacro jds~start-slack-function (fun)
-      "If slack is not already started, start it then run fun."
-          `(lambda () (interactive)
-	            (if (fboundp 'slack-select-rooms)
-		                 (,fun)
-				          (slack-start)
-					           (,fun))))
+;; Slack startup can be skipped at init time if the network is unavailable.
+;; Use connection state instead of function availability so `,y` can recover.
+(defun jds~start-slack-function (fun)
+  "Return an interactive thunk that starts Slack if needed, then runs FUN."
+  (lambda ()
+    (interactive)
+    (unless (and (fboundp 'slack-team-connected-list)
+                 (slack-team-connected-list))
+      (slack-start))
+    (call-interactively fun)))
 
 (defmacro jds~roam-exclude-dwim (body)
     "Create new lambda function that wraps functions like org-store-link to smarly add ROAM_EXCLUDE tag."
@@ -379,8 +381,8 @@
   ;; "S" #'org-search-view
   ;; "s" #'jds/consult-ripgrep-all-org-headlines
   "S" #'jds/consult-ripgrep-all-org
-  "y" (jds~start-slack-function slack-select-rooms)
-  "Y" (jds~start-slack-function slack-select-unread-rooms)
+  "y" (jds~start-slack-function 'slack-select-rooms)
+  "Y" (jds~start-slack-function 'slack-select-unread-rooms)
   "k" #'jds/help-thing-at-point
   "d" #'jds/dired-jump-and-kill-buffer
   "D" #'dired-jump-other-window
