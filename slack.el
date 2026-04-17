@@ -66,6 +66,94 @@
                            :export #'ol/slack-export
                            :store #'ol/slack-store-link))
 
+(defun jds~slack-capture-target-file ()
+  "Return the Org file used for Slack captures."
+  (expand-file-name (or (and (boundp '+org-capture-emails-file)
+                             +org-capture-emails-file)
+                        "mail.org")
+                    (or (and (boundp 'org-directory) org-directory)
+                        user-emacs-directory)))
+
+(defun jds~slack-message-at-point ()
+  "Return the Slack message, room, and team at point.
+The result is a plist with :message, :room, :team, and :ts keys."
+  (when-let* ((buffer (bound-and-true-p slack-current-buffer))
+              (team (ignore-errors (slack-buffer-team buffer)))
+              (room (ignore-errors (slack-buffer-room buffer)))
+              (ts (slack-get-ts))
+              (message (and room ts (ignore-errors (slack-room-find-message room ts)))))
+    (list :message message
+          :room room
+          :team team
+          :ts ts)))
+
+(defun jds~slack-capture-message-label (message team)
+  "Return a short agenda-friendly label for MESSAGE in TEAM."
+  (let* ((sender (string-trim
+                  (or (ignore-errors (slack-message-sender-name message team))
+                      "Slack")))
+         (body (or (ignore-errors (slack-message-body message team))
+                   (ignore-errors (slack-message-get-text message team))
+                   ""))
+         (body (if (stringp body) (substring-no-properties body) ""))
+         (body (replace-regexp-in-string "[[:space:]\r\n]+" " "
+                                         (string-trim body)))
+         (sender (truncate-string-to-width sender 24 nil nil t))
+         (body (truncate-string-to-width body 36 nil nil t))
+         (label (if (string-empty-p body)
+                    sender
+                  (format "%s - %s" sender body))))
+    (truncate-string-to-width label 64 nil nil t)))
+
+;;;###autoload
+(defun +slack/capture-msg-to-agenda (arg)
+  "Capture the Slack message at point in `mail.org' with a TODO heading.
+The heading uses a short message label plus an `emacs-slack' link so it stays
+readable in agenda buffers.  With one prefix, schedule for tomorrow.  With no
+prefix, schedule for today."
+  (interactive "p")
+  (let* ((context (jds~slack-message-at-point))
+         (message (plist-get context :message))
+         (room (plist-get context :room))
+         (team (plist-get context :team))
+         (ts (plist-get context :ts))
+         (link (and team room ts
+                    (format "emacs-slack:%s"
+                            (ol/slack-format-link team room ts))))
+         (label (and message team
+                     (jds~slack-capture-message-label message team))))
+    (unless message
+      (user-error "No Slack message at point"))
+    (unless link
+      (user-error "No Slack message link available"))
+    ;; Keep the capture shape aligned with the existing mu4e binding.
+    (with-current-buffer (find-file-noselect
+                          (jds~slack-capture-target-file))
+      (save-excursion
+        (goto-char (point-min))
+        (when (re-search-forward "^\\* Email" nil t)
+          (let (org-M-RET-may-split-line
+                (lev (org-outline-level))
+                (folded-p (invisible-p (point-at-eol))))
+            (when folded-p (show-branches))
+            (org-end-of-meta-data)
+            (org-insert-todo-heading 1)
+            (when (= (org-outline-level) lev)
+              (org-do-demote))
+            (insert (concat "Respond to "
+                            "[[" link "][" label "]] "))
+            (org-schedule nil
+                          (cond ((= arg 1) (format-time-string "%Y-%m-%d"))
+                                ((= arg 4) "+1d")))
+            (org-update-parent-todo-statistics)
+            (jds/org-capture-set-last-stored-marker)
+            (if folded-p
+                (progn
+                  (org-up-heading-safe)
+                  (hide-subtree))
+              (hide-entry))
+            (save-buffer)))))))
+
 (with-eval-after-load 'link-hint
   (defun jds~slack-file-link-name (thing)
     "Return a sensible filename for THING."
@@ -192,7 +280,7 @@
   "u" #'slack-room-update-messages)
 
 (jds/localleader-def
-  :keymaps 'slack-mode-map
+  :keymaps '(slack-mode-map slack-thread-message-buffer-mode-map)
   :state 'normal
   "+" 'jds/slack-message-add-thumbsup
   "rr" 'slack-message-add-reaction
@@ -212,7 +300,8 @@
   "C" 'slack-message-embed-channel
   "q" 'slack-quote-and-reply
   "a" 'slack-file-upload
-  "A" 'slack-download-file-at-point)
+  "A" 'slack-download-file-at-point
+  "l" #'+slack/capture-msg-to-agenda)
 
 (general-define-key
  :keymaps 'slack-mode-map

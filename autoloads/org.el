@@ -26,6 +26,17 @@ Should pass FUN quoted e.g., #'org-agenda-refile."
       (set-window-start (selected-window) minpoint)
       (goto-char cpoint)))
 
+;;;###autoload
+(defun jds/org-capture-set-last-stored-marker (&optional pos)
+  "Record POS, or the current heading, for `org-capture-goto-last-stored'."
+  (setq org-capture-last-stored-marker
+        (copy-marker
+         (or pos
+             (save-excursion
+               (org-back-to-heading t)
+               (point)))))
+  org-capture-last-stored-marker)
+
 
 ;; custom agenda filtering
 ;; https://emacs.stackexchange.com/questions/19664/hide-items-with-a-certain-tag-in-agenda-based-on-time-of-day
@@ -381,4 +392,3 @@ Marks the agenda entry as DONE before opening the reply."
   (org-agenda-todo "NEXT")
   (let ((current-prefix-arg '(4)))
     (call-interactively 'org-agenda-schedule)))
-

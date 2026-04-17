@@ -144,6 +144,7 @@ for tomorrow.  With two prefixes, select the schedule date."
                                   ((= arg 4) "+1d")))
 
               (org-update-parent-todo-statistics)
+              (jds/org-capture-set-last-stored-marker)
 
               ;; refold as necessary
               (if folded-p
