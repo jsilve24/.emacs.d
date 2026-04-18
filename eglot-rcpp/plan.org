@@ -1,0 +1,13 @@
+* eglot-rcpp maintenance
+
+** Deferred follow-up
+
+*** TODO Revisit cross-project reference aggregation beyond the current server
+Definitions and symbol search now merge project data cleanly, but references
+still defer primarily to the current server so the package stays conservative
+and predictable in mixed-language projects.
+
+*** TODO Explore lightweight inline-C++ helper commands for R buffers
+Inline workflows such as `Rcpp::sourceCpp(code = ...)` remain out of scope for
+transparent multi-server support. Future work should stay command-oriented and
+avoid pretending an ordinary R buffer has one unified server.

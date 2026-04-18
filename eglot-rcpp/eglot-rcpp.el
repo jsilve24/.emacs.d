@@ -1,32 +1,36 @@
-;; eglot-rcpp.el --- Mixed R/C++ Eglot support -*- lexical-binding: t; -*-
+;;; eglot-rcpp.el --- Mixed R/Rcpp/C++ package support for Eglot -*- lexical-binding: t; -*-
 
 ;; Author: Justin Silverman <jsilve24@gmail.com>
-;; Version: 0.1.0
+;; Version: 0.2.0
 ;; Package-Requires: ((emacs "29.1"))
-;; Keywords: tools, languages, convenience
+;; Keywords: languages, tools, convenience
+;; URL: https://github.com/jsilve24/eglot-rcpp
 
 ;;; Commentary:
 
-;; `eglot-rcpp' keeps R package development workable when the package mixes
-;; R code and C/C++ code under `src/' or `inst/include/'.  It can:
-;; - start the companion R or clangd server when the current buffer only has
-;;   one half of the pair attached,
-;; - install a project-aware xref backend that merges Eglot results with
-;;   package-wide symbol fallbacks, and
-;; - augment `consult-eglot-symbols' when `consult-eglot' is available.
+;; `eglot-rcpp' is an Eglot-centered frontend for mixed R / Rcpp / C++
+;; package development.  It activates only in R package projects, starts the
+;; relevant Eglot servers for R and C/C++ buffers, merges project-aware xref
+;; data, and uses generated Rcpp bridge files for R-side completion without
+;; letting those generated files dominate definition jumps by default.
 
 ;;; Code:
 
 (require 'cl-lib)
+(require 'compile)
+(require 'jsonrpc)
+(require 'project)
 (require 'subr-x)
+(require 'url-parse)
+(require 'url-util)
 (require 'xref)
 
 (defgroup eglot-rcpp nil
-  "Mixed R / C++ Eglot support for package development."
+  "Mixed R / Rcpp / C++ package support built on top of Eglot."
   :group 'eglot)
 
 (defcustom eglot-rcpp-root-marker-file "DESCRIPTION"
-  "Project marker used to recognize mixed R/C++ package roots."
+  "Project marker used to recognize R package roots."
   :type 'string
   :group 'eglot-rcpp)
 
@@ -36,51 +40,48 @@
   :group 'eglot-rcpp)
 
 (defcustom eglot-rcpp-cpp-modes '(c-mode c++-mode c-ts-mode c++-ts-mode)
-  "Major modes that should use clangd for mixed R/C++ projects."
+  "Major modes that should use clangd inside mixed package projects."
   :type '(repeat symbol)
   :group 'eglot-rcpp)
 
 (defcustom eglot-rcpp-source-directories '("src")
-  "Directories searched for mixed project C/C++ source files."
+  "Directories searched for Rcpp and C/C++ source files."
   :type '(repeat string)
   :group 'eglot-rcpp)
 
 (defcustom eglot-rcpp-header-directories '("include" "inst/include")
-  "Directories searched for mixed project header files."
+  "Directories searched for package header files."
   :type '(repeat string)
   :group 'eglot-rcpp)
 
 (defcustom eglot-rcpp-source-extensions '("c" "cc" "cpp" "cxx" "m" "mm")
-  "Source file extensions searched when indexing mixed project symbols."
+  "Source file extensions searched when indexing package symbols."
   :type '(repeat string)
   :group 'eglot-rcpp)
 
 (defcustom eglot-rcpp-header-extensions '("h" "hh" "hpp" "hxx" "ipp" "tpp")
-  "Header file extensions searched when indexing mixed project symbols."
+  "Header file extensions searched when indexing package symbols."
   :type '(repeat string)
   :group 'eglot-rcpp)
 
 (defcustom eglot-rcpp-auto-start-companion-servers t
-  "When non-nil, start the missing R or C++ Eglot server automatically.
-
-When visiting an R buffer inside a package root that also contains C/C++ code,
-the package will try to start clangd in a companion buffer, and vice versa for
-opening a C/C++ buffer first."
+  "When non-nil, start the companion Eglot server for the current package."
   :type 'boolean
   :group 'eglot-rcpp)
 
 (defcustom eglot-rcpp-project-setup-retries 10
-  "How many times to retry project Eglot setup after opening a buffer."
+  "How many times to retry mixed-project setup after opening a buffer."
   :type 'integer
   :group 'eglot-rcpp)
 
-(defcustom eglot-rcpp-r-server-command '("R" "--slave" "-e" "languageserver::run()")
+(defcustom eglot-rcpp-r-server-command
+  '("R" "--slave" "-e" "languageserver::run()")
   "Command used to start the R language server."
   :type '(repeat string)
   :group 'eglot-rcpp)
 
 (defcustom eglot-rcpp-clangd-command '("clangd" "--header-insertion=never")
-  "Command used to start clangd for mixed project C/C++ buffers."
+  "Command used to start clangd for package C/C++ buffers."
   :type '(repeat string)
   :group 'eglot-rcpp)
 
@@ -90,42 +91,71 @@ opening a C/C++ buffer first."
   :group 'eglot-rcpp)
 
 (defcustom eglot-rcpp-restrict-symbol-search-to-project t
-  "When non-nil, keep symbol search results inside the current package root."
+  "When non-nil, keep symbol results inside the current package root."
+  :type 'boolean
+  :group 'eglot-rcpp)
+
+(defcustom eglot-rcpp-generated-file-regexps
+  '("[/\\]R[/\\]RcppExports\\.R\\'"
+    "[/\\]src[/\\]RcppExports\\.cpp\\'")
+  "Regexps matching generated bridge files inside an Rcpp package."
+  :type '(repeat regexp)
+  :group 'eglot-rcpp)
+
+(defcustom eglot-rcpp-generated-definition-policy 'deprioritize
+  "How generated-file definition hits should be treated.
+
+`deprioritize' keeps generated hits but sorts real source first.
+`omit' removes generated hits when at least one real-source hit exists.
+`keep' preserves generated hits in normal order after deduplication."
+  :type '(choice (const :tag "Real source first" deprioritize)
+                 (const :tag "Drop generated when real source exists" omit)
+                 (const :tag "Keep generated hits" keep))
+  :group 'eglot-rcpp)
+
+(defcustom eglot-rcpp-enable-ess-keybindings nil
+  "When non-nil, install optional convenience bindings in ESS R buffers."
   :type 'boolean
   :group 'eglot-rcpp)
 
 (defvar eglot-managed-mode)
-(defvar eglot--cached-server)
-(defvar eglot--servers-by-project)
 (defvar eglot-server-programs)
 (defvar projectile-project-root-files)
 (defvar project-vc-extra-root-markers)
-(defvar consult-eglot-sort-results)
+
+(defvar eglot-rcpp--hooks-installed nil
+  "Non-nil after `eglot-rcpp' has installed its global hooks.")
 
 (defvar eglot-rcpp--missing-clangd-warned nil
   "Non-nil after warning once that clangd is unavailable.")
 
 (defvar eglot-rcpp--missing-r-warned nil
-  "Non-nil after warning once that the R server command is unavailable.")
+  "Non-nil after warning once that R is unavailable.")
 
 (defvar eglot-rcpp--pending-companion-starts (make-hash-table :test #'equal)
-  "In-flight companion server starts keyed by package root and server kind.")
+  "In-flight companion starts keyed by package root and language kind.")
+
+(defvar eglot-rcpp--symbol-cache (make-hash-table :test #'equal)
+  "Cache of textual symbol indexes keyed by project root.")
+
+(defvar eglot-rcpp--bridge-cache (make-hash-table :test #'equal)
+  "Cache of parsed `RcppExports.R' completion candidates keyed by project root.")
+
+(defvar eglot-rcpp-ess-command-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "u") #'eglot-rcpp-use-rcpp)
+    (define-key map (kbd "c") #'eglot-rcpp-compile-attributes)
+    (define-key map (kbd "d") #'eglot-rcpp-check-r-dependencies)
+    map)
+  "Optional ESS bindings for `eglot-rcpp' commands.")
 
 (defvar-local eglot-rcpp-companion-buffer nil)
-(defvar-local eglot-rcpp-project-setup-timer nil)
 (defvar-local eglot-rcpp-project-setup-attempts 0)
+(defvar-local eglot-rcpp-project-setup-timer nil)
 
 (declare-function eglot-current-server "eglot")
-(declare-function eglot "eglot")
 (declare-function eglot-ensure "eglot")
 (declare-function eglot-server-capable "eglot")
-(declare-function eglot--guess-contact "eglot")
-(declare-function eglot--project "eglot")
-(declare-function eglot--major-modes "eglot")
-(declare-function eglot--request "eglot")
-(declare-function eglot-uri-to-path "eglot")
-(declare-function project-current "project")
-(declare-function jsonrpc-async-request "jsonrpc")
 
 (defun eglot-rcpp--normalize-path (path)
   "Return a canonical absolute path for PATH, or nil."
@@ -133,86 +163,102 @@ opening a C/C++ buffer first."
     (ignore-errors
       (file-truename (expand-file-name path)))))
 
+(defun eglot-rcpp--uri-to-path (uri)
+  "Return a local file path for URI, or nil when it is not a local file URI."
+  (when (and (stringp uri) (string-prefix-p "file:" uri))
+    (let* ((parsed (url-generic-parse-url uri))
+           (host (url-host parsed))
+           (path (url-unhex-string (or (url-filename parsed) ""))))
+      (when (member host '(nil "" "localhost"))
+        (if (and (eq system-type 'windows-nt)
+                 (string-match-p "\\`/[[:alpha:]]:" path))
+            (substring path 1)
+          path)))))
+
 (defun eglot-rcpp--file-uri (file)
   "Return a canonical file URI for FILE."
   (concat "file://" (or (eglot-rcpp--normalize-path file)
                         (expand-file-name file))))
 
 (defun eglot-rcpp--mode-hook (mode)
-  "Return the hook symbol for major mode MODE."
+  "Return the hook symbol for MODE."
   (intern (format "%s-hook" mode)))
 
 (defun eglot-rcpp--all-managed-modes ()
   "Return all major modes managed by this package."
   (append eglot-rcpp-r-modes eglot-rcpp-cpp-modes))
 
+(defun eglot-rcpp--relevant-mode-p (&optional mode)
+  "Return non-nil when MODE or the current major mode is managed here."
+  (let ((mode (or mode major-mode)))
+    (or (memq mode eglot-rcpp-r-modes)
+        (memq mode eglot-rcpp-cpp-modes)
+        (apply #'derived-mode-p (eglot-rcpp--all-managed-modes)))))
+
+(defun eglot-rcpp--buffer-kind (&optional buffer)
+  "Return the language kind for BUFFER as `r', `cpp', or nil."
+  (with-current-buffer (or buffer (current-buffer))
+    (cond
+     ((apply #'derived-mode-p eglot-rcpp-r-modes) 'r)
+     ((apply #'derived-mode-p eglot-rcpp-cpp-modes) 'cpp)
+     (t nil))))
+
 (defun eglot-rcpp--description-root (&optional dir)
   "Return the nearest parent directory of DIR containing `DESCRIPTION'."
   (when-let ((root (locate-dominating-file (or dir default-directory)
                                            eglot-rcpp-root-marker-file)))
-    (or (eglot-rcpp--normalize-path root)
-        (expand-file-name root))))
+    (directory-file-name
+     (or (eglot-rcpp--normalize-path root)
+         (expand-file-name root)))))
 
-(defun eglot-rcpp--server-root (server)
-  "Return the project root for SERVER, or nil."
-  (when-let* ((project (ignore-errors (eglot--project server))))
-    (ignore-errors (project-root project))))
+(defun eglot-rcpp--project-root (&optional buffer)
+  "Return the package root for BUFFER, or nil."
+  (with-current-buffer (or buffer (current-buffer))
+    (when buffer-file-name
+      (eglot-rcpp--description-root (file-name-directory buffer-file-name)))))
 
-(defun eglot-rcpp--server-in-current-root-p (server)
-  "Return non-nil when SERVER belongs to the current package root."
-  (let ((root (eglot-rcpp--description-root)))
-    (if (not (and eglot-rcpp-restrict-symbol-search-to-project root))
-        t
-      (eglot-rcpp--within-root-p (eglot-rcpp--server-root server) root))))
-
-(defun eglot-rcpp--server-relevant-to-current-language-p (server)
-  "Return non-nil when SERVER matches the current buffer's language group."
-  (cond
-   ((apply #'derived-mode-p eglot-rcpp-r-modes)
-    (cl-intersection eglot-rcpp-r-modes (eglot--major-modes server)))
-   ((apply #'derived-mode-p eglot-rcpp-cpp-modes)
-    (cl-intersection eglot-rcpp-cpp-modes (eglot--major-modes server)))
-   (t t)))
-
-(defun eglot-rcpp--workspace-symbol-servers ()
-  "Return project servers suitable for symbol search in the current buffer."
-  (cl-remove-if-not
-   (lambda (server)
-     (and (eglot-rcpp--server-in-current-root-p server)
-          (eglot-rcpp--server-relevant-to-current-language-p server)))
-   (eglot-rcpp--project-servers :workspaceSymbolProvider)))
+(defun eglot-rcpp--eligible-buffer-p (&optional buffer)
+  "Return non-nil when BUFFER should activate `eglot-rcpp'."
+  (with-current-buffer (or buffer (current-buffer))
+    (and buffer-file-name
+         (eglot-rcpp--relevant-mode-p)
+         (eglot-rcpp--project-root))))
 
 (defun eglot-rcpp--within-root-p (path root)
   "Return non-nil when PATH is inside ROOT."
   (when (and path root)
-    (let* ((path (file-truename (expand-file-name path)))
-           (root (file-name-as-directory (file-truename (expand-file-name root)))))
+    (let ((path (file-name-as-directory
+                 (file-name-directory
+                  (or (eglot-rcpp--normalize-path path)
+                      (expand-file-name path)))))
+          (root (file-name-as-directory
+                 (or (eglot-rcpp--normalize-path root)
+                     (expand-file-name root)))))
       (string-prefix-p root path))))
 
-(defun eglot-rcpp--symbol-location-path (symbol)
-  "Return the file path for SYMBOL, or nil."
-  (when-let* ((location (plist-get symbol :location))
-              (uri (plist-get location :uri)))
-    (ignore-errors (eglot-uri-to-path uri))))
+(defun eglot-rcpp--generated-file-p (path)
+  "Return non-nil when PATH matches a generated bridge file."
+  (let ((path (or (eglot-rcpp--normalize-path path)
+                  (and path (expand-file-name path)))))
+    (and path
+         (cl-some (lambda (regexp)
+                    (string-match-p regexp path))
+                  eglot-rcpp-generated-file-regexps))))
 
-(defun eglot-rcpp--symbol-info-in-root-p (symbol root)
-  "Return non-nil when SYMBOL lives inside ROOT."
-  (if (not eglot-rcpp-restrict-symbol-search-to-project)
-      t
-    (eglot-rcpp--within-root-p (eglot-rcpp--symbol-location-path symbol) root)))
-
-(defun eglot-rcpp--xref-in-root-p (xref root)
-  "Return non-nil when XREF points inside ROOT."
-  (if (not eglot-rcpp-restrict-symbol-search-to-project)
-      t
-    (let ((location (xref-item-location xref)))
-      (when (xref-file-location-p location)
-        (eglot-rcpp--within-root-p (xref-file-location-file location) root)))))
+(defun eglot-rcpp--current-server ()
+  "Return the current buffer's Eglot server, or nil."
+  (ignore-errors (eglot-current-server)))
 
 (defun eglot-rcpp--first-file-matching (directory regexp)
   "Return the first file under DIRECTORY matching REGEXP."
   (when (file-directory-p directory)
     (car (directory-files-recursively directory regexp nil nil t))))
+
+(defun eglot-rcpp--first-useful-file-matching (directory regexp)
+  "Return the first non-generated file under DIRECTORY matching REGEXP."
+  (when (file-directory-p directory)
+    (cl-find-if-not #'eglot-rcpp--generated-file-p
+                    (directory-files-recursively directory regexp nil nil t))))
 
 (defun eglot-rcpp--directories (root directories)
   "Return existing subdirectories in ROOT listed by DIRECTORIES."
@@ -230,80 +276,162 @@ When HEADERS-ONLY is non-nil, omit source directories."
             (eglot-rcpp--directories root eglot-rcpp-source-directories))
           (eglot-rcpp--directories root eglot-rcpp-header-directories)))
 
-(defun eglot-rcpp--files (root &optional headers-only)
-  "Return relevant source or header files under ROOT."
-  (let ((regexp (format "\\.\\(%s\\)$"
+(defun eglot-rcpp--files (root &optional headers-only include-generated)
+  "Return relevant source or header files under ROOT.
+
+When HEADERS-ONLY is non-nil, omit source directories.
+When INCLUDE-GENERATED is non-nil, keep generated bridge files."
+  (let ((regexp (format "\\.\\(%s\\)\\'"
                         (string-join
                          (if headers-only
                              eglot-rcpp-header-extensions
                            (append eglot-rcpp-source-extensions
                                    eglot-rcpp-header-extensions))
                          "\\|"))))
-    (cl-delete-duplicates
-     (cl-loop for directory in (eglot-rcpp--package-directories root headers-only)
-              append (directory-files-recursively directory regexp nil nil t))
-     :test (lambda (left right)
-             (equal (or (eglot-rcpp--normalize-path left) left)
-                    (or (eglot-rcpp--normalize-path right) right))))))
+    (cl-loop for directory in (eglot-rcpp--package-directories root headers-only)
+             append (cl-loop for file in (directory-files-recursively directory regexp nil nil t)
+                             unless (and (not include-generated)
+                                         (eglot-rcpp--generated-file-p file))
+                             collect (or (eglot-rcpp--normalize-path file) file)))))
 
 (defun eglot-rcpp--backend-file (root)
   "Return one representative C/C++ file for the package at ROOT."
-  (or (eglot-rcpp--first-file-matching
+  (or (eglot-rcpp--first-useful-file-matching
        (expand-file-name "src" root)
-       "\\.\\(cc\\|cpp\\|cxx\\|c\\)$")
-      (eglot-rcpp--first-file-matching
+       "\\.\\(cc\\|cpp\\|cxx\\|c\\)\\'")
+      (eglot-rcpp--first-useful-file-matching
        (expand-file-name "inst/include" root)
-       "\\.\\(h\\|hh\\|hpp\\|hxx\\|ipp\\|tpp\\)$")
-      (eglot-rcpp--first-file-matching
+       "\\.\\(h\\|hh\\|hpp\\|hxx\\|ipp\\|tpp\\)\\'")
+      (eglot-rcpp--first-useful-file-matching
        (expand-file-name "include" root)
-       "\\.\\(h\\|hh\\|hpp\\|hxx\\|ipp\\|tpp\\)$")
-      (eglot-rcpp--first-file-matching
+       "\\.\\(h\\|hh\\|hpp\\|hxx\\|ipp\\|tpp\\)\\'")
+      (eglot-rcpp--first-useful-file-matching
        (expand-file-name "src" root)
-       "\\.\\(h\\|hh\\|hpp\\|hxx\\|ipp\\|tpp\\)$")))
+       "\\.\\(h\\|hh\\|hpp\\|hxx\\|ipp\\|tpp\\)\\'")))
 
 (defun eglot-rcpp--r-package-file (root)
   "Return one representative R source file for the package at ROOT."
   (eglot-rcpp--first-file-matching
    (expand-file-name "R" root)
-   "\\.[rR]$"))
+   "\\.[rR]\\'"))
+
+(defun eglot-rcpp--r-bridge-file (root)
+  "Return the generated R bridge file for ROOT."
+  (expand-file-name "R/RcppExports.R" root))
+
+(defun eglot-rcpp--cpp-bridge-file (root)
+  "Return the generated C++ bridge file for ROOT."
+  (expand-file-name "src/RcppExports.cpp" root))
+
+(defun eglot-rcpp--cpp-files-present-p (root)
+  "Return non-nil when ROOT contains any relevant C/C++ file."
+  (and root (eglot-rcpp--backend-file root)))
+
+(defun eglot-rcpp--r-files-present-p (root)
+  "Return non-nil when ROOT contains any R package file."
+  (and root (eglot-rcpp--r-package-file root)))
+
+(defun eglot-rcpp--r-executable ()
+  "Return the configured R executable, or nil when unavailable."
+  (when-let ((command (car-safe eglot-rcpp-r-server-command)))
+    (executable-find command)))
+
+(defun eglot-rcpp--command-available-p (command)
+  "Return non-nil when COMMAND appears runnable."
+  (and (listp command)
+       (car command)
+       (executable-find (car command))))
+
+(defun eglot-rcpp--warn-missing-clangd ()
+  "Warn once that clangd is required for package C/C++ support."
+  (unless eglot-rcpp--missing-clangd-warned
+    (setq eglot-rcpp--missing-clangd-warned t)
+    (message "eglot-rcpp: companion clangd start skipped because `clangd' is not installed")))
+
+(defun eglot-rcpp--warn-missing-r ()
+  "Warn once that R is required for package R support."
+  (unless eglot-rcpp--missing-r-warned
+    (setq eglot-rcpp--missing-r-warned t)
+    (message "eglot-rcpp: companion R start skipped because `R' is not installed")))
 
 (defun eglot-rcpp--companion-key (root kind)
-  "Return a stable key for the companion server KIND at package ROOT."
+  "Return a stable key for KIND under package ROOT."
   (list (expand-file-name root) kind))
 
 (defun eglot-rcpp--pending-companion-start-p (root kind)
-  "Return non-nil when companion server KIND for ROOT is already starting."
+  "Return non-nil when companion KIND for ROOT is already starting."
   (gethash (eglot-rcpp--companion-key root kind)
            eglot-rcpp--pending-companion-starts))
 
 (defun eglot-rcpp--set-pending-companion-start (root kind pending)
-  "Set companion server KIND pending state for ROOT to PENDING."
+  "Set companion KIND pending state for ROOT to PENDING."
   (let ((key (eglot-rcpp--companion-key root kind)))
     (if pending
         (puthash key t eglot-rcpp--pending-companion-starts)
       (remhash key eglot-rcpp--pending-companion-starts))))
 
-(defun eglot-rcpp--current-server ()
-  "Return the current buffer's Eglot server, or nil when unmanaged."
-  (ignore-errors (eglot-current-server)))
+(defun eglot-rcpp--project-buffers (&optional root)
+  "Return live `eglot-rcpp' buffers for ROOT.
 
-(defun eglot-rcpp--warn-missing-clangd ()
-  "Warn once that clangd is required for C/C++ Eglot support."
-  (unless eglot-rcpp--missing-clangd-warned
-    (setq eglot-rcpp--missing-clangd-warned t)
-    (message "Rcpp companion server skipped: `clangd' is not installed")))
+When ROOT is nil, use the current buffer's project root."
+  (let ((root (or root (eglot-rcpp--project-root))))
+    (cl-loop for buffer in (buffer-list)
+             when (and (buffer-live-p buffer)
+                       (with-current-buffer buffer
+                         (and (bound-and-true-p eglot-rcpp-mode)
+                              (equal (eglot-rcpp--project-root) root))))
+             collect buffer)))
 
-(defun eglot-rcpp--warn-missing-r ()
-  "Warn once that the R language server command is unavailable."
-  (unless eglot-rcpp--missing-r-warned
-    (setq eglot-rcpp--missing-r-warned t)
-    (message "Rcpp companion server skipped: `R' is not installed")))
+(defun eglot-rcpp--project-server-buffers (&optional root)
+  "Return one live managed buffer per Eglot server for ROOT."
+  (let ((seen (make-hash-table :test #'eq)))
+    (cl-loop for buffer in (eglot-rcpp--project-buffers root)
+             for server = (with-current-buffer buffer
+                            (and (bound-and-true-p eglot-managed-mode)
+                                 (eglot-rcpp--current-server)))
+             unless (or (null server) (gethash server seen))
+             do (puthash server t seen)
+             and collect buffer)))
 
-(defun eglot-rcpp--r-server-available-p ()
-  "Return non-nil when the configured R server command looks runnable."
-  (and eglot-rcpp-r-server-command
-       (listp eglot-rcpp-r-server-command)
-       (executable-find (car eglot-rcpp-r-server-command))))
+(defun eglot-rcpp--server-running-p (root kind)
+  "Return non-nil when ROOT already has a live server for KIND."
+  (cl-some (lambda (buffer)
+             (eq (with-current-buffer buffer
+                   (eglot-rcpp--buffer-kind))
+                 kind))
+           (eglot-rcpp--project-server-buffers root)))
+
+(defun eglot-rcpp--companion-start-spec (&optional root kind)
+  "Return a plist describing the companion server to start.
+
+The plist has keys `:kind', `:file', and optionally `:warning'.  Return nil
+when no companion start is needed."
+  (let* ((root (or root (eglot-rcpp--project-root)))
+         (kind (or kind (eglot-rcpp--buffer-kind))))
+    (pcase kind
+      ('r
+       (let ((file (and root (eglot-rcpp--backend-file root))))
+         (cond
+          ((not (and eglot-rcpp-auto-start-companion-servers root file)) nil)
+          ((eglot-rcpp--server-running-p root 'cpp)
+           (eglot-rcpp--set-pending-companion-start root 'cpp nil)
+           nil)
+          ((eglot-rcpp--pending-companion-start-p root 'cpp) nil)
+          ((not (eglot-rcpp--command-available-p eglot-rcpp-clangd-command))
+           '(:warning missing-clangd))
+          (t (list :kind 'cpp :file file)))))
+      ('cpp
+       (let ((file (and root (eglot-rcpp--r-package-file root))))
+         (cond
+          ((not (and eglot-rcpp-auto-start-companion-servers root file)) nil)
+          ((eglot-rcpp--server-running-p root 'r)
+           (eglot-rcpp--set-pending-companion-start root 'r nil)
+           nil)
+          ((eglot-rcpp--pending-companion-start-p root 'r) nil)
+          ((not (eglot-rcpp--r-executable))
+           '(:warning missing-r))
+          (t (list :kind 'r :file file)))))
+      (_ nil))))
 
 (defun eglot-rcpp--start-server-for-file (file root kind)
   "Start companion server KIND for FILE in package ROOT."
@@ -311,81 +439,46 @@ When HEADERS-ONLY is non-nil, omit source directories."
   (let ((buffer (find-file-noselect file)))
     (with-current-buffer buffer
       (setq-local eglot-rcpp-companion-buffer t)
-      (unless (eglot-rcpp--current-server)
-        (condition-case err
-            ;; `eglot-ensure' is not enough here: once an R server already
-            ;; exists for the project, it may decide the buffer is already
-            ;; "covered" and skip starting the C/C++ companion server. Force
-            ;; the contact for the target file instead.
-            (apply #'eglot (eglot--guess-contact))
-          (error
-           (eglot-rcpp--set-pending-companion-start root kind nil)
-           (message "Eglot companion start failed for %s: %s"
-                    (abbreviate-file-name file)
-                    (error-message-string err))))))
+      (condition-case err
+          (eglot-ensure)
+        (error
+         (eglot-rcpp--set-pending-companion-start root kind nil)
+         (message "eglot-rcpp: companion start failed for %s: %s"
+                  (abbreviate-file-name file)
+                  (error-message-string err)))))
     (bury-buffer buffer)))
 
-(defun eglot-rcpp--server-running-for-modes-p (modes)
-  "Return non-nil when a current-project Eglot server manages MODES."
-  (cl-some
-   (lambda (server)
-     (cl-intersection modes (eglot--major-modes server)))
-   (eglot-rcpp--project-servers)))
-
 (defun eglot-rcpp-maybe-start-companion-server ()
-  "Start the missing R or C++ Eglot server for the current mixed package."
-  (when (and eglot-rcpp-auto-start-companion-servers
-             (eglot-rcpp--current-server)
-             (not eglot-rcpp-companion-buffer)
-             (apply #'derived-mode-p (eglot-rcpp--all-managed-modes)))
-    (when-let* ((root (eglot-rcpp--description-root))
-                (cpp-file (eglot-rcpp--backend-file root)))
-      (cond
-       ((apply #'derived-mode-p eglot-rcpp-r-modes)
-        (cond
-         ((not (and eglot-rcpp-clangd-command
-                    (executable-find (car eglot-rcpp-clangd-command))))
-          (eglot-rcpp--warn-missing-clangd))
-         ((eglot-rcpp--server-running-for-modes-p eglot-rcpp-cpp-modes)
-          (eglot-rcpp--set-pending-companion-start root 'cpp nil))
-         ((not (eglot-rcpp--pending-companion-start-p root 'cpp))
-          (eglot-rcpp--start-server-for-file cpp-file root 'cpp))))
-       ((apply #'derived-mode-p eglot-rcpp-cpp-modes)
-        (cond
-         ((not (eglot-rcpp--r-server-available-p))
-          (eglot-rcpp--warn-missing-r))
-         ((eglot-rcpp--server-running-for-modes-p eglot-rcpp-r-modes)
-          (eglot-rcpp--set-pending-companion-start root 'r nil))
-         ((not (eglot-rcpp--pending-companion-start-p root 'r))
-          (when-let ((r-file (eglot-rcpp--r-package-file root)))
-            (eglot-rcpp--start-server-for-file r-file root 'r)))))))))
+  "Start the missing companion Eglot server for the current package."
+  (when-let* ((root (eglot-rcpp--project-root))
+              (kind (eglot-rcpp--buffer-kind))
+              (spec (and (eglot-rcpp--current-server)
+                         (not eglot-rcpp-companion-buffer)
+                         (eglot-rcpp--companion-start-spec root kind))))
+    (pcase (plist-get spec :warning)
+      ('missing-clangd (eglot-rcpp--warn-missing-clangd))
+      ('missing-r (eglot-rcpp--warn-missing-r))
+      (_ (eglot-rcpp--start-server-for-file
+           (plist-get spec :file)
+           root
+           (plist-get spec :kind))))))
 
-(defun eglot-rcpp-install-project-xref-backend ()
-  "Install a project-aware Eglot xref backend in R and C/C++ buffers."
-  (when (and (eglot-rcpp--current-server)
-             (apply #'derived-mode-p (eglot-rcpp--all-managed-modes)))
-    ;; Put the mixed-project backend first so `xref-find-definitions' reaches
-    ;; it before backend-specific fallbacks such as dumb-jump.
-    (setq-local xref-backend-functions
-                (cons #'eglot-rcpp-project-xref-backend
-                      (remq #'eglot-rcpp-project-xref-backend
-                            xref-backend-functions)))))
-
-(defun eglot-rcpp--relevant-mode-p ()
-  "Return non-nil when the current buffer should participate in mixed Eglot."
-  (apply #'derived-mode-p (eglot-rcpp--all-managed-modes)))
+(defun eglot-rcpp--cancel-project-setup ()
+  "Cancel the current buffer's deferred setup timer."
+  (when (timerp eglot-rcpp-project-setup-timer)
+    (cancel-timer eglot-rcpp-project-setup-timer))
+  (setq-local eglot-rcpp-project-setup-timer nil
+              eglot-rcpp-project-setup-attempts 0))
 
 (defun eglot-rcpp--finalize-project-setup (buffer)
-  "Finish mixed-project Eglot setup for BUFFER once a server is available."
+  "Finish mixed-project setup for BUFFER once a server is available."
   (when (buffer-live-p buffer)
     (with-current-buffer buffer
       (cond
-       ((not (eglot-rcpp--relevant-mode-p))
-        (setq-local eglot-rcpp-project-setup-timer nil
-                    eglot-rcpp-project-setup-attempts 0))
+       ((not (bound-and-true-p eglot-rcpp-mode))
+        (eglot-rcpp--cancel-project-setup))
        ((eglot-rcpp--current-server)
-        (setq-local eglot-rcpp-project-setup-timer nil
-                    eglot-rcpp-project-setup-attempts 0)
+        (eglot-rcpp--cancel-project-setup)
         (eglot-rcpp-install-project-xref-backend)
         (eglot-rcpp-maybe-start-companion-server))
        ((> eglot-rcpp-project-setup-attempts 0)
@@ -394,76 +487,102 @@ When HEADERS-ONLY is non-nil, omit source directories."
                     (run-at-time
                      0.5 nil #'eglot-rcpp--finalize-project-setup buffer)))
        (t
-        (setq-local eglot-rcpp-project-setup-timer nil))))))
+        (eglot-rcpp--cancel-project-setup))))))
 
 (defun eglot-rcpp-schedule-project-setup ()
-  "Retry mixed-project Eglot setup until the current buffer has a server."
-  (when (eglot-rcpp--relevant-mode-p)
-    (when (timerp eglot-rcpp-project-setup-timer)
-      (cancel-timer eglot-rcpp-project-setup-timer))
-    (setq-local eglot-rcpp-project-setup-attempts eglot-rcpp-project-setup-retries)
-    (setq-local eglot-rcpp-project-setup-timer
-                (run-at-time
-                 0.5 nil #'eglot-rcpp--finalize-project-setup (current-buffer)))))
+  "Retry mixed-project setup until the current buffer has a server."
+  (when (bound-and-true-p eglot-rcpp-mode)
+    (eglot-rcpp--cancel-project-setup)
+    (setq-local eglot-rcpp-project-setup-attempts eglot-rcpp-project-setup-retries
+                eglot-rcpp-project-setup-timer
+                (run-at-time 0.5 nil
+                             #'eglot-rcpp--finalize-project-setup
+                             (current-buffer)))))
 
-(defun eglot-rcpp-project-xref-backend ()
-  "Return the multi-server Eglot xref backend for mixed R/C++ projects."
-  'eglot-rcpp-project)
+(defun eglot-rcpp--xref-location-path (xref)
+  "Return the file path referenced by XREF, or nil."
+  (let ((location (xref-item-location xref)))
+    (when (xref-file-location-p location)
+      (xref-file-location-file location))))
 
-(defun eglot-rcpp--project-servers (&optional capability)
-  "Return live Eglot servers for the current project.
+(defun eglot-rcpp--xref-in-root-p (xref root)
+  "Return non-nil when XREF points inside ROOT."
+  (if (not eglot-rcpp-restrict-symbol-search-to-project)
+      t
+    (when-let ((path (eglot-rcpp--xref-location-path xref)))
+      (eglot-rcpp--within-root-p path root))))
 
-When CAPABILITY is non-nil, only keep servers advertising that capability."
-  (let* ((project (project-current nil))
-         (servers (if-let ((project-servers (and project
-                                                 (gethash project eglot--servers-by-project))))
-                      project-servers
-                    (list (eglot-current-server)))))
-    (cl-delete-duplicates
-     (cl-remove-if-not
-      (lambda (server)
-        (and server
-             (let ((eglot--cached-server server))
-               (or (null capability)
-                   (eglot-server-capable capability)))))
-      servers)
-     :test #'eq)))
+(defun eglot-rcpp--xref-generated-p (xref)
+  "Return non-nil when XREF points to a generated bridge file."
+  (when-let ((path (eglot-rcpp--xref-location-path xref)))
+    (eglot-rcpp--generated-file-p path)))
+
+(defun eglot-rcpp--xref-key (xref)
+  "Return a stable key for deduplicating XREF."
+  (if-let ((location (ignore-errors (xref-item-location xref))))
+      (list (prin1-to-string location))
+    (list (xref-item-summary xref))))
+
+(defun eglot-rcpp--dedupe-xrefs (xrefs)
+  "Deduplicate XREFS while preserving order."
+  (let ((seen (make-hash-table :test #'equal)))
+    (cl-loop for xref in xrefs
+             for key = (eglot-rcpp--xref-key xref)
+             unless (gethash key seen)
+             collect xref
+             and do (puthash key t seen))))
+
+(defun eglot-rcpp--apply-generated-definition-policy (xrefs)
+  "Apply `eglot-rcpp-generated-definition-policy' to XREFS."
+  (let ((real (cl-remove-if #'eglot-rcpp--xref-generated-p xrefs))
+        (generated (cl-remove-if-not #'eglot-rcpp--xref-generated-p xrefs)))
+    (pcase eglot-rcpp-generated-definition-policy
+      ('keep xrefs)
+      ('omit (if real real xrefs))
+      (_ (append real generated)))))
 
 (defun eglot-rcpp--workspace-symbol-name-match-p (candidate identifier)
   "Return non-nil when CANDIDATE is an exact-ish match for IDENTIFIER."
   (or (string= candidate identifier)
       (string-suffix-p (concat "::" identifier) candidate)))
 
-(defun eglot-rcpp--workspace-symbol-xref (symbol identifier)
-  "Convert SYMBOL from `workspace/symbol' into an xref for IDENTIFIER."
+(defun eglot-rcpp--make-workspace-symbol-xref (symbol identifier)
+  "Convert SYMBOL into an xref for IDENTIFIER, or nil."
   (let* ((name (plist-get symbol :name))
          (location (plist-get symbol :location))
          (range (and location (plist-get location :range)))
          (start (and range (plist-get range :start)))
          (uri (and location (plist-get location :uri))))
-    (when (and name
-               uri
-               start
+    (when (and name uri start
                (eglot-rcpp--workspace-symbol-name-match-p name identifier))
       (xref-make
        name
        (xref-make-file-location
-        (eglot-uri-to-path uri)
+        (eglot-rcpp--uri-to-path uri)
         (1+ (plist-get start :line))
         (plist-get start :character))))))
 
-(defun eglot-rcpp--workspace-symbol-definitions (identifier)
-  "Return project-wide workspace-symbol xrefs for IDENTIFIER."
-  (cl-loop
-   for server in (eglot-rcpp--project-servers :workspaceSymbolProvider)
-   append
-   (mapcan
-    (lambda (symbol)
-      (when-let ((xref (eglot-rcpp--workspace-symbol-xref symbol identifier)))
-        (list xref)))
-    (append (ignore-errors
-              (eglot--request server :workspace/symbol `(:query ,identifier)))
-            nil))))
+(defun eglot-rcpp--server-workspace-symbols (buffer query)
+  "Return `workspace/symbol' results for QUERY using BUFFER's server."
+  (with-current-buffer buffer
+    (when (and (eglot-rcpp--current-server)
+               (ignore-errors (eglot-server-capable :workspaceSymbolProvider)))
+      (append (ignore-errors
+                (jsonrpc-request (eglot-rcpp--current-server)
+                                 :workspace/symbol
+                                 `(:query ,query)))
+              nil))))
+
+(defun eglot-rcpp--workspace-symbol-definitions (identifier &optional root)
+  "Return project-wide `workspace/symbol' xrefs for IDENTIFIER."
+  (cl-loop for buffer in (eglot-rcpp--project-server-buffers root)
+           append (cl-loop for symbol in (eglot-rcpp--server-workspace-symbols
+                                          buffer identifier)
+                           for xref = (eglot-rcpp--make-workspace-symbol-xref
+                                       symbol identifier)
+                           when (and xref
+                                     (eglot-rcpp--xref-in-root-p xref root))
+                           collect xref)))
 
 (defun eglot-rcpp--cpp-symbol-keyword-p (symbol)
   "Return non-nil when SYMBOL is a C++ keyword."
@@ -491,14 +610,14 @@ When CAPABILITY is non-nil, only keep servers advertising that capability."
    (t 12)))
 
 (defun eglot-rcpp--candidate-symbol-from-line (line)
-  "Extract one likely symbol name from LINE, or nil."
+  "Extract one likely C++ symbol name from LINE, or nil."
   (cond
    ((string-match
-     "^[[:space:]]*\\(?:template\\_>.*\n[[:space:]]*\\)?\\(?:class\\|struct\\|namespace\\|enum\\(?:[[:space:]]+class\\)?\\)\\_>[[:space:]]+\\([[:alpha:]_][[:alnum:]_]*\\)"
+     "^[[:space:]]*\\(?:class\\|struct\\|namespace\\|enum\\(?:[[:space:]]+class\\)?\\)\\_>[[:space:]]+\\([[:alpha:]_][[:alnum:]_]*\\)"
      line)
     (match-string 1 line))
    ((string-match
-     "^[[:space:]]*\\(?:template\\_>.*\n[[:space:]]*\\)?\\(?:[[[:space:][:word:]_:<>,*&~]]+[[:space:]]+\\)+\\([[:alpha:]_~][[:alnum:]_:~]*\\)[[:space:]]*("
+     "^[[:space:]]*\\(?:inline\\|static\\|virtual\\|constexpr\\|friend\\|explicit\\|extern\\)?[[:space:]]*\\(?:[[:word:]_:<>,*&~]+[[:space:]]+\\)+\\([[:alpha:]_~][[:alnum:]_:~]*\\)[[:space:]]*("
      line)
     (match-string 1 line))
    (t nil)))
@@ -530,8 +649,7 @@ When EXACT is non-nil, require exact-ish symbol matching."
          (uri (plist-get location :uri))
          (path (and uri
                     (string-prefix-p "file://" uri)
-                    (ignore-errors
-                      (eglot-uri-to-path uri)))))
+                    (ignore-errors (eglot-rcpp--uri-to-path uri)))))
     (list (plist-get symbol :name)
           (or (eglot-rcpp--normalize-path path) uri)
           (plist-get start :line)
@@ -543,11 +661,11 @@ When EXACT is non-nil, require exact-ish symbol matching."
     (cl-loop for symbol in symbols
              for key = (eglot-rcpp--symbol-info-key symbol)
              unless (gethash key seen)
-             do (puthash key t seen)
-             collect symbol)))
+             collect symbol
+             and do (puthash key t seen))))
 
 (defun eglot-rcpp--index-package-file-symbols (file)
-  "Return likely textual symbol definitions from FILE."
+  "Return likely textual C/C++ symbol definitions from FILE."
   (with-temp-buffer
     (insert-file-contents file)
     (let (symbols)
@@ -568,77 +686,276 @@ When EXACT is non-nil, require exact-ish symbol matching."
         (forward-line 1))
       (nreverse symbols))))
 
+(defun eglot-rcpp--cache-signature (files)
+  "Return a cache signature for FILES."
+  (mapcar (lambda (file)
+            (cons (or (eglot-rcpp--normalize-path file) file)
+                  (float-time
+                   (file-attribute-modification-time
+                    (file-attributes file)))))
+          files))
+
 (defun eglot-rcpp--symbol-cache-key (root headers-only)
   "Return the cache key for ROOT and HEADERS-ONLY."
   (list (expand-file-name root) headers-only))
 
-(defvar eglot-rcpp--symbol-cache (make-hash-table :test #'equal)
-  "Cache of textual symbol indexes for mixed project trees.")
-
 (defun eglot-rcpp--symbol-index (root &optional headers-only)
-  "Return a cached textual symbol index for the package ROOT."
-  (let* ((files (eglot-rcpp--files root headers-only))
-         (stamp (if files
-                    (cl-loop for file in files
-                             maximize (float-time
-                                       (file-attribute-modification-time
-                                        (file-attributes file)))
-                             into newest
-                             finally return newest)
-                  0))
+  "Return a cached textual symbol index for package ROOT."
+  (let* ((files (eglot-rcpp--files root headers-only nil))
+         (signature (eglot-rcpp--cache-signature files))
          (cache-key (eglot-rcpp--symbol-cache-key root headers-only))
          (cached (gethash cache-key eglot-rcpp--symbol-cache)))
-    (if (and cached (= (car cached) stamp))
+    (if (and cached (equal (car cached) signature))
         (cdr cached)
       (let ((symbols (cl-loop for file in files
                               append (eglot-rcpp--index-package-file-symbols file))))
-        (puthash cache-key (cons stamp symbols) eglot-rcpp--symbol-cache)
+        (puthash cache-key (cons signature symbols) eglot-rcpp--symbol-cache)
         symbols))))
 
-(defun eglot-rcpp--text-symbols (query &optional exact headers-only)
-  "Return textual fallback symbols for QUERY in the current mixed package."
-  (when-let ((root (eglot-rcpp--description-root)))
+(defun eglot-rcpp--text-symbols (query &optional exact headers-only root)
+  "Return textual fallback symbols for QUERY in package ROOT."
+  (when-let ((root (or root (eglot-rcpp--project-root))))
     (cl-loop for symbol in (eglot-rcpp--symbol-index root headers-only)
              when (eglot-rcpp--symbol-match-p (plist-get symbol :name) query exact)
              collect symbol)))
 
-(defun eglot-rcpp--text-symbol-xrefs (identifier)
-  "Return textual fallback xrefs for IDENTIFIER in package headers."
-  (mapcar (lambda (symbol)
-            (eglot-rcpp--workspace-symbol-xref symbol identifier))
-          (eglot-rcpp--text-symbols identifier t t)))
+(defun eglot-rcpp--symbol-info-xref (symbol)
+  "Convert SYMBOL into an `xref-item'."
+  (let* ((location (plist-get symbol :location))
+         (range (and location (plist-get location :range)))
+         (start (and range (plist-get range :start)))
+         (uri (and location (plist-get location :uri))))
+    (when (and uri start)
+      (xref-make
+       (plist-get symbol :name)
+       (xref-make-file-location
+        (eglot-rcpp--uri-to-path uri)
+        (1+ (plist-get start :line))
+        (plist-get start :character))))))
 
-(defun eglot-rcpp--xref-key (xref)
-  "Return a stable key for deduplicating XREF."
-  (let ((location (xref-item-location xref)))
-    (if (xref-file-location-p location)
-        (list (xref-file-location-file location)
-              (xref-file-location-line location)
-              (xref-file-location-column location))
-      (list (xref-item-summary xref)))))
+(defun eglot-rcpp--text-symbol-xrefs (query &optional exact headers-only root)
+  "Return textual fallback xrefs for QUERY in package ROOT."
+  (cl-loop for symbol in (eglot-rcpp--text-symbols query exact headers-only root)
+           for xref = (eglot-rcpp--symbol-info-xref symbol)
+           when xref collect xref))
 
-(defun eglot-rcpp--dedupe-xrefs (xrefs)
-  "Deduplicate XREFS while preserving order."
-  (let ((seen (make-hash-table :test #'equal)))
-    (cl-loop for xref in xrefs
-             for key = (eglot-rcpp--xref-key xref)
-             unless (gethash key seen)
-             do (puthash key t seen)
-             collect xref)))
+(defun eglot-rcpp--current-eglot-definitions (identifier)
+  "Return current-buffer Eglot definitions for IDENTIFIER."
+  (when (bound-and-true-p eglot-managed-mode)
+    (ignore-errors (xref-backend-definitions 'eglot identifier))))
+
+(defun eglot-rcpp--current-eglot-references (identifier)
+  "Return current-buffer Eglot references for IDENTIFIER."
+  (when (bound-and-true-p eglot-managed-mode)
+    (ignore-errors (xref-backend-references 'eglot identifier))))
+
+(defun eglot-rcpp--workspace-symbol-apropos (pattern &optional root)
+  "Return project-wide workspace-symbol xrefs for PATTERN."
+  (cl-loop for buffer in (eglot-rcpp--project-server-buffers root)
+           append (cl-loop for symbol in (eglot-rcpp--server-workspace-symbols buffer pattern)
+                           for name = (plist-get symbol :name)
+                           for xref = (and (eglot-rcpp--symbol-match-p name pattern nil)
+                                           (eglot-rcpp--symbol-info-xref symbol))
+                           when (and xref
+                                     (eglot-rcpp--xref-in-root-p xref root))
+                           collect xref)))
+
+(defun eglot-rcpp--bridge-cache-key (root)
+  "Return the bridge cache key for ROOT."
+  (expand-file-name root))
+
+(defun eglot-rcpp--bridge-export-candidates (root)
+  "Return exported Rcpp function names from ROOT's `RcppExports.R'."
+  (let* ((file (eglot-rcpp--r-bridge-file root))
+         (cache-key (eglot-rcpp--bridge-cache-key root))
+         (signature (and (file-exists-p file)
+                         (list (float-time
+                                (file-attribute-modification-time
+                                 (file-attributes file))))))
+         (cached (gethash cache-key eglot-rcpp--bridge-cache)))
+    (cond
+     ((not signature)
+      (remhash cache-key eglot-rcpp--bridge-cache)
+      nil)
+     ((and cached (equal (car cached) signature))
+      (cdr cached))
+     (t
+      (with-temp-buffer
+        (insert-file-contents file)
+        (let (candidates)
+          (goto-char (point-min))
+          (while (re-search-forward
+                  "^[[:space:]]*\\([.[:alpha:]_][.[:alnum:]_]*\\)[[:space:]]*<-[[:space:]]*function\\s-*("
+                  nil t)
+            (push (match-string-no-properties 1) candidates))
+          (setq candidates (nreverse (delete-dups candidates)))
+          (puthash cache-key (cons signature candidates) eglot-rcpp--bridge-cache)
+          candidates))))))
+
+(defun eglot-rcpp--run-next-capf ()
+  "Return the next completion-at-point result after `eglot-rcpp'."
+  (let ((completion-at-point-functions
+         (remq #'eglot-rcpp-completion-at-point completion-at-point-functions)))
+    (cl-loop for function in completion-at-point-functions
+             thereis (and (functionp function)
+                          (funcall function)))))
+
+(defun eglot-rcpp--completion-metadata (base-table exports)
+  "Return completion metadata for BASE-TABLE supplemented by EXPORTS."
+  (let* ((base-metadata (and base-table (completion-metadata "" base-table nil)))
+         (base-annotation (completion-metadata-get base-metadata 'annotation-function))
+         (base-category (completion-metadata-get base-metadata 'category)))
+    `(metadata
+      (category . ,(or base-category 'symbol))
+      (annotation-function
+       . ,(lambda (candidate)
+            (or (and (member candidate exports) " [Rcpp]")
+                (and base-annotation
+                     (funcall base-annotation candidate))))))))
+
+(defun eglot-rcpp--merge-completion-table (base-table exports)
+  "Return a completion table combining BASE-TABLE with EXPORTS."
+  (lambda (string predicate action)
+    (if (eq action 'metadata)
+        (eglot-rcpp--completion-metadata base-table exports)
+      (let ((candidates
+             (delete-dups
+              (append (if base-table
+                          (all-completions string base-table predicate)
+                        nil)
+                      (cl-remove-if-not
+                       (lambda (candidate)
+                         (string-prefix-p string candidate))
+                       exports)))))
+        (complete-with-action action candidates string predicate)))))
+
+;;;###autoload
+(defun eglot-rcpp-completion-at-point ()
+  "Supplement R completion with names exported through `RcppExports.R'."
+  (when-let* ((root (and (eq (eglot-rcpp--buffer-kind) 'r)
+                         (eglot-rcpp--project-root)))
+              (exports (eglot-rcpp--bridge-export-candidates root)))
+    (let* ((base (eglot-rcpp--run-next-capf))
+           (base-beg (nth 0 base))
+           (base-end (nth 1 base))
+           (base-table (nth 2 base))
+           (bounds (bounds-of-thing-at-point 'symbol))
+           (beg (or base-beg (car bounds)))
+           (end (or base-end (cdr bounds))))
+      (cond
+       ((and base
+             (or (null beg)
+                 (null end)
+                 (not (and (= beg base-beg) (= end base-end)))))
+        base)
+       ((and (null beg) (null base))
+        nil)
+       (t
+        (append
+         (list beg end (eglot-rcpp--merge-completion-table base-table exports))
+         (nthcdr 3 base)))))))
+
+(defun eglot-rcpp--cache-keys-for-root (root)
+  "Return all cache keys that belong to ROOT."
+  (list (eglot-rcpp--bridge-cache-key root)
+        (eglot-rcpp--symbol-cache-key root nil)
+        (eglot-rcpp--symbol-cache-key root t)))
+
+;;;###autoload
+(defun eglot-rcpp-invalidate-project-cache (&optional root)
+  "Clear cached symbol and bridge data for ROOT or the current project."
+  (interactive)
+  (when-let ((root (or root (eglot-rcpp--project-root))))
+    (remhash (eglot-rcpp--bridge-cache-key root) eglot-rcpp--bridge-cache)
+    (remhash (eglot-rcpp--symbol-cache-key root nil) eglot-rcpp--symbol-cache)
+    (remhash (eglot-rcpp--symbol-cache-key root t) eglot-rcpp--symbol-cache)))
+
+(defun eglot-rcpp--after-save ()
+  "Invalidate the current project's caches after a save."
+  (eglot-rcpp-invalidate-project-cache))
+
+(defun eglot-rcpp-install-project-xref-backend ()
+  "Install the mixed-project xref backend in the current buffer."
+  (when (bound-and-true-p eglot-rcpp-mode)
+    (setq-local xref-backend-functions
+                (cons #'eglot-rcpp-project-xref-backend
+                      (remq #'eglot-rcpp-project-xref-backend
+                            xref-backend-functions)))))
+
+(defun eglot-rcpp-project-xref-backend ()
+  "Return the mixed-project xref backend for `eglot-rcpp'."
+  'eglot-rcpp-project)
 
 (cl-defmethod xref-backend-definitions ((_backend (eql eglot-rcpp-project)) identifier)
-  "Find IDENTIFIER definitions by combining local and project-wide Eglot data."
-  (let ((root (eglot-rcpp--description-root)))
+  "Find IDENTIFIER definitions across the current mixed-language package."
+  (let ((root (eglot-rcpp--project-root)))
+    (eglot-rcpp--apply-generated-definition-policy
+     (eglot-rcpp--dedupe-xrefs
+      (cl-remove-if-not
+       (lambda (xref) (eglot-rcpp--xref-in-root-p xref root))
+       (append (eglot-rcpp--current-eglot-definitions identifier)
+               (eglot-rcpp--workspace-symbol-definitions identifier root)
+               ;; Fallback definitions should search real package sources too,
+               ;; otherwise R buffers can miss Rcpp exports that only exist in
+               ;; src/*.cpp until clangd has already been started separately.
+               (eglot-rcpp--text-symbol-xrefs identifier t nil root)))))))
+
+(cl-defmethod xref-backend-references ((_backend (eql eglot-rcpp-project)) identifier)
+  "Find IDENTIFIER references using the current server, filtered to the package."
+  (let ((root (eglot-rcpp--project-root)))
     (eglot-rcpp--dedupe-xrefs
      (cl-remove-if-not
       (lambda (xref) (eglot-rcpp--xref-in-root-p xref root))
-      (append (ignore-errors (xref-backend-definitions 'eglot identifier))
-              (eglot-rcpp--workspace-symbol-definitions identifier)
-              (delq nil (eglot-rcpp--text-symbol-xrefs identifier)))))))
+      (append (eglot-rcpp--current-eglot-references identifier) nil)))))
 
-(cl-defmethod xref-backend-references ((_backend (eql eglot-rcpp-project)) identifier)
-  "Defer IDENTIFIER references to the current buffer's Eglot server."
-  (ignore-errors (xref-backend-references 'eglot identifier)))
+(cl-defmethod xref-backend-apropos ((_backend (eql eglot-rcpp-project)) pattern)
+  "Find package symbols matching PATTERN."
+  (let ((root (eglot-rcpp--project-root)))
+    (eglot-rcpp--dedupe-xrefs
+     (cl-remove-if-not
+      (lambda (xref) (eglot-rcpp--xref-in-root-p xref root))
+      (append (eglot-rcpp--workspace-symbol-apropos pattern root)
+              (eglot-rcpp--text-symbol-xrefs pattern nil t root)
+              (eglot-rcpp--text-symbol-xrefs pattern nil nil root))))))
+
+(defvar eglot-rcpp-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "C-c C-e c") #'eglot-rcpp-compile-attributes)
+    (define-key map (kbd "C-c C-e u") #'eglot-rcpp-use-rcpp)
+    (define-key map (kbd "C-c C-e d") #'eglot-rcpp-check-r-dependencies)
+    map)
+  "Keymap for `eglot-rcpp-mode'.")
+
+;;;###autoload
+(define-minor-mode eglot-rcpp-mode
+  "Buffer-local mixed-language support for R package development."
+  :lighter ""
+  :keymap eglot-rcpp-mode-map
+  (if eglot-rcpp-mode
+      (progn
+        (eglot-rcpp-install-project-xref-backend)
+        (add-hook 'after-save-hook #'eglot-rcpp--after-save nil t)
+        (when (eq (eglot-rcpp--buffer-kind) 'r)
+          (add-hook 'completion-at-point-functions
+                    #'eglot-rcpp-completion-at-point nil t)))
+    (eglot-rcpp--cancel-project-setup)
+    (remove-hook 'after-save-hook #'eglot-rcpp--after-save t)
+    (remove-hook 'completion-at-point-functions
+                 #'eglot-rcpp-completion-at-point t)
+    (setq-local xref-backend-functions
+                (remq #'eglot-rcpp-project-xref-backend
+                      xref-backend-functions))))
+
+(defun eglot-rcpp--activate-current-buffer ()
+  "Enable `eglot-rcpp-mode' in the current buffer when appropriate."
+  (if (eglot-rcpp--eligible-buffer-p)
+      (progn
+        (unless (bound-and-true-p eglot-rcpp-mode)
+          (eglot-rcpp-mode 1))
+        (eglot-ensure)
+        (eglot-rcpp-schedule-project-setup))
+    (when (bound-and-true-p eglot-rcpp-mode)
+      (eglot-rcpp-mode -1))))
 
 (defun eglot-rcpp--install-project-root-markers ()
   "Teach project navigators about `DESCRIPTION'."
@@ -648,98 +965,186 @@ When EXACT is non-nil, require exact-ish symbol matching."
     (with-eval-after-load 'projectile
       (add-to-list 'projectile-project-root-files eglot-rcpp-root-marker-file))))
 
-(defun eglot-rcpp--install-eglot-hooks ()
-  "Install buffer hooks that should exist before Eglot loads."
-  (dolist (mode (eglot-rcpp--all-managed-modes))
-    (add-hook (eglot-rcpp--mode-hook mode) #'eglot-ensure)
-    (add-hook (eglot-rcpp--mode-hook mode) #'eglot-rcpp-schedule-project-setup))
-  (add-hook 'eglot-managed-mode-hook #'eglot-rcpp-install-project-xref-backend))
+(defun eglot-rcpp--ensure-server-program (modes command)
+  "Register COMMAND for MODES in `eglot-server-programs'."
+  (let ((entry (cons modes command)))
+    (unless (member entry eglot-server-programs)
+      (add-to-list 'eglot-server-programs entry))))
 
 (defun eglot-rcpp--install-eglot-server-programs ()
-  "Install server program entries after `eglot' loads."
+  "Install Eglot server entries for package R and C/C++ buffers."
   (with-eval-after-load 'eglot
-    (when (eglot-rcpp--r-server-available-p)
-      (add-to-list 'eglot-server-programs
-                   `(,eglot-rcpp-r-modes . ,eglot-rcpp-r-server-command)))
-    (when (and eglot-rcpp-clangd-command
-               (listp eglot-rcpp-clangd-command)
-               (executable-find (car eglot-rcpp-clangd-command)))
-      (add-to-list 'eglot-server-programs
-                   `(,eglot-rcpp-cpp-modes . ,eglot-rcpp-clangd-command)))))
+    (when (eglot-rcpp--command-available-p eglot-rcpp-r-server-command)
+      (eglot-rcpp--ensure-server-program
+       eglot-rcpp-r-modes
+       eglot-rcpp-r-server-command))
+    (when (eglot-rcpp--command-available-p eglot-rcpp-clangd-command)
+      (eglot-rcpp--ensure-server-program
+       eglot-rcpp-cpp-modes
+       eglot-rcpp-clangd-command))))
 
-(defun eglot-rcpp--augment-async-source (orig-fn servers)
-  "Wrap ORIG-FN so `consult-eglot-symbols' also sees package headers."
-  (ignore orig-fn)
-  (lambda (async)
-    (let ((generation 0)
-          (base-results nil)
-          (fallback-results nil))
-      (lambda (action)
-        (pcase action
-          ('setup
-           (setq generation 0
-                 base-results nil
-                 fallback-results nil)
-           (funcall async 'setup))
-          ((pred stringp)
-           (cl-incf generation)
-           (let ((query action)
-                 (current-generation generation))
-             (setq base-results nil
-                   fallback-results
-                   (unless (string-empty-p query)
-                     (eglot-rcpp--text-symbols query nil t)))
-             (cl-loop
-              with responses = nil
-              for server in servers
-              do (jsonrpc-async-request
-                  server :workspace/symbol
-                  `(:query ,query)
-                  :success-fn
-                  (lambda (resp)
-                    (when (= current-generation generation)
-                      (setq responses (append responses resp nil))
-                      (when consult-eglot-sort-results
-                        (setq responses
-                              (cl-sort responses #'>
-                                       :key (lambda (candidate)
-                                              (cl-getf candidate :score 0)))))
-                      (setq base-results responses)
-                      (funcall async 'flush)
-                      (funcall async
-                               (eglot-rcpp--dedupe-symbol-infos
-                                (append base-results fallback-results)))))
-                  :error-fn
-                  (lambda (&rest _args)
-                    (when (= current-generation generation)
-                      (message "workspace/symbol request failed")))
-                  :timeout-fn
-                  (lambda ()
-                    (when (= current-generation generation)
-                      (message "error: request timed out")))))
-             (funcall async action)
-             (funcall async 'flush)
-             (funcall async
-                      (eglot-rcpp--dedupe-symbol-infos
-                       (append base-results fallback-results)))))
-          (_ (funcall async action)))))))
+(defun eglot-rcpp--install-ess-support ()
+  "Install optional ESS bindings when enabled."
+  (when eglot-rcpp-enable-ess-keybindings
+    (dolist (feature '(ess-r-mode ess-site))
+      (with-eval-after-load feature
+        (when (boundp 'ess-r-mode-map)
+          (define-key ess-r-mode-map (kbd "C-c C-e") eglot-rcpp-ess-command-map))))))
 
-(defun eglot-rcpp--install-consult-support ()
-  "Install the optional consult-eglot augmentation."
-  (with-eval-after-load 'consult-eglot
-    (unless (advice-member-p #'eglot-rcpp--augment-async-source
-                             'consult-eglot--make-async-source)
-      (advice-add 'consult-eglot--make-async-source
-                  :around #'eglot-rcpp--augment-async-source))))
+(defun eglot-rcpp--eglot-managed-hook ()
+  "Finalize `eglot-rcpp' setup when Eglot starts managing this buffer."
+  (when (bound-and-true-p eglot-rcpp-mode)
+    (eglot-rcpp-install-project-xref-backend)
+    (when-let ((root (eglot-rcpp--project-root))
+               (kind (eglot-rcpp--buffer-kind)))
+      (eglot-rcpp--set-pending-companion-start root kind nil))
+    (eglot-rcpp-maybe-start-companion-server)))
+
+(defun eglot-rcpp--install-hooks ()
+  "Install global `eglot-rcpp' hooks once."
+  (unless eglot-rcpp--hooks-installed
+    (setq eglot-rcpp--hooks-installed t)
+    (dolist (mode (eglot-rcpp--all-managed-modes))
+      (add-hook (eglot-rcpp--mode-hook mode) #'eglot-rcpp--activate-current-buffer))
+    (add-hook 'eglot-managed-mode-hook #'eglot-rcpp--eglot-managed-hook)))
+
+(defun eglot-rcpp--project-root-or-error ()
+  "Return the current package root or signal a user error."
+  (or (eglot-rcpp--project-root)
+      (user-error "eglot-rcpp: current buffer is not in an R package project")))
+
+(defun eglot-rcpp--r-command-line (expression)
+  "Return a shell command line that evaluates EXPRESSION in R."
+  (mapconcat #'shell-quote-argument
+             (list (or (eglot-rcpp--r-executable)
+                       (car-safe eglot-rcpp-r-server-command)
+                       "R")
+                   "--slave" "-e" expression)
+             " "))
+
+(defun eglot-rcpp--start-r-command (root expression buffer-name)
+  "Run R EXPRESSION under ROOT in a compilation buffer named BUFFER-NAME."
+  (let ((default-directory root))
+    (compilation-start
+     (eglot-rcpp--r-command-line expression)
+     'compilation-mode
+     (lambda (_mode) buffer-name))))
+
+(defun eglot-rcpp--r-package-installed-p (package)
+  "Return non-nil when R PACKAGE is installed."
+  (when-let ((r-executable (eglot-rcpp--r-executable)))
+    (with-temp-buffer
+      (and (zerop (process-file
+                   r-executable nil t nil
+                   "--slave" "-e"
+                   (format "cat(if (requireNamespace(%S, quietly = TRUE)) 'yes' else 'no')"
+                           package)))
+           (string= (string-trim (buffer-string)) "yes")))))
+
+(defun eglot-rcpp--missing-r-packages (packages &optional predicate)
+  "Return missing PACKAGES according to PREDICATE.
+
+PREDICATE defaults to `eglot-rcpp--r-package-installed-p'."
+  (let ((predicate (or predicate #'eglot-rcpp--r-package-installed-p)))
+    (cl-remove-if predicate packages)))
+
+(defun eglot-rcpp--ensure-r-package (package purpose)
+  "Ensure R PACKAGE is installed for PURPOSE.
+
+Return non-nil when the package is available after this check."
+  (cond
+   ((eglot-rcpp--r-package-installed-p package) t)
+   ((not (eglot-rcpp--r-executable))
+    (eglot-rcpp--warn-missing-r)
+    nil)
+   ((y-or-n-p (format "Install missing R package `%s' for %s? " package purpose))
+    (eglot-rcpp--start-r-command
+     (eglot-rcpp--project-root-or-error)
+     (format "install.packages(%S)" package)
+     (format "*eglot-rcpp install %s*" package))
+    (message "eglot-rcpp: rerun the command after `%s' finishes installing" package)
+    nil)
+   (t nil)))
+
+(defun eglot-rcpp--description-mentions-rcpp-p (root)
+  "Return non-nil when ROOT's DESCRIPTION already mentions Rcpp."
+  (let ((description (expand-file-name eglot-rcpp-root-marker-file root)))
+    (and (file-readable-p description)
+         (with-temp-buffer
+           (insert-file-contents description)
+           (re-search-forward "^\\(?:LinkingTo\\|Imports\\|Depends\\):.*\\bRcpp\\b" nil t)))))
+
+(defun eglot-rcpp--rcpp-enabled-p (root)
+  "Return non-nil when ROOT already looks like an Rcpp package."
+  (or (file-exists-p (eglot-rcpp--r-bridge-file root))
+      (file-exists-p (eglot-rcpp--cpp-bridge-file root))
+      (eglot-rcpp--cpp-files-present-p root)
+      (eglot-rcpp--description-mentions-rcpp-p root)))
+
+;;;###autoload
+(defun eglot-rcpp-check-r-dependencies (&optional prompt-install)
+  "Check the package's R-side dependencies.
+
+With prefix argument PROMPT-INSTALL, offer to install missing packages."
+  (interactive "P")
+  (let* ((packages '("languageserver" "Rcpp" "usethis"))
+         (missing (eglot-rcpp--missing-r-packages packages)))
+    (cond
+     ((not (eglot-rcpp--r-executable))
+      (eglot-rcpp--warn-missing-r))
+     ((null missing)
+      (message "eglot-rcpp: R dependencies available: %s"
+               (string-join packages ", ")))
+     (prompt-install
+      (dolist (package missing)
+        (eglot-rcpp--ensure-r-package package "eglot-rcpp")))
+     (t
+      (message "eglot-rcpp: missing R packages: %s"
+               (string-join missing ", "))))))
+
+;;;###autoload
+(defun eglot-rcpp-use-rcpp ()
+  "Enable Rcpp infrastructure in the current R package with `usethis::use_rcpp()'."
+  (interactive)
+  (let ((root (eglot-rcpp--project-root-or-error)))
+    (when (and (eglot-rcpp--rcpp-enabled-p root)
+               (not (y-or-n-p "Project already looks Rcpp-enabled. Run `usethis::use_rcpp()` anyway? ")))
+      (user-error "eglot-rcpp: aborted"))
+    (when (eglot-rcpp--ensure-r-package "usethis" "Rcpp package setup")
+      (eglot-rcpp--start-r-command root "usethis::use_rcpp()" "*eglot-rcpp use_rcpp*")
+      (message "eglot-rcpp: started `usethis::use_rcpp()` for %s"
+               (abbreviate-file-name root)))))
+
+;;;###autoload
+(defun eglot-rcpp-compile-attributes ()
+  "Regenerate Rcpp attribute bridge files with `Rcpp::compileAttributes()'."
+  (interactive)
+  (let ((root (eglot-rcpp--project-root-or-error)))
+    (when (eglot-rcpp--ensure-r-package "Rcpp" "Rcpp attribute generation")
+      (eglot-rcpp-invalidate-project-cache root)
+      (eglot-rcpp--start-r-command
+       root
+       "Rcpp::compileAttributes()"
+       "*eglot-rcpp compileAttributes*")
+      (message "eglot-rcpp: regenerating `RcppExports` bridge files for %s"
+               (abbreviate-file-name root)))))
+
+;;;###autoload
+(defun eglot-rcpp-find-symbol (pattern)
+  "Find package symbols matching PATTERN using the mixed-project xref backend."
+  (interactive (list (read-string "eglot-rcpp symbol: "
+                                  (thing-at-point 'symbol t))))
+  (let ((xref-backend-functions '(eglot-rcpp-project-xref-backend)))
+    (xref-find-apropos pattern)))
 
 ;;;###autoload
 (defun eglot-rcpp-setup ()
-  "Install all Eglot integration for mixed R/C++ packages."
+  "Install `eglot-rcpp' support for mixed R / Rcpp / C++ package projects."
   (interactive)
   (eglot-rcpp--install-project-root-markers)
-  (eglot-rcpp--install-eglot-hooks)
   (eglot-rcpp--install-eglot-server-programs)
-  (eglot-rcpp--install-consult-support))
+  (eglot-rcpp--install-ess-support)
+  (eglot-rcpp--install-hooks))
 
 (eglot-rcpp-setup)
 
