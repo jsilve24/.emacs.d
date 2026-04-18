@@ -216,6 +216,9 @@ Version 2017-01-11"
 
 (use-package dumb-jump
   :config
+  ;; Keep dumb-jump on the global xref stack so xref/Consult can fall back to
+  ;; project-wide text matches when Eglot does not know about a cross-language
+  ;; symbol relationship.
   (add-hook 'xref-backend-functions #'dumb-jump-xref-activate))
 
 ;;; highlighting ---------------------------------------------------------------

@@ -41,6 +41,13 @@ but that safety still depends on prompt-following. A small local checker over
 the visible thread state could further reduce false-positive confirmations and
 calendar staging.
 
+*** TODO Replace the Rcpp `consult-eglot` header fallback with a public hook if upstream adds one
+`lsp.el` now advises `consult-eglot--make-async-source` so `SPC e e` can surface
+`inst/include/` symbols in plain R package workflows where clangd does not
+return them from `workspace/symbol`. The behavior is useful, but it depends on
+an internal async helper in `consult-eglot` and should be revisited if the
+package grows a supported extension point.
+
 ** Missing guards and OS assumptions
 
 *** TODO Review hard-coded machine names and local paths
@@ -94,3 +101,10 @@ can easily break discoverability or load order.
 `init.el` says load order matters and mentions `MAINTENANCE.md`, but the actual
 constraints are still mostly implicit in the code. A concise explanation of
 which modules must load before others would make future maintenance much safer.
+
+*** TODO Revisit built-in C++ tree-sitter once upstream font-lock queries are fixed
+Emacs 30.2's `c++-ts-mode` triggers a `treesit-query-error` during redisplay
+with the current `cpp` grammar, so `treesit-auto` intentionally leaves `.cpp`
+files on `c++-mode` for now. Re-enable the tree-sitter remap only after the
+upstream query bug is resolved and the mode fonts cleanly in a real package
+buffer.

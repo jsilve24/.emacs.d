@@ -4,9 +4,20 @@
 ;; internal support files.
 (load-config "ess-helpers.el")
 
-;; setup projectile
+;; Make `DESCRIPTION` count as a project root marker for R workspaces.
+;;
+;; R package development is the main case where this matters: it lets Eglot and
+;; clangd discover the package root from a `src/*.cpp` or `src/*.h` buffer, so
+;; mixed R/Rcpp navigation can treat the package as one project instead of two
+;; unrelated trees.
+;;
+;; Projectile also benefits from seeing `DESCRIPTION` as a root marker, so the
+;; same directory boundary is used by both project navigation and LSP.
 (with-eval-after-load 'projectile
   (add-to-list 'projectile-project-root-files "DESCRIPTION"))
+
+(with-eval-after-load 'project
+  (add-to-list 'project-vc-extra-root-markers "DESCRIPTION"))
 
 ;;; main ess setup
 (use-package ess
@@ -35,14 +46,7 @@
     (setcdr (assoc 'ess-indent-with-fancy-comments (cdr (assoc 'DEFAULT ess-style-alist))) nil))
   (add-hook 'ess-mode-hook 'dont-like-fancy)
   (add-hook 'ess-r-mode-hook 'dont-like-fancy)
-
-  ;; add dumb-jump as the default xref-backend
-  (with-eval-after-load 'dumb-jump
-    (add-hook 'ess-r-mode-hook
-	      (lambda ()
-		;; (add-hook 'xref-backend-functions #'eglot-xref-backend -100 'local)
-		(add-hook 'xref-backend-functions #'dumb-jump-xref-activate -90 'local)
-		))))
+  )
 
 ;;; inline R graphics via httpgd/essgd
 

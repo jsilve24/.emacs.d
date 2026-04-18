@@ -8,9 +8,27 @@
 (use-package treesit-auto
   :demand t
   :config
-  (setq treesit-auto-install 'prompt)
+  ;; Emacs 30.2's built-in `c++-ts-mode' still has a font-lock query bug, so
+  ;; keep `.cpp' on classic `c++-mode' for now and let tree-sitter handle the
+  ;; other languages that are stable here.
+  (setq treesit-auto-install 'prompt
+        ;; remove this line to reenable cpp treesiter
+        treesit-auto-langs (remq 'cpp treesit-auto-langs))
   (treesit-auto-add-to-auto-mode-alist 'all)
-  (global-treesit-auto-mode))
+  (global-treesit-auto-mode)
+  ;; Rcpp package C++ files still hit the same built-in font-lock bug. If
+  ;; Emacs opens one of those files in `c++-ts-mode', switch back to classic
+  ;; `c++-mode' so highlighting works consistently in package `src/' and
+  ;; header trees.
+  (defun jds/treesit-fallback-rcpp-c++-mode ()
+    "Use classic C++ mode for Rcpp package C++ files."
+    (when (and buffer-file-name
+               (derived-mode-p 'c++-ts-mode)
+               (string-match-p
+                "\\(?:^\\|/\\)\\(?:src\\|inst/include\\|include\\)/.*\\.\\(c\\(?:c\\|pp\\|xx\\)?\\|h\\(?:h\\|pp\\|xx\\)?\\|ipp\\|tpp\\)\\'"
+                               buffer-file-name))
+      (c++-mode)))
+  (add-hook 'c++-ts-mode-hook #'jds/treesit-fallback-rcpp-c++-mode))
 
 ;;;; External tree-sitter for modes without a built-in -ts-mode (e.g., R/ESS)
 ;; Dual-backend setup: built-in treesit handles -ts-mode buffers (Python, YAML, etc.);
