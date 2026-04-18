@@ -25,9 +25,8 @@
                '((tex-mode context-mode texinfo-mode bibtex-mode LaTeX-mode latex-mode)
                  . ("texlab"))))
 
-;; `consult-eglot-symbols` already queries all running Eglot servers for the
-;; current project, so it remains the right command for project-wide symbol
-;; lookup under SPC e e.
+;; `eglot-rcpp` owns mixed-project xref and symbol search in Rcpp package
+;; buffers. Consult integration is optional, so enable it explicitly here.
 (use-package consult-eglot
   :after eglot
   :commands consult-eglot-symbols)
@@ -36,5 +35,6 @@
 (let ((eglot-rcpp-dir (expand-file-name "eglot-rcpp" user-emacs-directory)))
   (when (file-directory-p eglot-rcpp-dir)
     (add-to-list 'load-path eglot-rcpp-dir)))
-(unless (require 'eglot-rcpp nil t)
-  (message "Rcpp Eglot support skipped: `eglot-rcpp' is not available"))
+(setq eglot-rcpp-enable-consult-integration t)
+(require 'eglot-rcpp nil t)
+(eglot-rcpp-setup)

@@ -1,7 +1,7 @@
 ;;; eglot-rcpp.el --- Mixed R/Rcpp/C++ package support for Eglot -*- lexical-binding: t; -*-
 
 ;; Author: Justin Silverman <jsilve24@gmail.com>
-;; Version: 0.2.0
+;; Version: 0.2.1
 ;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: languages, tools, convenience
 ;; URL: https://github.com/jsilve24/eglot-rcpp
@@ -178,6 +178,22 @@ textual fallback backend to remain visible."
   :type '(alist :key-type character :value-type string)
   :group 'eglot-rcpp)
 
+(defun eglot-rcpp--set-consult-integration (symbol value)
+  "Setter for `eglot-rcpp-enable-consult-integration'."
+  (set-default symbol value)
+  (when (and (boundp 'eglot-rcpp--hooks-installed)
+             eglot-rcpp--hooks-installed)
+    (eglot-rcpp--sync-consult-integration)))
+
+(defcustom eglot-rcpp-enable-consult-integration nil
+  "When non-nil, advise `consult-eglot-symbols' in package buffers.
+
+This keeps Consult integration opt-in.  The package-owned symbol search
+commands remain available regardless of this setting."
+  :type 'boolean
+  :set #'eglot-rcpp--set-consult-integration
+  :group 'eglot-rcpp)
+
 (defvar eglot-managed-mode)
 (defvar eglot-server-programs)
 (defvar projectile-project-root-files)
@@ -206,6 +222,9 @@ textual fallback backend to remain visible."
 
 (defvar eglot-rcpp--consult-advice-installed nil
   "Non-nil after `eglot-rcpp' installs its Consult dispatch advice.")
+
+(defvar eglot-rcpp--consult-load-hook-installed nil
+  "Non-nil after the Consult after-load hook has been registered.")
 
 (defvar eglot-rcpp--clangd-flags-cache (make-hash-table :test #'equal)
   "Cache of computed clangd fallback flags keyed by project root.")
@@ -1232,6 +1251,15 @@ When EXACT is non-nil, require exact-ish symbol matching."
                                      (eglot-rcpp--xref-in-root-p xref root))
                            collect xref)))
 
+(defun eglot-rcpp--symbol-search-xrefs (pattern &optional root)
+  "Return project-scoped xrefs for PATTERN across servers and text fallback."
+  (eglot-rcpp--dedupe-xrefs
+   (cl-remove-if-not
+    (lambda (xref) (eglot-rcpp--xref-in-root-p xref root))
+    (append (eglot-rcpp--workspace-symbol-apropos pattern root)
+            (eglot-rcpp--text-symbol-xrefs pattern nil t root)
+            (eglot-rcpp--text-symbol-xrefs pattern nil nil root)))))
+
 (defun eglot-rcpp--bridge-cache-key (root)
   "Return the bridge cache key for ROOT."
   (expand-file-name root))
@@ -1389,20 +1417,13 @@ When EXACT is non-nil, require exact-ish symbol matching."
 
 (cl-defmethod xref-backend-apropos ((_backend (eql eglot-rcpp-project)) pattern)
   "Find package symbols matching PATTERN."
-  (let ((root (eglot-rcpp--project-root)))
-    (eglot-rcpp--dedupe-xrefs
-     (cl-remove-if-not
-      (lambda (xref) (eglot-rcpp--xref-in-root-p xref root))
-      (append (eglot-rcpp--workspace-symbol-apropos pattern root)
-              (eglot-rcpp--text-symbol-xrefs pattern nil t root)
-              (eglot-rcpp--text-symbol-xrefs pattern nil nil root))))))
+  (eglot-rcpp--symbol-search-xrefs pattern (eglot-rcpp--project-root)))
 
 (defvar eglot-rcpp-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-c C-e c") #'eglot-rcpp-compile-attributes)
     (define-key map (kbd "C-c C-e u") #'eglot-rcpp-use-rcpp)
     (define-key map (kbd "C-c C-e d") #'eglot-rcpp-check-r-dependencies)
-    (define-key map [remap consult-eglot-symbols] #'eglot-rcpp-consult-symbols)
     map)
   "Keymap for `eglot-rcpp-mode'.")
 
@@ -1517,10 +1538,35 @@ ORIG-FN and ARGS are the advised command and its original arguments."
     (dolist (mode (eglot-rcpp--all-managed-modes))
       (add-hook (eglot-rcpp--mode-hook mode) #'eglot-rcpp--activate-current-buffer))
     (add-hook 'eglot-managed-mode-hook #'eglot-rcpp--eglot-managed-hook))
-  (with-eval-after-load 'consult-eglot
-    (unless eglot-rcpp--consult-advice-installed
-      (advice-add 'consult-eglot-symbols :around #'eglot-rcpp--consult-eglot-dispatch)
-      (setq eglot-rcpp--consult-advice-installed t))))
+  (eglot-rcpp--sync-consult-integration))
+
+(defun eglot-rcpp--install-consult-advice ()
+  "Install the Consult symbol dispatch advice if it is not already present."
+  (unless eglot-rcpp--consult-advice-installed
+    (advice-add 'consult-eglot-symbols :around #'eglot-rcpp--consult-eglot-dispatch)
+    (setq eglot-rcpp--consult-advice-installed t)))
+
+(defun eglot-rcpp--consult-eglot-after-load ()
+  "Install Consult integration after `consult-eglot' loads when enabled."
+  (when eglot-rcpp-enable-consult-integration
+    (eglot-rcpp--install-consult-advice)))
+
+(defun eglot-rcpp--ensure-consult-load-hook ()
+  "Register the Consult after-load hook once."
+  (unless eglot-rcpp--consult-load-hook-installed
+    (setq eglot-rcpp--consult-load-hook-installed t)
+    (with-eval-after-load 'consult-eglot
+      (eglot-rcpp--consult-eglot-after-load))))
+
+(defun eglot-rcpp--sync-consult-integration ()
+  "Install or remove Consult integration according to user options."
+  (when eglot-rcpp--consult-advice-installed
+    (advice-remove 'consult-eglot-symbols #'eglot-rcpp--consult-eglot-dispatch)
+    (setq eglot-rcpp--consult-advice-installed nil))
+  (when eglot-rcpp-enable-consult-integration
+    (eglot-rcpp--ensure-consult-load-hook)
+    (when (featurep 'consult-eglot)
+      (eglot-rcpp--install-consult-advice))))
 
 (defun eglot-rcpp--project-root-or-error ()
   "Return the current package root or signal a user error."
@@ -1709,10 +1755,8 @@ With prefix argument PROMPT-INSTALL, offer to install missing packages."
         (goto-char marker))))))
 
 (defun eglot-rcpp--consult-text-symbol-xrefs (pattern root)
-  "Return package-scoped textual symbol xrefs for PATTERN."
-  (eglot-rcpp--dedupe-xrefs
-   (append (eglot-rcpp--text-symbol-xrefs pattern nil t root)
-           (eglot-rcpp--text-symbol-xrefs pattern nil nil root))))
+  "Return package-scoped symbol xrefs for PATTERN."
+  (eglot-rcpp--symbol-search-xrefs pattern root))
 
 (defun eglot-rcpp--consult-symbol-source (servers root)
   "Return a Consult async source for package-scoped workspace symbols.
@@ -1765,7 +1809,9 @@ This keeps the Consult internals in one place and avoids direct dependence on
 (defun eglot-rcpp-consult-symbols (&optional pattern)
   "Interactively search package symbols with a dynamic Consult UI.
 
-When Consult is unavailable, fall back to `eglot-rcpp-find-symbol'."
+This is a package-owned Consult adapter layered on the mixed-project symbol
+search backend.  When Consult is unavailable, fall back to
+`eglot-rcpp-find-symbol'."
   (interactive (list nil))
   (if (not (require 'consult nil t))
       (call-interactively #'eglot-rcpp-find-symbol)
@@ -1798,8 +1844,6 @@ When Consult is unavailable, fall back to `eglot-rcpp-find-symbol'."
   (eglot-rcpp--install-eglot-server-programs)
   (eglot-rcpp--install-ess-support)
   (eglot-rcpp--install-hooks))
-
-(eglot-rcpp-setup)
 
 (provide 'eglot-rcpp)
 

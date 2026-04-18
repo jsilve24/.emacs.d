@@ -42,9 +42,8 @@ Optional:
 - ESS
 - `usethis`
 - `Rcpp`
-- `consult-eglot`, if you still want its normal command set alongside this
-  package's xref-backed symbol search. For package-scoped symbol search,
-  prefer `eglot-rcpp-consult-symbols`.
+- `consult-eglot`, if you want the optional package-scoped Consult adapter.
+  Consult integration is off by default and can be enabled explicitly.
 
 ## Installation
 
@@ -53,17 +52,21 @@ This package is intended to live in your local `.emacs.d` tree.
 ```elisp
 (add-to-list 'load-path (expand-file-name "eglot-rcpp" user-emacs-directory))
 (require 'eglot-rcpp)
+(eglot-rcpp-setup)
 ```
 
-Requiring the package installs its hooks. Actual activation is still gated by
-project checks, so unrelated buffers are left alone.
+`require` only defines the package. `eglot-rcpp-setup` installs the hooks and
+project-aware server registrations. Actual activation is still gated by project
+checks, so unrelated buffers are left alone.
 
 ## Setup
 
 Minimal setup:
 
 ```elisp
+(setq eglot-rcpp-enable-consult-integration t) ; optional
 (require 'eglot-rcpp)
+(eglot-rcpp-setup)
 ```
 
 Optional customization:
@@ -71,6 +74,10 @@ Optional customization:
 ```elisp
 (setq eglot-rcpp-enable-ess-keybindings t)
 ```
+
+If you enable `eglot-rcpp-enable-consult-integration`, `consult-eglot-symbols`
+is advised only inside relevant Rcpp package buffers. Outside those buffers,
+Consult behaves normally.
 
 The main user options are:
 
@@ -80,6 +87,7 @@ The main user options are:
 - `eglot-rcpp-source-directories`
 - `eglot-rcpp-header-directories`
 - `eglot-rcpp-auto-start-companion-servers`
+- `eglot-rcpp-enable-consult-integration`
 - `eglot-rcpp-r-server-command`
 - `eglot-rcpp-clangd-command`
 - `eglot-rcpp-enable-clangd-fallback-flags`
@@ -172,9 +180,11 @@ small convenience prefix on `C-c C-e`:
 - References use the current server as the base and add a conservative
   package-code textual fallback; they are not a fully semantic multi-server
   cross-language index.
-- `consult-eglot-symbols` still reflects raw server workspace symbols; use
-  `eglot-rcpp-find-symbol` or `eglot-rcpp-consult-symbols` for package-scoped
-  results.
+- `consult-eglot-symbols` is only routed through `eglot-rcpp` when
+  `eglot-rcpp-enable-consult-integration` is non-nil; otherwise it keeps the
+  normal Consult behavior. Use `eglot-rcpp-find-symbol` for the package-owned
+  Consult-free path, or `eglot-rcpp-consult-symbols` for the package-owned
+  Consult UI.
 
 ## Testing
 
