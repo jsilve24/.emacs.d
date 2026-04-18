@@ -90,8 +90,17 @@
   :type 'boolean
   :group 'eglot-rcpp)
 
-(defcustom eglot-rcpp-restrict-symbol-search-to-project t
-  "When non-nil, keep symbol results inside the current package root."
+(define-obsolete-variable-alias
+  'eglot-rcpp-restrict-symbol-search-to-project
+  'eglot-rcpp-restrict-xref-results-to-project
+  "0.2.1")
+
+(defcustom eglot-rcpp-restrict-xref-results-to-project t
+  "When non-nil, keep mixed-project xref results inside the package root.
+
+This affects definitions, references, and symbol search results collected by
+`eglot-rcpp'.  Set it to nil to allow external library hits from Eglot or the
+textual fallback backend to remain visible."
   :type 'boolean
   :group 'eglot-rcpp)
 
@@ -118,6 +127,37 @@
   :type 'boolean
   :group 'eglot-rcpp)
 
+(defcustom eglot-rcpp-consult-min-input 1
+  "Minimum minibuffer input length before package-scoped Consult search runs."
+  :type 'natnum
+  :group 'eglot-rcpp)
+
+(defcustom eglot-rcpp-consult-narrow
+  '((?c . "Class")
+    (?f . "Function")
+    (?e . "Enum")
+    (?i . "Interface")
+    (?m . "Module")
+    (?n . "Namespace")
+    (?p . "Package")
+    (?s . "Struct")
+    (?t . "Type Parameter")
+    (?v . "Variable")
+    (?A . "Array")
+    (?B . "Boolean")
+    (?C . "Constant")
+    (?E . "Enum Member")
+    (?F . "Field")
+    (?M . "Method")
+    (?N . "Number")
+    (?O . "Object")
+    (?P . "Property")
+    (?S . "String")
+    (?o . "Other"))
+  "Narrow/group configuration used by `eglot-rcpp-consult-symbols'."
+  :type '(alist :key-type character :value-type string)
+  :group 'eglot-rcpp)
+
 (defvar eglot-managed-mode)
 (defvar eglot-server-programs)
 (defvar projectile-project-root-files)
@@ -141,6 +181,12 @@
 (defvar eglot-rcpp--bridge-cache (make-hash-table :test #'equal)
   "Cache of parsed `RcppExports.R' completion candidates keyed by project root.")
 
+(defvar eglot-rcpp--consult-history nil
+  "Minibuffer history for `eglot-rcpp-consult-symbols'.")
+
+(defvar eglot-rcpp--consult-advice-installed nil
+  "Non-nil after `eglot-rcpp' installs its Consult dispatch advice.")
+
 (defvar eglot-rcpp-ess-command-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "u") #'eglot-rcpp-use-rcpp)
@@ -156,6 +202,19 @@
 (declare-function eglot-current-server "eglot")
 (declare-function eglot-ensure "eglot")
 (declare-function eglot-server-capable "eglot")
+(declare-function consult--async-highlight "consult")
+(declare-function consult--async-min-input "consult")
+(declare-function consult--async-pipeline "consult")
+(declare-function consult--async-throttle "consult")
+(declare-function consult--format-file-line-match "consult")
+(declare-function consult--jump-state "consult")
+(declare-function consult--lookup-candidate "consult")
+(declare-function consult--marker-from-line-column "consult")
+(declare-function consult--read "consult")
+(declare-function consult--temporary-files "consult")
+(declare-function consult--type-group "consult")
+(declare-function consult--type-narrow "consult")
+(defvar consult-after-jump-hook)
 
 (defun eglot-rcpp--normalize-path (path)
   "Return a canonical absolute path for PATH, or nil."
@@ -293,6 +352,24 @@ When INCLUDE-GENERATED is non-nil, keep generated bridge files."
                              unless (and (not include-generated)
                                          (eglot-rcpp--generated-file-p file))
                              collect (or (eglot-rcpp--normalize-path file) file)))))
+
+(defun eglot-rcpp--r-files (root &optional include-generated)
+  "Return relevant R files under ROOT.
+
+When INCLUDE-GENERATED is non-nil, keep generated bridge files."
+  (let ((directory (expand-file-name "R" root)))
+    (if (file-directory-p directory)
+        (cl-loop for file in (directory-files-recursively directory "\\.[rR]\\'" nil nil t)
+                 unless (and (not include-generated)
+                             (eglot-rcpp--generated-file-p file))
+                 collect (or (eglot-rcpp--normalize-path file) file))
+      nil)))
+
+(defun eglot-rcpp--reference-files (root)
+  "Return code files that should participate in textual reference fallback."
+  (delete-dups
+   (append (eglot-rcpp--r-files root t)
+           (eglot-rcpp--files root nil t))))
 
 (defun eglot-rcpp--backend-file (root)
   "Return one representative C/C++ file for the package at ROOT."
@@ -507,7 +584,7 @@ when no companion start is needed."
 
 (defun eglot-rcpp--xref-in-root-p (xref root)
   "Return non-nil when XREF points inside ROOT."
-  (if (not eglot-rcpp-restrict-symbol-search-to-project)
+  (if (not eglot-rcpp-restrict-xref-results-to-project)
       t
     (when-let ((path (eglot-rcpp--xref-location-path xref)))
       (eglot-rcpp--within-root-p path root))))
@@ -541,26 +618,83 @@ when no companion start is needed."
       ('omit (if real real xrefs))
       (_ (append real generated)))))
 
+(defun eglot-rcpp--deprioritize-generated-xrefs (xrefs)
+  "Return XREFS with generated-file hits moved to the end."
+  (let ((real (cl-remove-if #'eglot-rcpp--xref-generated-p xrefs))
+        (generated (cl-remove-if-not #'eglot-rcpp--xref-generated-p xrefs)))
+    (append real generated)))
+
 (defun eglot-rcpp--workspace-symbol-name-match-p (candidate identifier)
   "Return non-nil when CANDIDATE is an exact-ish match for IDENTIFIER."
   (or (string= candidate identifier)
       (string-suffix-p (concat "::" identifier) candidate)))
 
-(defun eglot-rcpp--make-workspace-symbol-xref (symbol identifier)
-  "Convert SYMBOL into an xref for IDENTIFIER, or nil."
+(defun eglot-rcpp--symbol-kind-name (kind)
+  "Return an LSP symbol kind label for KIND."
+  (alist-get kind
+             '((1 . "File")
+               (2 . "Module")
+               (3 . "Namespace")
+               (4 . "Package")
+               (5 . "Class")
+               (6 . "Method")
+               (7 . "Property")
+               (8 . "Field")
+               (9 . "Constructor")
+               (10 . "Enum")
+               (11 . "Interface")
+               (12 . "Function")
+               (13 . "Variable")
+               (14 . "Constant")
+               (15 . "String")
+               (16 . "Number")
+               (17 . "Boolean")
+               (18 . "Array")
+               (19 . "Object")
+               (20 . "Key")
+               (21 . "Null")
+               (22 . "Enum Member")
+               (23 . "Struct")
+               (24 . "Event")
+               (25 . "Operator")
+               (26 . "Type Parameter"))
+             "Other"))
+
+(defun eglot-rcpp--symbol-kind-type (kind)
+  "Return the Consult narrow key for LSP symbol KIND."
+  (or (car (rassoc (eglot-rcpp--symbol-kind-name kind)
+                   eglot-rcpp-consult-narrow))
+      (car (rassoc "Other" eglot-rcpp-consult-narrow))
+      ?o))
+
+(defun eglot-rcpp--workspace-symbol-xref (symbol &optional root)
+  "Convert workspace SYMBOL info into an xref, or nil.
+
+When ROOT is non-nil, drop symbols outside that package root."
   (let* ((name (plist-get symbol :name))
+         (kind (plist-get symbol :kind))
          (location (plist-get symbol :location))
          (range (and location (plist-get location :range)))
          (start (and range (plist-get range :start)))
-         (uri (and location (plist-get location :uri))))
-    (when (and name uri start
-               (eglot-rcpp--workspace-symbol-name-match-p name identifier))
+         (uri (and location (plist-get location :uri)))
+         (path (and uri (eglot-rcpp--uri-to-path uri))))
+    (when (and name path start
+               (or (not root)
+                   (eglot-rcpp--within-root-p path root)))
       (xref-make
-       name
+       (propertize name 'eglot-rcpp-kind kind)
        (xref-make-file-location
-        (eglot-rcpp--uri-to-path uri)
+        path
         (1+ (plist-get start :line))
         (plist-get start :character))))))
+
+(defun eglot-rcpp--make-workspace-symbol-xref (symbol identifier)
+  "Convert SYMBOL into an xref for IDENTIFIER, or nil."
+  (when-let ((xref (eglot-rcpp--workspace-symbol-xref symbol)))
+    (when (eglot-rcpp--workspace-symbol-name-match-p
+           (xref-item-summary xref)
+           identifier)
+      xref)))
 
 (defun eglot-rcpp--server-workspace-symbols (buffer query)
   "Return `workspace/symbol' results for QUERY using BUFFER's server."
@@ -722,12 +856,13 @@ When EXACT is non-nil, require exact-ish symbol matching."
 (defun eglot-rcpp--symbol-info-xref (symbol)
   "Convert SYMBOL into an `xref-item'."
   (let* ((location (plist-get symbol :location))
+         (kind (plist-get symbol :kind))
          (range (and location (plist-get location :range)))
          (start (and range (plist-get range :start)))
          (uri (and location (plist-get location :uri))))
     (when (and uri start)
       (xref-make
-       (plist-get symbol :name)
+       (propertize (plist-get symbol :name) 'eglot-rcpp-kind kind)
        (xref-make-file-location
         (eglot-rcpp--uri-to-path uri)
         (1+ (plist-get start :line))
@@ -739,6 +874,49 @@ When EXACT is non-nil, require exact-ish symbol matching."
            for xref = (eglot-rcpp--symbol-info-xref symbol)
            when xref collect xref))
 
+(defun eglot-rcpp--reference-line-comment-only-p (file line)
+  "Return non-nil when LINE from FILE is comment-only."
+  (cond
+   ((string-match-p "\\.[rR]\\'" file)
+    (string-match-p "^[[:space:]]*#" line))
+   ((string-match-p "\\.\\(c\\|cc\\|cpp\\|cxx\\|h\\|hh\\|hpp\\|hxx\\|ipp\\|tpp\\|m\\|mm\\)\\'" file)
+    (string-match-p "^[[:space:]]*\\(?:\\/\\/\\|/\\*\\|\\*\\)" line))
+   (t nil)))
+
+(defun eglot-rcpp--reference-regexp (identifier)
+  "Return a conservative textual reference regexp for IDENTIFIER."
+  (format "\\(?:\\`\\|[^[:alnum:]_.]\\)\\(%s\\)\\(?:\\'\\|[^[:alnum:]_.]\\)"
+          (regexp-quote identifier)))
+
+(defun eglot-rcpp--make-reference-xref (file line column text)
+  "Build an xref for FILE at LINE and COLUMN using TEXT as the summary."
+  (xref-make (string-trim text)
+             (xref-make-file-location file line column)))
+
+(defun eglot-rcpp--text-reference-xrefs (identifier &optional root)
+  "Return conservative textual references for IDENTIFIER in package ROOT."
+  (when-let ((root (or root (eglot-rcpp--project-root))))
+    (let ((regexp (eglot-rcpp--reference-regexp identifier)))
+      (cl-loop for file in (eglot-rcpp--reference-files root)
+               append
+               (with-temp-buffer
+                 (insert-file-contents file)
+                 (let ((line-number 1)
+                       matches)
+                   (while (not (eobp))
+                     (let ((line (buffer-substring-no-properties
+                                  (line-beginning-position)
+                                  (line-end-position))))
+                       (unless (eglot-rcpp--reference-line-comment-only-p file line)
+                         (save-match-data
+                           (when (string-match regexp line)
+                             (push (eglot-rcpp--make-reference-xref
+                                    file line-number (match-beginning 1) line)
+                                   matches)))))
+                     (setq line-number (1+ line-number))
+                     (forward-line 1))
+                   (nreverse matches)))))))
+
 (defun eglot-rcpp--current-eglot-definitions (identifier)
   "Return current-buffer Eglot definitions for IDENTIFIER."
   (when (bound-and-true-p eglot-managed-mode)
@@ -748,6 +926,18 @@ When EXACT is non-nil, require exact-ish symbol matching."
   "Return current-buffer Eglot references for IDENTIFIER."
   (when (bound-and-true-p eglot-managed-mode)
     (ignore-errors (xref-backend-references 'eglot identifier))))
+
+(defun eglot-rcpp--symbol-search-servers (&optional root)
+  "Return live project servers that support `workspace/symbol'."
+  (delete-dups
+   (cl-loop for buffer in (eglot-rcpp--project-server-buffers root)
+            for server = (with-current-buffer buffer
+                           (eglot-rcpp--current-server))
+            when (and server
+                      (with-current-buffer buffer
+                        (ignore-errors
+                          (eglot-server-capable :workspaceSymbolProvider))))
+            collect server)))
 
 (defun eglot-rcpp--workspace-symbol-apropos (pattern &optional root)
   "Return project-wide workspace-symbol xrefs for PATTERN."
@@ -901,12 +1091,14 @@ When EXACT is non-nil, require exact-ish symbol matching."
                (eglot-rcpp--text-symbol-xrefs identifier t nil root)))))))
 
 (cl-defmethod xref-backend-references ((_backend (eql eglot-rcpp-project)) identifier)
-  "Find IDENTIFIER references using the current server, filtered to the package."
+  "Find IDENTIFIER references using the current server plus package fallback."
   (let ((root (eglot-rcpp--project-root)))
-    (eglot-rcpp--dedupe-xrefs
-     (cl-remove-if-not
-      (lambda (xref) (eglot-rcpp--xref-in-root-p xref root))
-      (append (eglot-rcpp--current-eglot-references identifier) nil)))))
+    (eglot-rcpp--deprioritize-generated-xrefs
+     (eglot-rcpp--dedupe-xrefs
+      (cl-remove-if-not
+       (lambda (xref) (eglot-rcpp--xref-in-root-p xref root))
+       (append (eglot-rcpp--current-eglot-references identifier)
+               (eglot-rcpp--text-reference-xrefs identifier root)))))))
 
 (cl-defmethod xref-backend-apropos ((_backend (eql eglot-rcpp-project)) pattern)
   "Find package symbols matching PATTERN."
@@ -923,8 +1115,17 @@ When EXACT is non-nil, require exact-ish symbol matching."
     (define-key map (kbd "C-c C-e c") #'eglot-rcpp-compile-attributes)
     (define-key map (kbd "C-c C-e u") #'eglot-rcpp-use-rcpp)
     (define-key map (kbd "C-c C-e d") #'eglot-rcpp-check-r-dependencies)
+    (define-key map [remap consult-eglot-symbols] #'eglot-rcpp-consult-symbols)
     map)
   "Keymap for `eglot-rcpp-mode'.")
+
+(defun eglot-rcpp--consult-eglot-dispatch (orig-fn &rest args)
+  "Route `consult-eglot-symbols' through `eglot-rcpp' in package buffers.
+
+ORIG-FN and ARGS are the advised command and its original arguments."
+  (if (bound-and-true-p eglot-rcpp-mode)
+      (apply #'eglot-rcpp-consult-symbols args)
+    (apply orig-fn args)))
 
 ;;;###autoload
 (define-minor-mode eglot-rcpp-mode
@@ -1006,7 +1207,11 @@ When EXACT is non-nil, require exact-ish symbol matching."
     (setq eglot-rcpp--hooks-installed t)
     (dolist (mode (eglot-rcpp--all-managed-modes))
       (add-hook (eglot-rcpp--mode-hook mode) #'eglot-rcpp--activate-current-buffer))
-    (add-hook 'eglot-managed-mode-hook #'eglot-rcpp--eglot-managed-hook)))
+    (add-hook 'eglot-managed-mode-hook #'eglot-rcpp--eglot-managed-hook))
+  (with-eval-after-load 'consult-eglot
+    (unless eglot-rcpp--consult-advice-installed
+      (advice-add 'consult-eglot-symbols :around #'eglot-rcpp--consult-eglot-dispatch)
+      (setq eglot-rcpp--consult-advice-installed t))))
 
 (defun eglot-rcpp--project-root-or-error ()
   "Return the current package root or signal a user error."
@@ -1136,6 +1341,145 @@ With prefix argument PROMPT-INSTALL, offer to install missing packages."
                                   (thing-at-point 'symbol t))))
   (let ((xref-backend-functions '(eglot-rcpp-project-xref-backend)))
     (xref-find-apropos pattern)))
+
+(defun eglot-rcpp--xref-display-file (path root)
+  "Return a display path for PATH relative to ROOT when practical."
+  (if (and path root (eglot-rcpp--within-root-p path root))
+      (file-relative-name path root)
+    (abbreviate-file-name (or path ""))))
+
+(defun eglot-rcpp--consult-symbol-candidate (xref root)
+  "Return a Consult candidate string for XREF within ROOT."
+  (let* ((location (xref-item-location xref))
+         (path (eglot-rcpp--xref-location-path xref))
+         (line (xref-location-line location))
+         (kind (get-text-property 0 'eglot-rcpp-kind (xref-item-summary xref)))
+         (text (concat
+                (xref-item-summary xref)
+                " "
+                (consult--format-file-line-match
+                 (eglot-rcpp--xref-display-file path root)
+                 line
+                 nil))))
+    (propertize text
+                'consult--candidate xref
+                'consult--type (eglot-rcpp--symbol-kind-type kind))))
+
+(defun eglot-rcpp--consult-symbol-state ()
+  "Return the preview state function for `eglot-rcpp-consult-symbols'."
+  (let ((open (consult--temporary-files))
+        (jump (consult--jump-state)))
+    (lambda (action cand)
+      (when (eq action 'exit)
+        (funcall open)
+        (setq open nil))
+      (funcall jump
+               action
+               (when-let* ((xref (and cand
+                                      (get-text-property 0 'consult--candidate cand)))
+                           (location (xref-item-location xref))
+                           ((xref-file-location-p location)))
+                 (consult--marker-from-line-column
+                  (funcall (or open #'find-file)
+                           (xref-file-location-file location))
+                  (xref-location-line location)
+                  (xref-file-location-column location)))))))
+
+(defun eglot-rcpp--goto-xref (xref)
+  "Jump to XREF in the current window."
+  (let ((location (xref-item-location xref)))
+    (cond
+     ((xref-file-location-p location)
+      (find-file (xref-file-location-file location))
+      (goto-char (point-min))
+      (forward-line (max 0 (1- (xref-location-line location))))
+      (move-to-column (xref-file-location-column location)))
+     (t
+      (when-let ((marker (ignore-errors (xref-location-marker location))))
+        (switch-to-buffer (marker-buffer marker))
+        (goto-char marker))))))
+
+(defun eglot-rcpp--consult-text-symbol-xrefs (pattern root)
+  "Return package-scoped textual symbol xrefs for PATTERN."
+  (eglot-rcpp--dedupe-xrefs
+   (append (eglot-rcpp--text-symbol-xrefs pattern nil t root)
+           (eglot-rcpp--text-symbol-xrefs pattern nil nil root))))
+
+(defun eglot-rcpp--consult-symbol-source (servers root)
+  "Return a Consult async source for package-scoped workspace symbols.
+
+This keeps the Consult internals in one place and avoids direct dependence on
+`consult-eglot' implementation details."
+  (lambda (sink)
+    (let ((generation 0))
+      (lambda (action)
+        (pcase action
+          ((pred stringp)
+           (cl-incf generation)
+           (let* ((query action)
+                  (current-generation generation)
+                  (results (if (string-empty-p query)
+                               nil
+                             (eglot-rcpp--deprioritize-generated-xrefs
+                              (eglot-rcpp--consult-text-symbol-xrefs query root)))))
+             (funcall sink action)
+             (funcall sink 'flush)
+             (when results
+               (funcall sink
+                        (mapcar (lambda (xref)
+                                  (eglot-rcpp--consult-symbol-candidate xref root))
+                                results)))
+             (unless (string-empty-p query)
+               (dolist (server servers)
+                 (jsonrpc-async-request
+                  server :workspace/symbol `(:query ,query)
+                  :success-fn
+                  (lambda (response)
+                    (when (= current-generation generation)
+                      (setq results
+                            (eglot-rcpp--deprioritize-generated-xrefs
+                             (eglot-rcpp--dedupe-xrefs
+                              (append results
+                                      (cl-loop for symbol in (append response nil)
+                                               for xref = (eglot-rcpp--workspace-symbol-xref symbol root)
+                                               when xref collect xref)))))
+                      (funcall sink 'flush)
+                      (funcall sink
+                               (mapcar (lambda (xref)
+                                         (eglot-rcpp--consult-symbol-candidate xref root))
+                                       results))))
+                  :error-fn (lambda (&rest _args) nil)
+                  :timeout-fn (lambda () nil))))))
+          (_ (funcall sink action)))))))
+
+;;;###autoload
+(defun eglot-rcpp-consult-symbols (&optional pattern)
+  "Interactively search package symbols with a dynamic Consult UI.
+
+When Consult is unavailable, fall back to `eglot-rcpp-find-symbol'."
+  (interactive (list nil))
+  (if (not (require 'consult nil t))
+      (call-interactively #'eglot-rcpp-find-symbol)
+    (let* ((root (eglot-rcpp--project-root-or-error))
+           (servers (eglot-rcpp--symbol-search-servers root))
+           (async (consult--async-pipeline
+                   (consult--async-min-input eglot-rcpp-consult-min-input)
+                   (consult--async-throttle)
+                   (eglot-rcpp--consult-symbol-source servers root)
+                   (consult--async-highlight)))
+           (selected (consult--read
+                      async
+                      :require-match t
+                      :prompt "Package symbols: "
+                      :sort nil
+                      :initial pattern
+                      :history '(:input eglot-rcpp--consult-history)
+                      :group (consult--type-group eglot-rcpp-consult-narrow)
+                      :narrow (consult--type-narrow eglot-rcpp-consult-narrow)
+                      :lookup #'consult--lookup-candidate
+                      :state (eglot-rcpp--consult-symbol-state))))
+      (eglot-rcpp--goto-xref selected)
+      (run-hooks 'consult-after-jump-hook))))
 
 ;;;###autoload
 (defun eglot-rcpp-setup ()

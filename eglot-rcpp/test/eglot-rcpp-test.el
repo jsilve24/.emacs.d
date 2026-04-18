@@ -150,6 +150,138 @@
         (should (equal (eglot-rcpp--xref-location-path (car definitions))
                        cpp-file))))))
 
+(ert-deftest eglot-rcpp-definitions-filter-external-results-by-default ()
+  (let* ((root (eglot-rcpp-test--make-project))
+         (local (expand-file-name "src/testpkg.cpp" root))
+         (external "/usr/include/c++/15.2.1/bits/regex.h")
+         (local-xref (eglot-rcpp-test--xref local 12))
+         (external-xref (eglot-rcpp-test--xref external 460)))
+    (let ((eglot-rcpp-restrict-xref-results-to-project t))
+      (cl-letf (((symbol-function 'eglot-rcpp--project-root) (lambda (&optional _buffer) root))
+                ((symbol-function 'eglot-rcpp--workspace-symbol-definitions)
+                 (lambda (_identifier _root) nil))
+                ((symbol-function 'eglot-rcpp--text-symbol-xrefs)
+                 (lambda (&rest _args) nil))
+                ((symbol-function 'eglot-rcpp--current-eglot-definitions)
+                 (lambda (_identifier) (list external-xref local-xref))))
+        (should (equal (xref-backend-definitions 'eglot-rcpp-project "optimize")
+                       (list local-xref)))))))
+
+(ert-deftest eglot-rcpp-definitions-can-keep-external-results-when-requested ()
+  (let* ((root (eglot-rcpp-test--make-project))
+         (local (expand-file-name "src/testpkg.cpp" root))
+         (external "/usr/include/c++/15.2.1/bits/regex.h")
+         (local-xref (eglot-rcpp-test--xref local 12))
+         (external-xref (eglot-rcpp-test--xref external 460)))
+    (let ((eglot-rcpp-restrict-xref-results-to-project nil))
+      (cl-letf (((symbol-function 'eglot-rcpp--project-root) (lambda (&optional _buffer) root))
+                ((symbol-function 'eglot-rcpp--workspace-symbol-definitions)
+                 (lambda (_identifier _root) nil))
+                ((symbol-function 'eglot-rcpp--text-symbol-xrefs)
+                 (lambda (&rest _args) nil))
+                ((symbol-function 'eglot-rcpp--current-eglot-definitions)
+                 (lambda (_identifier) (list external-xref local-xref))))
+        (should (equal (xref-backend-definitions 'eglot-rcpp-project "optimize")
+                       (list external-xref local-xref)))))))
+
+(ert-deftest eglot-rcpp-references-fall-back-to-r-files-from-cpp-symbols ()
+  (let* ((root (eglot-rcpp-test--make-project))
+         (r-file (expand-file-name "R/testpkg.R" root))
+         (bridge (expand-file-name "R/RcppExports.R" root))
+         (cpp-file (expand-file-name "src/testpkg.cpp" root)))
+    (eglot-rcpp-test--write-file
+     r-file
+     (mapconcat
+      #'identity
+      '("#' optimPibbleCollapsed should be skipped in comments"
+        "fit <- optimPibbleCollapsed(Y, upsilon)")
+      "\n"))
+    (eglot-rcpp-test--write-file
+     bridge
+     (mapconcat
+      #'identity
+      '("optimPibbleCollapsed <- function(Y, upsilon) {"
+        "  .Call(`_testpkg_optimPibbleCollapsed`, Y, upsilon)"
+        "}")
+      "\n"))
+    (eglot-rcpp-test--write-file
+     cpp-file
+     "List optimPibbleCollapsed(SEXP Y, SEXP upsilon) { return R_NilValue; }\n")
+    (cl-letf (((symbol-function 'eglot-rcpp--project-root) (lambda (&optional _buffer) root))
+              ((symbol-function 'eglot-rcpp--current-eglot-references)
+               (lambda (_identifier) nil)))
+      (let ((references (xref-backend-references
+                         'eglot-rcpp-project
+                         "optimPibbleCollapsed")))
+        (should (= (length references) 3))
+        (should (equal (car (mapcar #'eglot-rcpp--xref-location-path references))
+                       r-file))
+        (should (equal (car (last (mapcar #'eglot-rcpp--xref-location-path references)))
+                       bridge))
+        (should (member cpp-file
+                        (mapcar #'eglot-rcpp--xref-location-path references)))
+        (should (= (xref-file-location-line
+                    (xref-item-location (car references)))
+                   2))))))
+
+(ert-deftest eglot-rcpp-mode-remaps-consult-eglot-symbols ()
+  (should (eq (lookup-key eglot-rcpp-mode-map [remap consult-eglot-symbols])
+              #'eglot-rcpp-consult-symbols)))
+
+(ert-deftest eglot-rcpp-consult-eglot-dispatch-routes-only-package-buffers ()
+  (let (called)
+    (cl-letf (((symbol-function 'eglot-rcpp-consult-symbols)
+               (lambda (&rest args)
+                 (setq called (cons 'rcpp args))))
+              ((symbol-function 'consult-eglot-symbols)
+               (lambda (&rest args)
+                 (setq called (cons 'consult args)))))
+      (with-temp-buffer
+        (eglot-rcpp-mode 1)
+        (apply #'eglot-rcpp--consult-eglot-dispatch
+               #'consult-eglot-symbols
+               nil)
+        (should (equal called '(rcpp))))
+      (with-temp-buffer
+        (setq called nil)
+        (eglot-rcpp-mode 1)
+        (apply #'eglot-rcpp--consult-eglot-dispatch
+               #'consult-eglot-symbols
+               '("foo"))
+        (should (equal called '(rcpp "foo"))))
+      (with-temp-buffer
+        (setq called nil)
+        (apply #'eglot-rcpp--consult-eglot-dispatch
+               #'consult-eglot-symbols
+               '("bar"))
+        (should (equal called '(consult "bar")))))))
+
+(ert-deftest eglot-rcpp-consult-source-skips-empty-query-requests ()
+  (let (requests)
+    (cl-letf (((symbol-function 'jsonrpc-async-request)
+               (lambda (&rest args)
+                 (push args requests)))
+              ((symbol-function 'eglot-rcpp--consult-text-symbol-xrefs)
+               (lambda (_pattern _root) nil)))
+      (let* ((sink (lambda (_action) nil))
+             (source (funcall (eglot-rcpp--consult-symbol-source '(dummy-server) "/tmp/pkg")
+                              sink)))
+        (funcall source 'setup)
+        (funcall source "")
+        (should-not requests)
+        (funcall source "op")
+        (should (= (length requests) 1))))))
+
+(ert-deftest eglot-rcpp-consult-candidate-carries-kind-grouping ()
+  (cl-letf (((symbol-function 'consult--format-file-line-match)
+             (lambda (&rest _args) "example.cpp:7")))
+    (let* ((file "/tmp/example.cpp")
+           (xref (xref-make
+                  (propertize "meaning" 'eglot-rcpp-kind 12)
+                  (xref-make-file-location file 7 0)))
+           (candidate (eglot-rcpp--consult-symbol-candidate xref "/tmp")))
+      (should (eq (get-text-property 0 'consult--type candidate) ?f)))))
+
 (ert-deftest eglot-rcpp-xrefs-deduplicate-cleanly ()
   (let* ((file "/tmp/example.cpp")
          (first (eglot-rcpp-test--xref file 3 0 "first"))

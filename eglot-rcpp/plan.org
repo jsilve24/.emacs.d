@@ -2,10 +2,10 @@
 
 ** Deferred follow-up
 
-*** TODO Revisit cross-project reference aggregation beyond the current server
-Definitions and symbol search now merge project data cleanly, but references
-still defer primarily to the current server so the package stays conservative
-and predictable in mixed-language projects.
+*** TODO Revisit richer semantic cross-project reference aggregation
+Definitions, symbol search, and references now have clean package-scoped
+fallbacks, but references still rely on current-server results plus textual
+project search rather than a truly semantic multi-server index.
 
 *** TODO Explore lightweight inline-C++ helper commands for R buffers
 Inline workflows such as `Rcpp::sourceCpp(code = ...)` remain out of scope for

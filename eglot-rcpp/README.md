@@ -43,7 +43,8 @@ Optional:
 - `usethis`
 - `Rcpp`
 - `consult-eglot`, if you still want its normal command set alongside this
-  package's xref-backed symbol search
+  package's xref-backed symbol search. For package-scoped symbol search,
+  prefer `eglot-rcpp-consult-symbols`.
 
 ## Installation
 
@@ -81,6 +82,7 @@ The main user options are:
 - `eglot-rcpp-auto-start-companion-servers`
 - `eglot-rcpp-r-server-command`
 - `eglot-rcpp-clangd-command`
+- `eglot-rcpp-restrict-xref-results-to-project`
 - `eglot-rcpp-generated-file-regexps`
 - `eglot-rcpp-generated-definition-policy`
 - `eglot-rcpp-enable-ess-keybindings`
@@ -93,6 +95,7 @@ Generated Rcpp bridge files are part of the workflow here.
 - `src/RcppExports.cpp` remains available as a fallback symbol source.
 - xref definition results do not prefer those generated files over real source
   by default.
+- Reference results keep real package code ahead of generated bridge hits.
 
 Definition ranking is controlled by
 `eglot-rcpp-generated-definition-policy`:
@@ -106,6 +109,7 @@ Definition ranking is controlled by
 Core commands:
 
 - `eglot-rcpp-find-symbol`
+- `eglot-rcpp-consult-symbols`
 - `eglot-rcpp-invalidate-project-cache`
 
 Onboarding and maintenance helpers:
@@ -139,8 +143,13 @@ small convenience prefix on `C-c C-e`:
   buffer.
 - Inline C++ inside R strings, such as `Rcpp::sourceCpp(code = ...)`, is not
   transparently multi-server aware yet.
-- Symbol search and xref merge project servers conservatively; references are
-  still primarily current-server driven.
+- Symbol search and xref merge project servers conservatively.
+- References use the current server as the base and add a conservative
+  package-code textual fallback; they are not a fully semantic multi-server
+  cross-language index.
+- `consult-eglot-symbols` still reflects raw server workspace symbols; use
+  `eglot-rcpp-find-symbol` or `eglot-rcpp-consult-symbols` for package-scoped
+  results.
 
 ## Testing
 
@@ -148,7 +157,9 @@ The test suite covers package logic only:
 
 - root and file discovery
 - generated-file ranking and definition policies
+- project-scoped xref filtering
 - xref deduplication
+- mixed-project reference fallback
 - Rcpp export completion merging
 - companion startup decisions
 - textual symbol extraction
