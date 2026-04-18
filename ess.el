@@ -4,21 +4,6 @@
 ;; internal support files.
 (load-config "ess-helpers.el")
 
-;; Make `DESCRIPTION` count as a project root marker for R workspaces.
-;;
-;; R package development is the main case where this matters: it lets Eglot and
-;; clangd discover the package root from a `src/*.cpp` or `src/*.h` buffer, so
-;; mixed R/Rcpp navigation can treat the package as one project instead of two
-;; unrelated trees.
-;;
-;; Projectile also benefits from seeing `DESCRIPTION` as a root marker, so the
-;; same directory boundary is used by both project navigation and LSP.
-(with-eval-after-load 'projectile
-  (add-to-list 'projectile-project-root-files "DESCRIPTION"))
-
-(with-eval-after-load 'project
-  (add-to-list 'project-vc-extra-root-markers "DESCRIPTION"))
-
 ;;; main ess setup
 (use-package ess
   :mode (("\\.[rR]\\'" . ess-r-mode))

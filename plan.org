@@ -42,11 +42,11 @@ the visible thread state could further reduce false-positive confirmations and
 calendar staging.
 
 *** TODO Replace the Rcpp `consult-eglot` header fallback with a public hook if upstream adds one
-`lsp.el` now advises `consult-eglot--make-async-source` so `SPC e e` can surface
-`inst/include/` symbols in plain R package workflows where clangd does not
-return them from `workspace/symbol`. The behavior is useful, but it depends on
-an internal async helper in `consult-eglot` and should be revisited if the
-package grows a supported extension point.
+`eglot-rcpp/eglot-rcpp.el` now advises `consult-eglot--make-async-source` so
+`SPC e e` can surface `inst/include/` symbols in plain R package workflows
+where clangd does not return them from `workspace/symbol`. The behavior is
+useful, but it depends on an internal async helper in `consult-eglot` and
+should be revisited if the package grows a supported extension point.
 
 ** Missing guards and OS assumptions
 
