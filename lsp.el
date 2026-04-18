@@ -25,16 +25,16 @@
                '((tex-mode context-mode texinfo-mode bibtex-mode LaTeX-mode latex-mode)
                  . ("texlab"))))
 
-;; `eglot-rcpp` owns mixed-project xref and symbol search in Rcpp package
-;; buffers. Consult integration is optional, so enable it explicitly here.
+;; `eglot-rcpp` now lives in its own repo and is managed by straight like the
+;; rest of the config. Consult integration stays optional and is enabled here.
 (use-package consult-eglot
   :after eglot
   :commands consult-eglot-symbols)
 
-;; use-package eglot-rcpp
-(let ((eglot-rcpp-dir (expand-file-name "eglot-rcpp" user-emacs-directory)))
-  (when (file-directory-p eglot-rcpp-dir)
-    (add-to-list 'load-path eglot-rcpp-dir)))
-(setq eglot-rcpp-enable-consult-integration t)
-(require 'eglot-rcpp nil t)
-(eglot-rcpp-setup)
+(use-package eglot-rcpp
+  :straight (:type git :host github :repo "jsilve24/eglot-rcpp")
+  :after eglot
+  :init
+  (setq eglot-rcpp-enable-consult-integration t)
+  :config
+  (eglot-rcpp-setup))

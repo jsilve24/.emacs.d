@@ -10,6 +10,7 @@
 				       ("~/Dropbox/Research/src/fido/" . 0)
 				       ("~/.emacs.d/" . 0)
 				       ("~/Dropbox/Research/src/ALDEx3/" . 0)
+				       ("~/.emacs.d/straight/repos/eglot-rcpp/" . 0)
 				       ("~/Dropbox/Research/src/philr/" . 0))
 	magit-repolist-columns '(("Name" 25 magit-repolist-column-ident nil)
 				 ;; ("Version" 25 magit-repolist-column-version
