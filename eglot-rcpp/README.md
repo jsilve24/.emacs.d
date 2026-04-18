@@ -119,7 +119,15 @@ This is meant to make Flymake and clangd work in ordinary Rcpp package layouts
 without requiring a hand-written `compile_commands.json`.  When a package does
 not already provide one, `eglot-rcpp` synthesizes a small cache-side compile
 database from the package tree so clangd can parse both `src/` translation units
-and `inst/include/` headers with the same package-local include paths.
+and `inst/include/` headers with the same package-local include paths.  The
+`LinkingTo` packages are resolved one by one so their installed `include/`
+directories are added explicitly, which is what lets headers such as
+`RcppEigen.h` and `RcppNumerical.h` resolve cleanly.
+
+If you change the package's include layout or update `eglot-rcpp` itself, restart
+the clangd session in the affected buffer so the new startup flags take effect.
+`eglot-rcpp-invalidate-project-cache` only clears the package caches; it does not
+restart a running language server.
 
 ## Commands
 
