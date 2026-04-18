@@ -19,6 +19,12 @@
   (with-temp-file path
     (insert content)))
 
+(defun eglot-rcpp-test--read-file (path)
+  "Return the contents of PATH as a string."
+  (with-temp-buffer
+    (insert-file-contents path)
+    (buffer-string)))
+
 (defun eglot-rcpp-test--make-project ()
   "Create a temporary R package project and return its root."
   (let ((root (make-temp-file "eglot-rcpp-" t)))
@@ -48,6 +54,96 @@
      (should (equal (eglot-rcpp--r-package-file root) r-file))
      (should (member header (eglot-rcpp--files root nil nil)))
      (should-not (member generated (eglot-rcpp--files root nil nil))))))
+
+(ert-deftest eglot-rcpp-clangd-fallback-flags-include-package-and-linkingto-headers ()
+  (let* ((root (eglot-rcpp-test--make-project))
+         (makevars (expand-file-name "src/Makevars" root))
+         (description (expand-file-name "DESCRIPTION" root))
+         (inst-include (expand-file-name "inst/include" root))
+         (flags nil))
+    (eglot-rcpp-test--write-file
+     description
+     "Package: testpkg\nVersion: 0.0.1\nLinkingTo: Rcpp, RcppEigen\n")
+    (make-directory inst-include t)
+    (eglot-rcpp-test--write-file
+     makevars
+     "CXX_STD = CXX17\nPKG_CPPFLAGS = -I../inst/include -DTESTPKG\n")
+    (cl-letf (((symbol-function 'eglot-rcpp--linkingto-include-directories)
+               (lambda (_packages) '("/opt/R/include" "/opt/RcppEigen/include"))))
+      (setq flags (eglot-rcpp--clangd-fallback-flags root)))
+    (should (member "-xc++" flags))
+    (should (member "-std=gnu++17" flags))
+    (should (member (concat "-I" (expand-file-name "inst/include" root)) flags))
+    (should (member "-I/opt/R/include" flags))
+    (should (member "-I/opt/RcppEigen/include" flags))
+    (should (member "-DTESTPKG" flags))))
+
+(ert-deftest eglot-rcpp-linkingto-include-directories-query-packages-individually ()
+  (let ((calls nil))
+    (cl-letf (((symbol-function 'eglot-rcpp--r-command-lines)
+               (lambda (&rest args)
+                 (push args calls)
+                 (cond
+                  ((string-match-p "RcppEigen" (car (last args)))
+                   '("/r/include" "/r/RcppEigen/include"))
+                  ((string-match-p "Rcpp" (car (last args)))
+                   '("/r/include" "/r/Rcpp/include"))
+                  (t nil)))))
+      (should (equal (eglot-rcpp--linkingto-include-directories '("Rcpp" "RcppEigen"))
+                     '("/r/include" "/r/Rcpp/include" "/r/RcppEigen/include")))
+      (should (= (length calls) 2)))))
+
+(ert-deftest eglot-rcpp-clangd-compile-database-includes-package-sources-and-headers ()
+  (let* ((root (eglot-rcpp-test--make-project))
+         (description (expand-file-name "DESCRIPTION" root))
+         (cpp-file (expand-file-name "src/testpkg.cpp" root))
+         (header (expand-file-name "inst/include/testpkg.hpp" root)))
+    (eglot-rcpp-test--write-file
+     description
+     "Package: testpkg\nVersion: 0.0.1\n")
+    (eglot-rcpp-test--write-file cpp-file "int meaning() { return 42; }\n")
+    (eglot-rcpp-test--write-file header "int header_decl();\n")
+    (cl-letf (((symbol-function 'eglot-rcpp--clangd-fallback-flags)
+               (lambda (_root) '("-xc++" "-I/tmp/pkg/src" "-I/tmp/pkg/inst/include"))))
+      (let* ((dir (eglot-rcpp--clangd-compile-commands-dir root))
+             (file (expand-file-name "compile_commands.json" dir))
+             (contents (eglot-rcpp-test--read-file file)))
+        (should (file-readable-p file))
+        (should (string-match-p "testpkg\\.cpp" contents))
+        (should (string-match-p "testpkg\\.hpp" contents))
+        (should (string-match-p "c\\+\\+-header" contents))
+        (should (string-match-p "clang\\+\\+" contents))))))
+
+(ert-deftest eglot-rcpp-clangd-compile-database-detection-honors-ancestor-database ()
+  (let* ((parent (make-temp-file "eglot-rcpp-clangd-parent-" t))
+         (root (expand-file-name "pkg" parent)))
+    (make-directory root t)
+    (eglot-rcpp-test--write-file
+     (expand-file-name "compile_commands.json" parent)
+     "[]\n")
+    (should (eglot-rcpp--clangd-compile-commands-present-p root))))
+
+(ert-deftest eglot-rcpp-cpp-server-contact-is-gated-by-package-root ()
+  (let ((project 'dummy-project)
+        (root "/tmp/pkg"))
+    (cl-letf (((symbol-function 'eglot-rcpp--project-root-from-project)
+               (lambda (proj) (and (eq proj project) root)))
+              ((symbol-function 'eglot-rcpp--clangd-fallback-flags)
+               (lambda (_root) '("-xc++" "-I/tmp/pkg/inst/include")))
+              ((symbol-function 'eglot-rcpp--clangd-compile-commands-dir)
+               (lambda (_root) "/tmp/pkg/.eglot-rcpp/clangd/test"))
+              ((symbol-function 'eglot-rcpp--clangd-compile-commands-present-p)
+               (lambda (_root) nil)))
+      (let ((contact (eglot-rcpp--cpp-server-contact nil project)))
+        (should (equal (seq-take contact (+ (length eglot-rcpp-clangd-command) 1))
+                       (append eglot-rcpp-clangd-command
+                               '("--compile-commands-dir=/tmp/pkg/.eglot-rcpp/clangd/test"))))
+        (should (equal (plist-get (nthcdr (+ (length eglot-rcpp-clangd-command) 1) contact)
+                                  :initializationOptions)
+                       '(:fallbackFlags ["-xc++" "-I/tmp/pkg/inst/include"])))))
+    (cl-letf (((symbol-function 'eglot-rcpp--project-root-from-project)
+               (lambda (_proj) nil)))
+      (should-not (eglot-rcpp--cpp-server-contact nil project)))))
 
 (ert-deftest eglot-rcpp-eligible-buffer-is-project-scoped ()
   (eglot-rcpp-test--with-modes
@@ -367,11 +463,16 @@
     (eglot-rcpp-test--write-file bridge "meaning <- function() {}\n")
     (eglot-rcpp--symbol-index root)
     (eglot-rcpp--bridge-export-candidates root)
+    (puthash (eglot-rcpp--clangd-cache-key root)
+             '(dummy-signature . ("-xc++"))
+             eglot-rcpp--clangd-flags-cache)
     (should (gethash (eglot-rcpp--symbol-cache-key root nil) eglot-rcpp--symbol-cache))
     (should (gethash (eglot-rcpp--bridge-cache-key root) eglot-rcpp--bridge-cache))
+    (should (gethash (eglot-rcpp--clangd-cache-key root) eglot-rcpp--clangd-flags-cache))
     (eglot-rcpp-invalidate-project-cache root)
     (should-not (gethash (eglot-rcpp--symbol-cache-key root nil) eglot-rcpp--symbol-cache))
-    (should-not (gethash (eglot-rcpp--bridge-cache-key root) eglot-rcpp--bridge-cache))))
+    (should-not (gethash (eglot-rcpp--bridge-cache-key root) eglot-rcpp--bridge-cache))
+    (should-not (gethash (eglot-rcpp--clangd-cache-key root) eglot-rcpp--clangd-flags-cache))))
 
 (ert-deftest eglot-rcpp-missing-r-packages-helper-is-testable ()
   (let ((packages '("languageserver" "Rcpp" "usethis")))

@@ -18,6 +18,7 @@
 
 (require 'cl-lib)
 (require 'compile)
+(require 'json)
 (require 'jsonrpc)
 (require 'project)
 (require 'subr-x)
@@ -82,6 +83,25 @@
 
 (defcustom eglot-rcpp-clangd-command '("clangd" "--header-insertion=never")
   "Command used to start clangd for package C/C++ buffers."
+  :type '(repeat string)
+  :group 'eglot-rcpp)
+
+(defcustom eglot-rcpp-enable-clangd-fallback-flags t
+  "When non-nil, derive package-aware fallback flags for clangd."
+  :type 'boolean
+  :group 'eglot-rcpp)
+
+(defcustom eglot-rcpp-clangd-default-standard nil
+  "Default C++ standard string to pass to clangd fallback flags.
+
+Examples are \"gnu++17\" or \"c++20\".  When nil, no default `-std=` flag is
+added unless package metadata or Makevars data provides one."
+  :type '(choice (const :tag "No default" nil)
+                 (string :tag "C++ standard"))
+  :group 'eglot-rcpp)
+
+(defcustom eglot-rcpp-clangd-extra-fallback-flags nil
+  "Extra flags appended to clangd fallback flags for package C/C++ buffers."
   :type '(repeat string)
   :group 'eglot-rcpp)
 
@@ -187,6 +207,12 @@ textual fallback backend to remain visible."
 (defvar eglot-rcpp--consult-advice-installed nil
   "Non-nil after `eglot-rcpp' installs its Consult dispatch advice.")
 
+(defvar eglot-rcpp--clangd-flags-cache (make-hash-table :test #'equal)
+  "Cache of computed clangd fallback flags keyed by project root.")
+
+(defvar eglot-rcpp--clangd-compile-commands-cache (make-hash-table :test #'equal)
+  "Cache of synthetic clangd compile databases keyed by project root.")
+
 (defvar eglot-rcpp-ess-command-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "u") #'eglot-rcpp-use-rcpp)
@@ -270,6 +296,11 @@ textual fallback backend to remain visible."
      (or (eglot-rcpp--normalize-path root)
          (expand-file-name root)))))
 
+(defun eglot-rcpp--project-root-from-project (project)
+  "Return an `eglot-rcpp' package root for PROJECT, or nil."
+  (when project
+    (eglot-rcpp--description-root (project-root project))))
+
 (defun eglot-rcpp--project-root (&optional buffer)
   "Return the package root for BUFFER, or nil."
   (with-current-buffer (or buffer (current-buffer))
@@ -352,6 +383,257 @@ When INCLUDE-GENERATED is non-nil, keep generated bridge files."
                              unless (and (not include-generated)
                                          (eglot-rcpp--generated-file-p file))
                              collect (or (eglot-rcpp--normalize-path file) file)))))
+
+(defun eglot-rcpp--existing-directories (directories)
+  "Return canonical absolute paths for existing DIRECTORIES."
+  (cl-loop for directory in directories
+           when (file-directory-p directory)
+           collect (or (eglot-rcpp--normalize-path directory)
+                       (expand-file-name directory))))
+
+(defun eglot-rcpp--description-file (root)
+  "Return the DESCRIPTION file path for ROOT."
+  (expand-file-name eglot-rcpp-root-marker-file root))
+
+(defun eglot-rcpp--description-field (root field)
+  "Return FIELD from ROOT's DESCRIPTION, or nil."
+  (let ((file (eglot-rcpp--description-file root)))
+    (when (file-readable-p file)
+      (with-temp-buffer
+        (insert-file-contents file)
+        (goto-char (point-min))
+        (when (re-search-forward (format "^%s:[ \t]*\\(.*\\)$" (regexp-quote field)) nil t)
+          (let ((parts (list (match-string-no-properties 1))))
+            (while (and (zerop (forward-line 1))
+                        (looking-at "^[ \t]+\\(.*\\)$"))
+              (push (match-string-no-properties 1) parts))
+            (string-trim (string-join (nreverse parts) " "))))))))
+
+(defun eglot-rcpp--description-list-field (root field)
+  "Return FIELD from ROOT's DESCRIPTION as a cleaned list."
+  (when-let ((value (eglot-rcpp--description-field root field)))
+    (cl-loop for item in (split-string value "," t "[ \t\n\r]+")
+             for cleaned = (and (string-match "\\`\\([^ (]+\\)" item)
+                                (match-string 1 item))
+             when (and cleaned (not (string-empty-p cleaned)))
+             collect cleaned)))
+
+(defun eglot-rcpp--makevars-files (root)
+  "Return likely Makevars files for ROOT."
+  (cl-remove-if-not
+   #'file-readable-p
+   (mapcar (lambda (name) (expand-file-name name root))
+           '("src/Makevars" "src/Makevars.win" "src/Makevars.in"))))
+
+(defun eglot-rcpp--makevars-variable-values (root variable)
+  "Return assignment values for VARIABLE from ROOT's Makevars files."
+  (cl-loop for file in (eglot-rcpp--makevars-files root)
+           append
+           (with-temp-buffer
+             (insert-file-contents file)
+             (goto-char (point-min))
+             (let (values)
+               (while (re-search-forward
+                       (format "^%s[ \t]*=[ \t]*\\(.*\\)$" (regexp-quote variable))
+                       nil t)
+                 (push (string-trim (match-string-no-properties 1)) values))
+               (nreverse values)))))
+
+(defun eglot-rcpp--r-command-lines (&rest args)
+  "Run the configured R executable with ARGS and return output lines."
+  (when-let ((r (eglot-rcpp--r-executable)))
+    (with-temp-buffer
+      (let ((status (apply #'process-file r nil t nil args)))
+        (when (eq status 0)
+          (split-string (buffer-string) "[\r\n]+" t "[ \t]+"))))))
+
+(defun eglot-rcpp--r-cmd-config-flags (name)
+  "Return `R CMD config NAME' as a list of flags."
+  (cl-loop for line in (eglot-rcpp--r-command-lines "CMD" "config" name)
+           append (split-string-and-unquote line)))
+
+(defun eglot-rcpp--r-quote-string (string)
+  "Return STRING as a double-quoted R string literal."
+  (format "\"%s\""
+          (replace-regexp-in-string
+           "\"" "\\\\\""
+           (replace-regexp-in-string "\\\\" "\\\\\\\\" string))))
+
+(defun eglot-rcpp--linkingto-include-directories (packages)
+  "Return include directories for installed LinkingTo PACKAGES."
+  (when packages
+    (delete-dups
+     (cl-loop for package in packages
+              append
+              (let* ((expression
+                      (concat
+                       "pkg <- "
+                       (eglot-rcpp--r-quote-string package)
+                       "; "
+                       "paths <- unique(normalizePath(c(R.home('include'), "
+                       "system.file('include', package = pkg)), winslash = '/', mustWork = FALSE)); "
+                       "cat(paths[nzchar(paths)], sep='\\n')")))
+                (eglot-rcpp--r-command-lines "--slave" "-e" expression))))))
+
+(defun eglot-rcpp--resolve-flag-relative-to (flag directory)
+  "Return FLAG resolved relative to DIRECTORY when it contains a relative path."
+  (cond
+   ((string-prefix-p "-I" flag)
+    (let ((path (substring flag 2)))
+      (if (file-name-absolute-p path)
+          flag
+        (concat "-I" (expand-file-name path directory)))))
+   ((string-prefix-p "-isystem" flag)
+    (let ((path (string-trim (substring flag (length "-isystem")))))
+      (if (or (string-empty-p path) (file-name-absolute-p path))
+          flag
+        (concat "-isystem " (expand-file-name path directory)))))
+   (t flag)))
+
+(defun eglot-rcpp--std-flag-from-cxx-std (value)
+  "Translate Makevars CXX_STD VALUE into a clang `-std=` flag."
+  (pcase (string-trim value)
+    ((or "CXX11" "CXX1X") "-std=gnu++11")
+    ("CXX14" "-std=gnu++14")
+    ("CXX17" "-std=gnu++17")
+    ("CXX20" "-std=gnu++20")
+    ("CXX23" "-std=gnu++23")
+    (_ nil)))
+
+(defun eglot-rcpp--resolved-makevars-flags (root)
+  "Return useful compile flags parsed from ROOT's Makevars files."
+  (let* ((src-dir (expand-file-name "src" root))
+         (values (append (eglot-rcpp--makevars-variable-values root "PKG_CPPFLAGS")
+                         (eglot-rcpp--makevars-variable-values root "PKG_CXXFLAGS")))
+         (tokens
+          (cl-loop for value in values
+                   append
+                   (cl-loop for token in (split-string-and-unquote value)
+                            append
+                            (cond
+                             ((string= token "$(SHLIB_OPENMP_CXXFLAGS)")
+                              (eglot-rcpp--r-cmd-config-flags "SHLIB_OPENMP_CXXFLAGS"))
+                             ((string= token "$(SHLIB_OPENMP_CFLAGS)")
+                              (eglot-rcpp--r-cmd-config-flags "SHLIB_OPENMP_CFLAGS"))
+                             (t (list token)))))))
+    (delete-dups
+     (cl-loop for token in tokens
+              for resolved = (eglot-rcpp--resolve-flag-relative-to token src-dir)
+              when (or (string-prefix-p "-I" resolved)
+                       (string-prefix-p "-D" resolved)
+                       (string-prefix-p "-std=" resolved)
+                       (member resolved '("-fopenmp" "-pthread")))
+              collect resolved))))
+
+(defun eglot-rcpp--header-file-p (file)
+  "Return non-nil when FILE looks like a C/C++ header file."
+  (member (downcase (or (file-name-extension file) "")) eglot-rcpp-header-extensions))
+
+(defun eglot-rcpp--clangd-cache-key (root)
+  "Return the cache key for ROOT's clangd fallback flags."
+  (list (expand-file-name root) 'clangd))
+
+(defun eglot-rcpp--clangd-compile-commands-cache-key (root)
+  "Return the cache key for ROOT's synthetic clangd compile database."
+  (list (expand-file-name root) 'clangd-compile-commands))
+
+(defun eglot-rcpp--clangd-signature (root)
+  "Return a cache signature for ROOT's clangd-related metadata."
+  (eglot-rcpp--cache-signature
+   (delete-dups
+    (append (list (eglot-rcpp--description-file root))
+            (eglot-rcpp--makevars-files root)))))
+
+(defun eglot-rcpp--clangd-fallback-flags (root)
+  "Return clangd fallback flags for the package at ROOT."
+  (let* ((cache-key (eglot-rcpp--clangd-cache-key root))
+         (signature (eglot-rcpp--clangd-signature root))
+         (cached (gethash cache-key eglot-rcpp--clangd-flags-cache)))
+    (if (and cached (equal (car cached) signature))
+        (cdr cached)
+      (let* ((local-includes
+              (eglot-rcpp--existing-directories
+               (list (expand-file-name "src" root)
+                     (expand-file-name "inst/include" root)
+                     (expand-file-name "include" root))))
+             (linkingto (eglot-rcpp--description-list-field root "LinkingTo"))
+             (package-includes (eglot-rcpp--linkingto-include-directories linkingto))
+             (makevars-flags (eglot-rcpp--resolved-makevars-flags root))
+             (std-flag (or (cl-loop for value in (eglot-rcpp--makevars-variable-values root "CXX_STD")
+                                    for flag = (eglot-rcpp--std-flag-from-cxx-std value)
+                                    when flag return flag)
+                           (and eglot-rcpp-clangd-default-standard
+                                (concat "-std=" eglot-rcpp-clangd-default-standard))))
+             (flags
+              (delete-dups
+               (append
+                '("-xc++")
+                (when std-flag (list std-flag))
+                (mapcar (lambda (directory) (concat "-I" directory)) local-includes)
+                (mapcar (lambda (directory) (concat "-I" directory)) package-includes)
+                makevars-flags
+                eglot-rcpp-clangd-extra-fallback-flags))))
+        (puthash cache-key (cons signature flags) eglot-rcpp--clangd-flags-cache)
+        flags))))
+
+(defun eglot-rcpp--clangd-compile-commands-present-p (root)
+  "Return non-nil when ROOT already has a compile database."
+  (let ((directory (file-name-as-directory (expand-file-name root)))
+        present)
+    (while (and directory (not present))
+      (setq present
+            (or (file-readable-p (expand-file-name "compile_commands.json" directory))
+                (file-readable-p (expand-file-name "compile_flags.txt" directory))
+                (file-readable-p (expand-file-name "compile_commands.json"
+                                                  (expand-file-name "src" directory)))
+                (file-readable-p (expand-file-name "compile_flags.txt"
+                                                  (expand-file-name "src" directory)))))
+      (let ((parent (file-name-directory (directory-file-name directory))))
+        (setq directory (and parent (not (equal parent directory)) parent))))
+    present))
+
+(defun eglot-rcpp--clangd-compile-commands-arguments (file flags)
+  "Return clangd compile arguments for FILE and FLAGS."
+  (append (list "clang++"
+                "-x"
+                (if (eglot-rcpp--header-file-p file) "c++-header" "c++"))
+          flags
+          (list "-c" file)))
+
+(defun eglot-rcpp--clangd-compile-commands-entries (root flags files)
+  "Return synthetic compile_commands entries for ROOT, FLAGS, and FILES."
+  (let ((directory (expand-file-name root)))
+    (cl-loop for file in files
+             collect `(("directory" . ,directory)
+                       ("file" . ,file)
+                       ("arguments" . ,(eglot-rcpp--clangd-compile-commands-arguments
+                                        file flags))))))
+
+(defun eglot-rcpp--clangd-compile-commands-dir (root)
+  "Return a cache directory containing a synthetic compile database for ROOT."
+  (unless (eglot-rcpp--clangd-compile-commands-present-p root)
+    (let* ((cache-key (eglot-rcpp--clangd-compile-commands-cache-key root))
+           (flags (cl-remove "-xc++" (eglot-rcpp--clangd-fallback-flags root)
+                             :test #'string=))
+           (files (eglot-rcpp--files root nil t))
+           (signature (list (eglot-rcpp--cache-signature files)
+                            flags
+                            eglot-rcpp-clangd-command))
+           (cached (gethash cache-key eglot-rcpp--clangd-compile-commands-cache)))
+      (if (and cached (equal (car cached) signature))
+          (cdr cached)
+        (let* ((dir (expand-file-name
+                     (secure-hash 'sha1 (expand-file-name root))
+                     (expand-file-name "eglot-rcpp/clangd" temporary-file-directory)))
+               (file (expand-file-name "compile_commands.json" dir))
+               (entries (eglot-rcpp--clangd-compile-commands-entries root flags files)))
+          (make-directory dir t)
+          (with-temp-file file
+            (insert (json-encode entries))
+            (insert "\n"))
+          (puthash cache-key (cons signature dir)
+                   eglot-rcpp--clangd-compile-commands-cache)
+          dir)))))
 
 (defun eglot-rcpp--r-files (root &optional include-generated)
   "Return relevant R files under ROOT.
@@ -1048,6 +1330,8 @@ When EXACT is non-nil, require exact-ish symbol matching."
 (defun eglot-rcpp--cache-keys-for-root (root)
   "Return all cache keys that belong to ROOT."
   (list (eglot-rcpp--bridge-cache-key root)
+        (eglot-rcpp--clangd-cache-key root)
+        (eglot-rcpp--clangd-compile-commands-cache-key root)
         (eglot-rcpp--symbol-cache-key root nil)
         (eglot-rcpp--symbol-cache-key root t)))
 
@@ -1057,6 +1341,9 @@ When EXACT is non-nil, require exact-ish symbol matching."
   (interactive)
   (when-let ((root (or root (eglot-rcpp--project-root))))
     (remhash (eglot-rcpp--bridge-cache-key root) eglot-rcpp--bridge-cache)
+    (remhash (eglot-rcpp--clangd-cache-key root) eglot-rcpp--clangd-flags-cache)
+    (remhash (eglot-rcpp--clangd-compile-commands-cache-key root)
+             eglot-rcpp--clangd-compile-commands-cache)
     (remhash (eglot-rcpp--symbol-cache-key root nil) eglot-rcpp--symbol-cache)
     (remhash (eglot-rcpp--symbol-cache-key root t) eglot-rcpp--symbol-cache)))
 
@@ -1172,17 +1459,39 @@ ORIG-FN and ARGS are the advised command and its original arguments."
     (unless (member entry eglot-server-programs)
       (add-to-list 'eglot-server-programs entry))))
 
+(defun eglot-rcpp--r-server-contact (_interactive project)
+  "Return the R server contact for PROJECT, or nil outside package roots."
+  (when (eglot-rcpp--project-root-from-project project)
+    eglot-rcpp-r-server-command))
+
+(defun eglot-rcpp--cpp-server-contact (_interactive project)
+  "Return the clangd contact for PROJECT, or nil outside package roots."
+  (when-let ((root (eglot-rcpp--project-root-from-project project)))
+    (let* ((compile-commands-dir (eglot-rcpp--clangd-compile-commands-dir root))
+           (command
+            (if (and compile-commands-dir
+                     (not (eglot-rcpp--clangd-compile-commands-present-p root)))
+                (append eglot-rcpp-clangd-command
+                        (list (concat "--compile-commands-dir=" compile-commands-dir)))
+              eglot-rcpp-clangd-command)))
+      (if eglot-rcpp-enable-clangd-fallback-flags
+          (append command
+                  (list :initializationOptions
+                        `(:fallbackFlags ,(apply #'vector
+                                                 (eglot-rcpp--clangd-fallback-flags root)))))
+        command))))
+
 (defun eglot-rcpp--install-eglot-server-programs ()
   "Install Eglot server entries for package R and C/C++ buffers."
   (with-eval-after-load 'eglot
     (when (eglot-rcpp--command-available-p eglot-rcpp-r-server-command)
       (eglot-rcpp--ensure-server-program
        eglot-rcpp-r-modes
-       eglot-rcpp-r-server-command))
+       #'eglot-rcpp--r-server-contact))
     (when (eglot-rcpp--command-available-p eglot-rcpp-clangd-command)
       (eglot-rcpp--ensure-server-program
        eglot-rcpp-cpp-modes
-       eglot-rcpp-clangd-command))))
+       #'eglot-rcpp--cpp-server-contact))))
 
 (defun eglot-rcpp--install-ess-support ()
   "Install optional ESS bindings when enabled."

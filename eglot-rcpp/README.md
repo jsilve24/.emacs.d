@@ -82,6 +82,9 @@ The main user options are:
 - `eglot-rcpp-auto-start-companion-servers`
 - `eglot-rcpp-r-server-command`
 - `eglot-rcpp-clangd-command`
+- `eglot-rcpp-enable-clangd-fallback-flags`
+- `eglot-rcpp-clangd-default-standard`
+- `eglot-rcpp-clangd-extra-fallback-flags`
 - `eglot-rcpp-restrict-xref-results-to-project`
 - `eglot-rcpp-generated-file-regexps`
 - `eglot-rcpp-generated-definition-policy`
@@ -103,6 +106,20 @@ Definition ranking is controlled by
 - `deprioritize`: real source first, generated files last
 - `omit`: hide generated hits only when at least one non-generated hit exists
 - `keep`: keep generated hits in normal deduped order
+
+## Clangd Setup
+
+For package C/C++ buffers, `eglot-rcpp` now derives clangd fallback flags from:
+
+- package-local include directories such as `src/`, `inst/include/`, and `include/`
+- `LinkingTo` entries in `DESCRIPTION`
+- lightweight parsing of `src/Makevars`, `src/Makevars.win`, and `src/Makevars.in`
+
+This is meant to make Flymake and clangd work in ordinary Rcpp package layouts
+without requiring a hand-written `compile_commands.json`.  When a package does
+not already provide one, `eglot-rcpp` synthesizes a small cache-side compile
+database from the package tree so clangd can parse both `src/` translation units
+and `inst/include/` headers with the same package-local include paths.
 
 ## Commands
 
