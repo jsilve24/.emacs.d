@@ -34,6 +34,9 @@ should be documented near the workaround so future mu4e upgrades are less
 fragile. Compose helpers should also avoid `message-replace-header` when the
 goal is only to swap recipient values, since header rewrites can disturb the
 standard `To:`/`Cc:` order in mu4e message buffers.
+The junk-mark helper currently overrides `mu4e--mark-get-move-target` to feed
+a deterministic target into Mu4e's move mark. Revisit that if Mu4e exposes a
+public way to supply a move target without touching private internals.
 
 *** TODO Consider replacing prompt-only scheduling confirmation heuristics with structured thread checks
 `ai-email` now guards against prematurely treating proposed times as confirmed,

@@ -1,5 +1,12 @@
 ;;; email-helpers.el --- email helper commands -*- lexical-binding: t; -*-
 
+(require 'cl-lib)
+(require 'subr-x)
+
+;; keep byte-compiler and autoloaded helpers happy when this file loads before mu4e
+(declare-function mu4e-message-at-point "mu4e-message")
+(declare-function mu4e-headers-mark-for-move "mu4e-headers")
+
 ;; stolen from doom
 ;;;###autodef
 (defun set-email-account! (label letvars &optional default-p)
@@ -90,6 +97,37 @@ default/fallback account."
     (jds/message-goto-in-body "#\+OPTIONS:" nil)
     (end-of-line)
     (insert " inlineimages")))
+
+;;;###autoload
+(defun jds/mu4e--junk-target-for-message (msg)
+  "Return the account-specific junk maildir for MSG, or nil."
+  (let ((maildir (plist-get msg :maildir)))
+    (cond
+     ((and (stringp maildir) (string-prefix-p "/gmail/" maildir))
+      "/gmail/Gmail.spam")
+     ((and (stringp maildir) (string-prefix-p "/psu/" maildir))
+      "/psu/Junk")
+     (t nil))))
+
+;;;###autoload
+(defun jds/mu4e-mark-junk ()
+  "Mark the current message for move to its account-specific junk folder.
+Gmail messages go to `/gmail/Gmail.spam` and PSU messages go to
+`/psu/Junk`. This only creates a move mark; Mu4e still asks for
+confirmation when the marks are executed. Using a move mark keeps the
+server-side move visible to IMAP sync, which can help train spam filters."
+  (interactive)
+  (let* ((msg (mu4e-message-at-point))
+         (target (and msg (jds/mu4e--junk-target-for-message msg))))
+    (unless target
+      (user-error "No junk-folder rule for %s"
+                  (or (plist-get msg :maildir) "this message")))
+    (when (string= (plist-get msg :maildir) target)
+      (user-error "Message is already in %s" target))
+    (cl-letf (((symbol-function 'mu4e--mark-get-move-target)
+               (lambda () target)))
+      (mu4e-headers-mark-for-move))
+    (message "Marked for move to %s" target)))
 
 
 

@@ -418,6 +418,7 @@ Preserve the standard header order by changing field values in place."
   :keymaps '(mu4e-view-mode-map mu4e-headers-mode-map)
   "u" '(mu4e-update-mail-and-index :which-key "update mail and index")
   "s" '(mu4e-view-save-attachments :which-key "save-attachments")
+  "j" '(jds/mu4e-mark-junk :which-key "junk")
   "T" #'mu4e-headers-mark-thread
   "l" #'+mu4e/capture-msg-to-agenda)
 
