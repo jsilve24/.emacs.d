@@ -154,12 +154,13 @@ When non-nil, automatic cleanup preserves the generated
 
   ;; Pass the -pdf flag when TeX-PDF-mode is active
   (setq auctex-latexmk-inherit-TeX-PDF-mode t)
-  :config
+:config
   ;; Set LatexMk as the default
-  (add-hook 'LaTeX-mode
-	    (lambda () (setq TeX-command-default "LatexMk")))
-  (add-hook 'latex-mode
-	    (lambda () (setq TeX-command-default "LatexMk"))))
+  (defun jds/latex-set-latexmk-default ()
+    "Prefer LatexMk as the default compile command in LaTeX buffers."
+    (setq TeX-command-default "LatexMk"))
+  (add-hook 'LaTeX-mode-hook #'jds/latex-set-latexmk-default)
+  (add-hook 'latex-mode-hook #'jds/latex-set-latexmk-default))
 
 
 ;;; setup evil-tex
