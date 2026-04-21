@@ -3,6 +3,7 @@
 ;; Parent module owns its local helper commands so `init.el` stays ignorant of
 ;; internal support files.
 (load-config "references-helpers.el")
+(require 'json)
 
 (defconst jds/references-bibliography
   "/home/jds6696/Dropbox/org/roam/references/references.bib"
@@ -137,6 +138,232 @@ Returns empty string on failure."
 	  (buffer-string))
       (error ""))))
 
+(defconst jds/pdf-drop-ai-metadata-pages 8
+  "Number of initial PDF pages to inspect during fallback metadata recovery.")
+
+(defun jds~pdf-drop-clean-identifier (identifier)
+  "Trim whitespace and trailing punctuation from IDENTIFIER."
+  (when (stringp identifier)
+    (let ((trimmed (string-trim identifier)))
+      (unless (string-empty-p trimmed)
+        (replace-regexp-in-string "[[:space:][:punct:]]+\\'" "" trimmed)))))
+
+(defun jds~pdf-drop-normalize-metadata-string (value)
+  "Return VALUE as a trimmed string, or nil if it is empty."
+  (when value
+    (let ((string (string-trim (format "%s" value))))
+      (unless (string-empty-p string)
+        string))))
+
+(defun jds~pdf-drop-normalize-authors (authors)
+  "Return AUTHORS as a list of non-empty author strings."
+  (cond
+   ((stringp authors)
+    (let ((author (jds~pdf-drop-normalize-metadata-string authors)))
+      (if author (list author) nil)))
+   ((listp authors)
+    (delq nil (mapcar #'jds~pdf-drop-normalize-metadata-string authors)))
+   (t nil)))
+
+(defun jds~pdf-drop-identifier-kind (identifier)
+  "Return the kind of IDENTIFIER as `doi', `arxiv', or nil."
+  (when-let ((identifier (jds~pdf-drop-clean-identifier identifier)))
+    (let ((case-fold-search t))
+      (cond
+       ((string-match-p "\\`10\\.[0-9]\\{4,9\\}/[-._;()/:A-Z0-9]+\\'" identifier)
+        'doi)
+       ((string-match-p
+         "\\`\\(?:arxiv:\\)?\\(?:[0-9]\\{4\\}\\.[0-9]\\{4,5\\}\\|[[:alpha:]-]+\\(?:\\.[[:alpha:]-]+\\)?/[0-9]\\{7\\}\\)\\(?:v[0-9]+\\)?\\'"
+         identifier)
+        'arxiv)
+       (t nil)))))
+
+(defun jds~pdf-drop-extract-doi-from-text (text)
+  "Return the first DOI found in TEXT, or nil."
+  (when (stringp text)
+    (let ((case-fold-search t))
+      (when (string-match "\\b\\(10\\.[0-9]\\{4,9\\}/[-._;()/:A-Z0-9]+\\)" text)
+        (jds~pdf-drop-clean-identifier (match-string 1 text))))))
+
+(defun jds~pdf-drop-extract-arxiv-from-text (text)
+  "Return the first arXiv identifier found in TEXT, or nil."
+  (when (stringp text)
+    (let ((case-fold-search t))
+      (or
+       (when (string-match
+              "\\barxiv:\\s-*\\([0-9]\\{4\\}\\.[0-9]\\{4,5\\}\\(?:v[0-9]+\\)?\\)\\b"
+              text)
+         (jds~pdf-drop-clean-identifier (match-string 1 text)))
+       (when (string-match
+              "\\b\\([[:alpha:]-]+\\(?:\\.[[:alpha:]-]+\\)?/[0-9]\\{7\\}\\(?:v[0-9]+\\)?\\)\\b"
+              text)
+         (jds~pdf-drop-clean-identifier (match-string 1 text)))))))
+
+(defun jds~pdf-drop-filename-query (file)
+  "Return a normalized filename-derived query for FILE."
+  (when file
+    (let* ((base (file-name-base file))
+           (query (replace-regexp-in-string "[_-]+" " " base)))
+      (jds~pdf-drop-normalize-metadata-string query))))
+
+(defun jds~pdf-drop-local-metadata (file title text &optional seed-identifier)
+  "Build local metadata hints for FILE from TITLE, TEXT, and SEED-IDENTIFIER."
+  (let* ((seed (jds~pdf-drop-clean-identifier seed-identifier))
+         (seed-kind (jds~pdf-drop-identifier-kind seed))
+         (doi (or (and (eq seed-kind 'doi) seed)
+                  (jds~pdf-drop-extract-doi-from-text text)))
+         (arxiv (or (and (eq seed-kind 'arxiv)
+                         (replace-regexp-in-string "\\`arxiv:" "" seed t t))
+                    (jds~pdf-drop-extract-arxiv-from-text text))))
+    (list :doi doi
+          :arxiv arxiv
+          :title (jds~pdf-drop-normalize-metadata-string title)
+          :authors nil
+          :year nil
+          :filename-query (jds~pdf-drop-filename-query file))))
+
+(defun jds~pdf-drop-json-object-string (response)
+  "Extract the first JSON object string from RESPONSE."
+  (when (stringp response)
+    (let ((start (string-match "{" response))
+          (end (and (string-match "}[[:space:]\n\r\t]*\\'" response)
+                    (match-end 0))))
+      (when (and start end (> end start))
+        (substring response start end)))))
+
+(defun jds~pdf-drop-parse-ai-metadata (response)
+  "Parse structured metadata JSON from RESPONSE into a plist."
+  (when-let ((json-text (jds~pdf-drop-json-object-string response)))
+    (condition-case nil
+        (if (fboundp 'json-parse-string)
+            (json-parse-string json-text
+                               :object-type 'plist
+                               :array-type 'list
+                               :null-object nil
+                               :false-object nil)
+          (let ((json-object-type 'plist)
+                (json-array-type 'list)
+                (json-null nil)
+                (json-false nil))
+            (json-read-from-string json-text)))
+      (error nil))))
+
+(defun jds~pdf-drop-merge-metadata (local ai)
+  "Merge LOCAL and AI metadata plists, preferring explicit identifiers."
+  (let* ((ai-arxiv (when-let ((value (jds~pdf-drop-normalize-metadata-string
+                                      (plist-get ai :arxiv))))
+                     (replace-regexp-in-string "\\`arxiv:" "" value t t)))
+         (authors (or (jds~pdf-drop-normalize-authors (plist-get ai :authors))
+                      (plist-get local :authors))))
+    (list :doi (or (jds~pdf-drop-clean-identifier (plist-get local :doi))
+                   (jds~pdf-drop-clean-identifier (plist-get ai :doi)))
+          :arxiv (or (plist-get local :arxiv) ai-arxiv)
+          :title (or (plist-get local :title)
+                     (jds~pdf-drop-normalize-metadata-string (plist-get ai :title)))
+          :authors authors
+          :year (or (plist-get local :year)
+                    (jds~pdf-drop-normalize-metadata-string (plist-get ai :year)))
+          :filename-query (plist-get local :filename-query))))
+
+(defun jds~pdf-drop-metadata-queries (metadata)
+  "Return prioritized zotra search queries derived from METADATA."
+  (let* ((doi (jds~pdf-drop-clean-identifier (plist-get metadata :doi)))
+         (arxiv (jds~pdf-drop-clean-identifier (plist-get metadata :arxiv)))
+         (title (jds~pdf-drop-normalize-metadata-string (plist-get metadata :title)))
+         (authors (jds~pdf-drop-normalize-authors (plist-get metadata :authors)))
+         (year (jds~pdf-drop-normalize-metadata-string (plist-get metadata :year)))
+         (filename-query (plist-get metadata :filename-query))
+         (author-fragment (when authors
+                            (mapconcat #'identity (seq-take authors 2) " ")))
+         (queries (delq nil
+                        (list doi
+                              (when arxiv (format "arXiv:%s" arxiv))
+                              arxiv
+                              title
+                              (when (and title author-fragment)
+                                (format "%s %s" title author-fragment))
+                              (when (and title year)
+                                (format "%s %s" title year))
+                              filename-query))))
+    (delete-dups queries)))
+
+(defun jds~pdf-drop-try-zotra-query (query)
+  "Return citekey from `zotra-add-entry-from-search' for QUERY, or nil."
+  (when-let ((query (jds~pdf-drop-normalize-metadata-string query)))
+    (condition-case nil
+        (let ((key (zotra-add-entry-from-search query)))
+          (when (and key (not (string-empty-p (format "%s" key))))
+            key))
+      (error nil))))
+
+(defun jds~pdf-drop-try-import-from-metadata (file metadata)
+  "Try importing FILE using zotra queries derived from METADATA.
+Return the citekey on success, or nil otherwise."
+  (catch 'done
+    (dolist (query (jds~pdf-drop-metadata-queries metadata))
+      (when-let ((key (jds~pdf-drop-try-zotra-query query)))
+        (jds/dired-add-file-to-bib key file)
+        (throw 'done key)))))
+
+(defun jds~pdf-drop-build-ai-metadata-prompt (file title text metadata)
+  "Build a structured metadata prompt for FILE using TITLE, TEXT, and METADATA."
+  (format
+   (concat
+    "Identify this academic paper as precisely as possible.\n"
+    "Prefer canonical identifiers explicitly supported by the evidence.\n"
+    "If the manuscript appears on arXiv, return the arXiv identifier.\n"
+    "Do not invent identifiers.\n\n"
+    "Return ONLY compact JSON with these keys:\n"
+    "{\"doi\": string|null, \"arxiv\": string|null, \"title\": string|null, "
+    "\"authors\": [string], \"year\": string|null}\n\n"
+    "Filename: %s\n"
+    "%s"
+    "%s\n\n"
+    "PDF text from the first %d pages:\n---\n%s\n---")
+   (file-name-nondirectory file)
+   (if-let ((pdf-title (jds~pdf-drop-normalize-metadata-string title)))
+       (format "PDF metadata title: %s\n" pdf-title)
+     "")
+   (let ((hints (jds~pdf-drop-metadata-queries metadata)))
+     (if hints
+         (format "Recovered local hints: %s\n"
+                 (mapconcat #'identity hints " | "))
+       ""))
+   jds/pdf-drop-ai-metadata-pages
+   text))
+
+(defun jds~pdf-drop-build-ai-bibtex-prompt (title text metadata)
+  "Build the last-resort BibTeX prompt from TITLE, TEXT, and METADATA."
+  (let* ((doi (plist-get metadata :doi))
+         (arxiv (plist-get metadata :arxiv))
+         (resolved-title (or (plist-get metadata :title) title))
+         (authors (plist-get metadata :authors))
+         (year (plist-get metadata :year))
+         (metadata-lines
+          (delq nil
+                (list (when doi (format "DOI: %s" doi))
+                      (when arxiv (format "arXiv: %s" arxiv))
+                      (when resolved-title (format "Title: %s" resolved-title))
+                      (when authors
+                        (format "Authors: %s" (mapconcat #'identity authors "; ")))
+                      (when year (format "Year: %s" year))))))
+    (format
+     (concat
+      "I need a BibTeX entry for this academic paper.\n"
+      "Use the metadata below when supported by the evidence.\n"
+      "If an arXiv identifier is known, prefer an arXiv-aware BibTeX entry over a generic draft note.\n"
+      "Return ONLY a single complete BibTeX entry starting with @.\n"
+      "No explanation, no markdown fences.\n\n"
+      "%s\n\n"
+      "Text from the first %d pages:\n---\n%s\n---")
+     (if metadata-lines
+         (mapconcat #'identity metadata-lines "\n")
+       (if-let ((pdf-title (jds~pdf-drop-normalize-metadata-string title)))
+           (format "PDF metadata title: %s" pdf-title)
+         "No reliable metadata recovered."))
+     jds/pdf-drop-ai-metadata-pages
+     text)))
+
 (use-package pdf-drop-mode
   :straight (pdf-drop-mode :type git :host github :repo "rougier/pdf-drop-mode")
   :config
@@ -171,31 +398,68 @@ Returns empty string on failure."
                          (file-name-nondirectory file))))
           (error (message "Error processing AI BibTeX: %s" (error-message-string err)))))))
 
-  ;; Called when DOI/arXiv lookup fails or when no identifier is found at all.
-  (defun jds/pdf-drop-ai-bibtex-fallback (file title)
-    "Use AI to identify paper in FILE and create a BibTeX entry.
-TITLE is the PDF metadata title (may be nil or empty)."
-    (message "Identifier lookup failed for %s; asking AI to identify paper..."
+  (defun jds~pdf-drop-request-ai-bibtex (file title text metadata)
+    "Ask AI for a BibTeX entry for FILE using TITLE, TEXT, and METADATA."
+    (message "Metadata lookup incomplete for %s; requesting final BibTeX..."
              (file-name-nondirectory file))
-    (let* ((text   (jds/pdf-extract-text-pages file 4))
-           (prompt (format "I need a BibTeX bibliography entry for this academic paper.\n%s\n\nText from the first pages:\n---\n%s\n---\n\nReturn ONLY a single complete BibTeX entry starting with @. No explanation, no markdown fences."
-                           (if (and title (not (string-empty-p (string-trim (or title "")))))
-                               (format "PDF metadata title: %s" title)
-                             "")
-                           text)))
-      (gptel-request prompt
-        :system "You are a bibliographic assistant. Return only a single complete BibTeX entry."
-        :callback (lambda (response info)
-                    (jds~pdf-ai-bibtex-callback file response info)))))
+    (gptel-request
+     (jds~pdf-drop-build-ai-bibtex-prompt title text metadata)
+     :system (concat
+              "You are a bibliographic assistant. "
+              "Prefer canonical repository metadata over generic draft phrasing. "
+              "Return only a single complete BibTeX entry.")
+     :callback (lambda (response info)
+                 (jds~pdf-ai-bibtex-callback file response info))))
+
+  (defun jds~pdf-drop-ai-metadata-callback (file title text local-metadata response info)
+    "Handle structured AI metadata RESPONSE for FILE."
+    (if (not response)
+        (progn
+          (message "AI metadata lookup failed for %s: %s"
+                   (file-name-nondirectory file)
+                   (plist-get info :status))
+          (jds~pdf-drop-request-ai-bibtex file title text local-metadata))
+      (let* ((ai-metadata (jds~pdf-drop-parse-ai-metadata response))
+             (metadata (jds~pdf-drop-merge-metadata local-metadata ai-metadata)))
+        (if-let ((key (jds~pdf-drop-try-import-from-metadata file metadata)))
+            (message "Imported bibliography entry for %s as %s"
+                     (file-name-nondirectory file)
+                     key)
+          (jds~pdf-drop-request-ai-bibtex file title text metadata)))))
+
+  ;; Called when DOI/arXiv lookup fails or when no identifier is found at all.
+  (defun jds/pdf-drop-ai-bibtex-fallback (file title &optional seed-identifier)
+    "Recover metadata for FILE, then create a BibTeX entry as a last resort.
+TITLE is the PDF metadata title and SEED-IDENTIFIER is any earlier DOI/arXiv hint."
+    (message "Identifier lookup failed for %s; recovering metadata..."
+             (file-name-nondirectory file))
+    (let* ((text (jds/pdf-extract-text-pages file jds/pdf-drop-ai-metadata-pages))
+           (local-metadata (jds~pdf-drop-local-metadata file title text seed-identifier)))
+      (if-let ((key (jds~pdf-drop-try-import-from-metadata file local-metadata)))
+          (message "Imported bibliography entry for %s as %s"
+                   (file-name-nondirectory file)
+                   key)
+        (gptel-request
+         (jds~pdf-drop-build-ai-metadata-prompt file title text local-metadata)
+         :system (concat
+                  "You are a bibliographic identification assistant. "
+                  "Extract reliable metadata from partial manuscript text. "
+                  "Prefer explicit DOI/arXiv identifiers when present. "
+                  "Return only compact JSON.")
+         :callback (lambda (response info)
+                     (jds~pdf-drop-ai-metadata-callback
+                      file title text local-metadata response info))))))
 
   ;; When DOI found but zotra lookup fails, fall back to AI
-  (defun jds/pdf-drop-mode-call-zotra (file doi)
-    "Call zotra for DOI lookup; fall back to AI if zotra fails."
-    (let ((doi-string (if (listp doi) (cdr doi) doi)))
-      (condition-case nil
-          (zotra-add-entry-from-search doi-string)
-        (error
-         (jds/pdf-drop-ai-bibtex-fallback file doi-string)))))
+  (defun jds/pdf-drop-mode-call-zotra (file identifier)
+    "Call zotra for IDENTIFIER lookup; fall back to staged recovery if needed."
+    (let ((identifier-string (jds~pdf-drop-clean-identifier
+                              (if (listp identifier) (cdr identifier) identifier))))
+      (or (jds~pdf-drop-try-zotra-query identifier-string)
+          (jds/pdf-drop-ai-bibtex-fallback
+           file
+           (ignore-errors (pdf-drop-get-title-from-metadata file))
+           identifier-string))))
   (setq pdf-drop-search-hook #'jds/pdf-drop-mode-call-zotra)
   (setq pdf-drop-search-methods '(doi/metadata doi/content arxiv/content)))
 
@@ -224,11 +488,13 @@ The return value is a cons like `(doi . VALUE)' or `(arxiv . VALUE)'."
   (interactive)
   (let ((filename (dired-copy-filename-as-kill 0)))
     (if-let ((file-id (jds~pdf-drop-find-identifier filename)))
-        (let ((key (zotra-add-entry-from-search (cdr file-id))))
+        (let ((key (jds~pdf-drop-try-zotra-query (cdr file-id))))
           (if key
               (jds/dired-add-file-to-bib key filename)
-            (user-error "Imported bibliography entry for %s but no key was returned"
-                        (file-name-nondirectory filename))))
+            (jds/pdf-drop-ai-bibtex-fallback
+             filename
+             (ignore-errors (pdf-drop-get-title-from-metadata filename))
+             (cdr file-id))))
       (jds/pdf-drop-ai-bibtex-fallback
        filename
        (ignore-errors (pdf-drop-get-title-from-metadata filename))))))
