@@ -7,7 +7,9 @@
 
 (declare-function ol/slack-follow-link-legacy "ol-emacs-slack-legacy")
 (declare-function slack-buffer-add-reaction-to-message "slack-message-reaction")
+(declare-function slack-advice-select-window "slack-message-buffer")
 (declare-function slack-buffer-goto "slack-buffer")
+(declare-function slack-buffer--subscribe-cursor-event "slack-buffer")
 (declare-function slack-conversations-info "slack-conversations")
 (declare-function slack-conversations-open "slack-conversations")
 (declare-function slack-current-room-and-team "slack-buffer")
@@ -37,6 +39,31 @@
 
 (defvar ol/slack-follow-link-legacy-warn-user)
 (defvar slack-current-buffer)
+
+(defun jds~slack-problematic-select-window-context-p ()
+  "Return non-nil when `select-window' should tolerate a nil target.
+
+Keep this guard narrow: only Mu4e's view and headers buffers are allowed to
+fall back to the current window when a package-level `select-window' advice is
+active and the target window is missing."
+  (derived-mode-p 'mu4e-view-mode 'mu4e-headers-mode))
+
+(defun jds~slack-guard-select-window (orig-func window &optional norecord)
+  "Avoid nil-window `select-window' errors in Mu4e when Slack is loaded."
+  (if (or (window-live-p window)
+          (not (jds~slack-problematic-select-window-context-p)))
+      (funcall orig-func window norecord)
+    (selected-window)))
+
+(defun jds~slack-install-select-window-guard ()
+  "Install the Mu4e-specific guard around `select-window'."
+  (unless (advice-member-p #'jds~slack-guard-select-window 'select-window)
+    (advice-add 'select-window :around #'jds~slack-guard-select-window)))
+
+(if (featurep 'slack-message-buffer)
+    (jds~slack-install-select-window-guard)
+  (with-eval-after-load 'slack-message-buffer
+    (jds~slack-install-select-window-guard)))
 
 (defun jds~slack-request-response-object (response)
   "Return RESPONSE or Slack's wrapped request-response when possible."
