@@ -227,11 +227,24 @@ When non-nil, automatic cleanup preserves the generated
                          (buffer-file-name))))
 
 ;;;###autoload
-(defun jds/tex-command-run-all-and-save ()
-  "Save the current buffer, then run the LaTeX compile command."
-  (interactive)
+(defun jds/tex-command-run-all-and-save (&optional force-run-all)
+  "Save the current buffer, then run the appropriate LaTeX compile command.
+
+Prefer the current default TeX command, which is `LatexMk' in
+LaTeX buffers, so `mm' saves and runs the compiler directly
+without opening AUCTeX's command chooser.  This avoids layering
+`TeX-command-run-all' on top of latexmk's own rerun logic.  With
+prefix argument FORCE-RUN-ALL, always use `TeX-command-run-all'.
+Without a prefix argument, open the compiled document after a
+successful build."
+  (interactive "P")
   (save-buffer)
-  (call-interactively #'TeX-command-run-all))
+  (if force-run-all
+      (call-interactively #'TeX-command-run-all)
+    (progn
+      (TeX-master-file nil nil t)
+      (TeX-command-sequence
+       (list TeX-command-default TeX-command-Show) t #'TeX-master-file))))
 
 ;;; setup latexdiff
 
