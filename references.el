@@ -4,13 +4,21 @@
 ;; internal support files.
 (load-config "references-helpers.el")
 
+(defconst jds/references-bibliography
+  "/home/jds6696/Dropbox/org/roam/references/references.bib"
+  "Primary bibliography file for references workflows.")
+
+(defconst jds/references-library-path
+  "/home/jds6696/Dropbox/org/roam/references/articles/"
+  "Directory containing attached reference files.")
+
 (use-package bibtex-completion
   :straight t
   :defer t
   :config
-  (setq bibtex-completion-bibliography '("~/Dropbox/org/roam/references/references.bib")
+  (setq bibtex-completion-bibliography (list jds/references-bibliography)
 	;; this is used by org-roam-bibtex note actions
-	bibtex-completion-library-path '("~/Dropbox/org/roam/references/articles/")))
+	bibtex-completion-library-path (list jds/references-library-path)))
 
 (use-package citar
   :after (:any latex org)
@@ -72,7 +80,7 @@
     "Face for obscuring/dimming icons"
     :group 'all-the-icons-faces)
   :custom
-  (org-cite-global-bibliography '("/home/jds6696/Dropbox/org/roam/references/references.bib"))
+  (org-cite-global-bibliography (list jds/references-bibliography))
   (org-cite-insert-processor 'citar)
   (org-cite-follow-processor 'citar)
   (org-cite-activate-processor 'citar)
@@ -84,7 +92,7 @@
   (require 'oc)
   (require 'oc-biblatex)
   (require 'oc-csl)
-  (setq citar-library-paths '("~/Dropbox/org/roam/references/articles/")
+  (setq citar-library-paths (list jds/references-library-path)
 	citar-file-additional-files-separator "-"))
 
 
@@ -102,7 +110,7 @@
   :straight (zotra :type git :host github :repo "mpedramfar/zotra")
   :commands (zotra-add-entry-from-search)
   :config
-  (setq zotra-default-bibliography "/home/jds6696/Dropbox/org/roam/references/references.bib"
+  (setq zotra-default-bibliography jds/references-bibliography
 	;; todo could upgrade to the zotra-cli which can also download papers
 	zotra-backend 'translation-server)
   (add-hook 'zotra-after-add-entry-hook (lambda ()
@@ -142,7 +150,7 @@ Returns empty string on failure."
       (let* ((bib-start (and (string-match "@[a-zA-Z]+{" response)
                              (match-beginning 0)))
              (bibtex    (if bib-start (substring response bib-start) response))
-             (bib-file  zotra-default-bibliography))
+             (bib-file  jds/references-bibliography))
         (condition-case err
             (let (key)
               (with-current-buffer (find-file-noselect bib-file)
@@ -232,7 +240,7 @@ bibliography. Moves file into global file library. FILE should be
 a string specifying full filepath."
     (interactive (list  (car (citar-select-refs :multiple nil))
 			(dired-get-filename)))
-    (let* ((destname (concat (car citar-library-paths) key (file-name-extension file t)))
+    (let* ((destname (concat jds/references-library-path key (file-name-extension file t)))
 	   (destfile (file-name-nondirectory destname)))
       (rename-file file destname)
       (save-excursion
@@ -292,14 +300,14 @@ a string specifying full filepath."
 (defun jds~pdf-ai-find-pdf (citekey)
   "Return full path to PDF for CITEKEY, or nil if not found.
 Tries citar-get-files first (which returns a hash-table keyed by citekey),
-then constructs the expected path from citar-library-paths."
+then constructs the expected path from `jds/references-library-path'."
   (or (when-let* ((tbl   (citar-get-files citekey))
                   (files (gethash citekey tbl)))
         (seq-find (lambda (f)
                     (string= "pdf" (downcase (or (file-name-extension f) ""))))
                   files))
       (let ((expected (expand-file-name (concat citekey ".pdf")
-                                        (car citar-library-paths))))
+                                        jds/references-library-path)))
         (when (file-exists-p expected) expected))))
 
 (define-derived-mode jds/pdf-ai-summary-mode org-mode "AI-PDF"
