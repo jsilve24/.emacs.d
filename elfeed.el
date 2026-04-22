@@ -133,6 +133,80 @@ Prefers internal `elfeed-search--faces' when available, but falls back to
         (elfeed-show-entry next-entry)
       (funcall elfeed-show-entry-delete))))
 
+(defconst jds/elfeed-reading-list-paper-url-meta-keys
+  '(:paper-url :pdf-url :pdf-link :paper-link :pdf)
+  "Entry metadata keys checked for a direct paper URL.")
+
+(defun jds/elfeed-reading-list-entry ()
+  "Return the Elfeed entry relevant to a reading-list capture."
+  (cond
+   ((derived-mode-p 'elfeed-show-mode)
+    elfeed-show-entry)
+   ((derived-mode-p 'elfeed-search-mode)
+    (elfeed-search-selected :ignore-region))))
+
+(defun jds/elfeed-reading-list-paper-url (entry)
+  "Return a direct paper URL for ENTRY when one is available."
+  (let ((meta (elfeed-entry-meta entry)))
+    (or (cl-loop for key in jds/elfeed-reading-list-paper-url-meta-keys
+                 for value = (plist-get meta key)
+                 when (and (stringp value)
+                           (string-match-p "\\S-" value))
+                 return value)
+        (cl-loop for enclosure in (append (elfeed-entry-enclosures entry) nil)
+                 for url = (car-safe enclosure)
+                 for mime = (cadr-safe enclosure)
+                 when (and (stringp url)
+                           (or (and (stringp mime)
+                                    (string-prefix-p "application/pdf" mime))
+                               (string-match-p "\\.pdf\\(?:\\'\\|[?#]\\)" url)))
+                 return url))))
+
+(defun jds/elfeed-reading-list-paper-line ()
+  "Return a paper URL line for the reading-list capture template."
+  (if-let ((paper-url (plist-get org-store-link-plist :paper-url)))
+      (concat "\nPaper: " paper-url)
+    ""))
+
+(defun jds/elfeed-reading-list-url-lines ()
+  "Return URL lines for the reading-list capture template."
+  (let ((external-url (plist-get org-store-link-plist :external-link))
+        (paper-url (plist-get org-store-link-plist :paper-url)))
+    (concat
+     (if (and (stringp external-url)
+              (string-match-p "\\S-" external-url))
+         (concat "\nURL: " external-url)
+       "")
+     (if (and (stringp paper-url)
+              (string-match-p "\\S-" paper-url)
+              (not (equal paper-url external-url)))
+         (concat "\nPaper: " paper-url)
+       ""))))
+
+(defun jds/elfeed-reading-list-entry-link (entry)
+  "Return an Org Elfeed link for ENTRY."
+  (format "elfeed:%s#%s"
+          (car (elfeed-entry-id entry))
+          (cdr (elfeed-entry-id entry))))
+
+(defun jds/elfeed-reading-list-store-link (entry)
+  "Populate `org-store-link-plist' for reading-list capture from ENTRY."
+  (let* ((title (or (elfeed-meta entry :title)
+                    (elfeed-entry-title entry)
+                    ""))
+         (link (jds/elfeed-reading-list-entry-link entry))
+         (paper-url (jds/elfeed-reading-list-paper-url entry)))
+    (funcall (if (fboundp 'org-link-store-props)
+                 #'org-link-store-props
+               (with-no-warnings #'org-store-link-props))
+             :type "elfeed"
+             :link link
+             :description title
+             :title title
+             :annotation (org-link-make-string link title)
+             :external-link (elfeed-entry-link entry)
+             :paper-url paper-url)))
+
 (defun jds/elfeed-capture-reading-list (prefix)
   "Store the current Elfeed entry as a reading-list item.
 With PREFIX, prompt for a note while recording positive feedback."
@@ -140,8 +214,12 @@ With PREFIX, prompt for a note while recording positive feedback."
   (require 'ol)
   (require 'org-capture)
   (gptel-reinforce-like prefix "elfeed-ranking")
-  (org-store-link nil t)
-  (org-capture nil "r"))
+  (if-let ((entry (jds/elfeed-reading-list-entry)))
+      (let (org-store-link-plist)
+        (jds/elfeed-reading-list-store-link entry)
+        (let ((org-capture-link-is-already-stored t))
+          (org-capture nil "r")))
+    (user-error "No Elfeed entry at point")))
 
 (defun jds/elfeed-refresh-dwim ()
   "Refresh Elfeed using the best available refresh command.

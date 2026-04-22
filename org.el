@@ -238,7 +238,7 @@
 	  ("Pw" "Capture Website" entry (file "~/Dropbox/org/inbox.org")
 	   "* TODO %:annotation \n %i %?")
 	  ("r" "reading list" entry (file "~/Dropbox/org/readinglist.org")
-	   "* TODO %a\n%U"
+	   "* TODO %a\n%U%(if (fboundp 'jds/elfeed-reading-list-url-lines) (jds/elfeed-reading-list-url-lines) \"\")"
 	   :immediate-finish t)))
 
   ;; From here :   https://www.reddit.com/r/orgmode/comments/1i3np2x/comment/m8dli2w/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button
@@ -545,4 +545,3 @@ minutes), and return a formatted Org timestamp with start and end times."
 
 (provide 'config-org)
 ;;; org.el ends here
-
