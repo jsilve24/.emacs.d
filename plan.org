@@ -42,12 +42,6 @@ but that safety still depends on prompt-following. A small local checker over
 the visible thread state could further reduce false-positive confirmations and
 calendar staging.
 
-*** TODO Replace the Rcpp `consult-eglot` header fallback with a public hook if upstream adds one
-`eglot-rcpp/eglot-rcpp.el` now advises `consult-eglot--make-async-source` so
-`SPC e e` can surface `inst/include/` symbols in plain R package workflows
-where clangd does not return them from `workspace/symbol`. The behavior is
-useful, but it depends on an internal async helper in `consult-eglot` and
-should be revisited if the package grows a supported extension point.
 
 ** Missing guards and OS assumptions
 
@@ -78,7 +72,7 @@ or maintenance note near `bindings.el` may prevent future churn around this
 preference. Remember that `jds/localleader-def` already contributes the `m`
 prefix, so mode-local bindings should spell only the suffix key.
 
-*** TODO Review REPL consistency across Python, R, shell, and Stan workflows
+*** TODO Review REPL consistency across Python, R, and shell workflows
 R has extensive REPL affordances, graphics-device helpers, and localleader
 bindings. Python currently has a much thinner `eval-in-repl` integration. This
 is not necessarily wrong, but the differences should be intentional and

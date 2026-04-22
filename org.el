@@ -530,10 +530,13 @@ minutes), and return a formatted Org timestamp with start and end times."
   "m" #'(lambda () (interactive) (org-beamer-export-to-pdf
 				  org-export-in-background)))
 
-(general-define-key
- :keymaps 'calendar-mode-map
- :states '(nv)
- "a" #'org-calendar-goto-agenda)
+(defun jds/calendar-setup-bindings ()
+  "Restore preferred calendar bindings after package setup runs."
+  (evil-define-key '(normal visual) calendar-mode-map
+    "a" #'org-calendar-goto-agenda))
+
+(with-eval-after-load 'calendar
+  (jds/calendar-setup-bindings))
 
 ;; get better latex math pairs in org
 (general-define-key
