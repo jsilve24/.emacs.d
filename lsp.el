@@ -15,6 +15,13 @@
 	 (LaTeX-mode . eglot-ensure))
   :config
   (setq eldoc-echo-area-use-multiline-p 1)
+  (setq-default eglot-workspace-configuration
+                '(:texlab
+                  (:build (:executable "latexmk"
+                           :args ["-pdf" "-interaction=nonstopmode" "-synctex=1" "%f"]
+                           :onSave t)
+                   :chktex (:onOpenAndSave nil
+                            :onEdit nil))))
 
   ;; Python: pyright is auto-detected by eglot, no explicit entry needed.
   ;; If you prefer pylsp, uncomment:
