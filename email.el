@@ -348,18 +348,42 @@ are place there, otherwise you are prompted for a message buffer."
   (interactive "fAttach: ")
   (gnus-dired-attach (list file)))
 
+(defun jds/message-header-value (header)
+  "Return HEADER from the editable draft headers only."
+  (save-excursion
+    (save-restriction
+      (message-narrow-to-headers)
+      (or (message-field-value header t) ""))))
+
+(defun jds/message-set-header-value (header value &rest afters)
+  "Set HEADER to VALUE within the editable draft headers only.
+If HEADER is missing, insert it after AFTERS."
+  (save-excursion
+    (apply #'message-position-on-field header afters)
+    (let ((start (save-excursion
+                   (beginning-of-line)
+                   (re-search-forward (concat "^" (regexp-quote header) ":"))
+                   (point-marker))))
+      (save-restriction
+        (message-narrow-to-headers)
+        (goto-char start)
+        (let ((end (progn
+                     (re-search-forward "^[^ \t]" nil 'move)
+                     (beginning-of-line)
+                     (skip-chars-backward "\n")
+                     (point))))
+          (delete-region start end)
+          (insert " " (string-trim value))))
+      (set-marker start nil))))
+
 (defun jds/message-swap-to-and-cc ()
   "Swap the To and Cc header values in the current message buffer.
 Preserve the standard header order by changing field values in place."
   (interactive)
-  (let ((to (string-trim (or (message-fetch-field "To") "")))
-	(cc (string-trim (or (message-fetch-field "Cc") ""))))
-    (message-position-on-field "To")
-    (delete-region (point) (line-end-position))
-    (insert " " cc)
-    (message-position-on-field "Cc")
-    (delete-region (point) (line-end-position))
-    (insert " " to)
+  (let ((to (jds/message-header-value "To"))
+        (cc (jds/message-header-value "Cc")))
+    (jds/message-set-header-value "To" cc)
+    (jds/message-set-header-value "Cc" to "To")
     (message "Swapped To and Cc fields.")))
 
 (general-define-key

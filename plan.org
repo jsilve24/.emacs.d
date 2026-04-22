@@ -31,9 +31,7 @@ If hooks or stable APIs exist upstream, prefer dropping fork dependence.
 The mail setup contains comments about mu4e upgrades and behavior changes, and
 it customizes deep mode behavior. Any use of version-sensitive mu4e behavior
 should be documented near the workaround so future mu4e upgrades are less
-fragile. Compose helpers should also avoid `message-replace-header` when the
-goal is only to swap recipient values, since header rewrites can disturb the
-standard `To:`/`Cc:` order in mu4e message buffers.
+fragile.
 The junk-mark helper currently overrides `mu4e--mark-get-move-target` to feed
 a deterministic target into Mu4e's move mark. Revisit that if Mu4e exposes a
 public way to supply a move target without touching private internals.
