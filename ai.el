@@ -25,12 +25,13 @@ Set to `anthropic' or `openai', then reload this file."
       )
     "OpenAI backend definition for gptel.")
 
-  ;; --- OpenAI backend ---
+  ;; --- Local backend ---
   (defvar jds/gptel-local-backend
     (gptel-make-ollama "Local"
       :host "localhost:11434"
       :stream t
-      :models '(granite4:1b))
+      :models '(gemma4:e2b)
+      :request-params '(:think "medium"))
     "OpenAI backend definition for gptel.")
 
 
@@ -50,7 +51,7 @@ Set to `anthropic' or `openai', then reload this file."
 	   gptel-model 'gpt-5.4))
     ('local
      (setq gptel-backend jds/gptel-local-backend
-	   gptel-model 'granite4:1b))
+	   gptel-model 'gemma4:e2b))
     (_
      (setq gptel-backend jds/gptel-claude-backend
 	   gptel-model 'claude-haiku-4-5-20251001)))

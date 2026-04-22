@@ -28,7 +28,8 @@
  "C->" #'lispyville-slurp)
 
 (general-define-key
- :keymaps '(insert normal override)
+ :states '(insert normal)
+ :keymaps 'override
  "C-<backspace>" #'jds/hungry-delete-or-kill-sexp
  "C-n" #'grugru
  "C-t" #'evil-numbers/inc-at-pt-incremental
