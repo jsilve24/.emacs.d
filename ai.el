@@ -484,7 +484,54 @@ Each element has the form (DISPLAY . MODEL)."
 (use-package gptel-magit
   :straight t
   :after (gptel magit)
-  :hook (magit-mode . gptel-magit-install))
+  :hook (magit-mode . gptel-magit-install)
+  :config
+  ;; `gptel-magit' assumes callback responses are always strings, but this
+  ;; config enables streaming by default.  Force one-shot responses for Magit
+  ;; helpers and surface backend errors instead of passing nil/t sentinels into
+  ;; string-only formatting code.
+  (defun jds/gptel-magit--handle-response (response info on-success)
+    "Call ON-SUCCESS with RESPONSE or report a backend issue from INFO."
+    (cond
+     ((stringp response)
+      (if (string-blank-p response)
+          (message "magit-gptel: Empty response from gptel")
+        (funcall on-success response)))
+     ((plist-get info :error)
+      (message "magit-gptel: %s" (plist-get info :error)))
+     (t
+      (message "magit-gptel: No response from gptel"))))
+
+  (defun jds/gptel-magit--request-once (prompt system on-success)
+    "Send PROMPT with SYSTEM and pass a complete response string to ON-SUCCESS."
+    (gptel-magit--request prompt
+      :system system
+      :context nil
+      :stream nil
+      :callback (lambda (response info)
+                  (jds/gptel-magit--handle-response response info on-success))))
+
+  (defun jds/gptel-magit--generate (callback)
+    "Generate a commit message for the current Magit repo and call CALLBACK."
+    (let ((diff (magit-git-output "diff" "--cached")))
+      (jds/gptel-magit--request-once
+       diff
+       gptel-magit-commit-prompt
+       (lambda (response)
+         (funcall callback
+                  (gptel-magit--format-commit-message response))))))
+
+  (defun jds/gptel-magit--do-diff-request (diff)
+    "Request an explanation for DIFF."
+    (jds/gptel-magit--request-once
+     diff
+     gptel-magit-diff-explain-prompt
+     #'gptel-magit--show-diff-explain)
+    (message "magit-gptel: Explaining diff..."))
+
+  (advice-add 'gptel-magit--generate :override #'jds/gptel-magit--generate)
+  (advice-add 'gptel-magit--do-diff-request :override
+              #'jds/gptel-magit--do-diff-request))
 
 
 (use-package gptel-aibo
