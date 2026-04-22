@@ -248,149 +248,166 @@ successful build."
 
 ;;; setup latexdiff
 
+(declare-function latexdiff--check-if-installed "latexdiff")
+(declare-function latexdiff-vc--latexdiff-sentinel "latexdiff")
+(defvar latexdiff-runningp)
+(defvar latexdiff-vc-args)
+
 (use-package latexdiff
   :straight (:type git :host github :repo "galaunay/latexdiff.el")
-  :defer t
-  :config
-  (defun jds/latex--buffer-file-directory ()
-    "Return the directory of the current LaTeX buffer's file."
-    (or (and buffer-file-name (file-name-directory buffer-file-name))
-        (user-error "Current buffer is not visiting a file")))
+  :defer t)
 
-  (defun jds/latex--diff-process-environment (root)
-    "Return search-path environment entries for ROOT-based LaTeX builds.
+(defun jds/latex--buffer-file-directory ()
+  "Return the directory of the current LaTeX buffer's file."
+  (or (and buffer-file-name (file-name-directory buffer-file-name))
+      (user-error "Current buffer is not visiting a file")))
+
+(defun jds/latex--diff-process-environment (root)
+  "Return search-path environment entries for ROOT-based LaTeX builds.
 
     TEXINPUTS is recursive so local class/style files and inputs under the
 project tree remain visible when the diff is compiled from a generated
 subdirectory."
-    (let ((root (file-name-as-directory (expand-file-name root))))
-      (list (format "TEXINPUTS=.:%s//:" root)
-            (format "BIBINPUTS=.:%s:" root)
-            (format "BSTINPUTS=.:%s:" root))))
+  (let ((root (file-name-as-directory (expand-file-name root))))
+    (list (format "TEXINPUTS=.:%s//:" root)
+          (format "BIBINPUTS=.:%s:" root)
+          (format "BSTINPUTS=.:%s:" root))))
 
-  (defun jds/latex--diff-compile-command (diff-dir file)
-    "Return the shell command that compiles FILE inside DIFF-DIR.
+(defun jds/latex--diff-compile-command (root diff-dir file)
+  "Return the shell command that compiles FILE from ROOT into DIFF-DIR.
 
 Prefer `latexmk' when it is available so bibliography and rerun
 dependencies are handled automatically."
-    (let ((compiler (if (executable-find "latexmk")
-                        "latexmk -pdf -interaction=nonstopmode -halt-on-error -f"
-                      "pdflatex -interaction=nonstopmode -halt-on-error")))
-      (format "cd %s && %s %s.tex >> ../latexdiff.log 2>&1"
-              (shell-quote-argument diff-dir)
-              compiler
-              (shell-quote-argument file))))
+  (let* ((diff-file
+          (file-relative-name
+           (expand-file-name (format "%s.tex" file) diff-dir)
+           root))
+         ;; Compile from the project root so relative assets like ./figures
+         ;; and bibliography files resolve the same way as the main document.
+         (compiler
+          (if (executable-find "latexmk")
+              (format "latexmk -pdf -interaction=nonstopmode -halt-on-error -f -outdir=%s %s"
+                      (shell-quote-argument diff-dir)
+                      (shell-quote-argument diff-file))
+            (format "pdflatex -interaction=nonstopmode -halt-on-error -output-directory=%s %s"
+                    (shell-quote-argument diff-dir)
+                    (shell-quote-argument diff-file)))))
+    (format "cd %s && %s >> %s 2>&1"
+            (shell-quote-argument root)
+            compiler
+            (shell-quote-argument (expand-file-name "latexdiff.log" root)))))
 
-  (defun jds/latex--completion-table-with-metadata (collection metadata)
-    "Return a completion table for COLLECTION with METADATA.
+(defun jds/latex--completion-table-with-metadata (collection metadata)
+  "Return a completion table for COLLECTION with METADATA.
 
 This is a small compatibility shim for Emacs builds that do not
 provide `completion-table-with-metadata'."
-    (lambda (string pred action)
-      (if (eq action 'metadata)
-          `(metadata ,@metadata)
-        (complete-with-action action collection string pred))))
+  (lambda (string pred action)
+    (if (eq action 'metadata)
+        `(metadata ,@metadata)
+      (complete-with-action action collection string pred))))
 
-  (defun jds/latex--git-commit-candidates (directory file)
-    "Return completion candidates for FILE's git history in DIRECTORY.
+(defun jds/latex--git-commit-candidates (directory file)
+  "Return completion candidates for FILE's git history in DIRECTORY.
 
 Candidates are ordered newest-first and include the commit timestamp,
 committer name, short hash, and subject so same-day commits are easy to
 distinguish."
-      (let ((default-directory directory)
-            (lines (condition-case nil
-                       (process-lines
-                        "git" "log" "--follow"
-                      "--pretty=format:%H%x09%at%x09%an%x09%h%x09%s"
-                      "--" file)
-                   (error nil)))
-          (entries nil))
-      (dolist (line lines)
-        (let* ((fields (split-string line "\t"))
-               (hash (nth 0 fields))
-               (time (nth 1 fields))
-               (author (nth 2 fields))
-               (short-hash (nth 3 fields))
-               (subject (nth 4 fields)))
-          (when hash
-            (push (list :hash hash
-                        :time (string-to-number time)
-                        :author author
-                        :short-hash short-hash
-                        :subject subject
-                        :date (format-time-string
-                               "%Y-%m-%d %H:%M"
-                               (seconds-to-time (string-to-number time))))
-                  entries))))
-      (let* ((entries (sort entries (lambda (a b)
-                                      (> (plist-get a :time)
-                                         (plist-get b :time)))))
-             (date-width (apply #'max 0 (mapcar (lambda (entry)
-                                                  (length (plist-get entry :date)))
-                                                entries)))
-             (author-width (apply #'max 0 (mapcar (lambda (entry)
-                                                    (length (plist-get entry :author)))
-                                                  entries)))
-             (hash-width (apply #'max 0 (mapcar (lambda (entry)
-                                                  (length (plist-get entry :short-hash)))
-                                                entries))))
-        (mapcar (lambda (entry)
-                  (cons (format (format "%%-%ds | %%-%ds | %%-%ds | %%s"
-                                        date-width author-width hash-width)
-                                (plist-get entry :date)
-                                (plist-get entry :author)
-                                (plist-get entry :short-hash)
-                                (plist-get entry :subject))
-                        (plist-get entry :hash)))
+  (let ((default-directory directory)
+        (lines (condition-case nil
+                   (process-lines
+                    "git" "log" "--follow"
+                    "--pretty=format:%H%x09%at%x09%an%x09%h%x09%s"
+                    "--" file)
+                 (error nil)))
+        (entries nil))
+    (dolist (line lines)
+      (let* ((fields (split-string line "\t"))
+             (hash (nth 0 fields))
+             (time (nth 1 fields))
+             (author (nth 2 fields))
+             (short-hash (nth 3 fields))
+             (subject (nth 4 fields)))
+        (when hash
+          (push (list :hash hash
+                      :time (string-to-number time)
+                      :author author
+                      :short-hash short-hash
+                      :subject subject
+                      :date (format-time-string
+                             "%Y-%m-%d %H:%M"
+                             (seconds-to-time (string-to-number time))))
                 entries))))
+    (let* ((entries (sort entries (lambda (a b)
+                                    (> (plist-get a :time)
+                                       (plist-get b :time)))))
+           (date-width (apply #'max 0 (mapcar (lambda (entry)
+                                                (length (plist-get entry :date)))
+                                              entries)))
+           (author-width (apply #'max 0 (mapcar (lambda (entry)
+                                                  (length (plist-get entry :author)))
+                                                entries)))
+           (hash-width (apply #'max 0 (mapcar (lambda (entry)
+                                                (length (plist-get entry :short-hash)))
+                                              entries))))
+      (mapcar (lambda (entry)
+                (cons (format (format "%%-%ds | %%-%ds | %%-%ds | %%s"
+                                      date-width author-width hash-width)
+                              (plist-get entry :date)
+                              (plist-get entry :author)
+                              (plist-get entry :short-hash)
+                              (plist-get entry :subject))
+                      (plist-get entry :hash)))
+              entries))))
 
-  (defun jds/latexdiff-vc--compile-with-current (REV)
-    "Generate diff of current file against REV and compile PDF inside the diff directory."
-    (let* ((buffer-dir (jds/latex--buffer-file-directory))
-           (file (file-name-base buffer-file-name))
-           (diff-dir (expand-file-name (format "diff%s" REV) buffer-dir)))
-      (latexdiff--check-if-installed)
-      (setq latexdiff-runningp t)
-      (message "[%s] Generating latex diff with %s" file REV)
-      (let* ((process-environment
-              (append (jds/latex--diff-process-environment buffer-dir)
-                      process-environment))
-             (process
-              (start-process
-               "latexdiff" " *latexdiff*" "/bin/sh" "-c"
-               (format "cd %s && yes X | latexdiff-vc --dir --force --git %s -r %s %s.tex > latexdiff.log 2>&1 && %s"
-                       (shell-quote-argument buffer-dir)
-                       (mapconcat #'shell-quote-argument latexdiff-vc-args " ")
-                       (shell-quote-argument REV)
-                       (shell-quote-argument file)
-                       (jds/latex--diff-compile-command diff-dir file)))))
-        (process-put process 'diff-dir diff-dir)
-        (process-put process 'file file)
-        (process-put process 'rev1 "current")
-        (process-put process 'rev2 REV)
-        (set-process-sentinel process #'latexdiff-vc--latexdiff-sentinel)
-        diff-dir)))
-
-  (defun jds/latexdiff-vc ()
-    "Run latexdiff-vc, compiling the diff PDF inside the diff directory.
-Sets TEXINPUTS so pdflatex can find class/style/input files from the project root."
-    (interactive)
-    (let* ((buffer-dir (jds/latex--buffer-file-directory))
-           (process-environment
+(defun jds/latexdiff-vc--compile-with-current (REV)
+  "Generate diff of current file against REV and compile PDF inside the diff directory."
+  (let* ((buffer-dir (jds/latex--buffer-file-directory))
+         (file (file-name-base buffer-file-name))
+         (diff-dir (expand-file-name (format "diff%s" REV) buffer-dir)))
+    (latexdiff--check-if-installed)
+    (setq latexdiff-runningp t)
+    (message "[%s] Generating latex diff with %s" file REV)
+    (let* ((process-environment
             (append (jds/latex--diff-process-environment buffer-dir)
                     process-environment))
-           (git-file (file-relative-name buffer-file-name buffer-dir))
-           (commits (jds/latex--git-commit-candidates buffer-dir git-file)))
-      (unless commits
-        (user-error "No git history found for %s" git-file))
-      (let* ((commit-table (jds/latex--completion-table-with-metadata
-                            commits
-                            '((display-sort-function . identity)
-                              (cycle-sort-function . identity))))
-             (commit (completing-read "Choose a commit (newest first): "
-                                      commit-table nil t nil nil (caar commits)))
-             (commit-hash (cdr (assoc commit commits))))
-        (jds/latexdiff-vc--compile-with-current commit-hash)))))
+           (process
+            (start-process
+             "latexdiff" " *latexdiff*" "/bin/sh" "-c"
+             (format "cd %s && yes X | latexdiff-vc --dir --force --git %s -r %s %s.tex > latexdiff.log 2>&1 && %s"
+                     (shell-quote-argument buffer-dir)
+                     (mapconcat #'shell-quote-argument latexdiff-vc-args " ")
+                     (shell-quote-argument REV)
+                     (shell-quote-argument file)
+                     (jds/latex--diff-compile-command buffer-dir diff-dir file)))))
+      (process-put process 'diff-dir diff-dir)
+      (process-put process 'file file)
+      (process-put process 'rev1 "current")
+      (process-put process 'rev2 REV)
+      (set-process-sentinel process #'latexdiff-vc--latexdiff-sentinel)
+      diff-dir)))
+
+(defun jds/latexdiff-vc ()
+  "Run latexdiff-vc, compiling the diff PDF inside the diff directory.
+Sets TEXINPUTS so pdflatex can find class/style/input files from the project root."
+  (interactive)
+  (require 'latexdiff)
+  (let* ((buffer-dir (jds/latex--buffer-file-directory))
+         (process-environment
+          (append (jds/latex--diff-process-environment buffer-dir)
+                  process-environment))
+         (git-file (file-relative-name buffer-file-name buffer-dir))
+         (commits (jds/latex--git-commit-candidates buffer-dir git-file)))
+    (unless commits
+      (user-error "No git history found for %s" git-file))
+    (let* ((commit-table (jds/latex--completion-table-with-metadata
+                          commits
+                          '((display-sort-function . identity)
+                            (cycle-sort-function . identity))))
+           (commit (completing-read "Choose a commit (newest first): "
+                                    commit-table nil t nil nil (caar commits)))
+           (commit-hash (cdr (assoc commit commits))))
+      (jds/latexdiff-vc--compile-with-current commit-hash))))
 
 ;;; keybindings
 
