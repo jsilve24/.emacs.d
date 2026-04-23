@@ -85,6 +85,7 @@
 ;; (load-config "spotify.el")
 (load-config "bitwarden.el")
 (load-config "elfeed.el")
+(load-config "anki.el")
 
 ;; Start Server if not already running
 (require 'server)
