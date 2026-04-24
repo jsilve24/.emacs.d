@@ -123,6 +123,28 @@
     (setq jds~bibtex-clean-latest-stored-key (bibtex-completion-get-key-bibtex)))
   (add-hook 'bibtex-clean-entry-hook 'jds~bibtex-store-latest-key-hook-function))
 
+(defun jds~zotra-add-entry-return-inserted-key (query)
+  "Import QUERY with Zotra and return the citekey of the inserted entry.
+Prefer the key captured during `bibtex-clean-entry-hook', because
+`zotra-add-entry-from-search' can return a stale key."
+  (when-let ((query (jds~pdf-drop-normalize-metadata-string query)))
+    (let ((jds~bibtex-clean-latest-stored-key nil))
+      (condition-case nil
+          (let* ((returned-key (zotra-add-entry-from-search query))
+                 (returned-key
+                  (when returned-key
+                    (let ((string (format "%s" returned-key)))
+                      (unless (string-empty-p string)
+                        string))))
+                 (cleaned-key jds~bibtex-clean-latest-stored-key))
+            (when (and cleaned-key returned-key
+                       (not (string= cleaned-key returned-key)))
+              (message "Zotra returned stale key %s; using inserted key %s"
+                       returned-key
+                       cleaned-key))
+            (or cleaned-key returned-key))
+        (error nil)))))
+
 ;;; PDF text extraction — top-level so it's usable independently of pdf-drop-mode
 ;;;###autoload
 (defun jds/pdf-extract-text-pages (file &optional max-pages)
@@ -288,13 +310,8 @@ Returns empty string on failure."
     (delete-dups queries)))
 
 (defun jds~pdf-drop-try-zotra-query (query)
-  "Return citekey from `zotra-add-entry-from-search' for QUERY, or nil."
-  (when-let ((query (jds~pdf-drop-normalize-metadata-string query)))
-    (condition-case nil
-        (let ((key (zotra-add-entry-from-search query)))
-          (when (and key (not (string-empty-p (format "%s" key))))
-            key))
-      (error nil))))
+  "Import QUERY with Zotra and return the inserted citekey, or nil."
+  (jds~zotra-add-entry-return-inserted-key query))
 
 (defun jds~pdf-drop-try-import-from-metadata (file metadata)
   "Try importing FILE using zotra queries derived from METADATA.
