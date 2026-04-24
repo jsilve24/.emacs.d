@@ -107,7 +107,19 @@
 	'((border-mode-line-active bg-mode-line-active)
 	  (border-mode-line-inactive bg-mode-line-inactive)))
 
-  (load-theme 'modus-vivendi t)
+  (defun jds/modus-themes-org-latex-default-face (&rest _)
+    "Keep Org LaTeX fragments visually consistent with surrounding text."
+    (modus-themes-with-colors
+      (custom-set-faces
+       `(org-latex-and-related
+         ((,c :inherit default
+              :foreground ,fg-main
+              :background unspecified))))))
+
+  (add-hook 'modus-themes-after-load-theme-hook
+            #'jds/modus-themes-org-latex-default-face)
+
+  (modus-themes-load-theme 'modus-vivendi)
   :bind ("<f5>" . modus-themes-toggle))
 
 ;; (use-package emacs

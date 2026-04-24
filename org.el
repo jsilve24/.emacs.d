@@ -329,6 +329,8 @@ minutes), and return a formatted Org timestamp with start and end times."
 
   ;; nicer latex previews (slightly larger)
   (plist-put org-format-latex-options :scale 1.15)
+  (plist-put org-format-latex-options :foreground 'default)
+  (plist-put org-format-latex-options :background "Transparent")
 
   ;; don't always have math mode on in org
   (add-hook 'org-cdlatex-mode-hook
