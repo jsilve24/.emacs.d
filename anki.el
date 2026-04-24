@@ -8,9 +8,12 @@
 	     anki-editor-push-notes
 	     anki-editor-push-note-at-point
 	     anki-editor-push-tree
+	     anki-editor-cloze-dwim
 	     anki-editor-cloze-region-dont-incr
 	     anki-editor-cloze-region-auto-incr
-	     anki-editor-reset-cloze-number)
+	     anki-editor-reset-cloze-number
+	     anki-editor-delete-notes
+	     anki-editor-insert-note)
   :hook (org-mode . jds/anki-editor-maybe-enable)
   :init
   ;; Change this if AnkiConnect is listening elsewhere.
@@ -20,6 +23,8 @@
     "Seconds between AnkiConnect readiness checks.")
   (defvar jds/anki-startup-timeout 30
     "Maximum seconds to wait for AnkiConnect after launching Anki.")
+  (defvar jds/anki-background-retry-interval 15
+    "Seconds between background retries after startup polling times out.")
   (defvar jds/anki-startup-process nil
     "The most recent background process used to launch Anki.")
   (defvar-local jds/anki-startup-timer nil
@@ -66,12 +71,22 @@
 	 ((jds/anki-connect-running-p)
 	  (unless anki-editor-mode
 	    (anki-editor-mode 1)))
-	 ((time-less-p deadline (current-time))
-	  (message "Timed out waiting for AnkiConnect after starting Anki"))
+	 ((and deadline
+	       (time-less-p deadline (current-time)))
+	  (message "Timed out waiting for AnkiConnect after starting Anki; continuing background retries")
+	  (setq jds/anki-startup-timer
+		(run-with-timer
+		 jds/anki-background-retry-interval
+		 nil
+		 #'jds/anki-editor-enable-when-ready
+		 buffer
+		 nil)))
 	 (t
 	  (setq jds/anki-startup-timer
 		(run-with-timer
-		 jds/anki-startup-poll-interval
+		 (if deadline
+		     jds/anki-startup-poll-interval
+		   jds/anki-background-retry-interval)
 		 nil
 		 #'jds/anki-editor-enable-when-ready
 		 buffer
@@ -87,29 +102,41 @@
 
 
   ;; A small convenience: default tags used by card files.
+  (defvar jds/anki-file-mode-map (make-sparse-keymap)
+    "Keymap for `jds/anki-file-mode'.")
+
+  (define-minor-mode jds/anki-file-mode
+    "Minor mode for Org files that belong to the Anki workflow."
+    :keymap jds/anki-file-mode-map
+    :lighter nil)
+
   (defun jds/anki-editor-maybe-enable ()
-    (when (and buffer-file-name
-	       (string-match-p "/org/anki/" buffer-file-name))
-      (if (jds/anki-connect-running-p)
-	  (anki-editor-mode 1)
-	(jds/start-anki)
-	(when jds/anki-startup-timer
-	  (cancel-timer jds/anki-startup-timer))
-	(setq-local jds/anki-startup-timer
-		    (run-with-timer
-		     0
-		     nil
-		     #'jds/anki-editor-enable-when-ready
-		     (current-buffer)
-		     (time-add (current-time)
-			       (seconds-to-time jds/anki-startup-timeout))))))))
+    (let ((anki-root (expand-file-name "~/Dropbox/org/anki/")))
+      (when (and buffer-file-name
+		 (file-in-directory-p buffer-file-name anki-root))
+	(jds/anki-file-mode 1)
+	(if (jds/anki-connect-running-p)
+	    (anki-editor-mode 1)
+	  (jds/start-anki)
+	  (when jds/anki-startup-timer
+	    (cancel-timer jds/anki-startup-timer))
+	  (setq-local jds/anki-startup-timer
+		      (run-with-timer
+		       0
+		       nil
+		       #'jds/anki-editor-enable-when-ready
+		       (current-buffer)
+		       (time-add (current-time)
+				 (seconds-to-time jds/anki-startup-timeout)))))))))
 
 
 (jds/localleader-def
-  :keymaps 'anki-editor-mode-map
+  :keymaps '(jds/anki-file-mode-map anki-editor-mode-map)
   "m" '(:ignore t :which-key "anki")
   "mp" #'anki-editor-push-notes
   "mP" #'anki-editor-push-note-at-point
+  "mr" #'jds/anki-editor-clear-stale-duplicate-failures
+  "mR" #'jds/anki-editor-repair-duplicate-note
   "mc" #'anki-editor-cloze-dwim
   "md" #'anki-editor-delete-notes
   "mi" #'anki-editor-insert-note)
@@ -121,6 +148,83 @@
 (require 'org)
 (require 'url)
 (require 'url-http)
+
+;;;###autoload
+(defun jds/anki-editor--interactive-scope ()
+  "Return the interactive scope used by `anki-editor' push commands."
+  (cond
+   ((region-active-p) 'region)
+   ((equal current-prefix-arg '(4)) 'tree)
+   ((equal current-prefix-arg '(16)) 'file)
+   ((equal current-prefix-arg '(64)) 'agenda)
+   (t nil)))
+
+;;;###autoload
+(defun jds/anki-editor-clear-stale-duplicate-failures (&optional scope)
+  "Clear stale duplicate failures for notes that already exist in Anki.
+
+Only headings whose `ANKI_FAILURE_REASON' contains:
+
+  cannot create note because it is a duplicate
+
+and that also have a non-empty `ANKI_NOTE_ID' are considered.
+
+Each candidate note ID is checked with AnkiConnect first.  Failure
+reasons are cleared only for note IDs that still exist in Anki."
+  (interactive (list (jds/anki-editor--interactive-scope)))
+  (unless (derived-mode-p 'org-mode)
+    (user-error "Not in org-mode"))
+  (let ((candidates nil)
+        (modified-buffers nil)
+        (cleared 0)
+        (missing 0))
+    (anki-editor-map-note-entries
+     (lambda ()
+       (let ((reason (org-entry-get nil "ANKI_FAILURE_REASON"))
+             (note-id (org-entry-get nil "ANKI_NOTE_ID")))
+         (when (and reason
+                    (string-match-p
+                     "cannot create note because it is a duplicate"
+                     reason)
+                    note-id
+                    (not (string-blank-p note-id)))
+           (push (cons (string-to-number note-id) (point-marker))
+                 candidates))))
+     nil
+     scope)
+    (setq candidates (nreverse candidates))
+    (when candidates
+      (let* ((response
+              (js/anki-connect-request
+               "notesInfo"
+               `((notes . ,(mapcar #'car candidates)))))
+             (err (alist-get 'error response))
+             (result (alist-get 'result response)))
+        (when err
+          (user-error "AnkiConnect error while checking note IDs: %s" err))
+        (cl-loop for (_note-id . marker) in candidates
+                 for info in result
+                 do
+                 (when (and marker (marker-buffer marker))
+                   (with-current-buffer (marker-buffer marker)
+                     (save-excursion
+                       (goto-char marker)
+                       (if info
+                           (when (org-entry-get nil "ANKI_FAILURE_REASON")
+                             (org-entry-delete nil "ANKI_FAILURE_REASON")
+                             (cl-incf cleared)
+                             (cl-pushnew (current-buffer) modified-buffers))
+                         (cl-incf missing))))
+                   (set-marker marker nil)))))
+    (dolist (buffer modified-buffers)
+      (with-current-buffer buffer
+        (save-buffer)))
+    (message
+     "Cleared %d stale duplicate failure(s)%s"
+     cleared
+     (if (zerop missing)
+         ""
+       (format "; %d note ID(s) were missing in Anki" missing)))))
 
 ;;;###autoload
 (defun js/anki-editor--nearest-duplicate-failure-heading ()
@@ -261,3 +365,64 @@ If zero or multiple notes are found, warn and do not modify anything."
             (org-entry-put nil "ANKI_NOTE_ID" note-id)
             (anki-editor-push-note-at-point))
           (message "Repaired anki-editor note with ANKI_NOTE_ID: %s" note-id)))))))
+
+;;;###autoload
+(defun jds/anki-editor-save-current-buffer-after-push (orig-fn &rest args)
+  "Run ORIG-FN with ARGS and save the current buffer if it changed.
+
+This preserves cleared `ANKI_FAILURE_REASON' properties for skipped
+notes, which `anki-editor-push-notes' otherwise leaves only in memory."
+  (let ((buffer (current-buffer)))
+    (prog1
+        (apply orig-fn args)
+      (when (buffer-live-p buffer)
+        (with-current-buffer buffer
+          (when (and buffer-file-name
+                     (buffer-modified-p))
+            (save-buffer)))))))
+
+(advice-add 'anki-editor-push-notes :around
+            #'jds/anki-editor-save-current-buffer-after-push)
+
+;; fix basic cards
+
+;;;###autoload
+(defun jds/anki-basic-back-extra-to-extra ()
+  "For Basic anki-editor notes, convert a Back Extra field heading to plain text.
+
+Example:
+
+*** Back Extra
+Source: ...
+
+becomes:
+
+Extra:
+Source: ...
+
+This prevents Basic notes from having a Back Extra field."
+  (interactive)
+  (let (hits)
+    (org-with-wide-buffer
+     (org-map-entries
+      (lambda ()
+        (when (string= (org-entry-get nil "ANKI_NOTE_TYPE") "Basic")
+          (let* ((note-level (org-current-level))
+                 (field-level (1+ note-level))
+                 (note-end (save-excursion
+                             (org-end-of-subtree t t)))
+                 (field-re (format "^\\*\\{%d\\}[ \t]+Back Extra[ \t]*$"
+                                   field-level)))
+            (save-excursion
+              (forward-line 1)
+              (while (re-search-forward field-re note-end t)
+                (push (match-beginning 0) hits)))))))
+      nil 'file)
+
+     ;; Edit from bottom to top so positions stay valid.
+     (dolist (pos (sort hits #'>))
+       (goto-char pos)
+       (delete-region (line-beginning-position) (line-end-position))
+       (insert "Extra:")))
+
+    (message "Converted %d Basic note Back Extra field(s)." (length hits)))
