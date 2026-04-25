@@ -13,6 +13,9 @@
   "/home/jds6696/Dropbox/org/roam/references/articles/"
   "Directory containing attached reference files.")
 
+(defvar jds~bibtex-clean-latest-stored-key nil
+  "Most recent citekey captured after `bibtex-clean-entry'.")
+
 (use-package bibtex-completion
   :straight t
   :defer t
@@ -117,7 +120,6 @@
   (add-hook 'zotra-after-add-entry-hook (lambda ()
 					  (bibtex-clean-entry t)
 					  (bibtex-sort-buffer)))
-  (defvar jds~bibtex-clean-latest-stored-key nil)
   (defun jds~bibtex-store-latest-key-hook-function ()
     "Function to be added to bibtex-clean-entry-hook and run after cleaning in the cleaned entry."
     (setq jds~bibtex-clean-latest-stored-key (bibtex-completion-get-key-bibtex)))
