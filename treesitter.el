@@ -37,6 +37,31 @@
           (assq-delete-all 'c++-mode major-mode-remap-defaults))
     (setq major-mode-remap-defaults
           (assq-delete-all 'c-or-c++-mode major-mode-remap-defaults)))
+  ;; Probe the exact built-in Python keyword query that currently fails on this
+  ;; setup.  If it doesn't compile, fall back to classic `python-mode' before
+  ;; redisplay can error.
+  (defun jds/python-treesit-font-lock-working-p ()
+    "Return non-nil when the built-in Python treesit keyword query compiles."
+    (and (fboundp 'treesit-ready-p)
+         (treesit-ready-p 'python)
+         (ignore-errors
+           (treesit-query-compile
+            'python
+            "[\"as\" \"assert\" \"async\" \"await\" \"break\" \"case\" \"class\" \
+\"continue\" \"def\" \"del\" \"elif\" \"else\" \"except\" \"exec\" \
+\"finally\" \"for\" \"from\" \"global\" \"if\" \"import\" \"lambda\" \
+\"match\" \"nonlocal\" \"pass\" \"print\" \"raise\" \"return\" \"try\" \
+\"while\" \"with\" \"yield\" \"and\" \"in\" \"is\" \"not\" \"or\" \
+\"not in\" \"is not\"] @font-lock-keyword-face \
+((identifier) @font-lock-keyword-face \
+(#match \"\\\\`self\\\\'\" @font-lock-keyword-face))"
+            t))))
+  (defun jds/treesit-fallback-python-mode ()
+    "Use classic `python-mode' when built-in Python treesit is not reliable."
+    (when (and (derived-mode-p 'python-ts-mode)
+               (not (jds/python-treesit-font-lock-working-p)))
+      (python-mode)))
+  (add-hook 'python-ts-mode-hook #'jds/treesit-fallback-python-mode)
   ;; Probe the exact built-in doc-comment query that currently fails on this
   ;; setup.  If it doesn't compile, treat `c++-ts-mode' as unavailable and
   ;; fall back to classic `c++-mode' before redisplay can error.
@@ -47,10 +72,9 @@
          (ignore-errors
            (treesit-query-compile
             'cpp
-            '(((comment) @font-lock-doc-face
-               (:match "\\`/\\*\\*" @font-lock-doc-face))
-              (comment) @font-lock-comment-face))
-           t)))
+            "((comment) @font-lock-doc-face (#match \"\\\\`/\\\\*\\\\*\" \
+@font-lock-doc-face)) (comment) @font-lock-comment-face"
+            t))))
   ;; Rcpp package C++ files still hit the same built-in font-lock bug. If
   ;; Emacs opens one of those files in `c++-ts-mode', or if the mode is
   ;; manually enabled when the font-lock probe fails, switch back to classic
