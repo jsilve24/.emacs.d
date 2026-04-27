@@ -5,28 +5,65 @@
 ;;   1. Auto-installing grammar .so files (prompts on first use)
 ;;   2. Remapping major modes to -ts-mode variants (python-mode -> python-ts-mode, etc.)
 ;; Requires a C compiler (gcc/clang) for grammar compilation.
+(defconst jds/treesit-language-source-alist
+  '((python "https://github.com/tree-sitter/tree-sitter-python")
+    (bash   "https://github.com/tree-sitter/tree-sitter-bash")
+    (yaml   "https://github.com/tree-sitter-grammars/tree-sitter-yaml")
+    (json   "https://github.com/tree-sitter/tree-sitter-json")
+    (toml   "https://github.com/tree-sitter/tree-sitter-toml")
+    ;; Keep recipes for languages you use, but only auto-remap the stable ones.
+    (cpp    "https://github.com/tree-sitter/tree-sitter-cpp")
+    (r      "https://github.com/r-lib/tree-sitter-r"))
+  "Audited tree-sitter grammar sources used by this config.")
+
+(defconst jds/treesit-auto-langs
+  '(python bash yaml json toml)
+  "Languages that may be auto-remapped to built-in -ts-mode variants.")
+
 (use-package treesit-auto
   :demand t
   :config
-  ;; Emacs 30.2's built-in `c++-ts-mode' still has a font-lock query bug, so
-  ;; keep `.cpp' on classic `c++-mode' for now and let tree-sitter handle the
-  ;; other languages that are stable here.
-  (setq treesit-auto-install 'prompt
-        ;; remove this line to reenable cpp treesiter
-        treesit-auto-langs (remq 'cpp treesit-auto-langs))
+  ;; Keep the grammar recipe list small and explicit; bulk installs have left
+  ;; this setup with broken grammars that are never actually used.
+  (setq treesit-language-source-alist jds/treesit-language-source-alist
+        treesit-auto-install 'prompt
+        treesit-auto-langs jds/treesit-auto-langs)
   (treesit-auto-add-to-auto-mode-alist 'all)
   (global-treesit-auto-mode)
+  ;; Emacs 30.2 also adds built-in C/C++ remaps in `c-ts-mode', so remove the
+  ;; C++ entries explicitly rather than assuming `treesit-auto-langs' is enough.
+  (with-eval-after-load 'c-ts-mode
+    (setq major-mode-remap-defaults
+          (assq-delete-all 'c++-mode major-mode-remap-defaults))
+    (setq major-mode-remap-defaults
+          (assq-delete-all 'c-or-c++-mode major-mode-remap-defaults)))
+  ;; Probe the exact built-in doc-comment query that currently fails on this
+  ;; setup.  If it doesn't compile, treat `c++-ts-mode' as unavailable and
+  ;; fall back to classic `c++-mode' before redisplay can error.
+  (defun jds/cpp-treesit-font-lock-working-p ()
+    "Return non-nil when the built-in C++ treesit font-lock query compiles."
+    (and (fboundp 'treesit-ready-p)
+         (treesit-ready-p 'cpp)
+         (ignore-errors
+           (treesit-query-compile
+            'cpp
+            '(((comment) @font-lock-doc-face
+               (:match "\\`/\\*\\*" @font-lock-doc-face))
+              (comment) @font-lock-comment-face))
+           t)))
   ;; Rcpp package C++ files still hit the same built-in font-lock bug. If
-  ;; Emacs opens one of those files in `c++-ts-mode', switch back to classic
+  ;; Emacs opens one of those files in `c++-ts-mode', or if the mode is
+  ;; manually enabled when the font-lock probe fails, switch back to classic
   ;; `c++-mode' so highlighting works consistently in package `src/' and
   ;; header trees.
   (defun jds/treesit-fallback-rcpp-c++-mode ()
-    "Use classic C++ mode for Rcpp package C++ files."
-    (when (and buffer-file-name
-               (derived-mode-p 'c++-ts-mode)
-               (string-match-p
-                "\\(?:^\\|/\\)\\(?:src\\|inst/include\\|include\\)/.*\\.\\(c\\(?:c\\|pp\\|xx\\)?\\|h\\(?:h\\|pp\\|xx\\)?\\|ipp\\|tpp\\)\\'"
-                               buffer-file-name))
+    "Use classic `c++-mode' when built-in C++ treesit is not reliable here."
+    (when (and (derived-mode-p 'c++-ts-mode)
+               (or (not (jds/cpp-treesit-font-lock-working-p))
+                   (and buffer-file-name
+                        (string-match-p
+                         "\\(?:^\\|/\\)\\(?:src\\|inst/include\\|include\\)/.*\\.\\(c\\(?:c\\|pp\\|xx\\)?\\|h\\(?:h\\|pp\\|xx\\)?\\|ipp\\|tpp\\)\\'"
+                         buffer-file-name))))
       (c++-mode)))
   (add-hook 'c++-ts-mode-hook #'jds/treesit-fallback-rcpp-c++-mode))
 
