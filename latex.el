@@ -54,24 +54,39 @@ When non-nil, automatic cleanup preserves the generated
           (delete "\\.synctex\\.gz" suffixes)
         suffixes)))
 
+  (defun jds/latex-compilation-succeeded-p ()
+    "Return non-nil when the most recent LaTeX compilation succeeded."
+    (and (boundp 'TeX-command-buffer)
+         (buffer-live-p TeX-command-buffer)
+         (with-current-buffer TeX-command-buffer
+           (let ((process (TeX-active-process)))
+             (cond
+              (process
+               (and (eq (process-status process) 'exit)
+                    (zerop (process-exit-status process))))
+              ((fboundp 'TeX-error-report-has-errors-p)
+               (not (TeX-error-report-has-errors-p)))
+              (t t))))))
+
   (defun jds/latex-clean-intermediates-after-success (output-file)
     "Delete LaTeX intermediates after OUTPUT-FILE is built successfully."
-    (let* ((raw-master (or (when (and (boundp 'TeX-command-buffer)
-                                      (buffer-live-p TeX-command-buffer))
-                             (with-current-buffer TeX-command-buffer
-                               (TeX-master-file (TeX-output-extension))))
-                           output-file))
-           (master (file-name-sans-extension raw-master))
-           (directory (or (file-name-directory master) default-directory))
-           (basename (file-name-nondirectory master))
-           (suffixes (jds/latex--cleanup-suffixes))
-           (regexp (concat "\\`" (regexp-quote basename)
-                           "\\(" (mapconcat #'identity suffixes "\\|")
-                           "\\)\\'")))
-      (when (and (file-directory-p directory) suffixes)
-        (dolist (file (directory-files directory nil regexp))
-          (ignore-errors
-            (delete-file (expand-file-name file directory)))))))
+    (when (jds/latex-compilation-succeeded-p)
+      (let* ((raw-master (or (when (and (boundp 'TeX-command-buffer)
+                                        (buffer-live-p TeX-command-buffer))
+                               (with-current-buffer TeX-command-buffer
+                                 (TeX-master-file (TeX-output-extension))))
+                             output-file))
+             (master (file-name-sans-extension raw-master))
+             (directory (or (file-name-directory master) default-directory))
+             (basename (file-name-nondirectory master))
+             (suffixes (jds/latex--cleanup-suffixes))
+             (regexp (concat "\\`" (regexp-quote basename)
+                             "\\(" (mapconcat #'identity suffixes "\\|")
+                             "\\)\\'")))
+        (when (and (file-directory-p directory) suffixes)
+          (dolist (file (directory-files directory nil regexp))
+            (ignore-errors
+              (delete-file (expand-file-name file directory))))))))
 
   (add-hook 'TeX-after-compilation-finished-functions
             #'jds/latex-clean-intermediates-after-success)
