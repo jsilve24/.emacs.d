@@ -409,8 +409,8 @@ targets."
   ;; (setq consult-project-root-function (lambda () (locate-dominating-file "." ".git")))
 
   ;; customize ripgrep
-  (setq consult-ripgrep-args "rga --null --line-buffered --color=never --max-columns=1000 --glob=!.git/* --path-separator /   --smart-case --no-heading --line-number --hidden .")
-  ;; (setq consult-ripgrep-args "rg --null --line-buffered --color=never --max-columns=1000 --path-separator /   --smart-case --no-heading --line-number --hidden .")
+  (setq consult-ripgrep-args "rga --null --line-buffered --color=never --max-columns=1000 --glob=!.git/* --path-separator /   --smart-case --no-heading --with-filename --line-number --hidden")
+  ;; (setq consult-ripgrep-args "rg --null --line-buffered --color=never --max-columns=1000 --path-separator /   --smart-case --no-heading --with-filename --line-number --hidden")
   )
 
 (with-eval-after-load 'consult
@@ -485,7 +485,7 @@ This only works with orderless and for the first component of the search."
     "Run consult ripgrep on all org files in ~/Dropbox/org/"
   (interactive)
   (let ((dir "~/Dropbox/org/")
-	(consult-ripgrep-args "rg --null --line-buffered --color=never --max-columns=1000 --path-separator /   --smart-case --no-heading --line-number -g \"*.org\" .")
+	(consult-ripgrep-args "rg --null --line-buffered --color=never --max-columns=1000 --path-separator /   --smart-case --no-heading --with-filename --line-number -g \"*.org\"")
 	(consult-preview-key nil)
 	(grep-fn (if (boundp 'consult-org-roam-grep-func)
 		     consult-org-roam-grep-func
