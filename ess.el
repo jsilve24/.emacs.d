@@ -36,13 +36,81 @@
 ;;; inline R graphics via httpgd/essgd
 
 (require 'cl-lib)
+(require 'subr-x)
 
 (defvar jds/essgd-prev-buffer nil
   "The buffer active before switching to the `*essgd*' plot buffer.")
 
+(defvar-local jds/essgd-device-number nil
+  "R graphics device number backing the current `essgd' buffer.")
+
+(defvar-local jds/essgd-face-remap-cookie nil
+  "Face remap cookie used to keep `essgd' text readable on light SVG plots.")
+
+(defun jds/essgd-buffer-name ()
+  "Return the configured `essgd' buffer name."
+  (if (boundp 'essgd-buffer)
+      essgd-buffer
+    "*essgd*"))
+
+(defun jds/essgd-get-buffer ()
+  "Return the current `essgd' buffer, if any."
+  (get-buffer (jds/essgd-buffer-name)))
+
+(defun jds/essgd-close-websocket (&optional websocket)
+  "Close WEBSOCKET if it is still open.
+
+When WEBSOCKET is nil, close the current buffer's local `essgd' websocket."
+  (let ((ws (or websocket
+                (and (boundp 'essgd-websocket) essgd-websocket))))
+    (when ws
+      (ignore-errors
+        (when (websocket-openp ws)
+          (websocket-close ws)))
+      (when (and (boundp 'essgd-websocket)
+                 (eq ws essgd-websocket))
+        (setq essgd-websocket nil)))))
+
+(defun jds/essgd-stop-device ()
+  "Stop the R graphics device associated with the current `essgd' buffer."
+  (when (and jds/essgd-device-number
+             (bound-and-true-p ess-local-process-name))
+    (ignore-errors
+      (ess-string-command
+       (format "try(grDevices::dev.off(which = %d), silent = TRUE)"
+               jds/essgd-device-number)))
+    (setq jds/essgd-device-number nil)))
+
+(defun jds/essgd-record-device-number ()
+  "Record the active R graphics device number for later cleanup."
+  (when (bound-and-true-p ess-local-process-name)
+    (let* ((output (string-trim
+                    (ess-string-command "cat(grDevices::dev.cur())")))
+           (device-number (and (string-match-p "\\`[0-9]+\\'" output)
+                               (string-to-number output))))
+      (setq jds/essgd-device-number
+            (and device-number (> device-number 1) device-number)))))
+
+(defun jds/essgd-cleanup-websocket-on-kill ()
+  "Tear down local `essgd' resources when the plot buffer is killed."
+  (jds/essgd-close-websocket)
+  (jds/essgd-stop-device))
+
+(defun jds/essgd-ignore-messages-for-dead-buffer (orig-fn websocket frame)
+  "Ignore late `essgd' websocket frames after `*essgd*' was killed."
+  (let ((buffer (jds/essgd-get-buffer)))
+    (if (and buffer
+             (with-current-buffer buffer
+               (eq websocket essgd-websocket)))
+      (funcall orig-fn websocket frame)
+      ;; Closing `*essgd*' drops the buffer-local plot state that upstream
+      ;; `essgd-process-message' assumes still exists.  Shut down the stale
+      ;; websocket instead of erroring on the next plot event.
+      (jds/essgd-close-websocket websocket))))
+
 (defun jds/essgd-display-on-first-plot (orig-fn n)
   "Display `*essgd*' lazily, only once plot N is available."
-  (let ((essgd-buffer (get-buffer "*essgd*")))
+  (let ((essgd-buffer (jds/essgd-get-buffer)))
     (when (and essgd-buffer
                (> n 0)
                (not (get-buffer-window essgd-buffer t)))
@@ -52,26 +120,47 @@
 (defun jds/essgd-start ()
   "Start an `essgd' graphics device for the current ESS R process."
   (interactive)
-  ;; `essgd' is just the Emacs front-end. The actual persistent plot history
-  ;; comes from R's `httpgd' device, which `essgd-start' launches.
-  (if (fboundp 'essgd-start)
-      ;; `essgd-start' eagerly displays `*essgd*' even when there are no plots
-      ;; yet. Suppress that initial popup and let `essgd-show-plot-n' reveal
-      ;; the buffer the first time an actual plot is rendered.
-      ;; If you prefer the upstream behavior, remove this `cl-letf' wrapper.
-      (cl-letf (((symbol-function 'display-buffer)
-                 (lambda (buffer-or-name &optional action frame)
-                   (let ((buffer (get-buffer buffer-or-name)))
-                     (unless (and buffer
-                                  (string= (buffer-name buffer) "*essgd*"))
-                       (display-buffer buffer-or-name action frame))))))
-        (essgd-start))
-    (user-error "essgd is not available")))
+  (if (not (fboundp 'essgd-start))
+      (user-error "essgd is not available")
+    (let* ((target-process ess-local-process-name)
+           (existing-buffer (jds/essgd-get-buffer)))
+      (if (and existing-buffer
+               (with-current-buffer existing-buffer
+                 (and (equal ess-local-process-name target-process)
+                      (bound-and-true-p essgd-websocket)
+                      (websocket-openp essgd-websocket))))
+          (when (called-interactively-p 'any)
+            (message "essgd already running%s"
+                     (if target-process
+                         (format " for %s" target-process)
+                       "")))
+        ;; `essgd' is just the Emacs front-end. The actual persistent plot
+        ;; history comes from R's `httpgd' device, which `essgd-start' launches.
+        ;; Reset any previous session first so manual restarts do not leave
+        ;; stale websockets or orphaned graphics devices behind.
+        (when existing-buffer
+          (with-current-buffer existing-buffer
+            (jds/essgd-cleanup-websocket-on-kill)))
+        ;; `essgd-start' eagerly displays the plot buffer even when there are no
+        ;; plots yet. Suppress that initial popup and let
+        ;; `essgd-show-plot-n' reveal the buffer on the first actual plot.
+        ;; If you prefer the upstream behavior, remove this `cl-letf' wrapper.
+        (cl-letf (((symbol-function 'display-buffer)
+                   (lambda (buffer-or-name &optional action frame)
+                     (let ((buffer (get-buffer buffer-or-name)))
+                       (unless (and buffer
+                                    (string= (buffer-name buffer)
+                                             (jds/essgd-buffer-name)))
+                         (display-buffer buffer-or-name action frame))))))
+          (essgd-start))
+        (when-let ((buffer (jds/essgd-get-buffer)))
+          (with-current-buffer buffer
+            (jds/essgd-record-device-number)))))))
 
 (defun jds/essgd-toggle-buffer ()
   "Toggle between the current buffer and the `*essgd*' plot buffer."
   (interactive)
-  (let ((essgd-buffer (get-buffer "*essgd*")))
+  (let ((essgd-buffer (jds/essgd-get-buffer)))
     (if (not essgd-buffer)
         (message "No active *essgd* buffer")
       (if (eq (current-buffer) essgd-buffer)
@@ -107,10 +196,14 @@
         "if (requireNamespace('httpgd', quietly = TRUE)) httpgd::hgd(token = TRUE) else message('Install the R package httpgd to use essgd')")
   ;; Delay showing the plot window until there is something to draw.
   (advice-add 'essgd-show-plot-n :around #'jds/essgd-display-on-first-plot)
+  (advice-add 'essgd-process-message :around #'jds/essgd-ignore-messages-for-dead-buffer)
   ;; Plot labels are hard to read against httpgd's white background on dark themes.
   (add-hook 'essgd-mode-hook
             (lambda ()
-              (face-remap-add-relative 'default :foreground "black"))))
+              (add-hook 'kill-buffer-hook #'jds/essgd-cleanup-websocket-on-kill nil t)
+              (unless jds/essgd-face-remap-cookie
+                (setq jds/essgd-face-remap-cookie
+                      (face-remap-add-relative 'default :foreground "black"))))))
 
 
 ;;; setup polymode
