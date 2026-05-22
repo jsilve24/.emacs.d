@@ -151,11 +151,38 @@
 
 ;;; setup capture
 
+  (defun jds/org-capture-anki-template ()
+    "Build an org-capture entry for a new Anki card."
+    (let* ((fallback '("Basic"
+                       "Basic (and reversed card)"
+                       "Cloze"
+                       "Cloze (optional reverse)"))
+           (note-types (if (fboundp 'anki-editor-note-types)
+                           (sort (delete-dups (append (anki-editor-note-types)
+                                                      fallback))
+                                 #'string-lessp)
+                         fallback))
+           (note-type (completing-read "Anki note type: "
+                                       note-types
+                                       nil t nil nil "Basic"))
+           (title (read-string "Card title: "))
+           (fields (if (string-match-p "\\`Cloze" note-type)
+                       "** Text\n%?\n"
+                     "** Front\n%?\n\n** Back\n")))
+      (concat "* " title "\n"
+              ":PROPERTIES:\n"
+              ":ANKI_DECK: Inbox\n"
+              ":ANKI_NOTE_TYPE: " note-type "\n"
+              ":END:\n\n"
+              fields)))
+
   (require 'org-protocol)
 
   (add-hook 'org-capture-before-finalize-hook (lambda () (org-align-tags t)))
   (setq org-capture-templates
 	`(("t" "todo")
+	  ("a" "anki" entry (file+headline "~/Dropbox/org/anki/anki-inbox.org" "Inbox")
+	   "%(jds/org-capture-anki-template)")
 	  ("ta" "todo with attachment" entry (file "~/Dropbox/org/inbox.org")
 	   "* TODO %?\n %U\n %a")
 	  ("te" "todo resource" entry (file+headline "~/Dropbox/org/resources.org" "Inbox")

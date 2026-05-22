@@ -411,6 +411,10 @@
   "s" '(:ignore t :which-key "search")
   "ss" #'consult-line
   "sS" #'(lambda () (interactive) (consult-line-multi 'all-buffers))
+  "sa" '((lambda () (interactive)
+           (let ((default-directory "/home/jds6696/Dropbox/org/anki/"))
+             (call-interactively #'consult-ripgrep)))
+         :which-key "anki")
   "sc" #'jds/consult-ripgrep-config
   "sm" #'consult-mark
   ;; "si" #'consult-outline
