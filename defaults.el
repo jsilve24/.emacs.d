@@ -114,9 +114,13 @@
 ;; managers, where it can leave unseemly gaps.
 (setq frame-resize-pixelwise t)
 
-;; But do not resize windows pixelwise, this can cause crashes in some cases
-;; when resizing too many windows at once or rapidly.
-(setq window-resize-pixelwise nil)
+;; Do not change this back to nil for EXWM sessions.
+;; EXWM sets `window-resize-pixelwise' to t during startup and treats it as
+;; required for correct floating-window geometry; overriding it later causes
+;; popup windows such as Zoom share dialogs to flicker and fight over size.
+;; Keep the older non-EXWM behavior elsewhere to avoid broad workflow changes.
+(setq window-resize-pixelwise
+      (if (bound-and-true-p jds~use-wm) t nil))
 
 ;; Without this, Emacs will try to resize itself to a specific column size, but like Tony, I’m on a
 ;; tiling wm, and I change font sizes all the time, so this is no good.

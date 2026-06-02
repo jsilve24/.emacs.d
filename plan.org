@@ -53,6 +53,14 @@ There are several machine-specific and filesystem-specific assumptions:
 These may be intentional, but they should be centralized or documented so they
 are easy to change later.
 
+*** TODO Re-check Zoom popup matching if future Zoom releases rename share dialogs
+`wm.el` now uses `exwm-manage-configurations` to float likely Zoom auxiliary
+windows based on WM class plus popup-oriented titles. This should fix the
+current EXWM tiling issue, but Zoom on Linux has a history of changing window
+metadata. If the share picker or another popup regresses, capture its exact
+`WM_NAME`/`_NET_WM_WINDOW_TYPE` with `xprop` and tighten the predicate in
+`autoloads/wm.el`.
+
 *** TODO Audit Slack auth and request compatibility
 The Slack integration is still version-sensitive around auth, request-wrapper
 handling, room lookup, and compose-buffer behavior. Keep the fork pin and local

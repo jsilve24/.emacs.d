@@ -74,6 +74,8 @@
   (add-hook 'exwm-update-title-hook #'efs/exwm-update-title)
 
   ;; Configure windows as they're created
+  (add-to-list 'exwm-manage-configurations
+	       '((jds/exwm-zoom-popup-p) floating t))
   (add-hook 'exwm-manage-finish-hook #'efs/configure-window-by-class)
 
   ;; Automatically send the mouse cursor to the selected workspace's display

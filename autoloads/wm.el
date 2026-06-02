@@ -28,6 +28,34 @@ Optional CONTEXT is passed to `jds/wm-executable-available-p'."
     ;; ("qutebrowser" (exwm-workspace-rename-buffer (format "Qutebrowser: %s" exwm-title)))
     ("Firefox" (exwm-workspace-rename-buffer (format "Firefox: %s" exwm-title)))))
 
+(defconst jds/exwm-zoom-popup-title-regexp
+  (rx (or "Share Screen"
+          "Screen sharing"
+          "Screen Share"
+          "Settings"
+          "Invite"
+          "Participants"
+          "Poll"
+          "Breakout"
+          "Chat"))
+  "Regex matching Zoom windows that should float in EXWM.")
+
+(defun jds/exwm-zoom-popup-p ()
+  "Return non-nil when the current EXWM buffer is a Zoom auxiliary window.
+
+Zoom on Linux often opens share pickers and other popups as regular X11
+windows, which EXWM otherwise tiles into the current layout."
+  (and (derived-mode-p 'exwm-mode)
+       (stringp exwm-class-name)
+       (string= exwm-class-name "zoom")
+       (or exwm-transient-for
+           (memq xcb:Atom:_NET_WM_WINDOW_TYPE_DIALOG exwm-window-type)
+           (memq xcb:Atom:_NET_WM_WINDOW_TYPE_UTILITY exwm-window-type)
+           (and (stringp exwm-title)
+                (let ((case-fold-search t))
+                  (string-match-p jds/exwm-zoom-popup-title-regexp
+                                  exwm-title))))))
+
 
 ;; This function isn't currently used, only serves as an example how to
 ;; position a window
