@@ -373,7 +373,18 @@ minutes), and return a formatted Org timestamp with start and end times."
 (use-package org-screenshot
   :after org
   :config
-  (setq org-screenshot-file-name-format "screenshot-%XXXXXXXXXX.png"))
+  (setq org-screenshot-file-name-format "screenshot-%XXXXXXXXXX.png")
+
+  ;; AnkiConnect stores media filenames lowercased, while anki-editor leaves
+  ;; the original org-screenshot filename in the note HTML.  Keep screenshot
+  ;; basenames lowercase so Linux case-sensitive media lookup does not break.
+  (defun jds/org-screenshot-random-string-lowercase (orig-fn length)
+    (downcase (funcall orig-fn length)))
+
+  (unless (advice-member-p #'jds/org-screenshot-random-string-lowercase
+                           'org-screenshot-random-string)
+    (advice-add 'org-screenshot-random-string
+                :around #'jds/org-screenshot-random-string-lowercase)))
 
 ;; make it easier to edit fontified/hidden text (I mostly just use this for org-links)
 (use-package org-appear
@@ -503,7 +514,7 @@ minutes), and return a formatted Org timestamp with start and end times."
 
 (jds/localleader-def
   :keymaps 'org-agenda-mode-map
-  "d" '(ignore t :wk "date")
+  "d" '(:ignore t :wk "date")
   "dd" #'org-agenda-deadline
   "ds" #'org-agenda-schedule
   "t"  #'org-agenda-todo
