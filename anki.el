@@ -100,6 +100,13 @@
   (setq anki-editor-latex-style 'mathjax)
   ;; (setq anki-editor-latex-style 'builtin)
 
+  (defun jds/anki-editor-ensure-media-link-exporter (&rest _)
+    "Ensure local file links are uploaded and rewritten during Anki export."
+    (when (and (fboundp 'org-html-link)
+               (fboundp 'anki-editor--ox-html-link)
+               (not (advice-member-p #'anki-editor--ox-html-link
+                                      'org-html-link)))
+      (advice-add 'org-html-link :around #'anki-editor--ox-html-link)))
 
   ;; A small convenience: default tags used by card files.
   (defvar jds/anki-file-mode-map (make-sparse-keymap)
@@ -383,6 +390,11 @@ notes, which `anki-editor-push-notes' otherwise leaves only in memory."
 
 (advice-add 'anki-editor-push-notes :around
             #'jds/anki-editor-save-current-buffer-after-push)
+
+(advice-add 'anki-editor-push-notes :before
+            #'jds/anki-editor-ensure-media-link-exporter)
+(advice-add 'anki-editor-push-note-at-point :before
+            #'jds/anki-editor-ensure-media-link-exporter)
 
 ;; fix basic cards
 
