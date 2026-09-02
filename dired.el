@@ -14,8 +14,14 @@
 	;; Disable the prompt about whether I want to kill the Dired buffer for a
 	;; deleted directory. Of course I do!
 	dired-clean-confirm-killing-deleted-buffers nil)
-  ;; Auto-refresh dired on filesystem change
-  (add-hook 'dired-mode-hook 'auto-revert-mode)
+  ;; Polling and revisiting auto-refreshes add synchronous file operations over
+  ;; TRAMP.  Keep them for local Dired; remote buffers can still refresh with g.
+  (defun jds/dired-auto-revert-maybe-enable ()
+    "Enable automatic Dired refresh only for local directories."
+    (if (file-remote-p default-directory)
+	(setq-local dired-auto-revert-buffer nil)
+      (auto-revert-mode 1)))
+  (add-hook 'dired-mode-hook #'jds/dired-auto-revert-maybe-enable)
 
   ;; Keep evil from taking mouse (so dired-mouse-drag-files works)
   (with-eval-after-load 'dired
@@ -182,7 +188,14 @@ line."
 
 ;;; fluff
 (use-package all-the-icons-dired
-  :hook (dired-mode . all-the-icons-dired-mode)
+  ;; Icon selection calls `file-directory-p' for each displayed entry, which
+  ;; can turn into many separate TRAMP round trips.
+  :hook (dired-mode . jds/all-the-icons-dired-maybe-enable)
+  :preface
+  (defun jds/all-the-icons-dired-maybe-enable ()
+    "Enable Dired icons only for local directories."
+    (unless (file-remote-p default-directory)
+      (all-the-icons-dired-mode 1)))
   :diminish all-the-icons-dired-mode)
 
 
