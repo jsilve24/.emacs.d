@@ -706,6 +706,19 @@ Each element has the form (DISPLAY . MODEL)."
   (add-hook 'agent-shell-mode-hook #'jds/agent-shell-evil-setup)
   (add-hook 'agent-shell-diff-mode-hook #'evil-emacs-state))
 
+;; Needed for agent shell math rendering
+(use-package latex-to-svg-backend
+  :straight (latex-to-svg-backend
+             :type git :host github :repo "alberti42/latex-to-svg-backend"))
+
+(use-package agent-shell-math-renderer
+  :straight (agent-shell-math-renderer
+             :type git :host github
+             :repo "alberti42/agent-shell-math-renderer")
+  :after (agent-shell latex-to-svg-backend)
+  :config
+  (setq agent-shell-math-renderer-enabled t))
+
 
 ;;; bindings -------------------------------------------------------------------
 
