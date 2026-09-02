@@ -49,7 +49,9 @@ When non-nil, automatic cleanup preserves the generated
 
   (defun jds/latex--cleanup-suffixes ()
     "Return the suffixes to remove after a successful LaTeX run."
-    (let ((suffixes (copy-sequence LaTeX-clean-intermediate-suffixes)))
+    ;; Beamer can number fragile-frame files, e.g. presentation.38.vrb.
+    (let ((suffixes (cons "\\(?:\\.[0-9]+\\)?\\.vrb"
+                          (copy-sequence LaTeX-clean-intermediate-suffixes))))
       (if jds/latex-keep-synctex
           (delete "\\.synctex\\.gz" suffixes)
         suffixes)))
