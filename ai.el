@@ -720,12 +720,8 @@ Each element has the form (DISPLAY . MODEL)."
   (setq agent-shell-math-renderer-enabled t))
 
 
+
 ;;; bindings -------------------------------------------------------------------
-
-
-(jds/localleader-def
-  :keymaps '(ess-r-mode-map emacs-lisp-mode-map vterm-mode-map)
-  "'" #'claude-code-ide-menu)
 
 ;; not mature enough yet
 ;; (use-package codex-ide
