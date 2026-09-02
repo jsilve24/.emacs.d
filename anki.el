@@ -10,6 +10,25 @@
   :type 'directory
   :group 'jds/anki)
 
+(defcustom jds/anki-address-marked-codex-prompt
+  (concat
+   "Address every currently marked Anki note whose contents mention "
+   "\"Codex\" case-insensitively. Follow the AnkiConnect and anki-extract "
+   "workflows. Understand and carry out each reviewer instruction, verify "
+   "sources when necessary, edit the corresponding Org source, push each "
+   "changed note individually, remove the marked tag only after a successful "
+   "push, and verify that no matching marked notes remain. Do not bulk-push "
+   "unrelated notes. If Anki is still starting, retry AnkiConnect for up to "
+   "30 seconds.")
+  "Prompt used to address marked Anki notes that mention Codex."
+  :type 'string
+  :group 'jds/anki)
+
+;; Loaded lazily by `jds/anki-address-marked-codex-cards'.  Declaring this
+;; special here ensures the command's fresh-session binding is dynamic even
+;; when this module is byte-compiled independently of `ai.el'.
+(defvar agent-shell-session-strategy)
+
 (use-package anki-editor
   :straight (:repo "anki-editor/anki-editor")
   :defer t
@@ -146,6 +165,35 @@
 		       (current-buffer)
 		       (time-add (current-time)
 				 (seconds-to-time jds/anki-startup-timeout)))))))))
+
+(defun jds/anki-address-marked-codex-cards ()
+  "Start a full-access Codex session for marked Anki notes mentioning Codex."
+  (interactive)
+  (let ((anki-root (file-name-as-directory
+                    (expand-file-name jds/anki-root-directory))))
+    (unless (file-directory-p anki-root)
+      (user-error "Anki source directory does not exist: %s" anki-root))
+    (require 'agent-shell)
+    (require 'agent-shell-openai)
+    (unless (jds/anki-connect-running-p)
+      (jds/start-anki))
+    (let* ((default-directory anki-root)
+           (agent-shell-session-strategy 'new)
+           (codex-config (agent-shell-openai-make-codex-config)))
+      ;; Override the mode callback on this newly created config rather than
+      ;; changing the global default for ordinary Codex sessions.  This is the
+      ;; codex-acp mode ID; the corresponding UI label is "Agent (full access)".
+      (setf (alist-get :default-session-mode-id codex-config)
+            (lambda () "agent-full-access"))
+      (let ((shell-buffer (agent-shell-start :config codex-config)))
+        ;; `agent-shell-insert' waits for the first prompt when startup is still
+        ;; in progress, so no polling or process timer is needed here.
+        (agent-shell-insert
+         :text jds/anki-address-marked-codex-prompt
+         :submit t
+         :shell-buffer shell-buffer)
+        (message "Started full-access Codex task for marked Anki notes in %s"
+                 anki-root)))))
 
 
 (jds/localleader-def
