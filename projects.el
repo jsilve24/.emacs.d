@@ -113,6 +113,41 @@ Each template may define `:gitignore' fragments and starter `:files'."
 (use-package consult-projectile
   :straight (consult-projectile :type git :host gitlab :repo "OlMon/consult-projectile" :branch "master")
   :config
+  (defun jds/consult-projectile-file-source-root ()
+    "Return a usable local Projectile root for `consult-buffer'."
+    (unless (file-remote-p default-directory)
+      (when-let ((root (projectile-project-root)))
+	;; An empty or partial .git directory is a project marker to Projectile,
+	;; but Git indexing will fail.  A linked worktree uses a .git file and is
+	;; therefore not excluded by this check.
+	(unless (and (file-directory-p (expand-file-name ".git" root))
+		     (not (file-exists-p (expand-file-name ".git/HEAD" root))))
+	  root))))
+
+  ;; `consult-buffer' evaluates this source as soon as its minibuffer opens.
+  ;; Avoid asking Projectile to discover and index a project through TRAMP;
+  ;; also skip incomplete Git markers that cannot be indexed by Git.  This
+  ;; changes only the eager Project File source in `consult-buffer'.
+  (setf (plist-get consult-projectile--source-projectile-file :enabled)
+	#'jds/consult-projectile-file-source-root)
+
+  (defun jds/consult-projectile-project-annotation (dir)
+    "Annotate project DIR without probing an unconnected TRAMP host."
+    (when consult-projectile-display-info
+      (if (file-remote-p dir)
+	  (format "Project: %s [remote]"
+		  (file-name-nondirectory (directory-file-name dir)))
+	(format "Project: %s [%s]"
+		(projectile-project-name dir)
+		(projectile-project-vcs dir)))))
+
+  ;; `consult-buffer' renders every known-project annotation eagerly.  The
+  ;; package's default annotation asks Projectile for the VCS, which starts a
+  ;; TRAMP connection for saved remote projects merely by opening the picker.
+  ;; Keep remote projects visible, but connect only when one is selected.
+  (setf (plist-get consult-projectile--source-projectile-project :annotate)
+	#'jds/consult-projectile-project-annotation)
+
   ;; consult-projectile--file calls projectile without setting default-directory,
   ;; so projectile-project-root falls back to a nil default-directory and
   ;; file-remote-p crashes. Bind default-directory to the project dir first.
