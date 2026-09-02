@@ -157,6 +157,15 @@ When WEBSOCKET is nil, close the current buffer's local `essgd' websocket."
           (with-current-buffer buffer
             (jds/essgd-record-device-number)))))))
 
+(defun jds/essgd-auto-start ()
+  "Start `essgd' automatically when the current Emacs can display it.
+
+Batch processes such as asynchronous Org exporters still use ESS sessions, but
+cannot host the graphical `essgd' frontend.  Leave those R sessions alone so
+Babel blocks sharing a named session continue to execute in the same process."
+  (unless noninteractive
+    (jds/essgd-start)))
+
 (defun jds/essgd-toggle-buffer ()
   "Toggle between the current buffer and the `*essgd*' plot buffer."
   (interactive)
@@ -188,7 +197,8 @@ When WEBSOCKET is nil, close the current buffer's local `essgd' websocket."
   :hook
   ;; Start the graphics device automatically for new R sessions so plots
   ;; accumulate in the Emacs plot-history buffer without extra setup steps.
-  (ess-r-post-run . jds/essgd-start)
+  ;; Batch Org exporters keep their ESS session but skip the graphical device.
+  (ess-r-post-run . jds/essgd-auto-start)
   :config
   ;; Guard startup on the R side: if `httpgd' is missing, fail softly and keep
   ;; the ESS session usable instead of throwing an opaque device error.
