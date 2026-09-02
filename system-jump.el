@@ -14,7 +14,10 @@
   (interactive "Dpath: ")
   (unless path
     (setq path (expand-file-name default-directory)))
-  (zoxide-run t "add" path)))
+  ;; The local zoxide database cannot use TRAMP names, and invoking it after
+  ;; every remote Dired read only produces failed background processes.
+  (unless (file-remote-p path)
+    (zoxide-run t "add" path))))
 
 
 (use-package affe
