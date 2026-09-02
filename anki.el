@@ -1,5 +1,15 @@
 ;;; anki.el --- JDS anki config -*- lexical-binding: t -*-
 
+(defgroup jds/anki nil
+  "Personal Anki workflow helpers."
+  :group 'applications)
+
+(defcustom jds/anki-root-directory
+  (expand-file-name "~/Dropbox/org/anki/")
+  "Root directory containing the anki-editor Org source tree."
+  :type 'directory
+  :group 'jds/anki)
+
 (use-package anki-editor
   :straight (:repo "anki-editor/anki-editor")
   :defer t
@@ -118,7 +128,8 @@
     :lighter nil)
 
   (defun jds/anki-editor-maybe-enable ()
-    (let ((anki-root (expand-file-name "~/Dropbox/org/anki/")))
+    (let ((anki-root (file-name-as-directory
+                      (expand-file-name jds/anki-root-directory))))
       (when (and buffer-file-name
 		 (file-in-directory-p buffer-file-name anki-root))
 	(jds/anki-file-mode 1)
