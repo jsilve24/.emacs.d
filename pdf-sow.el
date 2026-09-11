@@ -1,3 +1,4 @@
+;;; pdf-sow.el --- Local configuration -*- lexical-binding: nil; -*-
 ;;; pdf-sow.el --- Variable commands for scrolling the other window.
 
 ;; Copyright (C) 2016  Andreas Politz

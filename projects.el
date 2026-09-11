@@ -89,7 +89,7 @@ Each template may define `:gitignore' fragments and starter `:files'."
          created)
     (make-directory root t)
     (dolist (file files)
-      (when-let ((path (jds/project--write-file-if-missing root (car file) (cdr file))))
+      (when-let* ((path (jds/project--write-file-if-missing root (car file) (cdr file))))
         (push path created)))
     (when gitignore-templates
       (jds/gitignore-apply-templates gitignore-templates root))
@@ -116,7 +116,7 @@ Each template may define `:gitignore' fragments and starter `:files'."
   (defun jds/consult-projectile-file-source-root ()
     "Return a usable local Projectile root for `consult-buffer'."
     (unless (file-remote-p default-directory)
-      (when-let ((root (projectile-project-root)))
+      (when-let* ((root (projectile-project-root)))
 	;; An empty or partial .git directory is a project marker to Projectile,
 	;; but Git indexing will fail.  A linked worktree uses a .git file and is
 	;; therefore not excluded by this check.

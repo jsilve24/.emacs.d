@@ -94,14 +94,14 @@ Expected keys include :message and :subject.")
   "Return a reasonable person name for MSG, or nil."
   (when-let* ((from (car (mu4e-message-field msg :from))))
     (or (jds/ai-email--string-or-nil (plist-get from :name))
-        (when-let ((email (jds/ai-email--string-or-nil (plist-get from :email))))
+        (when-let* ((email (jds/ai-email--string-or-nil (plist-get from :email))))
           (car (split-string email "@"))))))
 
 (defun jds/ai-email--calendar-title-from-message (msg subject)
   "Return a smart calendar title derived from MSG and SUBJECT."
   (let ((clean-subject (jds/ai-email--strip-mail-prefixes subject)))
     (if (jds/ai-email--generic-meeting-subject-p clean-subject)
-        (if-let ((name (jds/ai-email--message-person-name msg)))
+        (if-let* ((name (jds/ai-email--message-person-name msg)))
             (format "Meeting with %s" name)
           "Meeting")
       (jds/ai-email--sanitize-heading-text clean-subject))))
@@ -124,7 +124,7 @@ Expected keys include :message and :subject.")
 
 (defun jds/ai-email--parse-iso-local-time (value)
   "Parse VALUE in YYYY-MM-DD or YYYY-MM-DDTHH:MM[:SS] form."
-  (when-let ((text (jds/ai-email--string-or-nil value)))
+  (when-let* ((text (jds/ai-email--string-or-nil value)))
     (cond
      ((string-match
        "\\`\\([0-9]\\{4\\}\\)-\\([0-9]\\{2\\}\\)-\\([0-9]\\{2\\}\\)\\'" text)
@@ -204,9 +204,9 @@ Expected keys include :message and :subject.")
   "Build initial editable review body from LOCATION, URL, MODALITY, and NOTES."
   (string-join
    (delq nil
-         (list (when-let ((loc (jds/ai-email--string-or-nil location)))
+         (list (when-let* ((loc (jds/ai-email--string-or-nil location)))
                  (format "Location: %s" loc))
-               (when-let ((link (jds/ai-email--string-or-nil url)))
+               (when-let* ((link (jds/ai-email--string-or-nil url)))
                  (format "%s: %s"
                          (if (equal (jds/ai-email--string-or-nil modality) "zoom")
                              "Zoom"
@@ -249,9 +249,9 @@ Expected keys include :message and :subject.")
               (format "* %s\n" title)))
     (insert ":PROPERTIES:\n")
     (insert (format ":AI_CAPTURE_TYPE: %s\n" type))
-    (when-let ((start (jds/ai-email--string-or-nil (alist-get 'start item))))
+    (when-let* ((start (jds/ai-email--string-or-nil (alist-get 'start item))))
       (insert (format ":AI_CAPTURE_START: %s\n" start)))
-    (when-let ((end (jds/ai-email--string-or-nil (alist-get 'end item))))
+    (when-let* ((end (jds/ai-email--string-or-nil (alist-get 'end item))))
       (insert (format ":AI_CAPTURE_END: %s\n" end)))
     (when (equal type "event")
       (insert (format ":AI_CAPTURE_ALL_DAY: %s\n"
@@ -501,7 +501,7 @@ Return a marker at the inserted heading."
       (goto-char (point-min))
       (while (re-search-forward org-heading-regexp nil t)
         (goto-char (match-beginning 0))
-        (when-let ((type (org-entry-get (point) "AI_CAPTURE_TYPE")))
+        (when-let* ((type (org-entry-get (point) "AI_CAPTURE_TYPE")))
           (let ((title (jds/ai-email--sanitize-heading-text
                         (org-get-heading t t t t)))
                 (body  (jds/ai-email--review-entry-body)))

@@ -164,7 +164,7 @@ Prefers internal `elfeed-search--faces' when available, but falls back to
 
 (defun jds/elfeed-reading-list-paper-line ()
   "Return a paper URL line for the reading-list capture template."
-  (if-let ((paper-url (plist-get org-store-link-plist :paper-url)))
+  (if-let* ((paper-url (plist-get org-store-link-plist :paper-url)))
       (concat "\nPaper: " paper-url)
     ""))
 
@@ -214,7 +214,7 @@ With PREFIX, prompt for a note while recording positive feedback."
   (require 'ol)
   (require 'org-capture)
   (gptel-reinforce-like prefix "elfeed-ranking")
-  (if-let ((entry (jds/elfeed-reading-list-entry)))
+  (if-let* ((entry (jds/elfeed-reading-list-entry)))
       (let (org-store-link-plist)
         (jds/elfeed-reading-list-store-link entry)
         (let ((org-capture-link-is-already-stored t))

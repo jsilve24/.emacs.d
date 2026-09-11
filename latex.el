@@ -152,6 +152,16 @@ When non-nil, automatic cleanup preserves the generated
   (define-key cdlatex-mode-map (kbd "'") 'jds/cdlatex-math-modify))
 
 ;;; setup latexmk
+
+(defun jds/latex-set-latexmk-default ()
+  "Prefer LatexMk as the default compile command in LaTeX buffers."
+  (setq TeX-command-default "LatexMk"))
+
+;; Register these hooks before loading `auctex-latexmk'.  Keeping them in the
+;; deferred package's `:config' block lets the first LaTeX buffer miss them.
+(add-hook 'LaTeX-mode-hook #'jds/latex-set-latexmk-default)
+(add-hook 'latex-mode-hook #'jds/latex-set-latexmk-default)
+
 (use-package auctex-latexmk
   :ensure t
   :defer t
@@ -170,14 +180,7 @@ When non-nil, automatic cleanup preserves the generated
     (advice-remove 'require #'my-auctex-latexmk-advice))
 
   ;; Pass the -pdf flag when TeX-PDF-mode is active
-  (setq auctex-latexmk-inherit-TeX-PDF-mode t)
-:config
-  ;; Set LatexMk as the default
-  (defun jds/latex-set-latexmk-default ()
-    "Prefer LatexMk as the default compile command in LaTeX buffers."
-    (setq TeX-command-default "LatexMk"))
-  (add-hook 'LaTeX-mode-hook #'jds/latex-set-latexmk-default)
-  (add-hook 'latex-mode-hook #'jds/latex-set-latexmk-default))
+  (setq auctex-latexmk-inherit-TeX-PDF-mode t))
 
 
 ;;; setup evil-tex

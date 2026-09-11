@@ -4,7 +4,7 @@
 
 (defun jds/auto-insert-project-title ()
   "Return a human-readable title derived from the current project."
-  (let* ((root (or (when-let ((project (project-current nil)))
+  (let* ((root (or (when-let* ((project (project-current nil)))
                      (project-root project))
                    default-directory))
          (name (file-name-nondirectory (directory-file-name root))))
@@ -19,7 +19,7 @@
 
 (defun jds/auto-insert-gitignore ()
   "Populate a new `.gitignore' from local template fragments."
-  (when-let ((templates (jds/gitignore--read-templates)))
+  (when-let* ((templates (jds/gitignore--read-templates)))
     (jds/gitignore-insert-templates templates)))
 
 (defun jds/auto-insert--snippet-body (snippet-file)

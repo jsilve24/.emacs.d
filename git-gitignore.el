@@ -15,7 +15,7 @@ external sources such as `github/gitignore'."
 
 (defun jds/gitignore--project-root ()
   "Return the current project root, falling back to `default-directory'."
-  (or (when-let ((project (project-current nil)))
+  (or (when-let* ((project (project-current nil)))
         (project-root project))
       (when (fboundp 'projectile-project-root)
         (ignore-errors (projectile-project-root)))
@@ -37,7 +37,7 @@ external sources such as `github/gitignore'."
 
 (defun jds/gitignore--render-template (name)
   "Render template NAME as a gitignore fragment."
-  (when-let ((path (expand-file-name (format "%s.gitignore" name)
+  (when-let* ((path (expand-file-name (format "%s.gitignore" name)
                                      jds/gitignore-template-directory)))
     (when (file-readable-p path)
       (concat "# " name "\n"
@@ -53,7 +53,7 @@ external sources such as `github/gitignore'."
     (unless (bolp)
       (insert "\n"))
     (dolist (name selected)
-      (when-let ((fragment (jds/gitignore--render-template name)))
+      (when-let* ((fragment (jds/gitignore--render-template name)))
         (unless (save-excursion
                   (goto-char (point-min))
                   (search-forward fragment nil t))

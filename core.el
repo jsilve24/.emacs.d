@@ -19,6 +19,8 @@
 (setq straight-host-usernames
       '((github . "jsilve24")))
 
+(load (expand-file-name "core-package-patches.el" user-emacs-directory)
+      nil 'nomessage)
 
 ;; Install use-package through straight 
 ;; Now use-package will use straight.el to automatically install
@@ -82,4 +84,3 @@
   :config
   (which-key-mode)
   (setq which-key-idle-delay 1))
-

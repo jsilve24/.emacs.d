@@ -1,3 +1,4 @@
+;;; bitwarden.el --- Local configuration -*- lexical-binding: nil; -*-
 (use-package bitwarden
   :straight (bitwarden :type git :host github :repo "seanfarley/emacs-bitwarden"
 		       :fork t)

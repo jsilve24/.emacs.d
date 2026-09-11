@@ -757,7 +757,7 @@ treat the day as \"in_person\" instead, allowing in-person slots to be generated
                (jds/org-calendar--workday-p day-start)
                (time-less-p work-start work-end))
       (dolist (busy busy-intervals)
-        (when-let ((clipped (jds/org-calendar--clip-interval
+        (when-let* ((clipped (jds/org-calendar--clip-interval
                              (car busy) (cdr busy) work-start work-end)))
           (push clipped intervals)))
       (setq intervals (jds/org-calendar--merge-intervals intervals))
@@ -1191,7 +1191,7 @@ to the generation pass."
    prompt system buf
    (lambda (text)
      (let ((region (jds/ai-email--insert-response-at-point buf pos text)))
-       (when-let ((inserted region))
+       (when-let* ((inserted region))
          (when artifact
            (jds/ai-email--reinforce-track-output-region
             buf artifact (car inserted) (cdr inserted))))

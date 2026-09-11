@@ -1,0 +1,115 @@
+diff --git a/consult-mu.el b/consult-mu.el
+index 6f90680..d5c3d10 100644
+--- a/consult-mu.el
++++ b/consult-mu.el
+@@ -878,7 +878,7 @@ handling set accordingly for `consult-mu'."
+   "Jump to message with MSGID.
+ 
+ This is done in `consult-mu-headers-buffer-name' buffer."
+-  (when-let ((buffer consult-mu-headers-buffer-name))
++  (when-let* ((buffer consult-mu-headers-buffer-name))
+     (with-current-buffer buffer
+       (setq mu4e-view-buffer-name consult-mu-view-buffer-name)
+       (mu4e-headers-goto-message-id msgid))))
+@@ -886,7 +886,7 @@ This is done in `consult-mu-headers-buffer-name' buffer."
+ (defun consult-mu--get-message-by-id (msgid)
+   "Find the message with MSGID and return the mu4e MSG plist for it."
+   (cl-letf* (((symbol-function #'mu4e-view) #'consult-mu--view-msg))
+-    (when-let ((buffer consult-mu-headers-buffer-name))
++    (when-let* ((buffer consult-mu-headers-buffer-name))
+       (with-current-buffer buffer
+         (setq mu4e-view-buffer-name consult-mu-view-buffer-name)
+         (mu4e-headers-goto-message-id msgid)
+@@ -1081,7 +1081,7 @@ See `consult-mu-group-by' for details of grouping options."
+ 
+ CAND is passed to `consult-mu--group-name' to get the group for CAND.
+ When TRANSFORM is non-nil, the name of CAND is used for group."
+-  (when-let ((name (consult-mu--group-name cand)))
++  (when-let* ((name (consult-mu--group-name cand)))
+     (if transform (substring cand) name)))
+ 
+ (defun consult-mu--view (msg noselect mark-as-read match-str)
+@@ -1091,7 +1091,7 @@ If NOSELECT is non-nil, does not select the view buffer/window.
+ If MARK-AS-READ is non-nil, marks the MSG as read.
+ If MATCH-STR is non-nil, highlights the MATCH-STR in the view buffer."
+   (let ((msgid (plist-get msg :message-id)))
+-    (when-let ((buf (mu4e-get-headers-buffer consult-mu-headers-buffer-name t)))
++    (when-let* ((buf (mu4e-get-headers-buffer consult-mu-headers-buffer-name t)))
+       (with-current-buffer buf
+         ;;(mu4e-headers-mode)
+         (goto-char (point-min))
+@@ -1163,7 +1163,7 @@ in the minibuffer."
+ If WIDE-REPLY is non-nil use wide-reply \(a.k.a. reply all\) with
+ `mu4e-compose-wide-reply'."
+   (let ((msgid (plist-get msg :message-id)))
+-    (when-let ((buf (mu4e-get-headers-buffer consult-mu-headers-buffer-name t)))
++    (when-let* ((buf (mu4e-get-headers-buffer consult-mu-headers-buffer-name t)))
+       (with-current-buffer buf
+         (goto-char (point-min))
+         (setq mu4e-view-buffer-name consult-mu-view-buffer-name)))
+@@ -1196,7 +1196,7 @@ To use this as the default action for `consult-mu', set
+ (defun consult-mu--forward (msg)
+   "Forward the MSG using `mu4e-compose-forward'."
+   (let ((msgid (plist-get msg :message-id)))
+-    (when-let ((buf (mu4e-get-headers-buffer consult-mu-headers-buffer-name t)))
++    (when-let* ((buf (mu4e-get-headers-buffer consult-mu-headers-buffer-name t)))
+       (with-current-buffer buf
+         (goto-char (point-min))
+         (setq mu4e-view-buffer-name consult-mu-view-buffer-name)))
+diff --git a/extras/consult-mu-compose-embark.el b/extras/consult-mu-compose-embark.el
+index 8447b28..0b88349 100644
+--- a/extras/consult-mu-compose-embark.el
++++ b/extras/consult-mu-compose-embark.el
+@@ -56,7 +56,7 @@
+ Bind `consult-mu-embark-attach-file-key' to
+ `consult-mu-compose-embark-attach-file' in `embark-file-map'.  If KEY is
+ non-nil binds KEY instead of `consult-mu-embark-attach-file-key'."
+-  (if-let ((keyb (or key (kbd consult-mu-embark-attach-file-key))))
++  (if-let* ((keyb (or key (kbd consult-mu-embark-attach-file-key))))
+       (define-key embark-file-map keyb #'consult-mu-compose-embark-attach-file)))
+ 
+ (consult-mu-compose-embark-bind-attach-file-key)
+diff --git a/extras/consult-mu-compose.el b/extras/consult-mu-compose.el
+index 8703995..3a28885 100644
+--- a/extras/consult-mu-compose.el
++++ b/extras/consult-mu-compose.el
+@@ -136,7 +136,7 @@ INITIAL is the initial input in the minibuffer."
+ 
+ INITIAL is the initial input in the minibuffer."
+ 
+-  (if-let ((current-files (pcase major-mode
++  (if-let* ((current-files (pcase major-mode
+                             ('org-msg-edit-mode
+                              (org-msg-get-prop "attachment"))
+                             ((or 'mu4e-compose-mode 'message-mode)
+@@ -389,7 +389,7 @@ MAIL-BUFFER defaults to `consult-mu-compose-current-draft-buffer'."
+   "Remove FILE from email attachments interactively."
+   (interactive)
+   (save-mark-and-excursion
+-    (when-let (file (consult-mu-compose--read-file-remove))
++    (when-let* ((file (consult-mu-compose--read-file-remove)))
+       (consult-mu-compose--remove-files file))))
+ 
+ ;;; provide `consult-mu-compose' module
+diff --git a/extras/consult-mu-contacts.el b/extras/consult-mu-contacts.el
+index 024bb5b..a8ddc54 100644
+--- a/extras/consult-mu-contacts.el
++++ b/extras/consult-mu-contacts.el
+@@ -225,7 +225,7 @@ If HIGHLIGHT is non-nil, input is highlighted with
+ This is used to add the emails in the current buffer to history."
+   (let ((add (list)))
+     (pcase major-mode
+-      ((or mu4e-view-mode mu4e-compose-mode org-msg-edit-mode message-mode)
++      ((or 'mu4e-view-mode 'mu4e-compose-mode 'org-msg-edit-mode 'message-mode)
+        (mapcar (lambda (item)
+                  (concat "#" (consult-mu--message-extract-email-from-string item)))
+                (append add
+@@ -260,7 +260,7 @@ See `consult-mu-contacts-group-by' for details of grouping options."
+ 
+ CAND `consult-mu-contacts--group-name' to get the group name for contact.
+ When TRANSFORM is non-nil, the name of the candiate is used as group title."
+-  (when-let ((name (consult-mu-contacts--group-name cand)))
++  (when-let* ((name (consult-mu-contacts--group-name cand)))
+     (if transform (substring cand) name)))
+ 
+ (defun consult-mu-contacs--lookup ()

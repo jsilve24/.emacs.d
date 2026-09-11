@@ -129,7 +129,7 @@
   "Import QUERY with Zotra and return the citekey of the inserted entry.
 Prefer the key captured during `bibtex-clean-entry-hook', because
 `zotra-add-entry-from-search' can return a stale key."
-  (when-let ((query (jds~pdf-drop-normalize-metadata-string query)))
+  (when-let* ((query (jds~pdf-drop-normalize-metadata-string query)))
     (let ((jds~bibtex-clean-latest-stored-key nil))
       (condition-case nil
           (let* ((returned-key (zotra-add-entry-from-search query))
@@ -191,7 +191,7 @@ Returns empty string on failure."
 
 (defun jds~pdf-drop-identifier-kind (identifier)
   "Return the kind of IDENTIFIER as `doi', `arxiv', or nil."
-  (when-let ((identifier (jds~pdf-drop-clean-identifier identifier)))
+  (when-let* ((identifier (jds~pdf-drop-clean-identifier identifier)))
     (let ((case-fold-search t))
       (cond
        ((string-match-p "\\`10\\.[0-9]\\{4,9\\}/[-._;()/:A-Z0-9]+\\'" identifier)
@@ -257,7 +257,7 @@ Returns empty string on failure."
 
 (defun jds~pdf-drop-parse-ai-metadata (response)
   "Parse structured metadata JSON from RESPONSE into a plist."
-  (when-let ((json-text (jds~pdf-drop-json-object-string response)))
+  (when-let* ((json-text (jds~pdf-drop-json-object-string response)))
     (condition-case nil
         (if (fboundp 'json-parse-string)
             (json-parse-string json-text
@@ -274,7 +274,7 @@ Returns empty string on failure."
 
 (defun jds~pdf-drop-merge-metadata (local ai)
   "Merge LOCAL and AI metadata plists, preferring explicit identifiers."
-  (let* ((ai-arxiv (when-let ((value (jds~pdf-drop-normalize-metadata-string
+  (let* ((ai-arxiv (when-let* ((value (jds~pdf-drop-normalize-metadata-string
                                       (plist-get ai :arxiv))))
                      (replace-regexp-in-string "\\`arxiv:" "" value t t)))
          (authors (or (jds~pdf-drop-normalize-authors (plist-get ai :authors))
@@ -320,7 +320,7 @@ Returns empty string on failure."
 Return the citekey on success, or nil otherwise."
   (catch 'done
     (dolist (query (jds~pdf-drop-metadata-queries metadata))
-      (when-let ((key (jds~pdf-drop-try-zotra-query query)))
+      (when-let* ((key (jds~pdf-drop-try-zotra-query query)))
         (jds/dired-add-file-to-bib key file)
         (throw 'done key)))))
 
@@ -340,7 +340,7 @@ Return the citekey on success, or nil otherwise."
     "%s\n\n"
     "PDF text from the first %d pages:\n---\n%s\n---")
    (file-name-nondirectory file)
-   (if-let ((pdf-title (jds~pdf-drop-normalize-metadata-string title)))
+   (if-let* ((pdf-title (jds~pdf-drop-normalize-metadata-string title)))
        (format "PDF metadata title: %s\n" pdf-title)
      "")
    (let ((hints (jds~pdf-drop-metadata-queries metadata)))
@@ -377,7 +377,7 @@ Return the citekey on success, or nil otherwise."
       "Text from the first %d pages:\n---\n%s\n---")
      (if metadata-lines
          (mapconcat #'identity metadata-lines "\n")
-       (if-let ((pdf-title (jds~pdf-drop-normalize-metadata-string title)))
+       (if-let* ((pdf-title (jds~pdf-drop-normalize-metadata-string title)))
            (format "PDF metadata title: %s" pdf-title)
          "No reliable metadata recovered."))
      jds/pdf-drop-ai-metadata-pages
@@ -440,7 +440,7 @@ Return the citekey on success, or nil otherwise."
           (jds~pdf-drop-request-ai-bibtex file title text local-metadata))
       (let* ((ai-metadata (jds~pdf-drop-parse-ai-metadata response))
              (metadata (jds~pdf-drop-merge-metadata local-metadata ai-metadata)))
-        (if-let ((key (jds~pdf-drop-try-import-from-metadata file metadata)))
+        (if-let* ((key (jds~pdf-drop-try-import-from-metadata file metadata)))
             (message "Imported bibliography entry for %s as %s"
                      (file-name-nondirectory file)
                      key)
@@ -454,7 +454,7 @@ TITLE is the PDF metadata title and SEED-IDENTIFIER is any earlier DOI/arXiv hin
              (file-name-nondirectory file))
     (let* ((text (jds/pdf-extract-text-pages file jds/pdf-drop-ai-metadata-pages))
            (local-metadata (jds~pdf-drop-local-metadata file title text seed-identifier)))
-      (if-let ((key (jds~pdf-drop-try-import-from-metadata file local-metadata)))
+      (if-let* ((key (jds~pdf-drop-try-import-from-metadata file local-metadata)))
           (message "Imported bibliography entry for %s as %s"
                    (file-name-nondirectory file)
                    key)
@@ -489,15 +489,15 @@ The return value is a cons like `(doi . VALUE)' or `(arxiv . VALUE)'."
     (dolist (method pdf-drop-search-methods)
       (pcase method
         ('doi/metadata
-         (when-let ((doi (pdf-drop-get-doi-from-metadata file)))
+         (when-let* ((doi (pdf-drop-get-doi-from-metadata file)))
            (when (pdf-drop-validate-doi doi)
              (throw 'found `(doi . ,doi)))))
         ('doi/content
-         (when-let ((doi (pdf-drop-get-doi-from-content file)))
+         (when-let* ((doi (pdf-drop-get-doi-from-content file)))
            (when (pdf-drop-validate-doi doi)
              (throw 'found `(doi . ,doi)))))
         ('arxiv/content
-         (when-let ((arxiv-id (pdf-drop-get-arxiv-id-from-content file)))
+         (when-let* ((arxiv-id (pdf-drop-get-arxiv-id-from-content file)))
            (when (pdf-drop-validate-arxiv-id arxiv-id)
              (throw 'found `(arxiv . ,arxiv-id)))))))))
 
@@ -506,7 +506,7 @@ The return value is a cons like `(doi . VALUE)' or `(arxiv . VALUE)'."
   "Process PDF at point: import by identifier, or fall back to AI."
   (interactive)
   (let ((filename (dired-copy-filename-as-kill 0)))
-    (if-let ((file-id (jds~pdf-drop-find-identifier filename)))
+    (if-let* ((file-id (jds~pdf-drop-find-identifier filename)))
         (let ((key (jds~pdf-drop-try-zotra-query (cdr file-id))))
           (if key
               (jds/dired-add-file-to-bib key filename)
@@ -555,7 +555,7 @@ a string specifying full filepath."
 (defun jds/pdf-ai-reinforce--paper-meta (citekey)
   "Return a plist of paper metadata for CITEKEY from bibtex-completion, or nil."
   (when (and citekey (fboundp 'bibtex-completion-get-entry))
-    (when-let ((entry (ignore-errors (bibtex-completion-get-entry citekey))))
+    (when-let* ((entry (ignore-errors (bibtex-completion-get-entry citekey))))
       (let ((title   (bibtex-completion-get-value "title"   entry))
             (year    (bibtex-completion-get-value "year"    entry))
             (keywords (bibtex-completion-get-value "keywords" entry)))
@@ -608,7 +608,7 @@ then constructs the expected path from `jds/references-library-path'."
 (defun jds~pdf-ai-summary-title (file &optional citekey)
   "Return a title for FILE, using CITEKEY metadata when available."
   (or (when citekey
-        (when-let ((entry (ignore-errors (citar-get-entry citekey))))
+        (when-let* ((entry (ignore-errors (citar-get-entry citekey))))
           (let ((title (citar-format--entry "${title}" entry)))
             (unless (string-empty-p (string-trim (or title "")))
               title))))
@@ -617,7 +617,7 @@ then constructs the expected path from `jds/references-library-path'."
 (defun jds~pdf-ai-summary-authors (citekey)
   "Return author text for CITEKEY, or nil if unavailable."
   (when citekey
-    (when-let ((entry (ignore-errors (citar-get-entry citekey))))
+    (when-let* ((entry (ignore-errors (citar-get-entry citekey))))
       (let ((authors (citar-format--entry "${author}" entry)))
         (unless (string-empty-p (string-trim (or authors "")))
           authors)))))
@@ -721,7 +721,7 @@ to append to the summary request (e.g. \"focus on the statistical methods\")."
    (list (car (citar-select-refs :multiple nil))
          (when current-prefix-arg
            (read-string "Extra instructions for AI summary: "))))
-  (if-let ((pdf (jds~pdf-ai-find-pdf citekey)))
+  (if-let* ((pdf (jds~pdf-ai-find-pdf citekey)))
       (jds~pdf-ai-request-summary
        pdf
        (lambda (response)

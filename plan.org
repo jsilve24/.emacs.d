@@ -19,6 +19,13 @@ if local package boundaries and load expectations were documented consistently.
 
 ** Module boundaries and coupling
 
+*** TODO Retire Emacs 31 compatibility patches when upstream includes the fixes
+`patches/` contains binding cookies for avy-flash and ol-emacs-slack, plus
+conditional-binding and contacts-mode matching fixes for consult-mu.
+`core-package-patches.el` reapplies them through Straight's prepare hook.
+On package upgrades, review any patch conflict instead of discarding local
+changes; remove patches and their hook entries when upstream incorporates them.
+
 *** TODO Re-check upstream extension points before carrying long-lived forks
 Now that current fork reasons are explicit, perform a focused upstream review
 for:

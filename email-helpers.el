@@ -27,7 +27,7 @@ default/fallback account."
   (eval-after-load 'mu4e
     (progn
     (when (version< mu4e-mu-version "1.4")
-      (when-let (address (cdr (assq 'user-mail-address letvars)))
+      (when-let* ((address (cdr (assq 'user-mail-address letvars))))
         (add-to-list 'mu4e-user-mail-address-list address)))
     ;; remove existing context with same label
     (setq mu4e-contexts

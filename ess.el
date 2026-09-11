@@ -153,7 +153,7 @@ When WEBSOCKET is nil, close the current buffer's local `essgd' websocket."
                                              (jds/essgd-buffer-name)))
                          (display-buffer buffer-or-name action frame))))))
           (essgd-start))
-        (when-let ((buffer (jds/essgd-get-buffer)))
+        (when-let* ((buffer (jds/essgd-get-buffer)))
           (with-current-buffer buffer
             (jds/essgd-record-device-number)))))))
 

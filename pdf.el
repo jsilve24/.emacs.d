@@ -12,6 +12,38 @@
   (pdf-loader-install t)
   ;; open pdfs scaled to fit page
   (setq-default pdf-view-display-size 'fit-page)
+
+  ;; EXWM requires pixelwise window resizing, but pdf-tools normally redraws a
+  ;; fit-to-window page synchronously for every intermediate size.  Coalesce
+  ;; those redraws so rapid resizing cannot monopolize Emacs.
+  (defvar-local jds/pdf-view--resize-timer nil)
+
+  (defun jds/pdf-view--redisplay-after-resize (buffer)
+    "Redisplay resized PDF windows belonging to BUFFER."
+    (when (buffer-live-p buffer)
+      (with-current-buffer buffer
+        (setq jds/pdf-view--resize-timer nil)
+        (pdf-view-redisplay-some-windows))))
+
+  (defun jds/pdf-view--schedule-resize-redisplay ()
+    "Schedule one PDF redisplay after window resizing settles."
+    (when (timerp jds/pdf-view--resize-timer)
+      (cancel-timer jds/pdf-view--resize-timer))
+    (setq jds/pdf-view--resize-timer
+          (run-with-idle-timer
+           0.15 nil
+           #'jds/pdf-view--redisplay-after-resize
+           (current-buffer))))
+
+  (defun jds/pdf-view--debounce-resize-redisplay ()
+    "Replace pdf-tools' synchronous resize redraw with a debounced one."
+    (remove-hook 'window-configuration-change-hook
+                 #'pdf-view-redisplay-some-windows t)
+    (add-hook 'window-configuration-change-hook
+              #'jds/pdf-view--schedule-resize-redisplay nil t))
+
+  (add-hook 'pdf-view-mode-hook #'jds/pdf-view--debounce-resize-redisplay)
+
   ;; automatically annotate highlights
   ;; (setq pdf-annot-activate-created-annotations t)
 

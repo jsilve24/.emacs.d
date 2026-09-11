@@ -178,7 +178,7 @@ targets."
 
   (defun embark-hide-which-key-indicator (fn &rest args)
     "Hide the which-key indicator immediately when using the completing-read prompter."
-    (when-let ((win (get-buffer-window which-key--buffer
+    (when-let* ((win (get-buffer-window which-key--buffer
 				       'visible)))
       (quit-window 'kill-buffer win)
       (let ((embark-indicators (delq #'embark-which-key-indicator embark-indicators)))
@@ -398,7 +398,7 @@ targets."
 ;;;; 1. project.el (project-roots)
   ;; (setq consult-project-root-function
   ;; (lambda ()
-  ;; (when-let (project (project-current))
+  ;; (when-let* (project (project-current))
   ;; (car (project-roots project)))))
 ;;;; 2. projectile.el (projectile-project-root)
   (autoload 'projectile-project-root "projectile")

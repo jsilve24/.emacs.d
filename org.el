@@ -209,6 +209,12 @@
 		    )
 	   :jump-to-captured t
 	   :tree-type month)
+	  ("mPd" "meeting Dharmik" entry (file+olp+datetree "~/Dropbox/org/mtx-dharmik.org")
+	   ,(concat "* MEETING %u with Dharmik :MEETING:w_dharmik:\n"
+		    "** Future Plans\n"
+		    )
+	   :jump-to-captured t
+	   :tree-type month)
 	  ("mPa" "meeting Allen" entry (file+olp+datetree "~/Dropbox/org/mtx-allen.org")
 	   ,(concat "* MEETING %u with Allen :MEETING:w_allen:\n")
 	   :jump-to-captured t
@@ -364,8 +370,9 @@ minutes), and return a formatted Org timestamp with start and end times."
 	    (lambda () (advice-remove 'texmathp 'org--math-always-on)))
   
 
-  ;; for some reason this was needed when I first put this config together
-  (org-reload))
+  ;; Straight already loads this Org version.  Reloading here also attempts
+  ;; to reload local Babel backends from Org's own directory (e.g. ob-stan).
+  )
 
 
 ;; not sure this is needed and it seemed to be trying to download a different version of emacs...

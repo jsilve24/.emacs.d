@@ -1,0 +1,9 @@
+diff --git a/ol-emacs-slack.el b/ol-emacs-slack.el
+index 1b86c78..23c0366 100644
+--- a/ol-emacs-slack.el
++++ b/ol-emacs-slack.el
+@@ -1,3 +1,4 @@
++;;; ol-emacs-slack.el --- Compatibility header -*- lexical-binding: nil; -*-
+ ;;; ol-emacs-slack.el --- Support for links to emacs-slack chats in Org mode
+ 
+ ;; Copyright (C) 2020 Andrea Giugliano

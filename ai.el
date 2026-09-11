@@ -56,7 +56,7 @@ Set to `anthropic' or `openai', then reload this file."
     ('openai
      (setq gptel-backend jds/gptel-openai-backend
 	   ;; gptel-model 'gpt-5-nano
-	   gptel-model 'gpt-5.4))
+	   gptel-model 'gpt-5.6-terra))
     ('local
      (setq gptel-backend jds/gptel-local-backend
 	   gptel-model 'gemma4:e2b))

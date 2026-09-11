@@ -14,12 +14,17 @@
 
 ;; (setq native-comp-deferred-compilation nil)
 
-(when (seq-contains command-line-args "--use-exwm")
-  (setq jds~use-wm t))
+;; Consume our custom option before Emacs treats remaining arguments as files.
+(when (member "--use-exwm" command-line-args)
+  (setq jds~use-wm t
+        command-line-args (delete "--use-exwm" command-line-args)
+        command-line-args-left (delete "--use-exwm" command-line-args-left)))
 (unless (boundp 'jds~use-wm)
   (setq jds~use-wm nil))
 (unless (boundp 'jds~skip-email)
   (setq jds~skip-email nil))
+(unless (boundp 'jds~skip-slack)
+  (setq jds~skip-slack nil))
 
 ;;; Modules
 ;; Load order matters. See MAINTENANCE.md for the rationale and grouping.
@@ -81,7 +86,8 @@
 
 
 ;;; "optional" applications
-(load-config "slack.el")
+(unless jds~skip-slack
+  (load-config "slack.el"))
 ;; (load-config "spotify.el")
 (load-config "bitwarden.el")
 (load-config "elfeed.el")
@@ -119,6 +125,28 @@
      "3c83b3676d796422704082049fc38b6966bcad960f896669dfc21a7a37a748fa"
      "c74e83f8aa4c78a121b52146eadb792c9facc5b1f02c917e3dbb454fca931223"
      "a27c00821ccfd5a78b01e4f35dc056706dd9ede09a8b90c6955ae6a390eb1c1e" default))
+ '(org-agenda-files
+   '("/home/jds6696/Dropbox/org/cal-gmail.org"
+     "/home/jds6696/Dropbox/org/cal-psu.org"
+     "/home/jds6696/Dropbox/org/calendar.org"
+     "/home/jds6696/Dropbox/org/croptix-hours.org"
+     "/home/jds6696/Dropbox/org/inbox.org"
+     "/home/jds6696/Dropbox/org/inbox_mobile.org"
+     "/home/jds6696/Dropbox/org/mail.org"
+     "/home/jds6696/Dropbox/org/meetings_personal.org"
+     "/home/jds6696/Dropbox/org/meetings_psu.org"
+     "/home/jds6696/Dropbox/org/mtx-allen.org"
+     "/home/jds6696/Dropbox/org/mtx-edward.org"
+     "/home/jds6696/Dropbox/org/mtx-manan.org"
+     "/home/jds6696/Dropbox/org/mtx-maxwell.org"
+     "/home/jds6696/Dropbox/org/mtx-tinghua.org"
+     "/home/jds6696/Dropbox/org/mtx-vandana.org"
+     "/home/jds6696/Dropbox/org/mtx-won.org"
+     "/home/jds6696/Dropbox/org/notes.org"
+     "/home/jds6696/Dropbox/org/readinglist.org"
+     "/home/jds6696/Dropbox/org/resources.org"
+     "/home/jds6696/Dropbox/org/tasks-homewood.org"
+     "/home/jds6696/Dropbox/org/tasks.org"))
  '(safe-local-variable-values
    '((eval setq-local ess-startup-directory default-directory)))
  '(warning-suppress-log-types '((comp))))
@@ -127,7 +155,8 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(aw-leading-char-face ((t (:inherit ace-jump-face-foreground :height 2.5 :foreground "red")))))
+ '(aw-leading-char-face ((t (:inherit ace-jump-face-foreground :height 2.5 :foreground "red"))))
+ '(org-latex-and-related ((((class color) (min-colors 256)) :inherit default :foreground "#ffffff" :background unspecified))))
 (put 'narrow-to-region 'disabled nil)
 (put 'scroll-left 'disabled nil)
 (put 'list-timers 'disabled nil)

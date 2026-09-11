@@ -1,3 +1,4 @@
+;;; dired.el --- Local configuration -*- lexical-binding: nil; -*-
 ;;; setup default dired -- cheatsheet here:
 ;; https://github.com/daviwil/emacs-from-scratch/blob/8c302a79bf5700f6ef0279a3daeeb4123ae8bd59/Emacs.org#dired
 ;; more here: https://github.com/Fuco1/dired-hacks/tree/7c0ef09d57a80068a11edc74c3568e5ead5cc15a#dired-open

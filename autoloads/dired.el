@@ -1,3 +1,4 @@
+;;; dired.el --- Local configuration -*- lexical-binding: nil; -*-
 ;;;###autoload
 (defun async-shell-command-no-window (command)
   (interactive)

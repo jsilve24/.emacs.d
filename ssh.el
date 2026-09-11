@@ -1,3 +1,4 @@
+;;; ssh.el --- Local configuration -*- lexical-binding: nil; -*-
 (defconst jds/roar-tramp-shell-prompt-pattern
   "\\(?:^\\|\r\\)\\[[^]\n]+\\][^%\n]*%[[:blank:]]*"
   "Match the initial Zsh prompt used by Roar submit nodes.")
