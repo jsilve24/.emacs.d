@@ -101,8 +101,12 @@
   (evil-collection-define-key 'normal 'mu4e-headers-mode-map "M" #'mu4e-headers-mark-for-move)
   (evil-collection-define-key 'normal 'dired-mode-map "M" #'dired-mark)
 
-  ;; don't use in hungry-delete
-  (setq evil-collection-mode-list (remove 'hungry-delete evil-collection-mode-list))
+  ;; `evil-org' owns the agenda bindings below.  Enabling Evil Collection's
+  ;; competing agenda map makes `d' a command, so `evil-org-agenda-set-keys'
+  ;; can no longer install its `dd' binding when an agenda buffer opens.
+  (setq evil-collection-mode-list
+        (remove 'org-agenda
+                (remove 'hungry-delete evil-collection-mode-list)))
 
   (evil-collection-init))
 
