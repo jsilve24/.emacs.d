@@ -192,65 +192,78 @@
 (straight-use-package 'all-the-icons)
 (use-package all-the-icons)
 
-(use-package smart-mode-line
+(defvar jds~hidden-minor-modes
+  '(yas-minor-mode
+    citar-embark-mode
+    evil-traces-mode
+    citar-org-roam-mode
+    org-roam-bibtex-mode
+    evil-snipe-mode
+    evil-snipe-override-mode
+    evil-snipe-local-mode
+    undo-tree-mode
+    auto-revert-mode
+    dired-hide-dotfiles-mode
+    eldoc-mode
+    abbrev-mode
+    which-key-mode
+    lispyville-mode
+    evil-owl-mode
+    evil-collection-unimpaired-mode
+    desktop-environment-mode
+    consult-org-roam-mode
+    lispy-mode
+    synosaurus-mode
+    evil-goggles-mode
+    org-indent-mode
+    flyspell-mode
+    evil-org-mode
+    org-cdlatex-mode
+    cdlatex-mode
+    reftex-mode
+    gcmh-mode
+    visual-line-mode)
+  "Minor modes to collapse in the mode line.")
+
+(use-package emacs
   :config
-  ;; give a bit extra space to battery indicator 
-  (setq	sml/battery-format " %p ")
-  (setq sml/extra-filler -6)
+  (setq battery-mode-line-format " %p "
+        display-time-default-load-average nil
+        mode-line-collapse-minor-modes jds~hidden-minor-modes
+        mode-line-collapse-minor-modes-to " …"
+        mode-line-modes-delimiters '(" " . "")
+        mode-line-right-align-edge 'window)
 
-  ;; setup 
-  (sml/setup)
+  ;; Keep the standard mode line, but put global information such as the
+  ;; clock and appointment reminders against the right edge of the window.
+  (setq-default
+   mode-line-format
+   '("%e"
+     mode-line-front-space
+     mode-line-mule-info
+     mode-line-client
+     mode-line-modified
+     mode-line-remote
+     mode-line-window-dedicated
+     mode-line-frame-identification
+     mode-line-buffer-identification
+     "   "
+     mode-line-position
+     (project-mode-line project-mode-line-format)
+     (vc-mode vc-mode)
+     "  "
+     mode-line-modes
+     mode-line-format-right-align
+     mode-line-misc-info
+     mode-line-end-spaces))
 
-  ;; seem to need to toggle display-time-mode to make system load not show up
-  ;; this is very hacky but it seems to work. 
-  (display-time-mode 0)
-  (setq display-time-default-load-average nil)
   (display-time-mode 1)
 
-  ;; don't show line number in mode-line (already show line-numbers when needed with fringe)
+  ;; Line numbers are already shown in the fringe when needed.
   (line-number-mode 0))
 
 (use-package diminish
-  :defer t
-  :config
-
-  (defvar jds~hidden-minor-modes
-    '(yas-minor-mode
-      citar-embark-mode
-      evil-traces-mode
-      citar-org-roam-mode
-      org-roam-bibtex-mode
-      evil-snipe-mode
-      evil-snipe-override-mode
-      evil-snipe-local-mode
-      undo-tree-mode
-      auto-revert-mode
-      dired-hide-dotfiles-mode
-      eldoc-mode
-      abbrev-mode
-      which-key-mode
-      lispyville-mode
-      evil-owl-mode
-      evil-collection-unimpaired-mode
-      desktop-environment-mode
-      consult-org-roam-mode
-      lispy-mode
-      synosaurus-mode
-      evil-goggles-mode
-      org-indent-mode
-      flyspell-mode
-      evil-org-mode
-      org-cdlatex-mode
-      org-indent-mode
-      cdlatex-mode
-      reftex-mode
-      gcmh-mode
-      visual-line-mode))
-
-  (defun jds~purge-minor-modes ()
-    (mapc 'diminish jds~hidden-minor-modes))
-
-  (add-hook 'after-change-major-mode-hook 'jds~purge-minor-modes))
+  :defer t)
 
 ;;; Olivetti Mode
 
