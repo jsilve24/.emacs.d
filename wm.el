@@ -280,7 +280,7 @@
   (setq desktop-environment-update-exwm-global-keys nil
 	desktop-environment-brightness-get-command "xbacklight -get"
 	desktop-environment-brightness-set-command "xbacklight %s"
-	desktop-environment-brightness-get-regexp "\\([0-9]+\n\\)"
+	desktop-environment-brightness-get-regexp "\\([0-9]+\\)"
 	desktop-environment-brightness-normal-increment "+10"
 	desktop-environment-brightness-normal-decrement "-10"
 	desktop-environment-brightness-small-increment "+5"
