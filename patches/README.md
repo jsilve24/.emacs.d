@@ -5,9 +5,10 @@ which also runs for existing installations. Reapplying a patch is a no-op.
 Conflicts produce a warning and leave the checkout intact; review the patch
 against the updated source before rebuilding the package.
 
-- `avy-flash` and `ol-emacs-slack`: explicitly retain dynamic binding with
-  `lexical-binding: nil`. This resolves the missing-cookie warning without
-  changing the packages' binding semantics.
+- `avy-flash`, `ol-emacs-slack`, and `org-pdftools`: explicitly retain dynamic
+  binding with `lexical-binding: nil`. This resolves the missing-cookie warning
+  without changing the packages' binding semantics. The `org-pdftools` patch
+  applies to its `org-noter-pdftools.el` integration file.
 - `consult-mu`: replace obsolete conditional binding macros (including the old
   single-binding shorthand), and quote mode symbols in the contacts history
   matcher so that unrelated modes reach the fallback branch.

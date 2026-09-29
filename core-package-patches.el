@@ -4,7 +4,8 @@
   "Apply PACKAGE's compatibility patch before Straight builds it.
 Already-applied patches are left alone.  Upstream conflicts produce a
 warning without overwriting package changes or interrupting startup."
-  (when (member package '("avy-flash" "ol-emacs-slack" "consult-mu"))
+  (when (member package '("avy-flash" "ol-emacs-slack" "consult-mu"
+                          "org-pdftools"))
     (let ((default-directory
            (expand-file-name (concat "straight/repos/" package "/")
                              user-emacs-directory))

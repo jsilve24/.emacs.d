@@ -1,0 +1,10 @@
+diff --git a/org-noter-pdftools.el b/org-noter-pdftools.el
+index f50fc43..b5ee3be 100644
+--- a/org-noter-pdftools.el
++++ b/org-noter-pdftools.el
+@@ -1,4 +1,4 @@
+-;;; org-noter-pdftools.el --- Integration between org-pdftools and org-noter
++;;; org-noter-pdftools.el --- Integration between org-pdftools and org-noter  -*- lexical-binding: nil; -*-
+ ;; Copyright (C) 2020 Alexander Fu Xi
+ 
+ ;; Author: Alexander Fu Xi <fuxialexander@gmail.com>
