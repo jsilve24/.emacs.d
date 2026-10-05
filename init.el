@@ -128,6 +128,7 @@
  '(org-agenda-files
    '("/home/jds6696/Dropbox/org/cal-gmail.org"
      "/home/jds6696/Dropbox/org/cal-psu.org"
+     "/home/jds6696/Dropbox/org/birthdays.org"
      "/home/jds6696/Dropbox/org/calendar.org"
      "/home/jds6696/Dropbox/org/croptix-hours.org"
      "/home/jds6696/Dropbox/org/inbox.org"

@@ -1,0 +1,442 @@
+#+title: Exchange calendar write-back plan
+#+startup: overview
+
+* Goal
+
+Add a safe two-way synchronization between
+=~/Dropbox/org/calendar.org= and the dedicated =EmacsSync= calendar in the
+PSU Microsoft Exchange account.
+
+Allow events created or edited on either side to propagate to the other while
+preserving the current read-only import of the default Exchange calendar and
+avoiding duplicates or accidental deletion of unrelated appointments.
+
+* Current state (2026-10-05)
+
+- =calendar.el= runs =~/bin/get_exchange_cal.sh= shortly after startup.
+- The script downloads the published Exchange ICS feed and converts it to
+  =~/Dropbox/org/cal-psu.org= with =ical2orgpy=.
+- This is a read-only feed.  An ICS subscription URL cannot be used to create,
+  edit, or delete Exchange events.
+- Org capture keys =cc=, =ca=, and =ct= create local events under the
+  =Calendar= heading in =~/Dropbox/org/calendar.org=.
+- DavMail is already installed and configured for the PSU Microsoft 365
+  account.  SMTP uses =localhost:1025=, and the DavMail CalDAV listener is
+  configured on port =1080=.  On 2026-10-05, =davmail.allowRemote= was changed
+  to =false= and DavMail was restarted.  An unauthenticated localhost request
+  then received HTTP 401, confirming that the listener is running locally and
+  requires authentication.
+- =org-caldav= is installed and configured in =calendar.el=.  The initial push
+  succeeded, but the next sync exposed two DavMail compatibility issues and
+  two local multi-date headings; the recovery described below is complete.
+- The old =org-gcal= setup at the top of =calendar.el= is commented out.
+- A dedicated Exchange calendar named =EmacsSync= has been created in
+  Outlook.  The DavMail collection URL was verified on 2026-10-05: it first
+  returned an empty DavMail-generated =VCALENDAR=; after an event named =test=
+  was created directly in Outlook's =EmacsSync= calendar, the same URL returned
+  exactly one =VEVENT= with summary =test= and no other events or tasks.  This
+  confirms that the configured path maps specifically to =EmacsSync=.  The
+  user subsequently recreated =EmacsSync=.  A fresh authenticated GET on
+  2026-10-05 returned HTTP 200 with zero =VEVENT=s, so the same verified
+  collection is empty and ready for a clean retry.
+- A byte-for-byte backup was created before any synchronization changes:
+
+  #+begin_example
+  ~/Dropbox/org/calendar.org.backup-2026-10-05-pre-emacssync
+  SHA-256: 64379be58ac12b759a32f8e72be940d3da0825b53c44bd3806898a61288fd191
+  #+end_example
+
+  The original had the same checksum when the backup was verified.
+- An offline iCalendar preview was generated from a private temporary copy on
+  2026-10-05.  No DavMail or Exchange endpoint was contacted.  Org exported
+  419 =VEVENT=s with 419 unique UIDs and no duplicate UID values: 33 all-day,
+  386 timed, and 28 recurring.  Of those events, 404 start before 2026-10-05,
+  2 start on that date, and 13 start later.  Every event had a summary and an
+  end time.  The original =calendar.org= still matched the verified backup at
+  SHA-256 =64379be58ac12b759a32f8e72be940d3da0825b53c44bd3806898a61288fd191=
+  after the preview.
+- Before synchronization, Org's built-in =org-archive-subtree= command was
+  used programmatically to move all non-recurring entries whose active
+  timestamps ended before 2026-10-05 into =calendar.org_archive=.  A dry run
+  on private copies was performed first.  The live operation archived 375
+  topmost subtrees (387 headings including nested children), leaving 48
+  headings in =calendar.org=.  Active repeating entries were deliberately
+  retained even when their series began in the past.
+- The post-archive iCalendar preview contains 43 =VEVENT=s with unique UIDs:
+  28 recurring, 28 all-day, and 15 timed.  No non-recurring historical
+  heading remains eligible for the same archive rule.  The live file exactly
+  matched the tested dry-run result at SHA-256
+  =d02e8250587355f6714437dd27c78326e1180ca8269bc52c66e64249f838058a=.
+- The immediately preceding live files can be restored from:
+
+  #+begin_example
+  ~/Dropbox/org/calendar.org.backup-2026-10-05-pre-archive
+  SHA-256: 64379be58ac12b759a32f8e72be940d3da0825b53c44bd3806898a61288fd191
+
+  ~/Dropbox/org/calendar.org_archive.backup-2026-10-05-pre-calendar-cleanup
+  SHA-256: ed389b6cbdb1d827a3cba8aeed964db3511220482e4f230da61fb71f5fc8643b
+  #+end_example
+- The complete top-level =Birthdays= subtree was subsequently moved with
+  Org's subtree commands from =calendar.org= into
+  =~/Dropbox/org/birthdays.org=.  It contains 27 birthday headings and exports
+  28 recurring =VEVENT=s.  The new file is included in =org-agenda-files= but
+  is deliberately absent from =org-caldav-files=, so birthdays remain visible
+  in the Org agenda without being uploaded to =EmacsSync=.  The remaining
+  =calendar.org= has 18 headings and exports 15 =VEVENT=s.  The tested and live
+  files matched exactly after the move.
+- The immediately preceding combined calendar can be restored from:
+
+  #+begin_example
+  ~/Dropbox/org/calendar.org.backup-2026-10-05-pre-birthday-move
+  SHA-256: 574644a17f9c29b01674391d339ed2c1c956a51850ba28d54f95117fc3e9b0b7
+  #+end_example
+- A final byte-for-byte snapshot of the 15-event calendar was created after
+  the archive and birthday split, immediately before the first CalDAV test:
+
+  #+begin_example
+  ~/Dropbox/org/calendar.org.backup-2026-10-05-pre-first-caldav-sync
+  SHA-256: f07eaae48ce151d3f433363bb5ba2f6fd5f83e5e31b308e6063ad2377edb40e2
+  #+end_example
+
+  The live file had the same checksum, its Emacs buffer was saved, and the
+  org-caldav state directory was still empty when the backup was verified.
+- Recovery from the failed second sync was completed on 2026-10-05:
+  - DavMail exposes event resources as =.EML=, so
+    =org-caldav-uuid-extension= is now =".EML"=.  The former =.ics= default
+    filtered remote events out and made them appear deleted.
+  - Exchange EWS rejected =America/New_York= as =ErrorTimeZone=.  The exporter
+    now uses Exchange's Windows identifier =Eastern Standard Time=.
+  - The BGEN dates on 2026-10-16 and 2026-10-19 now have separate headings and
+    IDs.  The historical 2026-09-16 CDNE occurrence was separated from its
+    2026-10-14 heading and archived with =org-archive-subtree=.
+  - The failed state was preserved as
+    =~/.emacs.d/var/org/caldav/save/org-caldav-32fcccb.el.failed-2026-10-05=
+    (SHA-256
+    =3c65ef17f8af11014317cf323a70670ff41adf8be731a2e90ee263e4d715f58f=),
+    and the active state filename was removed for the clean retry.
+  - A local-only org-caldav export now has 12 =VEVENT=s, 12 unique UIDs, and
+    =X-WR-TIMEZONE:Eastern Standard Time=.
+- Recovery snapshots were created both before and after the cleanup:
+
+  #+begin_example
+  ~/Dropbox/org/calendar.org.backup-2026-10-05-pre-clean-retry
+  SHA-256: 215c8409eda98918fcad9ac019c95113829fd4e4633d5a64e7337e468dbb4e28
+
+  ~/Dropbox/org/calendar.org.backup-2026-10-05-ready-for-clean-sync
+  SHA-256: 65e9c212b3970d11355e5287fe406915fd4dc561dcfcc17cb50eaddab94c8ba8
+
+  ~/Dropbox/org/calendar.org_archive.backup-2026-10-05-ready-for-clean-sync
+  SHA-256: 1797203859e6ce836ec73811e12f82c998898fa788e5bd279c54a4887638ada1
+  #+end_example
+
+* Implemented href-aware synchronizer (2026-10-05)
+
+The original org-caldav sync engine is not compatible with DavMail/Exchange:
+DavMail accepts a client-selected resource name on creation but returns a new
+Exchange =AAMk...EML= href.  Org-caldav assumes the Org ID, iCalendar UID, and
+CalDAV resource name are identical.  On the second sync it therefore imported
+the Exchange resources as new events and treated the original Org entries as
+remote deletions.
+
+The damaged local file was restored byte-for-byte from the clean pre-sync
+backup.  The damaged copy and mixed-ID org-caldav state were retained for
+forensics.  Org-caldav's sync command is now deliberately disabled for this
+calendar.
+
+The replacement lives in =calendar-exchange.el=.  It uses org-caldav only for
+iCalendar export/import conversion and implements its own href-aware state:
+
+- Org =ID= remains stable.
+- =EXCHANGE_HREF= stores DavMail's assigned resource URL.
+- =EXCHANGE_ETAG= stores the last observed Exchange ETag.
+- =EXCHANGE_REMOTE_UID= records the iCalendar UID independently.
+- =~/.emacs.d/var/calendar-exchange/state.sexp= stores the last synchronized
+  local hash, remote semantic hash, href, ETag, remote UID, and title.  It is
+  mode 0600, data-only, and atomically replaced after each successful action.
+- A changed ETag with unchanged remote content is accepted without rewriting
+  Org, avoiding Exchange normalization churn.
+- Conflicts stop the sync.  Deletions prompt in either direction.
+- =jds/exchange-calendar-dry-run= displays a read-only plan.
+- =jds/exchange-calendar-sync-entry= synchronizes only the entry at point.
+- =jds/exchange-calendar-import-new= only imports untracked remote events.
+- =jds/exchange-calendar-sync= runs the guarded full two-way sync.
+
+The isolated integration test verified create, post-create ETag settling,
+repeat no-op, local-to-remote update, remote-to-local update, remote import,
+local-to-remote deletion, and remote-to-local deletion.  Both disposable test
+events were removed afterward, leaving the Org file byte-for-byte equal to its
+pre-test backup and =EmacsSync= empty.
+
+The controlled migration then created all 12 local events.  A subsequent
+read-only inventory and dry run reported exactly 12 local events, 12 remote
+resources, 12 tracked mappings, and 12 =unchanged= actions.  After Exchange
+finished processing the uploads, it revised all 12 ETags without changing
+event content.  A guarded reconciliation fetched each resource, confirmed
+that its semantic hash was unchanged, and updated only the mapping metadata
+and state.  A final dry run again reported 12 =unchanged= actions; the
+=calendar.org= buffer was saved and unmodified.
+
+Post-migration recovery snapshots:
+
+#+begin_example
+~/Dropbox/org/calendar.org.backup-2026-10-05-post-href-migration
+SHA-256: d229d76bccc6efd30c5f6c0cf5d03e4bd2e6da5b6044f8a63ae34e4f1147d91b
+
+~/.emacs.d/var/calendar-exchange/state.sexp.backup-2026-10-05-post-migration
+SHA-256: ae3200d054757c141f3fa67b0987174fa39ee38c498da07e5ed9faaf0f7ee051
+
+~/Dropbox/org/calendar.org.backup-2026-10-05-post-href-reconcile
+SHA-256: 5475f8983956d74c25cb2273888f89559fcb924aac236c51b4c754f87b7795b5
+
+~/.emacs.d/var/calendar-exchange/state.sexp.backup-2026-10-05-post-reconcile
+SHA-256: 2f3c2a01de8b0204db39adf81bff0754e993bd8e46c78a3b42e55a95afb715d3
+#+end_example
+
+* Superseded design: direct org-caldav synchronization
+
+Use =org-caldav= to synchronize the complete local calendar file with only the
+dedicated =EmacsSync= Exchange calendar through the existing local DavMail
+CalDAV gateway:
+
+#+begin_example
+calendar.org ↔ org-caldav ↔ localhost:1080 ↔ DavMail ↔ EmacsSync
+default Exchange calendar → published ICS → get_exchange_cal.sh → cal-psu.org
+#+end_example
+
+The initial configuration should be deliberately narrow:
+
+- Keep the existing Exchange-to-Org fetch unchanged.
+- Configure =org-caldav-sync-direction= as =twoway= from the first sync and do
+  not later switch this calendar between one-way and two-way modes.
+- Pair only =calendar.org= with only the dedicated =EmacsSync= collection.
+- Do not use =org-caldav-select-tags=.  A remote-created event imported into
+  Org would not necessarily have the selection tag; omitting it from the next
+  export could then look like a local deletion.
+- Set both local-to-remote and remote-to-local deletion policies to =ask=.
+- Initially allow remote changes to update only the Org title and timestamp,
+  preserving local body text that cannot round-trip safely through iCalendar.
+- Run pushes manually with =M-x org-caldav-sync= until the behavior has been
+  observed and trusted.  Do not add startup, save, or periodic push hooks in
+  the first implementation.
+- Use =calendar.org= as both =org-caldav-files= and =org-caldav-inbox= so events
+  created in Outlook's =EmacsSync= calendar are inserted into the same file.
+
+Org-caldav will add stable =ID= or =UID= properties to synchronized entries and
+maintain a separate state file.  Those identifiers and the state file are part
+of the synchronization data and must be preserved.
+
+* Decisions needed before implementation
+
+** Resolved: which Exchange calendar receives events?
+
+Use the dedicated =EmacsSync= calendar created in Outlook.  Do not point
+org-caldav at the populated default Exchange calendar.
+
+The configured DavMail collection URL has been verified against an
+Outlook-created test event and maps to =EmacsSync=.
+
+** Resolved: what is the synchronization unit?
+
+Synchronize the whole of =calendar.org= with =EmacsSync=.  Do not use an
+=:EXCHANGE:= selection tag in the two-way configuration.
+
+This means the first sync is a migration: all exportable events already in
+=calendar.org= will be uploaded to the initially empty =EmacsSync= calendar.
+Review the local file and estimate that first-sync scope before running it.
+
+** Resolved: where is org-caldav state stored?
+
+The existing =no-littering= package redirects =org-caldav-save-directory= to
+=~/.emacs.d/var/org/caldav/save/= and creates it when org-caldav loads.  Keep
+that default for this single-machine setup; no additional calendar
+configuration is needed.  The state file records UID, content hash, remote
+ETag, sequence, status, and the previously synced files so org-caldav can tell
+which side changed or deleted an event.  Preserve it alongside the Org backup
+when recovering from a failed sync.
+
+If another machine is later allowed to sync the same =calendar.org= and
+=EmacsSync= calendar, revisit this decision: both machines would need a
+carefully coordinated state strategy and must not sync concurrently.
+
+** Resolved: authentication storage
+
+Reuse the existing single-line encrypted password in
+=~/.psu_mailpass.gpg=.  Immediately before =org-caldav-sync=,
+=jds/calendar--install-davmail-auth= decrypts that file into a temporary buffer
+and seeds Emacs's in-memory Basic-auth cache for =127.0.0.1:1080= and the
+=DavMail Gateway= realm.  It does not create another persistent password copy
+or log the plaintext.  The cache naturally disappears when Emacs exits.
+
+An authenticated read-only request on 2026-10-05 returned HTTP 200 and zero
+=VEVENT=s from the verified =EmacsSync= collection.  This confirms both the
+credential bridge and the calendar's empty pre-sync state.  The new CalDAV
+configuration was also evaluated in the running Emacs session; no restart is
+required before the controlled first sync.
+
+* Security preflight
+
+- DONE: because every configured client currently uses =localhost=,
+  =davmail.allowRemote=false= prevents DavMail from accepting connections from
+  other machines.  DavMail was restarted and its authenticated localhost
+  listener remains available.
+- Back up both =calendar.org= and the target Exchange calendar before the
+  first synchronization.  The local pre-sync backup is already complete;
+  verify that =EmacsSync= is empty immediately before the first sync.
+- Do not reuse the published ICS URL as a credential or write endpoint; it is
+  read-only and should be treated as private.
+
+The DavMail properties file is managed outside this Emacs repository through
+the dotfiles setup.  Any change there should be made in its owning repository,
+not by replacing the symlink from this project.
+
+* Implementation outline
+
+** Phase 1: validate DavMail CalDAV independently
+
+1. Start DavMail using the existing Microsoft 365 configuration.
+2. Verify that the local CalDAV endpoint responds on =127.0.0.1:1080=.
+3. Discover or confirm the target calendar collection.  DavMail commonly uses
+   the default collection shown below, but the named =EmacsSync= collection
+   may be a subcollection and must be discovered rather than guessed:
+
+   #+begin_example
+   http://127.0.0.1:1080/users/ACCOUNT/calendar
+   #+end_example
+
+   Keep the actual account identifier out of tracked configuration where
+   practical.
+4. DONE: the Outlook-created =test= event was the sole event returned through
+   the configured URL, confirming that it resolves to =EmacsSync=.
+5. DONE: the user deleted =test= in Outlook and confirmed that =EmacsSync= is
+   empty again.
+
+** Phase 2: validate the guarded =org-caldav= configuration
+
+A small =use-package org-caldav= block now exists in =calendar.el=.  It uses
+the following settings:
+
+#+begin_src emacs-lisp
+(use-package org-caldav
+  :commands org-caldav-sync
+  :custom
+  (org-caldav-url
+   "http://127.0.0.1:1080/users/jds6696@psu.edu/calendar")
+  (org-caldav-calendar-id "EmacsSync")
+  (org-caldav-uuid-extension ".EML")
+  (org-caldav-files '("~/Dropbox/org/calendar.org"))
+  (org-caldav-inbox "~/Dropbox/org/calendar.org")
+  (org-caldav-sync-direction 'twoway)
+  (org-caldav-sync-changes-to-org 'title-and-timestamp)
+  (org-caldav-delete-org-entries 'ask)
+  (org-caldav-delete-calendar-entries 'ask)
+  (org-caldav-backup-file "~/Dropbox/org/calendar-caldav-backup.org")
+  (org-icalendar-timezone "Eastern Standard Time"))
+#+end_src
+
+Org-caldav combines the URL and calendar ID into the tentative collection URL
+=http://127.0.0.1:1080/users/jds6696@psu.edu/calendar/EmacsSync/=.  Verify that
+DavMail reports this collection as =EmacsSync= before invoking a sync; change
+the base URL or calendar ID if DavMail exposes it under a different path.
+
+Do not bind a key initially.  If a global leader binding is wanted after the
+test period, add it to =bindings.el= rather than =calendar.el=.
+
+** Phase 3: controlled end-to-end test
+
+1. DONE: Make local backups.  Both =calendar.org= and its pre-existing archive
+   were backed up immediately before the historical archive operation.
+2. DONE: Review =calendar.org= for stale/private entries and estimate how many
+   entries Org's iCalendar exporter will upload.  After historical entries
+   were archived and birthdays moved to their agenda-only file, the offline
+   preview exported 15 events from the 18 remaining headings.
+3. DONE: Verify again that the remote =EmacsSync= collection is empty.  The
+   post-recreation authenticated GET returned HTTP 200 and zero events.
+4. DONE: Repair the failed-sync causes, preserve the failed state, and create
+   a new clean-state backup.  The local-only export has 12 unique events.
+5. NEXT: Run =M-x org-caldav-sync= manually and save all diagnostic output.
+   With the active state reset and remote calendar empty, this is a clean first
+   sync and should upload all 12 exportable events exactly once.
+6. Confirm that events appear only in =EmacsSync= with the correct titles,
+   dates, time zones, durations, descriptions, and identifiers.
+7. Change the test event's time in Org and sync again.  Confirm the remote
+   event is updated rather than duplicated.
+8. Change that event's title or time in Outlook and sync.  Confirm the existing
+   Org entry is updated rather than duplicated and its body is preserved.
+9. Create a new event in Outlook's =EmacsSync= calendar and sync.  Confirm it
+   is inserted into =calendar.org= and survives a second sync.
+10. Test deletion in each direction, answering the =ask= prompt carefully, and
+   confirm that declining deletion restores or retains the event as documented.
+11. Run =jds/async-exchange-calendar-fetch= and confirm the agenda does not show
+   an unexpected duplicate.  If the dedicated calendar is not part of the
+   published ICS feed, the local =calendar.org= entry should remain the sole
+   agenda representation.
+12. Test an all-day entry, a DST-boundary date, and a recurring event before
+    trusting those event types.
+
+** Phase 4: optional ergonomics
+
+Only after the controlled tests succeed:
+
+- Consider a command that pushes only the entry at point, if org-caldav offers
+  a reliable public API for it.
+- Consider a global leader binding in =bindings.el=.
+- Keep automatic synchronization disabled unless manual use becomes tedious
+  and failure behavior is well understood.
+
+* Failure handling and rollback
+
+- If Emacs startup is affected, remove or comment only the new guarded
+  =use-package org-caldav= block.  The existing fetch path should remain
+  independent.
+- If the first sync targets the wrong calendar, stop immediately; do not run a
+  second sync in an attempt to repair it.
+- Restore remote data from the pre-test backup or, while it remains dedicated
+  to this experiment, remove and recreate the =EmacsSync= calendar.
+- Preserve a copy of org-caldav's state file before troubleshooting.  Do not
+  delete its state and resync against a populated calendar: losing UID history
+  can create duplicates or make deletions ambiguous.
+- Never use =org-caldav-delete-everything= against a real Exchange calendar.
+
+* Acceptance criteria
+
+- Emacs starts normally when DavMail is stopped or org-caldav is unavailable.
+- Existing exportable =calendar.org= entries are created exactly once in
+  =EmacsSync= and nowhere else.
+- An Outlook-created =EmacsSync= event is imported exactly once into
+  =calendar.org= and remains stable across a second sync.
+- Editing the entry updates it without duplication.
+- Deletions prompt in both directions during the initial deployment.
+- Times remain correct in =America/New_York=, including across DST.
+- The existing =cal-psu.org= fetch still works.
+- The Org agenda does not acquire duplicate representations unexpectedly.
+- No credentials or private calendar URLs enter the Git repository.
+
+* Alternative if org-caldav is unsafe or incompatible
+
+Implement a narrow command that exports only the current Org subtree as an ICS
+VEVENT and performs a CalDAV =PUT= through DavMail, storing the returned/stable
+UID and remote URL as Org properties.  Add separate explicit update and delete
+commands.  This requires more local code but has a smaller remote mutation
+surface than synchronizing an entire file.
+
+Microsoft Graph is the longer-term standards-based alternative, using
+=Calendars.ReadWrite= and =POST /me/events=, but it introduces a separate OAuth
+application and token lifecycle.  Prefer it only if PSU policy or DavMail
+compatibility blocks the CalDAV approach.
+
+* References
+
+- DavMail calendar setup:
+  https://davmail.sourceforge.net/thunderbirdcalendarsetup.html
+- DavMail server settings:
+  https://davmail.sourceforge.net/serversetup.html
+- org-caldav manual:
+  https://github.com/dengste/org-caldav/blob/master/doc/org-caldav.org
+- Microsoft Graph create-event API:
+  https://learn.microsoft.com/en-us/graph/api/user-post-events
+
+* Suggested commit
+
+#+begin_example
+docs(calendar): plan Exchange write-back through DavMail
+#+end_example
