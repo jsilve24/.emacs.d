@@ -389,10 +389,13 @@ Return the citekey on success, or nil otherwise."
   ;; Async callback: insert AI BibTeX into .bib file, then move FILE.
   (defun jds~pdf-ai-bibtex-callback (file response info)
     "Handle gptel RESPONSE for FILE by inserting BibTeX and moving the PDF."
-    (if (not response)
-        (message "AI BibTeX lookup failed for %s: %s"
-                 (file-name-nondirectory file)
-                 (plist-get info :status))
+    ;; gptel also delivers reasoning/tool notifications and abort events.
+    (cond
+     ((null response)
+      (message "AI BibTeX lookup failed for %s: %s"
+               (file-name-nondirectory file)
+               (plist-get info :status)))
+     ((stringp response)
       (let* ((bib-start (and (string-match "@[a-zA-Z]+{" response)
                              (match-beginning 0)))
              (bibtex    (if bib-start (substring response bib-start) response))
@@ -415,7 +418,7 @@ Return the citekey on success, or nil otherwise."
                     (jds/dired-add-file-to-bib key file))
                 (message "AI BibTeX inserted for %s; could not determine key"
                          (file-name-nondirectory file))))
-          (error (message "Error processing AI BibTeX: %s" (error-message-string err)))))))
+          (error (message "Error processing AI BibTeX: %s" (error-message-string err))))))))
 
   (defun jds~pdf-drop-request-ai-bibtex (file title text metadata)
     "Ask AI for a BibTeX entry for FILE using TITLE, TEXT, and METADATA."
@@ -432,19 +435,22 @@ Return the citekey on success, or nil otherwise."
 
   (defun jds~pdf-drop-ai-metadata-callback (file title text local-metadata response info)
     "Handle structured AI metadata RESPONSE for FILE."
-    (if (not response)
-        (progn
-          (message "AI metadata lookup failed for %s: %s"
-                   (file-name-nondirectory file)
-                   (plist-get info :status))
-          (jds~pdf-drop-request-ai-bibtex file title text local-metadata))
+    ;; Only a final answer or failure may advance the import workflow.
+    (cond
+     ((null response)
+      (progn
+        (message "AI metadata lookup failed for %s: %s"
+                 (file-name-nondirectory file)
+                 (plist-get info :status))
+        (jds~pdf-drop-request-ai-bibtex file title text local-metadata)))
+     ((stringp response)
       (let* ((ai-metadata (jds~pdf-drop-parse-ai-metadata response))
              (metadata (jds~pdf-drop-merge-metadata local-metadata ai-metadata)))
         (if-let* ((key (jds~pdf-drop-try-import-from-metadata file metadata)))
             (message "Imported bibliography entry for %s as %s"
                      (file-name-nondirectory file)
                      key)
-          (jds~pdf-drop-request-ai-bibtex file title text metadata)))))
+          (jds~pdf-drop-request-ai-bibtex file title text metadata))))))
 
   ;; Called when DOI/arXiv lookup fails or when no identifier is found at all.
   (defun jds/pdf-drop-ai-bibtex-fallback (file title &optional seed-identifier)
