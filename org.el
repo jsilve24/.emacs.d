@@ -198,6 +198,10 @@
 	   "* MEETING %u with %? :MEETING:\n "
 	   :jump-to-captured t
 	   :tree-type month)
+	  ("mi" "meeting icds" entry (file+olp+datetree "~/Dropbox/org/meetings_icds.org")
+	   "* MEETING %u with %? :MEETING:ICDS:\n "
+	   :jump-to-captured t
+	   :tree-type month)
 	  ("mx" "meeting personal" entry (file+olp+datetree "~/Dropbox/org/meetings_personal.org")
 	   "* MEETING %u with %? :MEETING:\n "
 	   :jump-to-captured t
