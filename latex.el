@@ -431,12 +431,17 @@ Sets TEXINPUTS so pdflatex can find class/style/input files from the project roo
 
 ;;; keybindings
 
+(autoload 'jds/latex-set-project-master
+  (expand-file-name "autoloads/latex.el" user-emacs-directory)
+  "Choose and save the project's LaTeX master file." t)
+
 (jds/localleader-def
   :keymaps 'LaTeX-mode-map
   "d" '(:ignore t :which-key "diff")
   "df" #'latexdiff
   "dv" #'jds/latexdiff-vc
   "m" #'jds/tex-command-run-all-and-save
+  "M" #'jds/latex-set-project-master
   "e" #'LaTeX-environment
   "s" #'LaTeX-section
   "C" #'LaTeX-close-environment
