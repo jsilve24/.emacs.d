@@ -3,7 +3,16 @@
 (use-package yasnippet
   :ensure t
   :commands (yas-expand yas-expand-snippet)
+  ;; AUCTeX uses `LaTeX-mode', while these snippets live in the
+  ;; `latex-mode' directory.  Activate that table explicitly so yasnippet's
+  ;; lazy loader does not depend on when AUCTeX establishes mode ancestry.
+  :hook (LaTeX-mode . jds/yas-activate-latex-snippets)
   :diminish yas-minor-mode
+  :preface
+  (defun jds/yas-activate-latex-snippets ()
+    "Activate the `latex-mode' snippet table in an AUCTeX buffer."
+    (when (require 'yasnippet nil t)
+      (yas-activate-extra-mode 'latex-mode)))
   :config
   (setq yas-snippet-dirs
 	'("~/.emacs.d/snippets"))

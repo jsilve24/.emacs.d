@@ -30,8 +30,8 @@
 \\title{Title Goes Here: Clear, Informative, and Precise}
 \\author[1]{Dharmik Rathod}
 \\author[1,2,3,4,*]{Justin D. Silverman}
-\\affil[1]{College of Information Sciences and Technology, The Pennsylvania State University}
-\\affil[2]{Department of Statistics, The Pennsylvania State University}
+\affil[1]{Department of Statistics, The Pennsylvania State University}
+\affil[2]{College of Information Sciences and Technology, The Pennsylvania State University}
 \\affil[3]{Department of Medicine, The Pennsylvania State University}
 \\affil[4]{Institute for Computational and Data Science, The Pennsylvania State University}
 \\affil[*]{Corresponding Author, JustinSilverman@psu.edu}
