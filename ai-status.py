@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
-"""Read agent quota/status without starting a conversation or refreshing login.
+"""Read agent quota/status without starting a conversation.
 
-Standard library only. Providers run independently with a six-second overall
-deadline. Codex uses the latest local quota snapshot (not a live account check).
+Standard library only. Providers run independently with bounded timeouts.
+Claude CLI manages login refresh. Successful quota checks are cached for 30
+seconds, with stale fallback on errors. Codex uses its local quota snapshot.
 """
 
 import datetime as dt
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -13,11 +15,14 @@ import queue
 import shutil
 import subprocess
 import threading
+import tempfile
 import time
 import urllib.error
 import urllib.request
 
 TIMEOUT = 2
+AGY_TIMEOUT = 12
+CACHE_TTL = 30
 
 
 def read_json(path):
@@ -42,6 +47,18 @@ def claude():
     try:
         oauth = read_json(root / ".credentials.json").get("claudeAiOauth", {})
         if oauth.get("accessToken"):
+            expires = oauth.get("expiresAt")
+            if isinstance(expires, (int, float)) and expires / 1000 <= time.time() + 30:
+                # Let Claude handle token rotation and its credential lock.
+                # Never rotate or rewrite another client's refresh token here.
+                try:
+                    subprocess.run(["claude", "auth", "status", "--json"],
+                                   capture_output=True, timeout=5)
+                except subprocess.TimeoutExpired:
+                    return ["usage check timed out while refreshing Claude login"]
+                oauth = read_json(root / ".credentials.json").get("claudeAiOauth", {})
+                if oauth.get("expiresAt", 0) / 1000 <= time.time():
+                    return ["Claude login expired; run claude auth login"]
             # Same read-only endpoint used by Claude Code's /usage command.
             request = urllib.request.Request(
                 "https://api.anthropic.com/api/oauth/usage",
@@ -61,7 +78,8 @@ def claude():
                 return ["live quota"] + rows
             status = "reachable; quota not reported"
     except urllib.error.HTTPError as error:
-        status = f"usage unavailable (HTTP {error.code})"
+        status = ("Claude login rejected (HTTP 401); run claude auth login"
+                  if error.code == 401 else f"usage unavailable (HTTP {error.code})")
     except FileNotFoundError:
         pass  # Missing credentials means this is not a local OAuth login.
     except (urllib.error.URLError, TimeoutError, OSError):
@@ -120,7 +138,7 @@ def antigravity():
     """
     result = subprocess.run(["agy", "--log-file", os.devnull,
                              "-p", "/usage", "--output-format", "json"],
-                            capture_output=True, text=True, timeout=5)
+                            capture_output=True, text=True, timeout=AGY_TIMEOUT)
     if result.returncode:
         return ["usage unavailable (agy /usage failed)"]
     data = json.loads(result.stdout)
@@ -138,6 +156,54 @@ def antigravity():
     return ["live quota"] + rows if rows else ["reachable; quota not reported"]
 
 
+def cached_quota(name, function):
+    """Reuse recent quota briefly and retain dated results after failed checks.
+
+    Cache quota rows only, never credentials, command stderr or conversations.
+    Separate files and atomic replacement keep concurrent popup refreshes safe.
+    """
+    config = os.getenv("CLAUDE_CONFIG_DIR", "") if name == "Claude" else ""
+    key = hashlib.sha256(config.encode()).hexdigest()[:12]
+    root = Path(os.getenv("XDG_CACHE_HOME", Path.home() / ".cache")) / "jds-llm-status"
+    path = root / f"{name.lower()}-{key}.json"
+    cached = None
+    try:
+        cached = read_json(path)
+        if not (isinstance(cached.get("timestamp"), (int, float))
+                and isinstance(cached.get("rows"), list)
+                and all(isinstance(row, str) for row in cached["rows"])):
+            cached = None
+    except (OSError, ValueError, TypeError, AttributeError):
+        cached = None
+    age = time.time() - cached["timestamp"] if cached else None
+    if age is not None and 0 <= age < CACHE_TTL:
+        return [f"cached quota as of {stamp(cached['timestamp'])}"] + cached["rows"]
+    try:
+        rows = function()
+    except subprocess.TimeoutExpired:
+        rows = ["usage check timed out; active agent sessions are unaffected"]
+    except Exception:
+        rows = ["usage unavailable (local data or service error)"]
+    if rows and rows[0] == "live quota":
+        temporary = None
+        try:
+            root.mkdir(parents=True, exist_ok=True)
+            with tempfile.NamedTemporaryFile(mode="w", dir=root, delete=False) as stream:
+                temporary = stream.name
+                json.dump({"timestamp": time.time(), "rows": rows[1:]}, stream)
+            os.replace(temporary, path)
+        except OSError:
+            if temporary:
+                try:
+                    os.unlink(temporary)
+                except OSError:
+                    pass
+        return rows
+    if cached:
+        return rows[:1] + [f"cached quota as of {stamp(cached['timestamp'])} (last successful check)"] + cached["rows"]
+    return rows
+
+
 def main():
     providers = (("Claude", "claude", claude), ("Codex", "codex", codex),
                  ("Antigravity", "agy", antigravity))
@@ -145,9 +211,12 @@ def main():
 
     def probe(name, executable, function):
         try:
-            rows = function() if shutil.which(executable) else ["not installed / not on PATH"]
+            if not shutil.which(executable):
+                rows = ["not installed / not on PATH"]
+            else:
+                rows = cached_quota(name, function) if name != "Codex" else function()
         except subprocess.TimeoutExpired:
-            rows = ["unreachable (timed out)"]
+            rows = ["usage check timed out; active agent sessions are unaffected"]
         except Exception:
             # Never print raw exceptions: command/HTTP errors can carry secrets.
             rows = ["status unavailable (local data or service error)"]
@@ -156,7 +225,7 @@ def main():
     print("LLM agent status\n")
     for name, executable, function in providers:
         threading.Thread(target=probe, args=(name, executable, function), daemon=True).start()
-    deadline = time.monotonic() + 6
+    deadline = time.monotonic() + AGY_TIMEOUT + 1
     pending = {name for name, _, _ in providers}
     while pending:
         try:
@@ -166,7 +235,7 @@ def main():
         pending.remove(name)
         print(name + "\n  " + "\n  ".join(rows) + "\n", flush=True)
     for name in sorted(pending):
-        print(name + "\n  unreachable (6s deadline)\n")
+        print(name + "\n  usage check exceeded its deadline; active sessions are unaffected\n")
     print("g: refresh    q: close    Percentages show quota used.")
 
 

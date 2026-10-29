@@ -9,7 +9,7 @@
   '((t (:inherit (bold font-lock-keyword-face))))
   "Face for agent headings in the status popup.")
 
-(defvar jds/llm-status-font-lock-keywords
+(defconst jds/llm-status-font-lock-keywords
   '(("^LLM agent status$" . 'bold)
     ("^\\(?:Claude\\|Codex\\|Antigravity\\)$" . 'jds/llm-status-agent)
     ("\\([0-9]+\\(?:\\.[0-9]+\\)?\\)% used"
@@ -20,7 +20,7 @@
     ("^  live quota$" . 'success)
     ("^  cached .*" . 'shadow)
     ("resets .*$" . 'shadow)
-    ("^  .*\\(?:unavailable\\|unreachable\\|not installed\\|not logged in\\).*$" . 'warning)
+    ("^  .*\\(?:unavailable\\|unreachable\\|not installed\\|not logged in\\|timed out\\|expired\\|rejected\\|exceeded\\).*$" . 'warning)
     ("^g:.*$" . 'shadow))
   "Highlight quota usage: green below 80%, amber from 80%, red from 95%.")
 
