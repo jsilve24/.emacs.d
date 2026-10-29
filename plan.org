@@ -53,6 +53,13 @@ calendar staging.
 
 ** Missing guards and OS assumptions
 
+*** TODO Revisit agent quota sources when the CLIs expose stable status interfaces
+`ai-status.py` reads Codex's recent rollout quota snapshots and Claude Code's
+OAuth usage endpoint. These formats can change; failures are isolated per
+provider. Antigravity uses its built-in `/usage` command in JSON print mode.
+Replace the Codex and Claude adapters with official machine-readable status
+commands when available.
+
 *** TODO Review hard-coded machine names and local paths
 There are several machine-specific and filesystem-specific assumptions:
 - EXWM display layout keyed off exact `system-name` values

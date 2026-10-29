@@ -10,6 +10,7 @@
           "Output\\*$"
 	  "\\*Apropos\\*"
           "\\*Async Shell Command\\*"
+          "\\*LLM Status\\*"
 	  "\\*mu4e-update\\*"
 	  "\\*Warnings\\*"
           help-mode

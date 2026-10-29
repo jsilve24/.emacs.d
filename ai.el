@@ -716,8 +716,7 @@ Each element has the form (DISPLAY . MODEL)."
              :type git :host github
              :repo "alberti42/agent-shell-math-renderer")
   :after (agent-shell latex-to-svg-backend)
-  :config
-  (setq agent-shell-math-renderer-enabled t))
+  :hook (agent-shell-mode . agent-shell-math-renderer-mode))
 
 
 
@@ -736,6 +735,7 @@ Each element has the form (DISPLAY . MODEL)."
   "dc" #'jds/gptel-switch-model
   "dd" #'jds/gptel-draft-at-point) ; draft new content at point
 
+(load-config "ai-status.el")
 (load-config "ai-email.el")
 
 (provide 'ai)
