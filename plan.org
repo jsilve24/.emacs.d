@@ -35,6 +35,15 @@ If hooks or stable APIs exist upstream, prefer dropping fork dependence.
 
 ** Public API vs internal API
 
+*** TODO Retire agent-shell submit compatibility remap when upstream fixes Evil integration
+=ai.el= remaps =shell-maker-submit= to =agent-shell-submit= in agent-shell
+buffers.  Evil Collection's shell-maker integration binds =<return>=
+directly to =shell-maker-submit=, bypassing agent-shell's busy queue and
+consuming its persistent prompt.  Confirmed with agent-shell 0.89.3 and
+shell-maker 0.98.2 on 2026-10-29.  Recheck after upstream updates; remove
+the local remap when inherited submit keys respect the derived mode's
+submit handler (for example by binding =comint-send-input= upstream).
+
 *** TODO Review mu4e internals and version-sensitive assumptions
 The mail setup contains comments about mu4e upgrades and behavior changes, and
 it customizes deep mode behavior. Any use of version-sensitive mu4e behavior

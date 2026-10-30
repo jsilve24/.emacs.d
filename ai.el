@@ -602,6 +602,11 @@ Each element has the form (DISPLAY . MODEL)."
 (use-package agent-shell
   :ensure t
   :config
+  ;; Evil Collection binds graphical <return> directly to shell-maker-submit.
+  ;; Route inherited submit bindings through agent-shell's busy prompt queue;
+  ;; shell-maker-submit consumes the live prompt even when it cannot execute.
+  (define-key agent-shell-mode-map [remap shell-maker-submit] #'agent-shell-submit)
+
   (defun jds/agent-shell-backtab-dwim ()
     "Move to the previous completion candidate, or start completion."
     (interactive)
