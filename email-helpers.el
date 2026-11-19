@@ -3,6 +3,14 @@
 (require 'cl-lib)
 (require 'subr-x)
 
+(defvar mu4e-compose-mode-hook nil)
+(defvar mu4e-compose-parent-message nil)
+(defvar message-forward-as-mime)
+(defvar message-forward-show-mml)
+(defvar message-forward-ignored-headers)
+(defvar message-forward-included-headers)
+(declare-function mu4e-compose-forward "mu4e-compose")
+
 ;; keep byte-compiler and autoloaded helpers happy when this file loads before mu4e
 (declare-function mu4e-message-at-point "mu4e-message")
 (declare-function mu4e-headers-mark-for-move "mu4e-headers")
@@ -230,5 +238,137 @@ If NO-WIDE is nil, make it a \"wide\" reply (a.k.a.
       (mu4e-compose-reply-to nil nil)
     (mu4e-compose-reply-to nil t))
   )
+
+;;; Maple delegation ------------------------------------------------------
+
+(defconst jds/mu4e-maple-address "maple.silverman.assistant@gmail.com"
+  "Address of Maple, Justin's digital assistant.")
+
+(defvar jds/mu4e-preserve-forward-mime nil
+  "Non-nil skips the rendered-text forwarding workaround for one forward.")
+
+;;;###autoload
+(defun jds/mu4e-maple-add-cc ()
+  "Add Maple to the current draft's Cc without sending it.
+Preserve other recipients and do nothing if Maple is already in To or Cc.
+From headers or message view, start a reply-all draft with Maple in Cc."
+  (interactive)
+  (if (derived-mode-p 'mu4e-headers-mode 'mu4e-view-mode)
+      (jds/mu4e-maple-reply)
+    (unless (derived-mode-p 'message-mode 'org-msg-edit-mode)
+      (user-error "Use this command in a mail composition buffer"))
+    (require 'message)
+    (require 'mail-extr)
+    (save-excursion
+      (save-restriction
+        (widen)
+        (let* ((cc (save-restriction
+                     (message-narrow-to-headers)
+                     (message-field-value "Cc" t)))
+               (addresses
+                (save-restriction
+                  (message-narrow-to-headers)
+                  (mail-extract-address-components
+                   (string-join (delq nil (list (message-field-value "To" t) cc)) ", ")
+                   t))))
+          (if (cl-some (lambda (address)
+                         (string-equal (downcase (or (cadr address) ""))
+                                       jds/mu4e-maple-address))
+                       addresses)
+              (message "Maple is already a recipient")
+            ;; message-replace-header locates the header separator itself.
+            (message-replace-header
+             "Cc" (concat (unless (string-empty-p (or cc "")) (concat cc ", "))
+                          "Maple <" jds/mu4e-maple-address ">"))
+            (message "Added Maple to Cc; draft not sent")))))))
+
+;;;###autoload
+(defun jds/mu4e-maple-reply ()
+  "Open a reply-all draft to the message at point and Cc Maple.
+Use the existing reply and account-selection flow; never send automatically.
+In a composition buffer, only add Maple to Cc, retaining the draft and its
+current recipients rather than rebuilding a reply or discarding edits."
+  (interactive)
+  (if (derived-mode-p 'message-mode 'org-msg-edit-mode)
+      (jds/mu4e-maple-add-cc)
+    (unless (derived-mode-p 'mu4e-headers-mode 'mu4e-view-mode)
+      (user-error "Use this command in Mu4e headers or message view"))
+    (let ((draft (jds/mu4e-compose-reply)))
+      (unless (buffer-live-p draft)
+	(user-error "Mu4e did not return a reply draft; no message was sent"))
+      (with-current-buffer draft
+	(jds/mu4e-maple-add-cc)))))
+
+(defun jds/mu4e-maple-format-contacts (contacts)
+  "Format Mu4e CONTACTS for the visible delegation summary."
+  (mapconcat (lambda (contact)
+               (let ((name (plist-get contact :name))
+                     (email (or (plist-get contact :email) "")))
+                 (if (and name (not (string-empty-p name)))
+                     (format "%s <%s>" name email)
+                   email)))
+             contacts ", "))
+
+;;;###autoload
+(defun jds/mu4e-maple-forward ()
+  "Open a forward to Maple, preserving the original message as MIME.
+The draft remains editable and unsent.  Unlike the ordinary text-only
+forward workaround, this retains original headers and attachments.  This
+one draft uses plain Message composition, not OrgMsg, so MIME markers stay
+intact.  From an existing reply/forward draft, forward its original message
+in a new buffer and leave the unsent draft unchanged.  A new draft without
+an identified original cannot be forwarded with this command.  Existing account selection and ordinary forwards are unchanged."
+  (interactive)
+  (unless (derived-mode-p 'mu4e-headers-mode 'mu4e-view-mode
+                          'message-mode 'org-msg-edit-mode)
+    (user-error "Use this command in Mu4e or a mail composition buffer"))
+  (require 'message)
+  (let* ((composing (derived-mode-p 'message-mode 'org-msg-edit-mode))
+         (parent (if composing
+                     (and (boundp 'mu4e-compose-parent-message)
+                          mu4e-compose-parent-message)
+                   (mu4e-message-at-point)))
+         (_ (unless (and parent (plist-get parent :message-id))
+              (user-error "No original message identified; current draft left unchanged")))
+         (jds/mu4e-preserve-forward-mime t)
+         (message-forward-as-mime t)
+         (message-forward-show-mml nil)
+         (message-forward-ignored-headers nil)
+         (message-forward-included-headers nil)
+         ;; A dynamic hook binding affects only this synchronous compose call.
+         ;; Do not toggle global OrgMsg mode or change unrelated drafts.
+         (mu4e-compose-mode-hook
+          (remove #'org-msg-post-setup mu4e-compose-mode-hook))
+         ;; In a draft, forward its original message, never the unsent edits.
+         ;; Mu4e's public forward command gets that source via message-at-point.
+         (draft (if composing
+                    (cl-letf (((symbol-function 'mu4e-message-at-point)
+                               (lambda (&rest _args) parent)))
+                      (mu4e-compose-forward))
+                  (mu4e-compose-forward))))
+    (unless (buffer-live-p draft)
+      (user-error "Mu4e did not return a forward draft; no message was sent"))
+    (with-current-buffer draft
+      (save-restriction
+        (widen)
+        (save-excursion
+          (message-replace-header "To" (concat "Maple <" jds/mu4e-maple-address ">"))
+          (save-restriction
+            (message-narrow-to-headers)
+            (message-remove-header "Cc")
+            (message-remove-header "Bcc")))
+        (message-goto-body)
+        (let ((instructions (point)))
+          (insert "\n\nOriginal message (full email and attachments forwarded below):\n"
+                  "From: " (jds/mu4e-maple-format-contacts (plist-get parent :from)) "\n"
+                  "To: " (jds/mu4e-maple-format-contacts (plist-get parent :to)) "\n"
+                  "Cc: " (jds/mu4e-maple-format-contacts (plist-get parent :cc)) "\n"
+                  "Date: " (if-let ((date (plist-get parent :date)))
+                               (format-time-string "%a, %d %b %Y %T %z" date) "") "\n"
+                  "Subject: " (or (plist-get parent :subject) "") "\n"
+                  "Message-ID: " (or (plist-get parent :message-id) "") "\n\n")
+          (goto-char instructions))))
+    (message "Forward to Maple ready; add instructions, review, then send")
+    draft))
 
 (provide 'email-helpers)
