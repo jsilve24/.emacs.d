@@ -26,6 +26,7 @@
 (declare-function slack-team-ims "slack-team")
 (declare-function slack-team-set-room "slack-team")
 (declare-function slack-start "slack")
+(declare-function slack-team-connectedp "slack-team")
 (declare-function slack-team-connected-list "slack-team")
 (declare-function slack-team-find "slack-team")
 (declare-function slack-team-name "slack-team")
@@ -185,6 +186,28 @@ lookup tables."
         (setq team (and (fboundp 'slack-team-find)
                         (slack-team-find team-id))))
       team)))
+
+(defun jds/slack-open-maple ()
+  "Open the Maple Slack conversation, starting Slack if necessary."
+  (interactive)
+  ;; Stable IDs keep this independent of buffer and workspace display names.
+  (let* ((team-id "T019KEZ4NA0")
+         (room-id "D0CK3EPP9K5")
+         (team (slack-team-find team-id)))
+    (if team
+        (unless (slack-team-connectedp team)
+          (slack-start team))
+      (setq team (jds~slack-ensure-team-ready team-id)))
+    (unless team
+      (user-error "Slack is not ready to open Maple"))
+    (cl-labels ((display-room ()
+                 (let ((room (slack-room-find room-id team)))
+                   (unless room
+                     (user-error "Maple's Slack conversation is unavailable"))
+                   (slack-room-display room team))))
+      (if (slack-room-find room-id team)
+          (display-room)
+        (slack-conversations-info room-id team #'display-room)))))
 
 (defun jds~slack-parse-org-link (link)
   "Parse a Slack org LINK into its team, room, and timestamp components."

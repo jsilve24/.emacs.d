@@ -387,6 +387,7 @@
             (call-interactively #'jds/slack-open-group-dm)
           (call-interactively (jds~start-slack-function 'slack-select-rooms))))
   "Y" (jds~start-slack-function 'slack-select-unread-rooms)
+  "x" '(jds/slack-open-maple :which-key "Slack Maple")
   "k" #'jds/help-thing-at-point
   "d" #'jds/dired-jump-and-kill-buffer
   "D" #'dired-jump-other-window
