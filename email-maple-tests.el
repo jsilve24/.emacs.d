@@ -77,7 +77,7 @@
             (should (string-suffix-p "Reply\n> Original\n" (buffer-string)))))
       (kill-buffer draft))))
 
-(ert-deftest jds/mu4e-maple-forward-preserves-mime-and-clears-only-envelope ()
+(ert-deftest jds/mu4e-maple-forward-uses-normal-flow-and-addresses-maple ()
   (let ((draft (generate-new-buffer " *maple-test-forward*"))
         (mu4e-compose-mode-hook '(ignore org-msg-post-setup))
         (message-forward-as-mime nil)
@@ -91,16 +91,13 @@
             (cl-letf (((symbol-function 'mu4e-message-at-point) (lambda (&rest _) parent))
                       ((symbol-function 'mu4e-compose-forward)
                        (lambda ()
-                         (should jds/mu4e-preserve-forward-mime)
-                         (should message-forward-as-mime)
-                         (should-not message-forward-show-mml)
-                         (should-not message-forward-ignored-headers)
-                         (should (equal mu4e-compose-mode-hook '(ignore)))
+                         (should-not message-forward-as-mime)
+                         (should (equal mu4e-compose-mode-hook '(ignore org-msg-post-setup)))
                          (with-current-buffer draft
                            (message-mode)
-                           (insert "From: jds6696@psu.edu\nTo: wrong@example.org\nCc: wrong@example.org\nBcc: hidden@example.org\nSubject: Fwd: Meeting\n"
+                           (insert "From: jds6696@psu.edu\nTo: \nCc: wrong@example.org\nBcc: hidden@example.org\nSubject: Fwd: Meeting\n"
                                    mail-header-separator
-                                   "\n<#part type=message/rfc822>\nFrom: bob@example.org\nCc: alice@example.org\nMessage-ID: <original@example.org>\n\nAttachment bytes\n<#/part>\n"))
+                                   "\nRendered forward body.\n"))
                          draft))
                       ((symbol-function 'message-send) (lambda (&rest _) (ert-fail "Must not send"))))
               (jds/mu4e-maple-forward)))
@@ -108,12 +105,11 @@
           (should-not message-forward-as-mime)
           (with-current-buffer draft
             (should (equal (message-field-value "To") (concat "Maple <" jds/mu4e-maple-address ">")))
-            (should-not (message-field-value "Cc"))
-            (should-not (message-field-value "Bcc"))
+            (should (equal (message-field-value "Cc") "wrong@example.org"))
+            (should (equal (message-field-value "Bcc") "hidden@example.org"))
             (should (equal (message-field-value "From") "jds6696@psu.edu"))
             (should (= (point) (save-excursion (message-goto-body) (point))))
-            (should (string-match-p "Message-ID: original@example.org" (buffer-string)))
-            (should (string-suffix-p "<#part type=message/rfc822>\nFrom: bob@example.org\nCc: alice@example.org\nMessage-ID: <original@example.org>\n\nAttachment bytes\n<#/part>\n" (buffer-string)))))
+            (should (string-suffix-p "Rendered forward body.\n" (buffer-string)))))
       (kill-buffer draft))))
 
 (ert-deftest jds/mu4e-maple-forward-restores-settings-on-error ()
@@ -125,8 +121,7 @@
                 ((symbol-function 'mu4e-compose-forward) (lambda () (error "Cancelled"))))
         (should-error (jds/mu4e-maple-forward))))
     (should (equal mu4e-compose-mode-hook '(org-msg-post-setup)))
-    (should-not message-forward-as-mime)
-    (should-not jds/mu4e-preserve-forward-mime)))
+    (should-not message-forward-as-mime)))
 
 (ert-deftest jds/mu4e-maple-cc-restores-narrowing ()
   (jds/mu4e-test-with-draft "To: bob@example.org\nSubject: Test"
@@ -164,45 +159,37 @@
                          (should (equal (mu4e-message-at-point) original))
                          (with-current-buffer forward
                            (message-mode)
-                           (insert "To: \nSubject: Fwd: Original\n" mail-header-separator "\nOriginal MIME\n"))
+                           (insert "To: \nSubject: Fwd: Original\n" mail-header-separator "\nRendered original\n"))
                          forward)))
               (jds/mu4e-maple-forward))
             (should (equal before (buffer-string)))))
       (kill-buffer forward))))
 
-(ert-deftest jds/mu4e-maple-native-message-forward-keeps-source-mime ()
-  ;; Exercise the real Message forwarding engine used by Mu4e.  Mu4e's
-  ;; server/account/window integration still needs a live-machine smoke test.
-  (let ((message-forward-as-mime t)
-        (message-forward-show-mml nil)
-        (message-forward-ignored-headers nil)
-        (message-forward-included-headers nil)
-        (message-signature nil)
-        (message-user-fqdn "example.org")
-        (user-mail-address "jds6696@psu.edu")
-        (source (generate-new-buffer " *maple-source*"))
-        draft)
+(ert-deftest jds/mu4e-maple-forward-keeps-to-inside-accessible-headers ()
+  (let ((draft (generate-new-buffer " *maple-narrowed-forward*")))
     (unwind-protect
-        (progn
-          (with-current-buffer source
-            (insert "From: Bob <bob@example.org>\nTo: jds6696@psu.edu\nCc: alice@example.org\n"
-                    "Date: Thu, 19 Nov 2026 12:00:00 -0500\nSubject: Test attachment\n"
-                    "Message-ID: <original@example.org>\nMIME-Version: 1.0\n"
-                    "Content-Type: multipart/mixed; boundary=test-boundary\n\n"
-                    "--test-boundary\nContent-Type: text/plain\n\nHello.\n"
-                    "--test-boundary\nContent-Type: application/octet-stream\n"
-                    "Content-Disposition: attachment; filename=sample.bin\n"
-                    "Content-Transfer-Encoding: base64\n\nAAECAwQF\n--test-boundary--\n")
-            (cl-letf (((symbol-function 'message-pop-to-buffer)
-                       (lambda (name &rest _)
-                         (setq draft (get-buffer-create name))
-                         (set-buffer draft))))
-              (message-forward)))
-          (with-current-buffer draft
-            (should (string-match-p "Message-ID: <original@example.org>" (buffer-string)))
-            (should (string-match-p "Cc: alice@example.org" (buffer-string)))
-            (should (string-match-p "filename=sample.bin" (buffer-string)))
-            (should (string-match-p "AAECAwQF" (buffer-string)))
-            (should (string-match-p "type=message/rfc822" (buffer-string)))))
-      (when (buffer-live-p draft) (kill-buffer draft))
-      (when (buffer-live-p source) (kill-buffer source)))))
+        (with-temp-buffer
+          (jds/mu4e-test-view-mode)
+          (cl-letf (((symbol-function 'mu4e-message-at-point)
+                     (lambda () '(:message-id "original@example.org")))
+                    ((symbol-function 'mu4e-compose-forward)
+                     (lambda ()
+                       (with-current-buffer draft
+                         (message-mode)
+                         (insert "References: <original@example.org>\nTo: \nSubject: Fwd: Test\nFrom: justin@example.org\n"
+                                 mail-header-separator "\nRendered body.\n")
+                         (goto-char (point-min))
+                         (search-forward "To:")
+                         (beginning-of-line)
+                         (narrow-to-region (point) (point-max)))
+                       draft)))
+            (jds/mu4e-maple-forward)
+            (with-current-buffer draft
+              (should (buffer-narrowed-p))
+              (should (string-prefix-p "To: Maple <" (buffer-string)))
+              (should (string-match-p
+                       (regexp-quote (concat "To: Maple <" jds/mu4e-maple-address ">"))
+                       (buffer-string)))
+              (should (= (point) (save-excursion (message-goto-body) (point))))
+              (should (string-suffix-p "Rendered body.\n" (buffer-string))))))
+      (kill-buffer draft))))

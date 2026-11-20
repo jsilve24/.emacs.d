@@ -240,9 +240,7 @@ Set this to nil on machines where mail services are intentionally unavailable."
 
   (defun jds/mu4e-compose-forward-inline (orig-fun &rest args)
     "Clean the body of forwarded messages after mu4e creates the draft."
-    (if jds/mu4e-preserve-forward-mime
-        (apply orig-fun args)
-      (let* ((parent (mu4e-message-at-point))
+    (let* ((parent (mu4e-message-at-point))
              (draft-buffer (apply orig-fun args)))
 	(when (buffer-live-p draft-buffer)
           (with-current-buffer draft-buffer
@@ -258,7 +256,7 @@ Set this to nil on machines where mail services are intentionally unavailable."
                        (derived-mode-p 'mu4e-compose-mode)
                        (not (eq major-mode 'org-msg-edit-mode)))
               (org-msg-post-setup))))
-	draft-buffer)))
+	draft-buffer))
   (advice-remove 'mu4e-compose-forward #'jds/mu4e-compose-forward-inline)
   (advice-add 'mu4e-compose-forward :around #'jds/mu4e-compose-forward-inline)
   (mu4e-modeline-mode 0))
