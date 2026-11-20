@@ -17,7 +17,8 @@
 	slack-file-dir "~/Downloads/")
   :config
   ;; make default same window
-  (setq slack-buffer-function #'switch-to-buffer)
+  (setq slack-buffer-function #'switch-to-buffer
+	slack-thread-also-send-to-room nil)
 
   ;; setup team
   (let* ((host "silvermanlabhq.slack.com")

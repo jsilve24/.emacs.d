@@ -656,6 +656,10 @@ Each element has the form (DISPLAY . MODEL)."
     text)
 
 
+  ;; Use the system Codex CLI so agent-shell follows CLI upgrades.
+  (add-to-list 'agent-shell-openai-codex-environment
+               "CODEX_PATH=/usr/bin/codex")
+
   (setq agent-shell-openai-authentication
 	(agent-shell-openai-make-authentication :login t)
 	agent-shell-anthropic-authentication
@@ -722,6 +726,18 @@ Each element has the form (DISPLAY . MODEL)."
              :repo "alberti42/agent-shell-math-renderer")
   :after (agent-shell latex-to-svg-backend)
   :hook (agent-shell-mode . agent-shell-math-renderer-mode))
+
+
+(use-package agent-shell-links
+  :straight (:type git :host github :repo "ultronozm/agent-shell-links.el")
+  :demand
+  :config
+  (agent-shell-links-bookmark-setup)
+  (with-eval-after-load 'ol
+    (org-link-set-parameters
+     "agent-shell"
+     :follow #'agent-shell-links-org-follow
+     :store #'agent-shell-links-org-store)))
 
 
 
