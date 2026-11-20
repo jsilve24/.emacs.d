@@ -240,23 +240,25 @@ Set this to nil on machines where mail services are intentionally unavailable."
 
   (defun jds/mu4e-compose-forward-inline (orig-fun &rest args)
     "Clean the body of forwarded messages after mu4e creates the draft."
-    (let* ((parent (mu4e-message-at-point))
-           (draft-buffer (apply orig-fun args)))
-      (when (buffer-live-p draft-buffer)
-        (with-current-buffer draft-buffer
-          (save-excursion
-            (if (eq major-mode 'org-msg-edit-mode)
-                (org-msg-goto-body)
-              (message-goto-body))
-            (delete-region (point) (point-max))
-            (insert "\n-------------------- Start of forwarded message --------------------\n"
-                    (jds/mu4e-forward-body-text parent)
-                    "\n-------------------- End of forwarded message --------------------\n"))
-          (when (and (fboundp 'org-msg-post-setup)
-                     (derived-mode-p 'mu4e-compose-mode)
-                     (not (eq major-mode 'org-msg-edit-mode)))
-            (org-msg-post-setup))))
-      draft-buffer))
+    (if jds/mu4e-preserve-forward-mime
+        (apply orig-fun args)
+      (let* ((parent (mu4e-message-at-point))
+             (draft-buffer (apply orig-fun args)))
+	(when (buffer-live-p draft-buffer)
+          (with-current-buffer draft-buffer
+            (save-excursion
+              (if (eq major-mode 'org-msg-edit-mode)
+                  (org-msg-goto-body)
+		(message-goto-body))
+              (delete-region (point) (point-max))
+              (insert "\n-------------------- Start of forwarded message --------------------\n"
+                      (jds/mu4e-forward-body-text parent)
+                      "\n-------------------- End of forwarded message --------------------\n"))
+            (when (and (fboundp 'org-msg-post-setup)
+                       (derived-mode-p 'mu4e-compose-mode)
+                       (not (eq major-mode 'org-msg-edit-mode)))
+              (org-msg-post-setup))))
+	draft-buffer)))
   (advice-remove 'mu4e-compose-forward #'jds/mu4e-compose-forward-inline)
   (advice-add 'mu4e-compose-forward :around #'jds/mu4e-compose-forward-inline)
   (mu4e-modeline-mode 0))
@@ -313,6 +315,10 @@ Set this to nil on machines where mail services are intentionally unavailable."
     "gc" '(message-goto-cc :which-key "goto cc")
     "gt" '(message-goto-to :which-key "goto to")
     "gx" '(jds/message-swap-to-and-cc :which-key "swap to/cc")
+    "a" '(:ignore t :which-key "assistant")
+    "ac" '(jds/mu4e-maple-add-cc :which-key "Cc Maple")
+    "af" '(jds/mu4e-maple-forward :which-key "forward original to Maple")
+    "ar" '(jds/mu4e-maple-reply :which-key "Cc Maple (keep draft)")
     "k" '(message-kill-buffer :which-key "kill message")
     "gp" '(jds/org-msg-goto-properties :which-key "goto properties")
     "gb" '(jds/org-msg-goto-body :which-key "goto body")
@@ -435,11 +441,19 @@ Preserve the standard header order by changing field values in place."
   "gc" '(message-goto-cc :which-key "goto cc")
   "gt" '(message-goto-to :which-key "goto to")
   "gx" '(jds/message-swap-to-and-cc :which-key "swap to/cc")
+  "a" '(:ignore t :which-key "assistant")
+  "ac" '(jds/mu4e-maple-add-cc :which-key "Cc Maple")
+  "af" '(jds/mu4e-maple-forward :which-key "forward original to Maple")
+  "ar" '(jds/mu4e-maple-reply :which-key "Cc Maple (keep draft)")
   "k" '(message-kill-buffer :which-key "kill message")
   "gb" '(message-goto-body :which-key "goto body"))
 
 (jds/localleader-def
   :keymaps '(mu4e-view-mode-map mu4e-headers-mode-map)
+  "a" '(:ignore t :which-key "assistant")
+  "ac" '(jds/mu4e-maple-add-cc :which-key "reply all + Cc Maple")
+  "af" '(jds/mu4e-maple-forward :which-key "forward to Maple")
+  "ar" '(jds/mu4e-maple-reply :which-key "reply all + Cc Maple")
   "u" '(mu4e-update-mail-and-index :which-key "update mail and index")
   "s" '(mu4e-view-save-attachments :which-key "save-attachments")
   "j" '(jds/mu4e-mark-junk :which-key "junk")

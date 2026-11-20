@@ -128,3 +128,39 @@ emacs -Q --batch -l init.el
 ```
 
 If startup work touches network-installed packages, do that interactively rather than assuming batch startup is enough.
+
+## Delegating email to Maple
+
+In Mu4e headers, message view, normal compose, and OrgMsg compose, use the
+localleader `m a` (assistant) prefix:
+
+- `m a c`: add Maple to Cc in a draft. From headers/view, open reply-all and add
+  Maple. Existing To/Cc recipients are retained; repeated use does not duplicate
+  Maple when already in To or Cc.
+- `m a r`: open reply-all with Maple in Cc. In an existing draft, only add Maple
+  to Cc, keeping its current recipients and edits rather than rebuilding it.
+- `m a f`: forward to Maple alone. In a reply/forward draft, open a separate
+  forward of the **original message**, leaving the current unsent draft alone.
+  A new draft with no original message is refused rather than guessed at.
+
+These commands only prepare drafts. Review the recipients and add instructions,
+then send normally. They do not change the selected mail account or add Maple's
+account as a sending identity. Use the existing `m g c` binding to inspect Cc.
+
+Maple forwards deliberately use plain Mu4e/Message composition with the original
+message retained as raw MIME, including its headers and attachments. A brief
+source summary and blank space for instructions appear above it. Only this
+forward bypasses the ordinary rendered-text forwarding workaround and OrgMsg
+setup; normal forwarding and other open drafts keep their existing behavior.
+
+Helpers live in `email-helpers.el`; mode bindings and the scoped forwarding
+workaround switch live in `email.el`. Run the isolated regression tests with:
+
+```bash
+emacs -Q --batch -l email-maple-tests.el -f ert-run-tests-batch-and-exit
+```
+
+The tests exercise recipient edits, draft preservation, per-call settings, and
+Message's real MIME forwarding engine. They do not replace a smoke test in the
+installed Mu4e/OrgMsg environment. In each view, prepare a draft, inspect the
+sender/recipients and an attachment, and cancel it without sending.
